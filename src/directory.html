@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Directory · Hentity</title>
+<style>
+.dir{max-width:1248px;margin:0 auto;padding:40px 24px 96px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0 28px}
+.col-card{overflow:hidden;display:block}
+.col-card i{display:block;height:72px}
+.col-card div{padding:14px 14px 16px}
+.dir-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px}
+.drow{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);background:var(--color-bg-canvas)}
+.drow + .drow{margin-top:10px}
+.fpanel{background:var(--color-bg-subtle);border-radius:var(--radius-lg);padding:20px;align-self:start;position:sticky;top:88px}
+.fpanel h3{margin:24px 0 12px}
+.fpanel .check{display:flex;margin:0 0 10px;font-size:14px}
+.sortsel{appearance:none;border:0;background:transparent;font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;padding-left:20px}
+@media (max-width:1024px){.dir-grid{grid-template-columns:1fr}.fpanel{position:static;order:-1}}
+@media (max-width:768px){.dir{padding:16px 16px 32px}.cols{grid-template-columns:1fr 1fr 1fr;overflow-x:auto;grid-template-columns:repeat(3,240px);margin:20px -16px;padding:0 16px}.dir h1{font-size:32px!important;line-height:38px!important}.drow{padding:12px;gap:12px}.drow .plogo{width:40px;height:40px;font-size:18px}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="dir">
+  <div class="row between wrap gap-16" style="align-items:flex-end">
+    <div><p class="t-eyebrow c-3">Directory · 1,240 products</p><h1 class="row gap-16" style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em;margin-top:8px" id="title">Built near you <span id="title-flag"></span></h1></div>
+    <div class="seg" role="tablist" aria-label="Scope"><button role="tab" aria-selected="true" data-scope="local">Nigeria</button><button role="tab" aria-selected="false" data-scope="all">Pan-African</button></div>
+  </div>
+  <div class="cols" id="collections">
+    <a class="card col-card" href="?pay=M-Pesa&scope=all"><i style="background:#16a34a"></i><div><p class="t-label">Tools that accept M-Pesa</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Hentity editors · 42 products</p></div></a>
+    <a class="card col-card" href="?scope=all&country=MA"><i style="background:#2563eb"></i><div><p class="t-label">SME tools in Francophone Africa</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Hentity editors · 27 products</p></div></a>
+    <a class="card col-card" href="?scope=all&sort=votes"><i style="background:#ff5b14"></i><div><p class="t-label">Best of October</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Community · 30 products</p></div></a>
+  </div>
+  <div class="dir-grid">
+    <div>
+      <div class="row between" style="margin-bottom:14px;gap:12px"><p class="t-label" style="font-size:14px" id="count" aria-live="polite"></p><label class="row" style="position:relative"><span data-icon="chevron-down" data-cls="ic-14"></span><span class="sr-only">Sort</span><select class="sortsel" id="sort" style="margin-left:-18px"><option value="followed">Sort: Most followed</option><option value="votes">Sort: Most upvoted</option><option value="new">Sort: Newest</option><option value="az">Sort: A–Z</option></select></label></div>
+      <div id="list"></div>
+    </div>
+    <aside class="fpanel" aria-label="Filters">
+      <div class="row between"><h2 class="t-h4" style="font-size:16px">Filters</h2><button class="link c-2" type="button" id="clear" style="font-weight:400">Clear all</button></div>
+      <h3 class="t-eyebrow c-3">Country</h3><div data-group="country"></div>
+      <h3 class="t-eyebrow c-3">Pays with</h3><div data-group="pay"></div>
+      <h3 class="t-eyebrow c-3">Stage</h3><div data-group="stage"></div>
+      <h3 class="t-eyebrow c-3">Sector</h3><div class="chips" id="sector"></div>
+      <h3 class="t-eyebrow c-3">Language</h3><div data-group="lang"></div>
+    </aside>
+  </div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'Categories', tab: 'Directory' });
+(function () {
+  const { qs, qsa, icon, flag, esc, store, toast } = H;
+  const prm = H.params();
+  const G = { country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['French']] };
+  const state = store.get('dirFilters', { country: ['NG'], pay: ['Paystack', 'USSD'], stage: ['Pre-seed', 'Seed'], lang: ['English'], sector: ['Fintech'] });
+  let scope = prm.get('scope') || 'local';
+  if (prm.get('pay')) state.pay = [prm.get('pay')], state.stage = [], state.sector = [], state.country = [];
+  if (prm.get('country')) state.country = [prm.get('country')], state.pay = [], state.stage = [], state.sector = [];
+  if (prm.get('sector')) state.sector = [prm.get('sector')], state.pay = [], state.stage = [];
+  if (prm.get('q')) state.pay = [], state.stage = [], state.sector = [], state.lang = [], scope = 'all';
+  if (prm.get('sort')) qs('#sort').value = prm.get('sort');
+  Object.entries(G).forEach(([g, opts]) => {
+    qs(`[data-group="${g}"]`).innerHTML = opts.map(([v, l]) => `<label class="check"><input type="checkbox" value="${v}" data-f="${g}" ${state[g].includes(v) ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${l || v}</label>`).join('');
+  });
+  const sectors = ['Fintech', 'Commerce', 'Education', 'Health', 'AI'];
+  qs('#sector').innerHTML = sectors.map(s => `<button class="chip" type="button" data-chip data-sector="${s}" aria-pressed="${state.sector.includes(s)}">${icon('check')}${s}</button>`).join('');
+  H.bindChips(qs('#sector'), () => { state.sector = qsa('#sector [aria-pressed="true"]').map(c => c.dataset.sector); render(); });
+  document.addEventListener('change', e => { const f = e.target.dataset && e.target.dataset.f; if (!f) return; state[f] = qsa(`[data-f="${f}"]:checked`).map(i => i.value); render(); });
+  qs('#sort').addEventListener('change', render);
+  qs('#clear').addEventListener('click', () => { Object.keys(state).forEach(k => state[k] = []); qsa('[data-f]').forEach(i => i.checked = false); qsa('#sector [data-chip]').forEach(c => c.setAttribute('aria-pressed', 'false')); render(); });
+  qsa('[data-scope]').forEach(t => { t.setAttribute('aria-selected', String(t.dataset.scope === scope)); t.addEventListener('click', () => { scope = t.dataset.scope; qsa('[data-scope]').forEach(o => o.setAttribute('aria-selected', String(o === t))); render(); }); });
+  const fol = store.get('following', {});
+  function render() {
+    store.set('dirFilters', state);
+    const q = (prm.get('q') || '').toLowerCase();
+    let L = D.P.filter(p => !p.upcoming && !['ledgerline-for-accountants', 'momo-parser'].includes(p.slug));
+    if (scope === 'local') L = L.filter(p => p.cc === 'NG');
+    if (state.country.length && scope !== 'local') L = L.filter(p => state.country.includes(p.cc));
+    if (state.pay.length) L = L.filter(p => state.pay.some(x => (p.rails || '').includes(x)));
+    if (state.stage.length) L = L.filter(p => state.stage.includes(p.stage));
+    if (state.sector.length) L = L.filter(p => state.sector.includes(p.cat));
+    if (state.lang.length) L = L.filter(p => state.lang.includes(p.lang || 'English'));
+    if (q) L = L.filter(p => (p.n + ' ' + p.t + ' ' + p.cat + ' ' + p.city).toLowerCase().includes(q));
+    const s = qs('#sort').value;
+    L.sort((a, b) => s === 'az' ? a.n.localeCompare(b.n) : s === 'new' ? a.slug.length - b.slug.length : (b.votes + b.comments * 3) - (a.votes + a.comments * 3));
+    if (s === 'votes') L.sort((a, b) => b.votes - a.votes);
+    qs('#title').firstChild.textContent = q ? `Results for “${prm.get('q')}” ` : scope === 'local' ? 'Built near you ' : 'Built across Africa ';
+    qs('#title-flag').innerHTML = scope === 'local' && !q ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
+    qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;
+    qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow"><a class="plogo" href="/products/${p.slug}" style="background:${p.c}" tabindex="-1" aria-hidden="true">${p.n[0]}</a><div class="grow stack gap-4"><p class="row gap-8 t-label" style="font-size:14px"><a href="/products/${p.slug}">${esc(p.n)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.t)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.cc)}${esc(p.city)}</span><span class="badge">${esc(p.cat)}</span>${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.rails ? `<span class="badge badge--outline hide-sm">${esc(p.rails)}</span>` : ''}</div></div><button class="btn btn--sm ${fol['p:' + p.slug] ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.slug}">${fol['p:' + p.slug] ? 'Following' : 'Follow'}</button></article>`).join('')
+      : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">No products match these filters</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Remove a filter or switch to Pan-African.</p><button class="btn btn--secondary btn--sm" type="button" onclick="document.getElementById('clear').click()">Clear all filters</button></div>`;
+  }
+  qs('#list').addEventListener('click', e => { const b = e.target.closest('[data-pf]'); if (!b) return; if (!H.session()) { location.href = '/signin?next=/directory'; return; } const k = 'p:' + b.dataset.pf; fol[k] = !fol[k]; store.set('following', fol); b.textContent = fol[k] ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (fol[k] ? 'btn--ghost' : 'btn--secondary'); });
+  render();
+})();
+</script>
+</body>
+</html>

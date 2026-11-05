@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Account &amp; security · Hentity</title>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="settings">
+  <div data-sidenav="account"></div>
+  <main class="stack gap-24">
+    <div class="page-head" style="margin:0"><div><h1>Account &amp; security</h1><p>How you sign in to Hentity and where you are signed in right now.</p></div></div>
+
+    <section class="card card--pad" aria-labelledby="m-t">
+      <h2 class="card__title" id="m-t" style="margin-bottom:16px">Sign-in methods</h2>
+      <div class="list-row">
+        <span class="icon-tile"><span data-icon="mail"></span></span>
+        <div class="grow"><p class="list-row__title">Email <span class="badge badge--success">Verified</span></p><p class="list-row__desc"><span data-user="email"></span> · used for sign-in links and receipts</p></div>
+        <button class="btn btn--secondary btn--sm" type="button" data-edit="email">Change</button>
+      </div>
+      <form class="stack gap-12" data-editor="email" hidden style="padding:0 0 16px 50px" novalidate>
+        <div class="field"><label class="field__label" for="new-email">New email</label><input class="input" id="new-email" type="email" autocomplete="email"><p class="field__hint">We’ll send a link to confirm it. Your current email keeps working until then.</p></div>
+        <div class="row gap-8"><button class="btn btn--primary btn--sm">Send confirmation</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
+      </form>
+      <div class="list-row">
+        <span class="icon-tile"><span data-icon="lock"></span></span>
+        <div class="grow"><p class="list-row__title">Password</p><p class="list-row__desc" id="pw-desc">Last changed 14 Aug 2026</p></div>
+        <button class="btn btn--secondary btn--sm" type="button" data-edit="password">Change password</button>
+      </div>
+      <form class="stack gap-12" data-editor="password" hidden style="padding:0 0 16px 50px" novalidate>
+        <div class="field"><label class="field__label" for="cur-pw">Current password</label><input class="input" id="cur-pw" type="password" autocomplete="current-password"></div>
+        <div class="field"><label class="field__label" for="new-pw">New password</label><input class="input" id="new-pw" type="password" autocomplete="new-password"><p class="field__hint" id="pw-hint">At least 10 characters. Other sessions will be signed out.</p></div>
+        <div class="row gap-8"><button class="btn btn--primary btn--sm">Update password</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
+      </form>
+      <div class="list-row">
+        <span class="icon-tile"><span data-icon="google"></span></span>
+        <div class="grow"><p class="list-row__title">Google</p><p class="list-row__desc" id="g-desc">Connected as ada.okafor@gmail.com</p></div>
+        <button class="btn btn--ghost btn--sm" type="button" id="g-btn">Disconnect</button>
+      </div>
+      <div class="list-row">
+        <span class="icon-tile"><span data-icon="bell"></span></span>
+        <div class="grow"><p class="list-row__title">WhatsApp number</p><p class="list-row__desc"><span id="wa">+234 803 ••• 4471</span> · launch-day reminders only, never marketing</p></div>
+        <button class="btn btn--secondary btn--sm" type="button" data-edit="wa">Edit</button>
+      </div>
+      <form class="stack gap-12" data-editor="wa" hidden style="padding:16px 0 0 50px" novalidate>
+        <div class="field"><label class="field__label" for="wa-in">WhatsApp number</label><input class="input" id="wa-in" type="tel" inputmode="tel" autocomplete="tel" placeholder="+234 803 000 0000"></div>
+        <div class="row gap-8"><button class="btn btn--primary btn--sm">Save number</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
+      </form>
+    </section>
+
+    <section class="card card--pad">
+      <div class="list-row" style="padding:0">
+        <span class="icon-tile"><span data-icon="check"></span></span>
+        <div class="grow"><p class="list-row__title">Two-step verification</p><p class="list-row__desc">Ask for a 6-digit code from an authenticator app when signing in on a new device. Recommended for makers with a scheduled launch.</p></div>
+        <label class="toggle"><input type="checkbox" data-autosave="2fa" data-msg="Two-step verification updated" aria-label="Two-step verification"><span class="toggle__track"></span></label>
+      </div>
+    </section>
+
+    <section class="card card--pad" aria-labelledby="s-t">
+      <div class="row between gap-12 wrap" style="margin-bottom:16px"><h2 class="card__title" id="s-t">Where you are signed in</h2><button class="btn btn--secondary btn--sm" type="button" id="out-all">Sign out of all other sessions</button></div>
+      <div id="sessions"></div>
+    </section>
+  </main>
+</div>
+<div data-tabbar></div>
+<script src="/assets/settings.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Profile' });
+(function () {
+  const { qs, qsa, store, toast, icon, esc } = H;
+  let sessions = store.get('sessions', [
+    { d: 'Chrome on macOS', loc: 'Lagos, NG', t: 'active now', ic: 'globe', current: true },
+    { d: 'Hentity for iPhone', loc: 'Lagos, NG', t: '2 hours ago', ic: 'image' },
+    { d: 'Safari on iPhone', loc: 'Abuja, NG', t: '3 days ago', ic: 'image' },
+    { d: 'Firefox on Windows', loc: 'Accra, GH', t: '12 days ago', ic: 'globe' }
+  ]);
+  function render() {
+    qs('#sessions').innerHTML = sessions.map((s, i) => `<div class="list-row">
+      <span class="icon-tile">${icon(s.ic)}</span>
+      <div class="grow"><p class="list-row__title">${esc(s.d)}${s.current ? ' <span class="badge badge--accent">This device</span>' : ''}</p><p class="list-row__desc">${esc(s.loc)} · ${esc(s.t)}</p></div>
+      ${s.current ? '' : `<button class="btn btn--ghost btn--sm" type="button" data-out="${i}">Sign out</button>`}</div>`).join('');
+    qs('#out-all').disabled = sessions.length < 2;
+  }
+  render();
+  qs('#sessions').addEventListener('click', e => { const b = e.target.closest('[data-out]'); if (!b) return; const s = sessions.splice(+b.dataset.out, 1)[0]; store.set('sessions', sessions); render(); toast('Signed out of ' + s.d); });
+  qs('#out-all').addEventListener('click', () => { const n = sessions.length - 1; sessions = sessions.filter(s => s.current); store.set('sessions', sessions); render(); toast(`Signed out of ${n} other session${n === 1 ? '' : 's'}`); });
+  qsa('[data-edit]').forEach(b => b.addEventListener('click', () => { const f = qs(`[data-editor="${b.dataset.edit}"]`); f.hidden = !f.hidden; if (!f.hidden) f.querySelector('input').focus(); }));
+  qsa('[data-cancel]').forEach(b => b.addEventListener('click', () => b.closest('form').hidden = true));
+  qs('[data-editor="email"]').addEventListener('submit', e => { e.preventDefault(); const v = qs('#new-email').value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#new-email').classList.add('is-error'); return; } e.target.hidden = true; toast('Confirmation sent to ' + v); });
+  qs('[data-editor="password"]').addEventListener('submit', e => { e.preventDefault(); const h = qs('#pw-hint'); if (qs('#new-pw').value.length < 10) { h.textContent = 'Use at least 10 characters.'; h.className = 'field__hint is-error'; return; } e.target.hidden = true; qs('#pw-desc').textContent = 'Last changed just now'; e.target.reset(); toast('Password updated'); });
+  qs('[data-editor="wa"]').addEventListener('submit', e => { e.preventDefault(); const v = qs('#wa-in').value.replace(/[^\d+]/g, ''); if (v.length < 8) { qs('#wa-in').classList.add('is-error'); return; } const m = v.replace(/^(\+\d{3})(\d{3})\d+(\d{4})$/, '$1 $2 ••• $3'); qs('#wa').textContent = m; store.set('wa', m); e.target.hidden = true; toast('WhatsApp number saved'); });
+  const wa = store.get('wa', null); if (wa) qs('#wa').textContent = wa;
+  let g = store.get('google', true);
+  function gRender() { qs('#g-desc').textContent = g ? 'Connected as ada.okafor@gmail.com' : 'Not connected'; qs('#g-btn').textContent = g ? 'Disconnect' : 'Connect'; qs('#g-btn').className = g ? 'btn btn--ghost btn--sm' : 'btn btn--secondary btn--sm'; }
+  gRender(); qs('#g-btn').addEventListener('click', () => { g = !g; store.set('google', g); gRender(); toast(g ? 'Google connected' : 'Google disconnected'); });
+})();
+</script>
+</body>
+</html>

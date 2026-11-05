@@ -256,7 +256,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .tabbar{display:none}
 
 /* ---------- Page scaffolds ---------- */
-.container{width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+.container{width:100%;max-width:1248px;margin:0 auto;padding:0 24px}
 main{display:block}
 
 /* auth split */
@@ -297,7 +297,7 @@ main{display:block}
 .choice[aria-checked="true"] .ic{color:var(--color-accent-default)}
 
 /* settings */
-.settings{display:grid;grid-template-columns:240px minmax(0,720px);gap:64px;max-width:1200px;margin:0 auto;padding:40px 24px 96px}
+.settings{display:grid;grid-template-columns:240px minmax(0,720px);gap:64px;max-width:1248px;margin:0 auto;padding:40px 24px 96px}
 .side-nav{position:sticky;top:104px;align-self:start;display:flex;flex-direction:column;gap:2px}
 .side-nav__title{font-size:20px;line-height:26px;font-weight:600;letter-spacing:-0.015em;margin:2px 0 18px}
 .side-nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:var(--radius-md);font-size:13px;line-height:16px;font-weight:500;color:var(--color-text-secondary)}
@@ -450,7 +450,7 @@ main{display:block}
   .container{padding:0 16px}
   .prow{padding:14px 0;gap:12px}
   .prow:hover{background:transparent}
-  .prow__rank{display:none}
+  .prow__rank{width:22px;height:22px;font-size:12px}
   .prow .plogo{width:44px;height:44px}
   .prow__tag{font-size:14px;line-height:20px}
   .upvote{width:48px;height:56px}

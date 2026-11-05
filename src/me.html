@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>You · Hentity</title>
+<style>
+.me{max-width:560px;margin:0 auto;padding:24px 16px 40px}
+.me-stats{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 16px}
+.me-stats b{display:block;font-size:20px;line-height:26px;font-weight:600}
+.me-menu a,.me-menu label{display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;font-size:14px;font-weight:500}
+.me-menu a:hover{background:var(--color-bg-subtle)}
+.me-menu .ic{width:18px;height:18px}
+.me-menu .meta{margin-left:auto;font-size:13px;color:var(--color-text-tertiary);font-weight:400}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<main class="me">
+  <h1 class="t-h2" style="margin-bottom:20px">You</h1>
+  <section class="card card--pad">
+    <div class="row gap-16"><span data-avatar="72"></span><div><p class="t-h4"><span data-user="name"></span></p><p class="row gap-6 t-body-sm c-3">@<span data-user="username"></span> <span data-flag="NG"></span> <span data-user="city"></span></p></div></div>
+    <div class="me-stats"><div><b>1.2k</b><span class="t-caption c-3" style="font-weight:400">followers</span></div><div><b>184</b><span class="t-caption c-3" style="font-weight:400">following</span></div><div><b>3</b><span class="t-caption c-3" style="font-weight:400">products</span></div></div>
+    <a class="btn btn--secondary btn--sm btn--block" id="pub" href="/makers/ada"><span data-icon="arrow-up-right"></span>View public profile</a>
+  </section>
+  <nav class="card me-menu" style="margin-top:16px;padding:6px 0;overflow:hidden">
+    <a href="/my-products"><span data-icon="rocket"></span>My products<span class="meta">4</span></a>
+    <a href="/makers/ada#collections"><span data-icon="bookmark"></span>Saved<span class="meta">14</span></a>
+    <a href="/notifications"><span data-icon="bell"></span>Notifications<span class="meta" id="unread"></span></a>
+    <a href="/settings/profile"><span data-icon="lock"></span>Settings</a>
+    <label><span data-icon="eye"></span>Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle aria-label="Dark mode"><span class="toggle__track"></span></span></label>
+    <a href="/guidelines"><span data-icon="info"></span>Help &amp; guidelines</a>
+  </nav>
+  <button class="btn btn--ghost" type="button" data-signout style="color:var(--color-error);margin-top:16px"><span data-icon="arrow-left"></span>Sign out</button>
+</main>
+<div data-tabbar></div>
+<script>
+if (!H.session()) location.replace('/signin?next=/me');
+H.mount({ tab: 'Profile' });
+H.qs('#pub').href = '/makers/' + H.user().username;
+const n = H.store.get('unread', 3); H.qs('#unread').textContent = n ? n + ' new' : '';
+H.qs('[data-theme-toggle]').checked = document.documentElement.dataset.theme === 'dark';
+</script>
+</body>
+</html>

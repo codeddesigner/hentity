@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Privacy &amp; data · Hentity</title>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="settings">
+  <div data-sidenav="privacy"></div>
+  <main class="stack gap-24">
+    <div class="page-head" style="margin:0"><div><h1>Privacy &amp; data</h1><p>What other people can see about you, and a copy of everything you have put on Hentity.</p></div></div>
+    <section class="card card--pad" aria-labelledby="v-t">
+      <h2 class="card__title" id="v-t" style="margin-bottom:16px">Visibility</h2>
+      <div class="list-row"><div class="grow"><p class="list-row__title">Show my upvotes on my profile</p><p class="list-row__desc">Others see the Upvoted tab. Your vote counts on the board either way.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="showUpvotes" aria-label="Show my upvotes on my profile"><span class="toggle__track"></span></label></div>
+      <div class="list-row"><div class="grow"><p class="list-row__title">Show my city and country flag</p><p class="list-row__desc">Shown next to your name on comments and cards.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="showCity" aria-label="Show my city and country flag"><span class="toggle__track"></span></label></div>
+      <div class="list-row"><div class="grow"><p class="list-row__title">Appear in the Live feed</p><p class="list-row__desc">Your upvotes and follows show as activity on the home page.</p></div><label class="toggle"><input type="checkbox" data-autosave="liveFeed" aria-label="Appear in the Live feed"><span class="toggle__track"></span></label></div>
+      <div class="list-row"><div class="grow"><p class="list-row__title">Let search engines index my profile</p><p class="list-row__desc">Turning this off adds noindex to hentity.com/@<span data-user="username"></span>.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="indexable" aria-label="Let search engines index my profile"><span class="toggle__track"></span></label></div>
+    </section>
+    <section class="card card--pad" aria-labelledby="d-t">
+      <h2 class="card__title" id="d-t" style="margin-bottom:16px">Your data</h2>
+      <div class="list-row" style="align-items:flex-start">
+        <span class="icon-tile"><span data-icon="upload"></span></span>
+        <div class="grow stack gap-12"><div><p class="list-row__title">Export your data</p><p class="list-row__desc">A ZIP of your profile, products, launches, comments and votes as JSON. We email a link that works for 7 days.</p></div><p class="t-caption c-3" id="exp-status" style="font-weight:400">Last export · 2 Oct 2026 · link expired</p></div>
+        <button class="btn btn--secondary btn--sm" type="button" id="export">Request export</button>
+      </div>
+    </section>
+    <section class="card card--pad" aria-labelledby="b-t">
+      <h2 class="card__title" id="b-t" style="margin-bottom:16px">Blocked accounts</h2>
+      <div id="blocked"></div>
+    </section>
+    <section class="card card--pad card--danger">
+      <div class="list-row" style="padding:0">
+        <span class="icon-tile icon-tile--danger"><span data-icon="trash"></span></span>
+        <div class="grow"><p class="list-row__title">Delete account</p><p class="list-row__desc">Removes your profile, photo and comments. Products you co-make stay with the other makers.</p></div>
+        <a class="btn btn--danger-outline btn--sm" href="/settings/delete">Delete account</a>
+      </div>
+    </section>
+  </main>
+</div>
+<div data-tabbar></div>
+<script src="/assets/settings.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Profile' });
+(function () {
+  const { qs, store, toast, icon, esc } = H;
+  let blocked = store.get('blocked', [{ n: 'Tunde Bello', h: 'tundeb', d: '4 Sep 2026' }, { n: 'Spam Promo Ltd', h: 'growthhacks', d: '19 Jul 2026' }]);
+  function render() {
+    qs('#blocked').innerHTML = blocked.length ? blocked.map((b, i) => `<div class="list-row"><span class="icon-tile">${icon('user')}</span><div class="grow"><p class="list-row__title">${esc(b.n)}</p><p class="list-row__desc">@${esc(b.h)} · blocked ${esc(b.d)}</p></div><button class="btn btn--ghost btn--sm" type="button" data-unblock="${i}">Unblock</button></div>`).join('')
+      : '<p class="t-body-sm c-2">You haven’t blocked anyone. Block from a profile or comment menu.</p>';
+  }
+  render();
+  qs('#blocked').addEventListener('click', e => { const b = e.target.closest('[data-unblock]'); if (!b) return; const x = blocked.splice(+b.dataset.unblock, 1)[0]; store.set('blocked', blocked); render(); toast('Unblocked ' + x.n); });
+  const ex = store.get('export', null);
+  if (ex) { qs('#exp-status').textContent = 'Export requested · ' + ex + ' · we’ll email you when it’s ready'; qs('#export').disabled = true; }
+  qs('#export').addEventListener('click', () => { const d = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); store.set('export', d); qs('#exp-status').textContent = 'Export requested · ' + d + ' · we’ll email you when it’s ready'; qs('#export').disabled = true; toast('Export requested'); });
+})();
+</script>
+</body>
+</html>

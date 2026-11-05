@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>Profile settings · Hentity</title>
+<style>
+.photo-card{display:flex;gap:24px;align-items:center}
+.crop-stage{position:relative;height:300px;border-radius:var(--radius-lg);background:var(--gray-300);overflow:hidden;touch-action:none;cursor:grab;user-select:none}
+.crop-stage:active{cursor:grabbing}
+.crop-stage img{position:absolute;left:50%;top:50%;max-width:none;transform-origin:center;pointer-events:none}
+.crop-ring{position:absolute;left:50%;top:50%;width:236px;height:236px;margin:-118px 0 0 -118px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+.zoom{display:flex;align-items:center;gap:12px;color:var(--color-text-secondary)}
+.zoom input{flex:1;accent-color:var(--color-text-primary)}
+.previews{display:flex;align-items:flex-end;gap:24px}
+.previews figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--color-text-tertiary)}
+.pv{border-radius:50%;background:var(--avatar-ada) center/cover;color:#fff;display:grid;place-items:center;font-weight:500}
+@media (max-width:768px){.photo-card{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="settings">
+  <div data-sidenav="profile"></div>
+  <main>
+    <div class="page-head"><div><h1>Profile</h1><p>This is how makers and voters see you across Hentity.</p></div></div>
+    <form id="form" class="stack gap-24" novalidate>
+      <section class="card card--pad photo-card" aria-labelledby="ph-t">
+        <span id="photo-slot"></span>
+        <div class="stack gap-8">
+          <h2 class="card__title" id="ph-t">Profile photo</h2>
+          <p class="t-body-sm c-2">JPG, PNG or WebP, at least 400 × 400, up to 5 MB. It shows as a circle on cards, comments and the leaderboard.</p>
+          <p class="field__hint is-error" id="ph-err" role="alert" hidden></p>
+          <div class="row gap-8" style="margin-top:4px">
+            <label class="btn btn--secondary btn--sm" style="cursor:pointer"><span data-icon="upload"></span>Change photo<input type="file" id="file" accept="image/jpeg,image/png,image/webp" class="sr-only"></label>
+            <button class="btn btn--ghost btn--sm" type="button" id="remove"><span data-icon="trash"></span>Remove</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-20" aria-labelledby="d-t">
+        <h2 class="card__title" id="d-t">Details</h2>
+        <div class="grid-2">
+          <div class="field"><label class="field__label" for="name">Full name</label><input class="input" id="name" name="name" autocomplete="name" required></div>
+          <div class="field" id="f-username"><label class="field__label" for="username">Username</label><input class="input" id="username" name="username" maxlength="30" spellcheck="false" autocapitalize="off"><p class="field__hint" id="u-hint">hentity.com/@ada · change once every 30 days</p></div>
+        </div>
+        <div class="field"><div class="field__row"><label class="field__label" for="headline">Headline</label><span class="field__counter" data-count="headline">0 / 60</span></div><input class="input" id="headline" name="headline" maxlength="60"></div>
+        <div class="field"><div class="field__row"><label class="field__label" for="bio">Bio</label><span class="field__counter" data-count="bio">0 / 280</span></div><textarea class="input" id="bio" name="bio" rows="2" maxlength="280"></textarea><p class="field__hint">Plain text. Links go in the fields below.</p></div>
+        <div class="grid-2">
+          <div class="field"><label class="field__label" for="country">Country</label><select class="input" id="country" name="country"></select></div>
+          <div class="field"><label class="field__label" for="city">City</label><input class="input" id="city" name="city" autocomplete="address-level2"></div>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-20" aria-labelledby="l-t">
+        <h2 class="card__title" id="l-t">Links</h2>
+        <div class="field"><label class="field__label" for="website">Website</label><input class="input" id="website" name="website" type="url" inputmode="url"></div>
+        <div class="grid-2">
+          <div class="field"><label class="field__label" for="x">X</label><input class="input" id="x" name="x"></div>
+          <div class="field"><label class="field__label" for="linkedin">LinkedIn</label><input class="input" id="linkedin" name="linkedin"></div>
+        </div>
+      </section>
+
+      <div class="savebar" id="savebar" hidden role="region" aria-label="Unsaved changes">
+        <span class="grow">You have unsaved changes</span>
+        <button class="btn btn--ghost btn--sm" type="button" id="discard">Discard</button>
+        <button class="btn btn--accent btn--sm" type="submit">Save changes</button>
+      </div>
+    </form>
+  </main>
+</div>
+<div data-tabbar></div>
+
+<template id="crop-tpl">
+  <div class="scrim" role="presentation">
+    <div class="modal stack gap-20" role="dialog" aria-modal="true" aria-labelledby="crop-t">
+      <div class="row between" style="align-items:flex-start">
+        <div class="stack gap-4"><h2 class="t-h3" id="crop-t">Crop your photo</h2><p class="t-body-sm c-2">Drag to reposition. Your face should fill the circle.</p></div>
+        <button class="nav__icon" type="button" data-close aria-label="Close"></button>
+      </div>
+      <div class="crop-stage" id="stage"><img id="crop-img" alt="Photo being cropped"><div class="crop-ring"></div></div>
+      <div class="zoom"><span data-i="image"></span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1.4" aria-label="Zoom"><span data-i="image" data-big></span><span class="mono t-body-sm" id="zv">1.4×</span></div>
+      <div class="previews" aria-label="Previews">
+        <figure><canvas class="pv" width="224" height="224" style="width:112px;height:112px"></canvas>Profile</figure>
+        <figure><canvas class="pv" width="144" height="144" style="width:72px;height:72px"></canvas>Cards</figure>
+        <figure><canvas class="pv" width="80" height="80" style="width:40px;height:40px"></canvas>Comments</figure>
+      </div>
+      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-close>Cancel</button><button class="btn btn--accent" type="button" id="apply">Apply photo</button></div>
+    </div>
+  </div>
+</template>
+
+<script src="/assets/settings.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Profile' });
+(function () {
+  const { qs, qsa, store, toast, icon, avatar, COUNTRY } = H;
+  const form = qs('#form');
+  const fields = ['name', 'username', 'headline', 'bio', 'country', 'city', 'website', 'x', 'linkedin'];
+  qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('') + '<option value="OT">Other</option>';
+  let saved;
+  function load() {
+    const u = H.user(); saved = u;
+    fields.forEach(f => form[f].value = u[f] || '');
+    qs('#photo-slot').innerHTML = avatar(u, 104);
+    counts(); dirty();
+  }
+  function counts() { qsa('[data-count]').forEach(c => { const f = form[c.dataset.count]; c.textContent = f.value.length + ' / ' + f.maxLength; }); qs('#u-hint').textContent = 'hentity.com/@' + (form.username.value || '…') + ' · change once every 30 days'; }
+  function dirty() { const d = fields.some(f => (form[f].value || '') !== (saved[f] || '')) || pendingPhoto !== undefined; qs('#savebar').hidden = !d; return d; }
+  let pendingPhoto;
+  form.addEventListener('input', () => { form.username.value = form.username.value.toLowerCase().replace(/[^a-z0-9_]/g, ''); counts(); dirty(); });
+  form.addEventListener('change', dirty);
+  qs('#discard').addEventListener('click', () => { pendingPhoto = undefined; load(); });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (!form.name.value.trim()) { form.name.classList.add('is-error'); form.name.focus(); return; }
+    const p = store.get('profile', {});
+    fields.forEach(f => p[f] = form[f].value.trim());
+    if (pendingPhoto !== undefined) p.photo = pendingPhoto;
+    try { store.set('profile', p); } catch (err) {}
+    pendingPhoto = undefined; load(); H.mount({ active: 'Discover', tab: 'Profile' });
+    toast('Profile saved');
+  });
+  window.addEventListener('beforeunload', e => { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+  // Photo
+  qs('#remove').addEventListener('click', () => { pendingPhoto = null; const u = Object.assign(H.user(), { photo: null }); qs('#photo-slot').innerHTML = avatar(u, 104); dirty(); });
+  qs('#file').addEventListener('change', e => {
+    const f = e.target.files[0]; e.target.value = ''; const err = qs('#ph-err'); err.hidden = true;
+    if (!f) return;
+    if (!/image\/(jpeg|png|webp)/.test(f.type)) { err.textContent = 'Use a JPG, PNG or WebP file.'; err.hidden = false; return; }
+    if (f.size > 5 * 1024 * 1024) { err.textContent = `That file is ${(f.size / 1048576).toFixed(1)} MB. Photos can be up to 5 MB.`; err.hidden = false; return; }
+    const url = URL.createObjectURL(f); const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth < 400 || img.naturalHeight < 400) { err.textContent = `That photo is ${img.naturalWidth} × ${img.naturalHeight}. Use one at least 400 × 400.`; err.hidden = false; return; }
+      openCrop(img);
+    };
+    img.src = url;
+  });
+
+  function openCrop(src) {
+    const node = qs('#crop-tpl').content.firstElementChild.cloneNode(true);
+    node.querySelectorAll('[data-close]').forEach(b => b.innerHTML = b.textContent ? b.textContent : icon('x', 'ic-20'));
+    node.querySelectorAll('[data-i]').forEach(s => s.outerHTML = icon(s.dataset.i, s.hasAttribute('data-big') ? 'ic-20' : 'ic-14'));
+    document.body.appendChild(node); document.body.style.overflow = 'hidden';
+    const img = node.querySelector('#crop-img'), stage = node.querySelector('#stage'), zoom = node.querySelector('#zoom');
+    img.src = src.src;
+    const R = 118; // ring radius in px
+    const base = (2 * R) / Math.min(src.naturalWidth, src.naturalHeight);
+    let z = 1.4, x = 0, y = 0;
+    function clamp() {
+      const s = base * z, hw = src.naturalWidth * s / 2, hh = src.naturalHeight * s / 2;
+      x = Math.max(R - hw, Math.min(hw - R, x)); y = Math.max(R - hh, Math.min(hh - R, y));
+    }
+    function draw() {
+      clamp(); const s = base * z;
+      img.style.width = src.naturalWidth * s + 'px'; img.style.height = src.naturalHeight * s + 'px';
+      img.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      node.querySelector('#zv').textContent = z.toFixed(1) + '×';
+      node.querySelectorAll('canvas').forEach(c => {
+        const ctx = c.getContext('2d'), n = c.width, k = n / (2 * R);
+        ctx.clearRect(0, 0, n, n);
+        ctx.drawImage(src, (n / 2) - (src.naturalWidth * s / 2 - x) * k - 0, (n / 2) - (src.naturalHeight * s / 2 - y) * k, src.naturalWidth * s * k, src.naturalHeight * s * k);
+      });
+    }
+    zoom.addEventListener('input', () => { z = +zoom.value; draw(); });
+    let drag = null;
+    stage.addEventListener('pointerdown', e => { drag = { sx: e.clientX, sy: e.clientY, x, y }; stage.setPointerCapture(e.pointerId); });
+    stage.addEventListener('pointermove', e => { if (!drag) return; x = drag.x + e.clientX - drag.sx; y = drag.y + e.clientY - drag.sy; draw(); });
+    stage.addEventListener('pointerup', () => drag = null);
+    stage.addEventListener('wheel', e => { e.preventDefault(); z = Math.max(1, Math.min(3, z - e.deltaY * 0.002)); zoom.value = z; draw(); }, { passive: false });
+    function close() { node.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', onKey); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    node.addEventListener('click', e => { if (e.target === node || e.target.closest('[data-close]')) close(); });
+    node.querySelector('#apply').addEventListener('click', () => {
+      const out = document.createElement('canvas'); out.width = out.height = 224;
+      out.getContext('2d').drawImage(node.querySelector('canvas'), 0, 0);
+      pendingPhoto = out.toDataURL('image/jpeg', 0.86);
+      qs('#photo-slot').innerHTML = avatar(Object.assign(H.user(), { photo: pendingPhoto }), 104);
+      close(); dirty(); toast('Photo ready — save to publish it');
+    });
+    draw(); node.querySelector('#apply').focus();
+  }
+  load();
+})();
+</script>
+</body>
+</html>

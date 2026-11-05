@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Hentity · Discover what’s being built in Africa</title>
+<meta name="description" content="This week’s new products from founders across Africa, ranked by the community.">
+<style>
+.home{max-width:1248px;margin:0 auto;padding:56px 24px 96px}
+.hero-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hero h1{font-size:72px;line-height:76px;font-weight:600;letter-spacing:-0.035em;margin:16px 0 20px;text-wrap:balance}
+.hero p{font-size:18px;line-height:28px;color:var(--color-text-secondary)}
+.home-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:48px;margin-top:36px}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pays{position:relative}
+.pays select{appearance:none;border:0;background:transparent;font-size:12px;font-weight:500;padding:0 0 0 22px;height:32px;cursor:pointer;color:var(--color-text-primary)}
+.pays .ic{position:absolute;left:0;top:9px;pointer-events:none}
+.feed-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:32px 0 16px;flex-wrap:wrap}
+.live li{display:flex;gap:12px;align-items:flex-start}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--color-success);box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 6px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+.how li{display:flex;gap:10px;font-size:13px;line-height:18px;color:var(--color-text-secondary)}
+.how .ic{color:var(--color-success);margin-top:1px}
+.up-card .plogo{width:32px;height:32px;border-radius:var(--radius-sm);font-size:16px}
+.skel-row{display:flex;gap:16px;align-items:center;padding:16px}
+.empty{padding:48px 16px;text-align:center;color:var(--color-text-secondary)}
+@media (max-width:1024px){.home-grid{grid-template-columns:1fr}.hero h1{font-size:56px;line-height:60px}}
+@media (max-width:768px){
+  .home{padding:16px 16px 32px}
+  .hero h1{display:none}
+  .hero p{display:none}
+  .hero .m-title{display:block!important;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px}
+  .hero-meta .badge{background:none;padding:0}
+  .home-grid{margin-top:16px}
+  .filters{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .feed-head h2{display:none}
+  .feed-head{margin:16px 0 4px}
+  .seg{width:100%;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="home">
+  <section class="hero">
+    <div class="hero-meta"><span class="t-eyebrow c-3">Week 46 · Nov 9–15, 2026</span><span class="badge badge--accent badge--pill"><span class="dot"></span>28 of 30 spots taken · resets Mon 06:00 WAT</span></div>
+    <h1>Discover what’s being built in Africa.</h1>
+    <p class="m-title" style="display:none">This week’s launches</p>
+    <p>This week’s new products from founders across Africa, ranked by the community.</p>
+  </section>
+  <div class="home-grid">
+    <div>
+      <div class="filters" id="countries" data-single role="group" aria-label="Country"></div>
+      <div class="feed-head">
+        <h2 class="t-h2" id="feed-title">This week’s launches</h2>
+        <div class="seg" role="tablist" aria-label="Board" id="board-tabs">
+          <button role="tab" aria-selected="true" data-board="this">This week</button>
+          <button role="tab" aria-selected="false" data-board="last">Last week</button>
+          <button role="tab" aria-selected="false" data-board="upcoming">Upcoming</button>
+          <button role="tab" aria-selected="false" data-board="fame">Wall of fame</button>
+        </div>
+      </div>
+      <div class="feed" id="feed" aria-live="polite"></div>
+      <button class="btn btn--secondary btn--block" type="button" id="more" style="margin-top:24px">Show all 28 launches</button>
+    </div>
+    <aside class="stack gap-40 hide-sm" style="gap:40px">
+      <section>
+        <h2 class="t-h4 row gap-8" style="margin-bottom:16px">Live <span class="live-dot" aria-hidden="true"></span></h2>
+        <ul class="live stack gap-16" id="live" style="list-style:none;margin:0;padding:0"></ul>
+      </section>
+      <section class="card card--pad how">
+        <h2 class="t-label" style="margin-bottom:16px;font-size:13px">How a launch week works</h2>
+        <ul class="stack gap-12" style="list-style:none;margin:0;padding:0">
+          <li><span data-icon="check" data-cls="ic-14"></span>30 launches per week. Booking opens 4 weeks ahead.</li>
+          <li><span data-icon="check" data-cls="ic-14"></span>The board resets Monday 06:00 WAT and runs 7 days.</li>
+          <li><span data-icon="check" data-cls="ic-14"></span>Top 3 become Products of the Week, with medals and badges for their sites.</li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="t-h4" style="margin-bottom:16px">Launching next week</h2>
+        <div class="stack gap-12" id="upcoming"></div>
+      </section>
+    </aside>
+  </div>
+</main>
+<footer class="footer hide-sm"><span>© 2026 Hentity · Built in Lagos for Africa</span><nav><a href="/directory">Directory</a><a href="/launch">Launch a product</a><a href="/guidelines">Guidelines</a><a href="/signin">Sign in</a></nav></footer>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Home' });
+(function () {
+  const { qs, qsa, icon, flag, verified, store, toast, esc, avatar } = H;
+  const C = [['all', 'All of Africa'], ['NG', 'Nigeria'], ['KE', 'Kenya'], ['GH', 'Ghana'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']];
+  let country = store.get('country', 'all'), board = 'this', expanded = false;
+  qs('#countries').innerHTML = C.map(([k, l]) => `<button class="chip" type="button" data-chip data-cc="${k}" aria-pressed="${k === country}">${icon('check')}${l}</button>`).join('') +
+    `<label class="pays"><span class="sr-only">Pays with</span>${icon('chevron-down', 'ic-14')}<select id="pays"><option value="">Pays with: Any</option><option>Paystack</option><option>M-Pesa</option><option>MTN MoMo</option><option>USSD</option><option>Card</option></select></label>`;
+  H.bindChips(qs('#countries'), () => { const s = qs('#countries [aria-pressed="true"]'); country = s ? s.dataset.cc : 'all'; if (!s) qs('[data-cc="all"]').setAttribute('aria-pressed', 'true'); store.set('country', country); render(true); });
+  qs('#pays').addEventListener('change', () => render(true));
+  qsa('#board-tabs [role=tab]').forEach(t => t.addEventListener('click', () => { qsa('#board-tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); board = t.dataset.board; expanded = false; render(true); }));
+  qs('#more').addEventListener('click', () => { expanded = !expanded; render(); });
+
+  function list() {
+    let L;
+    if (board === 'upcoming') L = D.P.filter(p => p.upcoming);
+    else if (board === 'last') L = D.board().filter(p => !p.promoted).slice().reverse().map((p, i) => Object.assign({}, p, { votes: Math.round(p.votes * 0.8 + i * 37) })).sort((a, b) => b.votes - a.votes);
+    else if (board === 'fame') L = D.board().filter(p => !p.promoted).slice(0, 6).map(p => Object.assign({}, p, { votes: p.votes * 3 }));
+    else L = D.board().slice().sort((a, b) => (D.count(b) - D.count(a)));
+    if (board === 'this') { const pi = L.findIndex(p => p.promoted); if (pi > -1) { const [pr] = L.splice(pi, 1); L.splice(3, 0, pr); } }
+    if (country !== 'all') L = L.filter(p => p.cc === country);
+    const pay = qs('#pays').value; if (pay) L = L.filter(p => (p.rails || '').includes(pay));
+    return L;
+  }
+  function render(loading) {
+    const feed = qs('#feed');
+    if (loading) {
+      feed.innerHTML = Array.from({ length: 4 }, () => `<div class="skel-row" aria-hidden="true"><span class="skel" style="width:26px;height:26px;border-radius:50%"></span><span class="skel" style="width:48px;height:48px;border-radius:10px"></span><span class="grow stack gap-8"><span class="skel" style="width:40%;height:16px"></span><span class="skel" style="width:75%;height:14px"></span><span class="skel" style="width:50%;height:12px"></span></span><span class="skel" style="width:56px;height:60px;border-radius:10px"></span></div>`).join('');
+      clearTimeout(render.t); render.t = setTimeout(() => render(false), 350); return;
+    }
+    const L = list(); let rank = 0;
+    const shown = expanded ? L : L.slice(0, 7);
+    feed.innerHTML = shown.length ? shown.map(p => {
+      if (board === 'upcoming') return `<article class="prow"><span class="plogo" style="background:${p.c}">${p.n[0]}</span><div class="prow__info"><div class="prow__name"><a href="/products/${p.slug}">${esc(p.n)}</a>${p.verified ? verified() : ''}<span class="badge badge--upcoming">${p.upcoming}</span></div><p class="prow__tag">${esc(p.t)}</p><div class="prow__meta"><span class="badge">${p.cat}</span><span class="row loc">${flag(p.cc)}${p.city}</span></div></div><button class="btn btn--secondary btn--sm" data-notify="${p.slug}">${icon('bell')}Notify me</button></article>`;
+      return D.row(p, p.promoted ? 0 : ++rank);
+    }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches from here this week</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from this country.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
+    const more = qs('#more'); more.hidden = L.length <= 7 && !expanded; more.textContent = expanded ? 'Show fewer' : `Show all ${board === 'this' && country === 'all' ? 28 : L.length} launches`;
+    qs('#feed-title').textContent = { this: 'This week’s launches', last: 'Last week’s results', upcoming: 'Launching soon', fame: 'Wall of fame' }[board];
+    bindNotify();
+  }
+  // Live feed
+  const live = [['WK', 'Wanjiru upvoted Ward Health', '1m ago · Nairobi'], ['AO', 'Ada (maker) replied on Ledgerline', '3m ago · Lagos'], ['KB', 'Kofi followed Farmcast', '6m ago · Kumasi'], ['TN', 'Thandi commented on Souk OS', '9m ago · Johannesburg']];
+  qs('#live').innerHTML = live.map(([i, t, m]) => `<li><span class="avatar avatar--24">${i}</span><div><p class="t-body-sm">${esc(t)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m)}</p></div></li>`).join('');
+  const extra = [['SB', 'Sade upvoted Previewly', 'Lagos'], ['JM', 'Juma followed Swahili Speech Kit', 'Mombasa'], ['NA', 'Nadia commented on Souk OS', 'Rabat'], ['TO', 'Tobi upvoted Ledgerline', 'Ibadan']];
+  let li = 0; setInterval(() => { if (document.hidden) return; const [i, t, c] = extra[li++ % extra.length]; const el = document.createElement('li'); el.innerHTML = `<span class="avatar avatar--24">${i}</span><div><p class="t-body-sm">${esc(t)}</p><p class="t-caption c-3" style="font-weight:400">just now · ${c}</p></div>`; el.style.animation = 'rise .3s ease-out'; const ul = qs('#live'); ul.prepend(el); while (ul.children.length > 4) ul.lastElementChild.remove(); }, 9000);
+  // Upcoming
+  qs('#upcoming').innerHTML = D.P.filter(p => p.upcoming).map(p => `<div class="card card--pad up-card stack gap-12"><div class="row between"><span class="plogo" style="background:${p.c}">${p.n[0]}</span><span class="row gap-4 mono t-body-sm c-2">${icon('calendar', 'ic-14')}${p.upcoming}</span></div><div><p class="row gap-6 t-h4"><a href="/products/${p.slug}">${p.n}</a>${p.verified ? verified('verified--sm') : ''}</p><p class="t-body-sm c-2" style="margin-top:4px">${p.t}</p></div><button class="btn btn--secondary btn--sm btn--block" data-notify="${p.slug}">${icon('bell')}Notify me</button></div>`).join('');
+  function bindNotify() {
+    const n = store.get('notify', {});
+    qsa('[data-notify]').forEach(b => {
+      const set = on => { b.innerHTML = on ? icon('check') + 'You’ll be notified' : icon('bell') + 'Notify me'; b.setAttribute('aria-pressed', on); };
+      set(!!n[b.dataset.notify]);
+      b.onclick = () => { if (!H.session()) { location.href = '/signin?next=/'; return; } const m = store.get('notify', {}); m[b.dataset.notify] = !m[b.dataset.notify]; store.set('notify', m); qsa(`[data-notify="${b.dataset.notify}"]`).forEach(x => { x.innerHTML = m[b.dataset.notify] ? icon('check') + 'You’ll be notified' : icon('bell') + 'Notify me'; }); toast(m[b.dataset.notify] ? 'We’ll remind you on launch day' : 'Reminder removed'); };
+    });
+  }
+  render(true);
+})();
+</script>
+</body>
+</html>

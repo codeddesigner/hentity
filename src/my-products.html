@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>My products · Hentity</title>
+<style>
+.mp{max-width:1248px;margin:0 auto;padding:40px 24px 96px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}
+.stat{padding:20px}
+.stat b{display:block;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;margin:8px 0 6px}
+.ptable{width:100%;border-collapse:collapse}
+.ptable th{font-family:var(--font-mono);font-weight:400;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:14px 20px;border-bottom:1px solid var(--color-border-default)}
+.ptable td{padding:14px 20px;border-bottom:1px solid var(--color-border-default);vertical-align:middle;font-size:13px}
+.ptable tr:last-child td{border-bottom:0}
+.ptable .pname{display:flex;align-items:center;gap:12px;min-width:0}
+.ptable .pname .grow p:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px}
+.progress{height:6px;border-radius:999px;background:var(--color-bg-muted);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--color-accent-default);transition:width .3s}
+.prep .check{display:flex;margin:0;font-size:13px}
+@media (max-width:1100px){.mp{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:768px){.mp{padding:16px 16px 32px}.ptable thead{display:none}.ptable tr{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:14px 16px;border-bottom:1px solid var(--color-border-default)}.ptable td{padding:0;border:0}.ptable td[data-l="launch"],.ptable td[data-l="votes"]{display:none}.ptable td.actions{grid-column:1/-1}.stat{padding:16px}.stat b{font-size:22px}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="mp">
+  <main>
+    <div class="row between wrap gap-16"><div><h1 class="t-h2">My products</h1><p class="t-body-sm c-2" style="margin-top:4px">Week 46 · board resets Monday 06:00 WAT</p></div><a class="btn btn--accent btn--lg" href="/submit"><span data-icon="plus"></span>Submit a product</a></div>
+    <div class="stats">
+      <div class="card stat"><span class="t-body-sm c-2">Upvotes this week</span><b>1,106</b><span class="t-caption c-success" style="font-weight:400">+18% vs last launch</span></div>
+      <div class="card stat"><span class="t-body-sm c-2">Board position</span><b>#1</b><span class="t-caption c-success" style="font-weight:400">of 30 this week</span></div>
+      <div class="card stat"><span class="t-body-sm c-2">Comments</span><b>84</b><a class="t-caption c-accent" style="font-weight:400" href="/products/ledgerline">12 waiting for a reply</a></div>
+      <div class="card stat"><span class="t-body-sm c-2">New followers</span><b>212</b><span class="t-caption c-success" style="font-weight:400">since Monday</span></div>
+    </div>
+    <div class="card" style="overflow:hidden"><table class="ptable"><thead><tr><th>Product</th><th>Status</th><th>Launch</th><th>Upvotes</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+  </main>
+  <aside class="stack gap-16">
+    <section class="card card--pad prep">
+      <div class="row gap-12" style="margin-bottom:14px"><span class="plogo plogo--40" style="background:#7c3aed">L</span><div style="min-width:0"><p class="t-label">Launch prep</p><p class="t-caption c-3" style="font-weight:400" id="prep-sub">Ledgerline for Accountants · 11 days to go</p></div></div>
+      <div class="progress" style="margin-bottom:16px" role="progressbar" aria-label="Launch prep" aria-valuemin="0" aria-valuemax="5" id="prog"><i></i></div>
+      <div class="stack gap-12" id="prep"></div>
+    </section>
+    <section class="card card--pad">
+      <h2 class="t-label" style="margin-bottom:14px">Co-makers</h2>
+      <div class="stack gap-12" id="makers"></div>
+      <form id="invite" class="stack gap-8" hidden style="margin-top:14px" novalidate><input class="input" type="email" placeholder="co-maker@email.com" aria-label="Co-maker email" id="inv-email"><div class="row gap-8"><button class="btn btn--primary btn--sm">Send invite</button><button class="btn btn--ghost btn--sm" type="button" id="inv-cancel">Cancel</button></div></form>
+      <button class="btn btn--secondary btn--sm btn--block" type="button" id="inv-btn" style="margin-top:14px"><span data-icon="plus"></span>Invite a co-maker</button>
+    </section>
+  </aside>
+</div>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'Launches', tab: 'Profile' });
+(function () {
+  const { qs, qsa, icon, esc, store, toast, verified } = H;
+  let rows = store.get('myProducts', [
+    { slug: 'ledgerline', n: 'Ledgerline', t: 'Bookkeeping from mobile money statements', c: '#000', status: 'live', launch: 'Week 45 · #1', votes: '1,106', v: true },
+    { slug: 'ledgerline-for-accountants', n: 'Ledgerline for Accountants', t: 'Client books and VAT in one place', c: '#7c3aed', status: 'scheduled', launch: '16 Nov', votes: '–' },
+    { slug: 'momo-parser', n: 'MoMo Parser', t: 'Parse MTN MoMo and OPay statements', c: '#2563eb', status: 'changes', launch: 'Not booked', votes: '233' },
+    { slug: 'untitled', n: 'Untitled product', t: 'Last edited 3 days ago', c: '#a1a1aa', status: 'draft', launch: '—', votes: '–' }
+  ]);
+  const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft' };
+  const A = {
+    live: s => `<a class="btn btn--secondary btn--sm" href="/launch-week">View launch</a><a class="btn btn--ghost btn--sm" href="/submit?product=${s}">Edit</a>`,
+    scheduled: s => `<a class="btn btn--secondary btn--sm" href="/scheduled">Prepare</a><a class="btn btn--ghost btn--sm" href="/submit?step=schedule&product=${s}">Reschedule</a>`,
+    changes: s => `<a class="btn btn--accent btn--sm" href="/changes-requested">Fix &amp; resubmit</a>`,
+    review: s => `<a class="btn btn--secondary btn--sm" href="/under-review">View status</a>`,
+    draft: s => `<a class="btn btn--secondary btn--sm" href="/submit">Continue</a><button class="btn btn--ghost btn--sm" type="button" data-del="${s}">Delete</button>`
+  };
+  function render() {
+    qs('#rows').innerHTML = rows.map(r => `<tr><td><div class="pname"><span class="plogo plogo--32" style="background:${r.c}">${r.n[0]}</span><div class="grow"><p class="t-label row gap-6" style="font-size:14px">${r.status === 'draft' ? esc(r.n) : `<a href="/products/${r.slug}">${esc(r.n)}</a>`}${r.v ? verified('verified--sm') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc(r.t)}</p></div></div></td>
+      <td data-l="status"><span class="status status--${r.status}">${S[r.status]}</span></td><td data-l="launch" class="c-2">${esc(r.launch)}</td><td data-l="votes" class="t-count">${esc(r.votes)}</td>
+      <td class="actions"><div class="row gap-4" style="justify-content:flex-end">${A[r.status](r.slug)}</div></td></tr>`).join('');
+  }
+  render();
+  qs('#rows').addEventListener('click', e => { const d = e.target.closest('[data-del]'); if (!d) return; if (!confirm('Delete this draft? This can’t be undone.')) return; rows = rows.filter(r => r.slug !== d.dataset.del); store.set('myProducts', rows); render(); toast('Draft deleted'); });
+  const prep = store.get('prep', [true, true, true, false, false]);
+  const items = ['Gallery: 4 images + demo video', 'First comment drafted', 'Co-maker added', 'WhatsApp reminder to your community', 'Launch-day badge on your site'];
+  function renderPrep() {
+    qs('#prep').innerHTML = items.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${prep[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
+    const n = prep.filter(Boolean).length; qs('#prog i').style.width = (n / 5 * 100) + '%'; qs('#prog').setAttribute('aria-valuenow', n);
+    qs('#prep-sub').textContent = n === 5 ? 'Ledgerline for Accountants · ready for launch day' : 'Ledgerline for Accountants · 11 days to go';
+  }
+  renderPrep();
+  qs('#prep').addEventListener('change', e => { prep[+e.target.dataset.i] = e.target.checked; store.set('prep', prep); renderPrep(); });
+  let makers = store.get('comakers', [{ n: 'Ada Okafor', r: 'Owner', me: true }, { n: 'Chidi Eze', r: 'Maker · invited 2 Nov', g: 'linear-gradient(140deg,#f2c14e,#9a5b0c)' }]);
+  function renderMakers() { qs('#makers').innerHTML = makers.map(m => `<div class="row gap-12">${m.me ? H.avatar(H.user(), 40) : `<span class="avatar avatar--40" style="background:${m.g || 'var(--color-bg-muted)'};color:${m.g ? '#fff' : 'var(--color-text-secondary)'}">${H.initials(m.n)}</span>`}<div><p class="t-label">${esc(m.me ? H.user().name : m.n)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.r)}</p></div></div>`).join(''); }
+  renderMakers();
+  qs('#inv-btn').addEventListener('click', () => { qs('#invite').hidden = false; qs('#inv-btn').hidden = true; qs('#inv-email').focus(); });
+  qs('#inv-cancel').addEventListener('click', () => { qs('#invite').hidden = true; qs('#inv-btn').hidden = false; });
+  qs('#invite').addEventListener('submit', e => { e.preventDefault(); const v = qs('#inv-email').value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#inv-email').classList.add('is-error'); return; } makers.push({ n: v.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), r: 'Invite pending · ' + v }); store.set('comakers', makers); renderMakers(); qs('#invite').reset(); qs('#invite').hidden = true; qs('#inv-btn').hidden = false; toast('Invite sent to ' + v); });
+})();
+</script>
+</body>
+</html>

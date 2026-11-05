@@ -13,4 +13,5 @@ for p in SRC.rglob('*'):
         dst.write_text(p.read_text().replace('<!--#head-->', head.strip()))
     else:
         shutil.copy2(p, dst)
+import json
 print('built', sum(1 for _ in OUT.rglob('*.html')), 'pages')

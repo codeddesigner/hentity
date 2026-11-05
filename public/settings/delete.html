@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>Delete your account · Hentity</title>
+<style>.consequences li{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:18px}.consequences .ic{color:var(--color-text-secondary);margin-top:1px}</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="settings">
+  <div data-sidenav="delete"></div>
+  <main class="stack gap-24" id="main">
+    <div class="page-head" style="margin:0"><div><h1>Delete your account</h1><p>You have 14 days to change your mind. After that it is permanent.</p></div></div>
+    <div class="alert alert--error" role="alert">
+      <span data-icon="alert-circle"></span>
+      <div><p class="alert__title">Ledgerline is scheduled for the week of 16 Nov</p><p class="alert__body">You are its only maker. Deleting your account cancels the launch and frees the slot. Add a co-maker first if the launch should go ahead.</p></div>
+    </div>
+    <section class="card card--pad" aria-labelledby="w-t">
+      <h2 class="card__title" id="w-t" style="margin-bottom:16px">What happens when you delete</h2>
+      <ul class="consequences stack gap-12" style="list-style:none;margin:0;padding:0">
+        <li><span data-icon="user"></span>Your profile, photo, links and followers are removed.</li>
+        <li><span data-icon="comment"></span>Your comments show as "Deleted maker" so threads still make sense.</li>
+        <li><span data-icon="rocket"></span>Products you made alone are unpublished. Products with co-makers stay with them.</li>
+        <li><span data-icon="upvote"></span>Your upvotes leave this week’s live board. Past weekly results and medals don’t change.</li>
+        <li><span data-icon="clock"></span>Sign in within 14 days to cancel. After that, nothing can be recovered.</li>
+      </ul>
+    </section>
+    <div class="card row gap-12" style="padding:12px 16px"><span data-icon="upload" class="c-2"></span><p class="t-body-sm c-2 grow">Want a copy first? Request an export before you go.</p><a class="link link--accent" href="/settings/privacy">Export data</a></div>
+    <form class="card card--pad stack gap-20" id="form" novalidate>
+      <fieldset class="stack" style="border:0;padding:0;margin:0"><legend class="t-label" style="margin-bottom:12px">Why are you leaving? (optional)</legend>
+        <div class="chips" data-single id="why">
+          <button class="chip" type="button" data-chip aria-pressed="false"><span data-icon="check"></span>Not launching anymore</button>
+          <button class="chip" type="button" data-chip aria-pressed="false"><span data-icon="check"></span>Too many emails</button>
+          <button class="chip" type="button" data-chip aria-pressed="false"><span data-icon="check"></span>Privacy</button>
+          <button class="chip" type="button" data-chip aria-pressed="false"><span data-icon="check"></span>Made a second account</button>
+          <button class="chip" type="button" data-chip aria-pressed="false"><span data-icon="check"></span>Other</button>
+        </div>
+      </fieldset>
+      <div class="field"><label class="field__label" for="confirm">Type DELETE to confirm</label><input class="input" id="confirm" autocomplete="off" spellcheck="false"><p class="field__hint">Case-sensitive.</p></div>
+      <div class="field" id="f-pw"><label class="field__label" for="pw">Password</label><input class="input" id="pw" type="password" autocomplete="current-password"><p class="field__hint is-error" id="pw-err" hidden>That password doesn’t match. Try again.</p></div>
+      <div class="row gap-8" style="justify-content:flex-end"><a class="btn btn--ghost" href="/settings/profile">Keep my account</a><button class="btn btn--danger" type="submit" id="go" disabled><span data-icon="trash"></span>Delete account</button></div>
+    </form>
+  </main>
+</div>
+<div data-tabbar></div>
+<script src="/assets/settings.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Profile' });
+(function () {
+  const { qs, store } = H; const form = qs('#form');
+  H.bindChips(qs('#why'));
+  form.addEventListener('input', () => { qs('#go').disabled = !(qs('#confirm').value === 'DELETE' && qs('#pw').value.length > 0); qs('#f-pw').classList.remove('is-error'); qs('#pw-err').hidden = true; });
+  form.addEventListener('submit', e => {
+    e.preventDefault(); if (qs('#go').disabled) return;
+    const email = H.user().email; const a = Auth.accounts()[email];
+    if (a && a.password !== qs('#pw').value) { qs('#f-pw').classList.add('is-error'); qs('#pw-err').hidden = false; return; }
+    store.set('deleted', Date.now()); store.del('session');
+    const until = new Date(Date.now() + 14 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+    qs('#main').innerHTML = `<div class="card card--pad stack gap-16" style="margin-top:40px"><div class="icon-badge">${H.icon('clock')}</div><h1 class="t-h2">Your account is scheduled for deletion</h1><p class="c-2">We’ve signed you out everywhere. Sign in before ${until} to cancel; after that your personal data is purged.</p><div class="row gap-8"><a class="btn btn--primary" href="/">Go to Hentity</a><a class="btn btn--secondary" href="/signin">Sign in to cancel</a></div></div>`;
+  });
+})();
+</script>
+</body>
+</html>

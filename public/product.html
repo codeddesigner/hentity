@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>Product · Hentity</title>
+<style>
+.pp{max-width:1248px;margin:0 auto;padding:24px 24px 96px}
+.crumbs{display:flex;gap:8px;font-size:13px;line-height:16px;color:var(--color-text-secondary);margin-bottom:24px}
+.crumbs a:hover{color:var(--color-text-primary)}
+.pp-top{display:grid;grid-template-columns:minmax(0,672px) minmax(0,1fr);gap:48px}
+.stage{position:relative;aspect-ratio:672/394;border-radius:20px;background:#000;display:grid;place-items:center;overflow:hidden;transition:background .2s}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+.thumbs button{aspect-ratio:126/72;border-radius:var(--radius-md);border:2px solid transparent}
+.thumbs button[aria-selected="true"]{border-color:var(--color-accent-default)}
+.award{display:inline-flex;align-items:center;gap:10px;height:30px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--color-border-default);font-size:13px;font-weight:500}
+.award i{width:16px;height:16px;border-radius:50%}
+.facts{display:grid;grid-template-columns:repeat(5,1fr);margin-top:28px;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);background:var(--color-bg-subtle)}
+.facts>div{padding:20px;border-left:1px solid var(--color-border-default);display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:18px;font-weight:500}
+.facts>div:first-child{border-left:0}
+.pp-body{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:48px;margin-top:28px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 32px}
+.kpi{padding:16px;border-radius:var(--radius-md);border:1px solid var(--color-border-default)}
+.kpi b{display:block;font-size:20px;line-height:26px;font-weight:600;letter-spacing:-0.015em}
+.kv{display:flex;justify-content:space-between;font-size:13px;line-height:18px;padding:6px 0}
+.kv span:first-child{color:var(--color-text-secondary)}
+.comment{display:flex;gap:12px}
+.comment .reply{margin:16px 0 0}
+.badge--founder{background:#000;color:#fff}
+:root[data-theme="dark"] .badge--founder{background:#fff;color:#000}
+.share{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500}
+.share button,.share a{display:inline-flex;align-items:center;gap:6px}
+@media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:1fr}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
+@media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:1fr}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="pp" id="pp"></main>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Home' });
+(function () {
+  const { qs, qsa, icon, flag, verified, esc, store, toast } = H;
+  const slug = location.pathname.split('/').filter(Boolean)[1] || H.params().get('p') || 'ledgerline';
+  const base = D.bySlug(slug);
+  if (!base) { qs('#pp').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed or unpublished.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
+  const L = D.bySlug('ledgerline');
+  const p = Object.assign({ countries: [base.cc], pay: base.rails || '—', cur: { NG: 'NGN', GH: 'GHS', KE: 'KES', ZA: 'ZAR', RW: 'RWF', MA: 'MAD' }[base.cc], lang: base.lang || 'English', plat: 'Web · Android', makers: ['ada'], followers: Math.round(base.votes * 0.55), company: base.n + ' Ltd', team: 4, founded: 2025,
+    about: `${base.n} is built in ${base.city}. ${base.t}. Launched this week on Hentity.` }, base);
+  document.title = p.n + ' · ' + p.t + ' · Hentity';
+  const rank = D.board().filter(x => !x.promoted).sort((a, b) => D.count(b) - D.count(a)).findIndex(x => x.slug === p.slug) + 1;
+  const gallery = [p.c, '#ff5b14', '#16a34a', '#2563eb', '#7c3aed'];
+  const people = p.makers.map(k => Object.assign({ k }, D.PEOPLE[k]));
+  qs('#pp').innerHTML = `
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Discover</a><span>/</span><a href="/directory?sector=${encodeURIComponent(p.cat)}">${esc(p.cat)}</a><span>/</span><span style="color:var(--color-text-primary)" aria-current="page">${esc(p.n)}</span></nav>
+  <div class="pp-top">
+    <div>
+      <div class="stage" id="stage" style="background:${gallery[0]}"><button class="btn btn--secondary" type="button" id="demo" style="border-radius:999px">${icon('video')}Watch the 60-second demo</button></div>
+      <div class="thumbs" role="tablist" aria-label="Gallery">${gallery.map((g, i) => `<button role="tab" aria-selected="${i === 0}" aria-label="Image ${i + 1}" style="background:${g}" data-g="${g}"></button>`).join('')}</div>
+    </div>
+    <div class="stack gap-20">
+      <span class="plogo plogo--64" style="background:${p.c}">${p.n[0]}</span>
+      <div><h1 class="pp-title row gap-12" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.n)}${p.verified ? verified('ic-24') : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.t)}</p></div>
+      ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} Product of the Week · Nov 9–15</span>${p.slug === 'ledgerline' ? '<span class="award"><i style="background:var(--award-silver)"></i>#2 Fintech of the Month · Nov</span>' : ''}</div>` : `<div><span class="badge">${esc(p.cat)}</span></div>`}
+      <div class="grid-2" style="gap:12px">
+        <a class="btn btn--secondary btn--lg" href="https://${p.slug.replace(/-/g, '')}.app" target="_blank" rel="noopener">${icon('arrow-up-right')}Get it</a>
+        <button class="btn btn--lg ${D.voted(p.slug) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote">${icon('upvote')}<span id="vote-l"></span></button>
+      </div>
+      <div class="share"><span class="c-3" style="font-weight:400">Share</span>
+        <a href="https://wa.me/?text=${encodeURIComponent(p.n + ' on Hentity ' + location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}WhatsApp</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}LinkedIn</a>
+        <a href="https://x.com/intent/post?url=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}X</a>
+        <button type="button" id="copy">${icon('link', 'ic-14')}Copy link</button></div>
+    </div>
+  </div>
+  <div class="facts">
+    <div><span class="t-eyebrow c-3">Countries</span><span class="row gap-4">${p.countries.map(flag).join('')}</span><span>${p.countries.map(c => H.COUNTRY[c]).join(', ')}</span></div>
+    <div><span class="t-eyebrow c-3">Pay with</span><span>${esc(p.pay)}</span></div>
+    <div><span class="t-eyebrow c-3">Currencies</span><span>${esc(p.cur)}</span></div>
+    <div><span class="t-eyebrow c-3">Languages</span><span>${esc(p.lang)}</span></div>
+    <div><span class="t-eyebrow c-3">Platforms</span><span>${esc(p.plat)}</span></div>
+  </div>
+  <div class="pp-body">
+    <div>
+      <p class="t-eyebrow c-3" style="margin-bottom:12px">About this launch</p>
+      <p class="c-2" style="max-width:68ch">${esc(p.about)}</p>
+      <div class="kpis">
+        <div class="kpi"><b id="kpi-votes">${D.fmt(D.count(p))}</b><span class="t-caption c-2" style="font-weight:400">upvotes</span><p class="t-caption c-success" style="font-weight:400">+212 today</p></div>
+        <div class="kpi"><b>${p.comments}</b><span class="t-caption c-2" style="font-weight:400">comments</span><p class="t-caption c-success" style="font-weight:400">${Math.round(p.comments * .94)} answered</p></div>
+        <div class="kpi"><b class="c-accent">#${rank || '—'}</b><span class="t-caption c-2" style="font-weight:400">this week</span><p class="t-caption c-accent" style="font-weight:400">of 30</p></div>
+        <div class="kpi"><b>${D.fmt(p.followers)}</b><span class="t-caption c-2" style="font-weight:400">followers</span><p class="t-caption c-success" style="font-weight:400">+48 today</p></div>
+      </div>
+      <div class="row between wrap gap-12" style="margin-bottom:20px"><h2 class="t-h3">Discussion · <span id="c-count">${p.comments}</span></h2><span class="badge badge--accent badge--pill">${icon('clock', 'ic-14')}Makers reply in ~2h · 94% answered</span></div>
+      <form class="row gap-12" id="c-form" style="margin-bottom:24px;align-items:flex-start">${H.session() ? H.avatar(H.user(), 32) : '<span class="avatar">?</span>'}<div class="grow stack gap-8"><textarea class="input" id="c-text" rows="2" placeholder="${H.session() ? 'Ask the makers a question or share feedback' : 'Sign in to join the discussion'}" aria-label="Write a comment"></textarea><div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--sm" type="submit">Comment</button></div></div></form>
+      <div class="stack gap-24" id="comments">
+        <div class="comment"><span class="avatar">KM</span><div class="grow"><p class="t-label">Kwame Mensah <span class="c-3" style="font-weight:400">· 6h</span></p><p style="margin-top:6px">Tried it on a GTBank statement and it got 47 of 50 transactions right. Any plans for Ghana Mobile Money?</p>
+          <div class="comment reply"><span class="avatar avatar--photo">AO</span><div><p class="t-label row gap-8 wrap">Ada Okafor <span class="badge badge--founder">Founder of ${esc(p.n)}</span><span class="c-3" style="font-weight:400">· 5h</span></p><p style="margin-top:6px">Thank you Kwame! MTN MoMo Ghana is in testing now; Telecel Cash next. Can I DM you for a sample statement?</p></div></div></div></div>
+      </div>
+    </div>
+    <aside class="stack gap-20">
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Company</h2>
+        <div class="row gap-12" style="margin-bottom:14px"><span class="plogo plogo--32" style="background:${p.c}">${p.n[0]}</span><div><p class="t-label">${esc(p.company)}</p><p class="t-caption c-success row gap-4" style="font-weight:400">${icon('check', 'ic-12')}Verified startup · CAC registered</p></div></div>
+        <div class="kv"><span>Stage</span><span>${esc(p.stage || 'Pre-seed')}</span></div><div class="kv"><span>HQ</span><span>${esc(p.city)}, ${H.COUNTRY[p.cc]}</span></div><div class="kv"><span>Team</span><span>${p.team} people</span></div><div class="kv"><span>Founded</span><span>${p.founded}</span></div><div class="kv"><span>Raised</span><span>Undisclosed</span></div>
+        <a class="btn btn--secondary btn--sm btn--block" style="margin-top:14px" href="mailto:founders@${p.slug.replace(/-/g, '')}.app">${icon('mail')}Contact the founders</a></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-12">${people.map(m => `<div class="row gap-12"><span class="avatar${m.photo ? ' avatar--photo' : ''}">${H.initials(m.name)}</span><a class="grow" href="/makers/${m.k}"><p class="t-label">${esc(m.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')} · ${esc(m.city)}</p></a><button class="btn btn--secondary btn--sm" data-follow="${m.k}">Follow</button></div>`).join('')}</div></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${[D.bySlug('kobo-ledger'), D.bySlug('invoicely-ng')].filter(a => a.slug !== p.slug).map(a => `<a class="row gap-12" href="/products/${a.slug}"><span class="plogo plogo--32" style="background:${a.c}">${a.n[0]}</span><div><p class="t-label row gap-6">${a.n}${flag(a.cc)}</p><p class="t-caption c-3" style="font-weight:400">${a.t}</p></div></a>`).join('')}</div></section>
+    </aside>
+  </div>`;
+  // Gallery
+  qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); qs('#stage').style.background = b.dataset.g; }));
+  qs('#demo').addEventListener('click', () => toast('Demo video plays here once the maker uploads it'));
+  // Vote
+  function voteUI() { const on = D.voted(p.slug); qs('#vote').className = 'btn btn--lg ' + (on ? 'btn--secondary' : 'btn--accent'); qs('#vote-l').textContent = (on ? 'Upvoted · ' : 'Upvote · ') + D.fmt(D.count(p)); qs('#vote').setAttribute('aria-pressed', on); qs('#kpi-votes').textContent = D.fmt(D.count(p)); }
+  voteUI();
+  qs('#vote').addEventListener('click', () => { if (!H.session()) { location.href = '/signin?next=' + location.pathname; return; } const v = store.get('votes', {}); v[p.slug] = !v[p.slug]; store.set('votes', v); voteUI(); if (v[p.slug]) toast('Upvoted ' + p.n); });
+  qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); });
+  // Follow
+  const fol = store.get('following', {});
+  qsa('[data-follow]').forEach(b => { const set = () => { b.textContent = fol[b.dataset.follow] ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (fol[b.dataset.follow] ? 'btn--ghost' : 'btn--secondary'); }; set(); b.addEventListener('click', () => { if (!H.session()) { location.href = '/signin?next=' + location.pathname; return; } fol[b.dataset.follow] = !fol[b.dataset.follow]; store.set('following', fol); set(); }); });
+  // Comments
+  const saved = store.get('comments.' + p.slug, []);
+  function addComment(c, prepend) { const el = document.createElement('div'); el.className = 'comment'; el.innerHTML = `${H.avatar(H.user(), null)}<div class="grow"><p class="t-label">${esc(H.user().name)} <span class="c-3" style="font-weight:400">· ${esc(c.t)}</span></p><p style="margin-top:6px">${esc(c.text)}</p></div>`; qs('#comments')[prepend ? 'prepend' : 'append'](el); }
+  saved.forEach(c => addComment(c, true)); qs('#c-count').textContent = p.comments + saved.length;
+  qs('#c-text').addEventListener('focus', () => { if (!H.session()) location.href = '/signin?next=' + location.pathname; });
+  qs('#c-form').addEventListener('submit', e => { e.preventDefault(); const v = qs('#c-text').value.trim(); if (!v) return; const c = { text: v, t: 'just now' }; saved.push(c); store.set('comments.' + p.slug, saved); addComment(c, true); qs('#c-text').value = ''; qs('#c-count').textContent = p.comments + saved.length; toast('Comment posted'); });
+})();
+</script>
+</body>
+</html>

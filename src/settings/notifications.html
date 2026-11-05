@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Notification settings · Hentity</title>
+<style>
+.matrix-wrap{overflow-x:auto}
+.matrix{min-width:560px}
+.ev{font-size:13px;line-height:18px;font-weight:500}
+.ev-d{font-size:12px;line-height:16px;color:var(--color-text-tertiary);font-weight:400;margin-top:2px}
+@media (max-width:768px){.matrix th{width:64px}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="settings">
+  <div data-sidenav="notifications"></div>
+  <main class="stack gap-24">
+    <div class="page-head" style="margin:0"><div><h1>Notifications</h1><p>Choose what reaches you and where. Changes save as you go.</p></div></div>
+    <div class="alert alert--accent" style="align-items:center"><span data-icon="bell"></span><p class="alert__body grow">WhatsApp messages go to <span id="wa">+234 803 ••• 4471</span>. Only launch-day events can use WhatsApp.</p><a class="link link--accent alert__action" href="/settings/account">Change number</a></div>
+    <section class="card" style="padding:4px 20px 8px"><div class="matrix-wrap"><table class="matrix" id="matrix"></table></div></section>
+    <section class="card card--pad">
+      <div class="row gap-16 wrap">
+        <span class="icon-tile"><span data-icon="clock"></span></span>
+        <div class="grow" style="min-width:220px"><p class="list-row__title">Pause all notifications</p><p class="list-row__desc" id="pause-desc">Mute everything except security alerts for a while. Your launch still goes live on schedule.</p></div>
+        <div class="row gap-8" data-single id="pause-len"><button class="chip" type="button" data-chip aria-pressed="false" data-len="1 day">1 day</button><button class="chip" type="button" data-chip aria-pressed="true" data-len="1 week">1 week</button></div>
+        <label class="toggle"><input type="checkbox" id="pause" aria-label="Pause all notifications"><span class="toggle__track"></span></label>
+      </div>
+    </section>
+  </main>
+</div>
+<div data-tabbar></div>
+<script src="/assets/settings.js"></script>
+<script>
+H.mount({ active: 'Discover', tab: 'Profile' });
+(function () {
+  const { qs, qsa, store, toast, esc } = H;
+  const wa = store.get('wa', null); if (wa) qs('#wa').textContent = wa;
+  // [key, title, desc, inApp, email, whatsapp]  null = channel not available
+  const groups = [
+    ['Your launches', [
+      ['review', 'Review decisions', 'Approved, changes requested or declined', true, true, null],
+      ['scheduled', 'Scheduled & live', 'Your launch week is booked, and the morning it goes live', true, true, true],
+      ['milestones', 'Upvote milestones', 'Batched hourly, then at 100, 250, 500 and 1,000', true, false, null],
+      ['comments', 'Comments on your product', 'Includes voice notes', true, true, null],
+      ['featured', 'Featured or awarded', 'Featured by the team, or a Product of the Week medal', true, true, true]]],
+    ['Community', [
+      ['replies', 'Replies to you', 'Someone answers your comment', true, false, null],
+      ['followers', 'New followers', 'A maker or voter follows you', true, false, null],
+      ['following', 'People you follow launch', 'A maker you follow goes live', true, false, null]]],
+    ['Digests', [
+      ['digest', 'Weekly leaderboard digest', 'Mondays after the board resets · 06:00 WAT', null, true, null]]]
+  ];
+  const prefs = store.get('notifPrefs', {});
+  const ch = ['In-app', 'Email', 'WhatsApp'];
+  qs('#matrix').innerHTML = groups.map(([g, rows]) => `<tbody><tr><th scope="col">${esc(g)}</th>${ch.map(c => `<th scope="col">${c}</th>`).join('')}</tr>
+    ${rows.map(([k, t, d, ...def], ri) => `<tr${ri === rows.length - 1 ? ' class="group-end"' : ''}><td><p class="ev">${esc(t)}</p><p class="ev-d">${esc(d)}</p></td>
+      ${def.map((v, ci) => { const key = k + '.' + ci; const on = key in prefs ? prefs[key] : v; return v === null ? '<td><span class="dash" aria-label="Not available">—</span></td>' : `<td><label class="toggle"><input type="checkbox" data-pref="${key}" ${on ? 'checked' : ''} aria-label="${esc(t)} by ${ch[ci]}"><span class="toggle__track"></span></label></td>`; }).join('')}</tr>`).join('')}</tbody>`).join('');
+  qs('#matrix').addEventListener('change', e => { const i = e.target.closest('[data-pref]'); if (!i) return; prefs[i.dataset.pref] = i.checked; store.set('notifPrefs', prefs); toast('Saved'); });
+  H.bindChips(qs('#pause-len'), () => { if (qs('#pause').checked) setPause(true); });
+  function setPause(on) {
+    const len = (qs('#pause-len [aria-pressed="true"]') || {}).dataset?.len || '1 week';
+    const until = new Date(Date.now() + (len === '1 day' ? 1 : 7) * 864e5);
+    qs('#pause-desc').textContent = on ? `Paused until ${until.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}. Security alerts still reach you, and your launch still goes live.` : 'Mute everything except security alerts for a while. Your launch still goes live on schedule.';
+    qsa('[data-pref]').forEach(i => i.disabled = on);
+    store.set('pause', on ? until.getTime() : 0);
+  }
+  qs('#pause').addEventListener('change', e => { setPause(e.target.checked); toast(e.target.checked ? 'Notifications paused' : 'Notifications resumed'); });
+  if (store.get('pause', 0) > Date.now()) { qs('#pause').checked = true; setPause(true); }
+})();
+</script>
+</body>
+</html>
