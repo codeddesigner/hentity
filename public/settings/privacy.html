@@ -3,14 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Privacy &amp; data · Hentity</title>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Privacy &amp; data · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/settings/privacy">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Privacy &amp; data · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="subtle">
 <div data-header></div>
@@ -23,13 +45,13 @@
       <div class="list-row"><div class="grow"><p class="list-row__title">Show my upvotes on my profile</p><p class="list-row__desc">Others see the Upvoted tab. Your vote counts on the board either way.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="showUpvotes" aria-label="Show my upvotes on my profile"><span class="toggle__track"></span></label></div>
       <div class="list-row"><div class="grow"><p class="list-row__title">Show my city and country flag</p><p class="list-row__desc">Shown next to your name on comments and cards.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="showCity" aria-label="Show my city and country flag"><span class="toggle__track"></span></label></div>
       <div class="list-row"><div class="grow"><p class="list-row__title">Appear in the Live feed</p><p class="list-row__desc">Your upvotes and follows show as activity on the home page.</p></div><label class="toggle"><input type="checkbox" data-autosave="liveFeed" aria-label="Appear in the Live feed"><span class="toggle__track"></span></label></div>
-      <div class="list-row"><div class="grow"><p class="list-row__title">Let search engines index my profile</p><p class="list-row__desc">Turning this off adds noindex to hentity.com/@<span data-user="username"></span>.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="indexable" aria-label="Let search engines index my profile"><span class="toggle__track"></span></label></div>
+      <div class="list-row"><div class="grow"><p class="list-row__title">Let search engines index my profile</p><p class="list-row__desc">Turning this off adds noindex to hentity.vercel.app/makers/<span id="idx-handle"></span>.</p></div><label class="toggle"><input type="checkbox" checked data-autosave="indexable" aria-label="Let search engines index my profile"><span class="toggle__track"></span></label></div>
     </section>
     <section class="card card--pad" aria-labelledby="d-t">
       <h2 class="card__title" id="d-t" style="margin-bottom:16px">Your data</h2>
       <div class="list-row" style="align-items:flex-start">
         <span class="icon-tile"><span data-icon="upload"></span></span>
-        <div class="grow stack gap-12"><div><p class="list-row__title">Export your data</p><p class="list-row__desc">A ZIP of your profile, products, launches, comments and votes as JSON. We email a link that works for 7 days.</p></div><p class="t-caption c-3" id="exp-status" style="font-weight:400">Last export · 2 Oct 2026 · link expired</p></div>
+        <div class="grow stack gap-12"><div><p class="list-row__title">Export your data</p><p class="list-row__desc">Your profile, products, launches, comments, messages and votes as one JSON file, downloaded straight to this device.</p></div><p class="t-caption c-3" id="exp-status" style="font-weight:400">No exports yet</p></div>
         <button class="btn btn--secondary btn--sm" type="button" id="export">Request export</button>
       </div>
     </section>
@@ -49,19 +71,31 @@
 <div data-tabbar></div>
 <script src="/assets/settings.js"></script>
 <script>
-H.mount({ active: 'Discover', tab: 'Profile' });
-(function () {
-  const { qs, store, toast, icon, esc } = H;
-  let blocked = store.get('blocked', [{ n: 'Tunde Bello', h: 'tundeb', d: '4 Sep 2026' }, { n: 'Spam Promo Ltd', h: 'growthhacks', d: '19 Jul 2026' }]);
-  function render() {
-    qs('#blocked').innerHTML = blocked.length ? blocked.map((b, i) => `<div class="list-row"><span class="icon-tile">${icon('user')}</span><div class="grow"><p class="list-row__title">${esc(b.n)}</p><p class="list-row__desc">@${esc(b.h)} · blocked ${esc(b.d)}</p></div><button class="btn btn--ghost btn--sm" type="button" data-unblock="${i}">Unblock</button></div>`).join('')
-      : '<p class="t-body-sm c-2">You haven’t blocked anyone. Block from a profile or comment menu.</p>';
+H.mount({ active: '', tab: 'you' });
+(async function () {
+  const { qs, toast, icon, esc } = H;
+  await SettingsReady; if (!API.uid) return;
+
+  qs('#idx-handle').textContent = API.profile.username;
+  async function renderBlocks() {
+    const b = await API.blocks();
+    qs('#blocked').innerHTML = b.length ? b.map(x => `<div class="list-row"><span class="icon-tile">${icon('user')}</span><div class="grow"><p class="list-row__title">${esc(x.blocked.name)}</p><p class="list-row__desc">@${esc(x.blocked.username)} · blocked ${new Date(x.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div><button class="btn btn--ghost btn--sm" type="button" data-unblock="${x.blocked.id}" data-name="${esc(x.blocked.name)}">Unblock</button></div>`).join('')
+      : '<p class="t-body-sm c-2">You haven’t blocked anyone. Block from a profile or a chat message menu.</p>';
   }
-  render();
-  qs('#blocked').addEventListener('click', e => { const b = e.target.closest('[data-unblock]'); if (!b) return; const x = blocked.splice(+b.dataset.unblock, 1)[0]; store.set('blocked', blocked); render(); toast('Unblocked ' + x.n); });
-  const ex = store.get('export', null);
-  if (ex) { qs('#exp-status').textContent = 'Export requested · ' + ex + ' · we’ll email you when it’s ready'; qs('#export').disabled = true; }
-  qs('#export').addEventListener('click', () => { const d = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); store.set('export', d); qs('#exp-status').textContent = 'Export requested · ' + d + ' · we’ll email you when it’s ready'; qs('#export').disabled = true; toast('Export requested'); });
+  renderBlocks();
+  qs('#blocked').addEventListener('click', async e => { const b = e.target.closest('[data-unblock]'); if (!b) return; try { await API.block(b.dataset.unblock, false); renderBlocks(); toast('Unblocked ' + b.dataset.name); } catch (err) { H.fail(err); } });
+  const last = (API.profile.settings || {}).last_export;
+  if (last) qs('#exp-status').textContent = 'Last export · ' + new Date(last).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  qs('#export').addEventListener('click', async () => {
+    const btn = qs('#export'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Preparing';
+    try {
+      const data = await API.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `hentity-${API.profile.username}-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+      await API.updateProfile({ settings: Object.assign({}, API.profile.settings, { last_export: new Date().toISOString() }) });
+      qs('#exp-status').textContent = 'Last export · just now · saved to your downloads'; toast('Export downloaded');
+    } catch (err) { H.fail(err); } finally { btn.disabled = false; btn.textContent = 'Request export'; }
+  });
 })();
 </script>
 </body>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
+<script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
+<title>Admin · Hentity</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Admin · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/admin">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Admin · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
+</head>
+<body class="no-tabbar">
+<div class="adm" id="adm">
+  <nav class="adm-nav" id="nav" aria-label="Admin"></nav>
+  <main class="adm-main" id="main"><div class="skel" style="height:120px"></div></main>
+</div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount();
+(async function () {
+  const { qs, qsa, esc, icon, toast, avatar } = H;
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/admin' + location.hash); return; }
+  if (!API.isAdmin) { qs('#adm').innerHTML = `<main class="empty" style="grid-column:1/-1;margin:20vh auto;max-width:420px;text-align:center"><div class="icon-badge" style="margin:0 auto 12px">${icon('shield')}</div><h1 class="t-h3">Admins only</h1><p class="t-body-sm c-2" style="margin-top:6px">You’re signed in as ${esc(API.profile ? API.profile.email || API.profile.username : '')}. Ask an admin to give you access.</p><a class="btn btn--secondary btn--sm" style="margin-top:16px" href="/">Back to Hentity</a></main>`; return; }
+  const isFullAdmin = API.profile.role === 'admin';
+  const A = API.admin;
+
+  // ---------------------------------------------------------------- shell
+  const SECTIONS = [
+    ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['broadcast', 'Broadcast', 'bell']]],
+    ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users']]],
+    ['Community', [['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
+    ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
+    ['System', [['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
+  ];
+  let stats = {};
+  function nav(cur) {
+    qs('#nav').innerHTML = `<a href="/" style="margin-bottom:12px">${H.logo ? '' : ''}<span class="row gap-8">${icon('arrow-left', 'ic-14')}Back to site</span></a>
+      <p class="t-eyebrow c-3" style="padding:4px 10px 12px">Hentity admin</p>` + SECTIONS.map(([g, items]) => `<p class="t-caption c-3" style="padding:14px 10px 6px;font-weight:400">${g}</p>` + items.map(([k, l, ic, n]) => `<a href="#${k}"${k === cur ? ' aria-current="page"' : ''}>${icon(ic, 'ic-16')}${l}${n && stats[n] ? `<span class="n">${stats[n]}</span>` : ''}</a>`).join('')).join('')
+      + `<div class="sep" style="margin:16px 10px"></div><p class="row gap-8 t-caption c-3" style="padding:0 10px;font-weight:400">${avatar(API.profile, 20)}${esc(API.profile.name)} · ${esc(API.profile.role)}</p>`;
+  }
+  const head = (title, sub, actions) => `<header class="row between wrap gap-12" style="margin-bottom:24px"><div><h1 class="t-h2">${title}</h1>${sub ? `<p class="t-body-sm c-2" style="margin-top:4px">${sub}</p>` : ''}</div><div class="row gap-8 wrap">${actions || ''}</div></header>`;
+  const search = (id, ph) => `<label class="clist__search" style="margin:0;width:260px;max-width:100%"><span>${icon('search', 'ic-14')}</span><input id="${id}" placeholder="${ph}" aria-label="${ph}"></label>`;
+  const badge = (s) => { const m = { live: 'success', scheduled: 'accent', review: 'warning', changes: 'warning', draft: '', rejected: 'danger', archived: '', open: 'warning', resolved: 'success', dismissed: '', new: 'accent', used: 'success', published: 'success', admin: 'accent', moderator: 'warning', user: '' }; return `<span class="badge ${m[s] ? 'badge--' + m[s] : ''}">${esc(s)}</span>`; };
+  const when = t => t ? `<span title="${new Date(t).toLocaleString()}">${H.ago(t)}</span>` : '<span class="c-3">—</span>';
+  const tbl = (cols, rows, empty) => rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>` : `<div class="empty card" style="padding:40px;text-align:center"><p class="t-h4">${empty || 'Nothing here'}</p></div>`;
+  const csv = (name, rows) => { if (!rows.length) return toast('Nothing to export'); const keys = Object.keys(rows[0]); const body = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] == null ? '' : typeof r[k] === 'object' ? JSON.stringify(r[k]) : r[k])).join(','))].join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body], { type: 'text/csv' })); a.download = name + '-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click(); };
+  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms || 250); }; };
+
+  // ---------------------------------------------------------------- drawer form
+  // fields: [key, label, type, opts]   type: text|textarea|number|bool|select|list|json|datetime|color|image|readonly
+  function drawer(title, fields, values, onSave, extra) {
+    qsa('.drawer,.drawer-bg').forEach(x => x.remove());
+    const bg = document.createElement('div'); bg.className = 'drawer-bg'; bg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:89;animation:fadein .2s';
+    const d = document.createElement('aside'); d.className = 'drawer'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', title);
+    const v = values || {};
+    const field = ([k, l, t, o]) => {
+      const val = v[k];
+      if (t === 'bool') return `<label class="check" style="margin:4px 0 14px"><input type="checkbox" name="${k}"${val ? ' checked' : ''}><span class="check__box">${icon('check')}</span>${l}</label>`;
+      let inp;
+      if (t === 'textarea' || t === 'list' || t === 'json') inp = `<textarea class="input" name="${k}" rows="${t === 'json' ? 6 : (o && o.rows) || 4}" style="${t === 'json' ? 'font-family:var(--font-mono);font-size:12px' : ''}">${esc(t === 'list' ? (val || []).join('\n') : t === 'json' ? JSON.stringify(val == null ? (o && o.empty) || {} : val, null, 2) : val || '')}</textarea>`;
+      else if (t === 'select') inp = `<select class="input" name="${k}">${o.map(x => { const [ov, ol] = Array.isArray(x) ? x : [x, x]; return `<option value="${esc(ov)}"${String(val) === String(ov) ? ' selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
+      else if (t === 'readonly') inp = `<p class="t-body-sm" style="padding:8px 0">${val == null || val === '' ? '<span class="c-3">—</span>' : esc(typeof val === 'object' ? JSON.stringify(val) : val)}</p>`;
+      else if (t === 'image') inp = `<div class="row gap-8">${val ? `<img src="${esc(val)}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover">` : ''}<input class="input grow" name="${k}" value="${esc(val || '')}" placeholder="https://"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload')}<input type="file" accept="image/*" class="sr-only" data-up="${k}"></label></div>`;
+      else inp = `<input class="input" name="${k}" type="${t === 'number' ? 'number' : t === 'datetime' ? 'datetime-local' : t === 'color' ? 'text' : 'text'}" value="${esc(t === 'datetime' && val ? new Date(new Date(val) - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16) : val == null ? '' : val)}">`;
+      return `<div class="field" style="margin-bottom:14px"><label class="field__label">${l}${t === 'list' ? ' <span class="c-3" style="font-weight:400">· one per line</span>' : ''}</label>${inp}</div>`;
+    };
+    d.innerHTML = `<div class="drawer__head"><p class="t-h4">${esc(title)}</p><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>
+      <form class="drawer__body" id="dform">${extra && extra.top || ''}${fields.map(field).join('')}${extra && extra.bottom || ''}</form>
+      <div class="drawer__foot">${extra && extra.danger ? `<button class="btn btn--ghost btn--sm" type="button" data-danger style="color:var(--color-danger);margin-right:auto">${icon('trash')}${extra.danger.label}</button>` : ''}<button class="btn btn--ghost btn--sm" type="button" data-x>Cancel</button>${onSave ? `<button class="btn btn--primary btn--sm" type="button" data-save>${extra && extra.saveLabel || 'Save'}</button>` : ''}</div>`;
+    document.body.append(bg, d);
+    const close = () => { d.remove(); bg.remove(); };
+    bg.onclick = close; d.querySelectorAll('[data-x]').forEach(b => b.onclick = close);
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
+    d.querySelectorAll('[data-up]').forEach(inp => inp.addEventListener('change', async () => { const f = inp.files[0]; if (!f) return; try { toast('Uploading…'); const url = await API.upload(f, 'admin'); d.querySelector(`[name="${inp.dataset.up}"]`).value = url; toast('Uploaded'); } catch (e) { H.fail(e); } }));
+    const collect = () => { const f = qs('#dform'); const out = {}; for (const [k, , t] of fields) { if (t === 'readonly') continue; const el = f.elements[k]; if (!el) continue; if (t === 'bool') out[k] = el.checked; else if (t === 'number') out[k] = el.value === '' ? null : +el.value; else if (t === 'list') out[k] = el.value.split('\n').map(s => s.trim()).filter(Boolean); else if (t === 'json') { try { out[k] = JSON.parse(el.value || 'null'); } catch (e) { throw new Error(l(k) + ' is not valid JSON'); } } else if (t === 'datetime') out[k] = el.value ? new Date(el.value).toISOString() : null; else out[k] = el.value === '' ? null : el.value; } return out; };
+    const l = k => (fields.find(f => f[0] === k) || [])[1] || k;
+    const sv = d.querySelector('[data-save]');
+    sv && (sv.onclick = async () => { sv.disabled = true; try { await onSave(collect(), d); close(); } catch (e) { H.fail(e); } finally { sv.disabled = false; } });
+    const dg = d.querySelector('[data-danger]'); dg && (dg.onclick = async () => { if (!confirm(extra.danger.confirm)) return; try { await extra.danger.run(); close(); } catch (e) { H.fail(e); } });
+    return d;
+  }
+
+  // ---------------------------------------------------------------- views
+  const V = {};
+  V.dashboard = async () => {
+    stats = await A.stats(); nav('dashboard');
+    const spark = (arr) => { const days = [...Array(14)].map((_, i) => { const d = new Date(Date.now() - (13 - i) * 864e5).toISOString().slice(0, 10); return (arr.find(x => x.d === d) || { n: 0 }).n; }); const m = Math.max(1, ...days); return `<div class="spark">${days.map((n, i) => `<i style="--i:${i};height:${Math.max(4, n / m * 100)}%" title="${n}"></i>`).join('')}</div>`; };
+    const k = (l, v, href, sub) => `<a class="card kpi-card lift" href="${href || '#dashboard'}" style="padding:18px"><p class="t-caption c-3" style="font-weight:400">${l}</p><p class="t-h2 mono" data-count-to="${v || 0}" style="margin-top:6px">0</p>${sub ? `<p class="t-caption c-2" style="font-weight:400;margin-top:4px">${sub}</p>` : ''}</a>`;
+    const [cw, recentAudit] = await Promise.all([API.currentWeek(), A.audit().then(r => r.slice(0, 6))]);
+    qs('#main').innerHTML = head('Dashboard', cw ? `Week ${cw.id} · ${new Date(cw.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${new Date(cw.ends_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'No active launch week', `<a class="btn btn--primary btn--sm" href="#review">${icon('eye')}Review ${stats.review || 0} waiting</a>`)
+      + `<div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">${k('Live now', stats.live, '#products/live')}${k('In review', stats.review, '#review')}${k('Scheduled', stats.scheduled, '#products/scheduled')}${k('All products', stats.products, '#products')}${k('Members', stats.users, '#users', `+${stats.users_week || 0} this week`)}${k('Open reports', stats.reports_open, '#reports')}${k('Upvotes · 7d', stats.upvotes_week)}${k('Comments · 7d', stats.comments_week, '#comments')}${k('Messages · 7d', stats.messages_week, '#messages')}${k('Subscribers', stats.subscribers, '#newsletter')}${k('New story tips', stats.suggestions, '#suggestions')}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:12px">
+        <section class="card" style="padding:18px"><p class="t-label">Sign-ups · last 14 days</p><div style="margin-top:14px">${spark(stats.signups_by_day || [])}</div></section>
+        <section class="card" style="padding:18px"><p class="t-label">Upvotes · last 14 days</p><div style="margin-top:14px">${spark(stats.votes_by_day || [])}</div></section>
+      </div>
+      <section class="card" style="padding:18px;margin-top:12px"><div class="row between"><p class="t-label">Recent admin activity</p><a class="link" href="#audit">Audit log</a></div><div class="stack" style="margin-top:8px">${recentAudit.map(a => `<p class="t-body-sm row gap-8" style="padding:8px 0;border-bottom:1px solid var(--color-border-default)"><span class="mono t-caption c-3" style="width:80px;font-weight:400">${H.ago(a.created_at)}</span><b>${esc(a.actor ? a.actor.name : 'system')}</b><span class="c-2">${esc(a.action)}</span><span class="c-3 truncate">${esc(a.target_type || '')} ${esc(a.meta && (a.meta.name || a.meta.title) || '')}</span></p>`).join('') || '<p class="t-caption c-3" style="padding:10px 0">Nothing yet.</p>'}</div></section>`;
+    M.countUp(qs('#main'));
+  };
+
+  // ---- review queue
+  let weeksCache = null;
+  async function weekOptions() {
+    const [w, c] = await Promise.all([A.weeks(), A.weekCounts()]); const now = Date.now();
+    weeksCache = w.filter(x => new Date(x.ends_at) > now).map(x => { const taken = c.filter(r => r.week_id === x.id && r.status !== 'review').length; return Object.assign(x, { taken }); });
+    return weeksCache.map(x => [x.id, `Week ${x.id} · ${new Date(x.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${x.taken}/${x.capacity} booked`]);
+  }
+  V.review = async (id) => {
+    const list = await A.products({ status: 'review' }); nav('review');
+    qs('#main').innerHTML = head('Review queue', `${list.length} waiting · oldest first. Approve to schedule, request changes, or reject.`)
+      + tbl(['Product', 'Maker', 'Requested week', 'Submitted', ''], list.sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at)).map(p => `<tr><td><span class="row gap-10" style="gap:10px">${H.plogo(p, 32)}<span><b>${esc(p.name)}</b><br><span class="c-2">${esc(p.tagline)}</span></span></span></td><td>${p.owner ? esc(p.owner.name) + '<br><span class="c-3">' + '@' + esc(p.owner.username) + '</span>' : '—'}</td><td class="mono">${p.week_id ? 'W' + p.week_id : '—'}</td><td>${when(p.submitted_at)}</td><td style="text-align:right"><button class="btn btn--primary btn--sm" data-open="${p.id}">Review</button></td></tr>`), 'Inbox zero. Nothing waiting for review.');
+    qs('#main').onclick = e => { const b = e.target.closest('[data-open]'); if (b) openReview(list.find(p => p.id === b.dataset.open)); };
+    if (id) { const p = list.find(x => x.id === id) || (await A.products({ term: '' })).find(x => x.id === id); if (p) openReview(p); }
+  };
+  async function openReview(p) {
+    location.hash = 'review/' + p.id;
+    const [weeks, makers, notifyN, ownerFull] = await Promise.all([weekOptions(), A.makers(p.id), A.notifyRequests(p.id), p.owner ? A.users(null, [p.owner.id]) : []]); if (ownerFull[0]) p.owner = ownerFull[0];
+    const media = (p.media || []).map(m => m.url ? `<img src="${esc(m.url)}" alt="" style="height:72px;border-radius:8px;border:1px solid var(--color-border-default)">` : `<span style="display:inline-block;width:110px;height:72px;border-radius:8px;background:${esc(m.color || '#eee')}"></span>`).join('');
+    const top = `<div class="row gap-12" style="margin-bottom:16px">${H.plogo(p, 56)}<div><p class="t-h3">${esc(p.name)}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${badge(p.status)} · ${esc((p.categories || []).join(', '))} · ${esc(p.country)} · <a class="link" href="/products/${p.slug}" target="_blank">preview</a></p></div></div>
+      ${media ? `<div class="row gap-8" style="overflow-x:auto;margin-bottom:16px">${media}</div>` : '<p class="alert alert--warning" style="margin-bottom:16px">No media uploaded.</p>'}
+      <dl class="t-body-sm" style="display:grid;grid-template-columns:120px 1fr;gap:8px 12px;margin:0 0 18px">
+        <dt class="c-3">Website</dt><dd style="margin:0">${p.website ? `<a class="link" href="${esc(p.website)}" target="_blank" rel="noopener">${esc(p.website)}</a>` : '<span class="c-danger">missing</span>'}</dd>
+        <dt class="c-3">Owner</dt><dd style="margin:0">${p.owner ? esc(p.owner.name) + ' · ' + esc(p.owner.email || '') : '—'}</dd>
+        <dt class="c-3">Makers</dt><dd style="margin:0">${makers.map(m => esc(m.user ? m.user.name : '?') + (m.accepted === false ? ' (invited)' : '')).join(', ') || '—'}</dd>
+        <dt class="c-3">Pay methods</dt><dd style="margin:0">${esc((p.pay_methods || []).join(', ') || '—')}</dd>
+        <dt class="c-3">Stage</dt><dd style="margin:0">${esc(p.stage || '—')}</dd>
+        <dt class="c-3">Verification</dt><dd style="margin:0" class="mono">${esc(JSON.stringify(p.verify || {}))}</dd>
+        <dt class="c-3">Notify list</dt><dd style="margin:0">${notifyN || 0} people</dd>
+      </dl>
+      <p class="t-eyebrow c-3">Description</p><p class="t-body-sm" style="white-space:pre-wrap;margin:6px 0 16px">${esc(p.description || '—')}</p>
+      <p class="t-eyebrow c-3">Maker intro comment</p><p class="t-body-sm" style="white-space:pre-wrap;margin:6px 0 20px">${esc(p.intro || '—')}</p>
+      <div class="sep" style="margin:0 0 18px"></div>
+      <div class="chips" data-single id="decision" style="margin-bottom:16px">${[['scheduled', 'Approve & schedule'], ['changes', 'Request changes'], ['rejected', 'Reject'], ['live', 'Go live now']].map(([k, l], i) => `<button class="chip" type="button" data-chip data-d="${k}" aria-pressed="${i === 0}">${icon('check')}${l}</button>`).join('')}</div>`;
+    const d = drawer('Review · ' + p.name, [['wk', 'Launch week', 'select', weeks], ['items', 'Fixes needed (Section — what to change)', 'list'], ['note', 'Note to the maker', 'textarea', { rows: 3 }], ['verified', 'Mark product as verified', 'bool']], { wk: p.week_id || (weeks[0] && weeks[0][0]), items: (p.review_items || []).map(i => `${i.section} — ${i.detail}`), note: p.review_note, verified: p.verified }, async (v) => {
+      const dec = (qs('#decision [aria-pressed="true"]') || {}).dataset.d || 'scheduled';
+      const items = (v.items || []).map(line => { const [s, ...r] = line.split(/\s+[—-]\s+/); const detail = r.join(' — ') || s; return { section: r.length ? s : 'General', title: (r.length ? s : 'General') + ' · ' + detail.split(/[.,]/)[0], detail }; });
+      if (dec === 'changes' && !items.length && !v.note) throw new Error('Add at least one fix or a note so the maker knows what to change');
+      if (dec === 'rejected' && !v.note) throw new Error('Add a short note explaining the rejection');
+      if (dec === 'scheduled') { const w = weeksCache.find(x => x.id === +v.wk); if (w && w.taken >= w.capacity && !confirm(`Week ${w.id} is full (${w.taken}/${w.capacity}). Schedule anyway?`)) return; }
+      await A.review(p.id, dec, v.note, dec === 'changes' ? items : [], dec === 'scheduled' || dec === 'live' ? +v.wk : null);
+      if (v.verified !== p.verified) await A.updateProduct(p.id, { verified: v.verified });
+      toast({ scheduled: `Scheduled for week ${v.wk}`, changes: 'Changes requested — maker notified', rejected: 'Rejected — maker notified', live: 'Live now' }[dec]);
+      location.hash = 'review';
+    }, { top, saveLabel: 'Send decision' });
+    H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=wk]').closest('.field').hidden = !['scheduled', 'live'].includes(dec); d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
+    d.querySelector('[name=items]').closest('.field').hidden = true;
+  }
+
+  // ---- products
+  const STATUSES = ['all', 'live', 'scheduled', 'review', 'changes', 'draft', 'rejected', 'archived'];
+  V.products = async (status) => {
+    status = status || 'all'; nav('products');
+    qs('#main').innerHTML = head('Products', 'Edit anything, feature or promote on the board, move weeks, or remove.', search('q', 'Search products') + `<button class="btn btn--secondary btn--sm" id="exp">${icon('upload')}Export CSV</button>`) + `<div class="chips" data-single id="st" style="margin-bottom:16px">${STATUSES.map(s => `<button class="chip" type="button" data-chip data-s="${s}" aria-pressed="${s === status}">${icon('check')}${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}</div><div id="list"></div>`;
+    let rows = [];
+    const load = async () => { const s = (qs('#st [aria-pressed="true"]') || {}).dataset.s || 'all'; rows = await A.products({ status: s, term: qs('#q').value.trim() }); qs('#list').innerHTML = tbl(['Product', 'Status', 'Week', 'Upvotes', 'Comments', 'Flags', 'Owner', 'Updated', ''], rows.map(p => `<tr><td><a class="row gap-10" style="gap:10px" href="/products/${p.slug}" target="_blank">${H.plogo(p, 28)}<b>${esc(p.name)}</b></a></td><td>${badge(p.effective_status || p.status)}</td><td class="mono">${p.week_id ? 'W' + p.week_id : '—'}</td><td class="mono">${p.upvote_count}</td><td class="mono">${p.comment_count}</td><td>${p.featured ? '<span class="badge badge--accent">Featured</span> ' : ''}${p.promoted ? '<span class="badge">Promoted</span> ' : ''}${p.verified ? H.verified('verified--sm') : ''}</td><td>${p.owner ? esc(p.owner.name) : '—'}</td><td>${when(p.updated_at || p.created_at)}</td><td style="text-align:right;white-space:nowrap">${p.status === 'review' ? `<a class="btn btn--primary btn--sm" href="#review/${p.id}">Review</a> ` : ''}<button class="btn btn--secondary btn--sm" data-edit="${p.id}">Edit</button></td></tr>`), 'No products match'); };
+    H.bindChips(qs('#st'), () => { const s = qs('#st [aria-pressed="true"]').dataset.s; history.replaceState(null, '', '#products/' + s); load(); });
+    qs('#q').addEventListener('input', debounce(load)); qs('#exp').onclick = () => csv('products', rows.map(({ owner, media, ...r }) => r));
+    qs('#list').onclick = async e => { const b = e.target.closest('[data-edit]'); if (!b) return; editProduct(rows.find(p => p.id === b.dataset.edit), load); };
+    await load();
+  };
+  async function editProduct(p, after) {
+    const allWeeks = await A.weeks();
+    drawer('Edit · ' + p.name, [
+      ['name', 'Name', 'text'], ['slug', 'Slug', 'text'], ['tagline', 'Tagline', 'text'], ['description', 'Description', 'textarea', { rows: 5 }], ['website', 'Website', 'text'],
+      ['logo_url', 'Logo', 'image'], ['color', 'Brand colour (hex)', 'color'], ['video_url', 'Demo video URL', 'text'], ['media', 'Media (JSON)', 'json', { empty: [] }],
+      ['status', 'Status', 'select', ['draft', 'review', 'changes', 'scheduled', 'live', 'rejected', 'archived']], ['week_id', 'Launch week', 'select', [['', '— none —'], ...allWeeks.map(w => [w.id, 'Week ' + w.id + ' · ' + new Date(w.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })])]],
+      ['featured', 'Featured on the board', 'bool'], ['promoted', 'Promoted (sponsored slot)', 'bool'], ['verified', 'Verified product', 'bool'],
+      ['categories', 'Categories', 'list'], ['pay_methods', 'Payment methods', 'list'], ['countries', 'Available countries (codes)', 'list'],
+      ['country', 'HQ country code', 'text'], ['city', 'City', 'text'], ['stage', 'Stage', 'select', ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+', 'Bootstrapped', 'Profitable']], ['languages', 'Languages', 'text'], ['platforms', 'Platforms', 'text'], ['currencies', 'Currencies', 'text'],
+      ['intro', 'Maker intro', 'textarea'], ['review_note', 'Review note', 'textarea', { rows: 2 }], ['upvote_count', 'Upvotes (read-only, counted)', 'readonly'], ['click_count', 'Website clicks', 'readonly'], ['view_count', 'Views', 'readonly']
+    ], p, async v => { if (v.week_id != null) v.week_id = +v.week_id; await A.updateProduct(p.id, v); toast('Saved'); after && after(); },
+      { danger: { label: 'Delete', confirm: `Delete ${p.name} permanently? Votes, comments and its room go too.`, run: async () => { await A.deleteProduct(p.id); toast('Deleted'); after && after(); } } });
+  }
+
+  // ---- weeks
+  V.weeks = async () => {
+    nav('weeks'); const [w, c] = await Promise.all([A.weeks(), A.weekCounts()]); const now = Date.now();
+    qs('#main').innerHTML = head('Launch weeks', 'Each week opens Monday 06:00 WAT. Capacity caps how many products can be booked.', `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}Add week</button>`)
+      + tbl(['Week', 'Starts', 'Ends', 'Booked', 'In review', 'Capacity', 'State', ''], w.map(x => { const sch = c.filter(r => r.week_id === x.id && r.status !== 'review').length, rv = c.filter(r => r.week_id === x.id && r.status === 'review').length; const st = new Date(x.ends_at) < now ? 'past' : new Date(x.starts_at) <= now ? 'live' : 'upcoming'; return `<tr><td class="mono"><b>W${x.id}</b></td><td>${new Date(x.starts_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td><td>${new Date(x.ends_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td><td><div class="row gap-8"><span class="bar" style="width:80px;height:6px;border-radius:3px;background:var(--color-bg-muted);overflow:hidden;display:inline-block"><i style="display:block;height:100%;width:${Math.min(100, sch / x.capacity * 100)}%;background:var(--color-accent-default)"></i></span><span class="mono">${sch}</span></div></td><td class="mono">${rv}</td><td class="mono">${x.capacity}</td><td>${badge(st === 'live' ? 'live' : st === 'past' ? 'archived' : 'scheduled').replace(/>(live|archived|scheduled)</, '>' + st + '<')}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-w="${x.id}">Edit</button></td></tr>`; }));
+    const edit = (x) => drawer(x ? 'Week ' + x.id : 'New week', [['id', 'ISO week number', x ? 'readonly' : 'number'], ['starts_at', 'Starts (your local time)', 'datetime'], ['ends_at', 'Ends', 'datetime'], ['capacity', 'Capacity', 'number']], x || (() => { const last = w[w.length - 1]; const s = new Date(new Date(last.starts_at).getTime() + 7 * 864e5); return { id: last.id + 1, starts_at: s.toISOString(), ends_at: new Date(s.getTime() + 7 * 864e5).toISOString(), capacity: 30 }; })(), async v => { await A.upsertWeek(Object.assign({ id: x ? x.id : v.id }, v)); toast('Week saved'); V.weeks(); });
+    qs('#add').onclick = () => edit(null);
+    qs('#main').onclick = e => { const b = e.target.closest('[data-w]'); if (b) edit(w.find(x => x.id === +b.dataset.w)); };
+  };
+
+  // ---- users
+  V.users = async () => {
+    nav('users');
+    qs('#main').innerHTML = head('Users', 'Roles, verification badges, bans and profile edits.', search('q', 'Search name, @username, email') + `<button class="btn btn--secondary btn--sm" id="exp">${icon('upload')}Export CSV</button>`) + '<div id="list"></div>';
+    let rows = [];
+    const load = async () => { rows = await A.users(qs('#q').value.trim()); qs('#list').innerHTML = tbl(['Member', 'Email', 'Role', 'Badges', 'Country', 'Joined', ''], rows.map(u => `<tr${u.banned ? ' style="opacity:.55"' : ''}><td><a class="row gap-10" style="gap:10px" href="/makers/${u.username}" target="_blank">${avatar(u, 28)}<span><b>${esc(u.name)}</b>${u.is_verified ? ' ' + H.verified('verified--sm') : ''}<br><span class="c-3">@${esc(u.username)}</span></span></a></td><td>${esc(u.email || '—')}</td><td>${badge(u.role)}</td><td>${u.banned ? '<span class="badge badge--danger">Banned</span> ' : ''}${u.is_seed ? '<span class="badge">Seed</span> ' : ''}${u.deletion_requested_at ? '<span class="badge badge--warning">Deleting</span>' : ''}</td><td>${H.flag ? H.flag(u.country) : esc(u.country)}</td><td>${when(u.created_at)}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-u="${u.id}">Manage</button></td></tr>`), 'No members match'); };
+    qs('#q').addEventListener('input', debounce(load)); qs('#exp').onclick = () => csv('users', rows.map(({ settings, ...r }) => r));
+    qs('#list').onclick = e => { const b = e.target.closest('[data-u]'); if (!b) return; const u = rows.find(x => x.id === b.dataset.u);
+      drawer('Manage · ' + u.name, [['role', 'Role', isFullAdmin ? 'select' : 'readonly', ['user', 'moderator', 'admin']], ['is_verified', 'Verified badge', 'bool'], ['banned', 'Banned (can’t post, vote or message)', 'bool'], ['name', 'Name', 'text'], ['username', 'Username', 'text'], ['headline', 'Headline', 'text'], ['bio', 'Bio', 'textarea'], ['country', 'Country code', 'text'], ['city', 'City', 'text'], ['website', 'Website', 'text'], ['avatar_url', 'Avatar', 'image'], ['email', 'Email (from auth)', 'readonly'], ['deletion_requested_at', 'Deletion requested', 'readonly'], ['created_at', 'Joined', 'readonly']], u, async v => {
+        const { role, is_verified, banned, ...rest } = v;
+        if (isFullAdmin && (role !== u.role || is_verified !== u.is_verified || banned !== u.banned)) await A.setUser(u.id, { role: role !== u.role ? role : null, verified: is_verified, banned });
+        else if (!isFullAdmin && (is_verified !== u.is_verified || banned !== u.banned)) await A.updateUser(u.id, { is_verified, banned });
+        await A.updateUser(u.id, rest); toast('Saved'); load();
+      }, { danger: isFullAdmin && u.id !== API.uid ? { label: 'Delete profile', confirm: `Delete ${u.name}’s profile and all their content? This can’t be undone.`, run: async () => { await A.deleteUser(u.id); toast('Profile deleted'); load(); } } : null,
+           top: `<div class="row gap-8 wrap" style="margin-bottom:16px"><a class="btn btn--secondary btn--sm" href="/makers/${u.username}" target="_blank">${icon('arrow-up-right')}Profile</a><button class="btn btn--secondary btn--sm" type="button" id="dm-u">${icon('chats')}Message</button></div>` });
+      qs('#dm-u').onclick = async () => { const id = await API.openDM(u.id); location.href = '/chats/dm/' + id; };
+    };
+    await load();
+  };
+
+  // ---- companies
+  V.companies = async () => {
+    nav('companies'); const rows = await A.companies();
+    qs('#main').innerHTML = head('Companies', 'Verify company registration and correct details.') + tbl(['Company', 'Stage', 'Location', 'Team', 'Raised', 'Registration', 'Verified', ''], rows.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.stage || '')}</td><td>${esc([c.city, c.country].filter(Boolean).join(', '))}</td><td class="mono">${c.team_size || ''}</td><td>${esc(c.raised || '')}</td><td class="mono">${esc(c.registration || '—')}</td><td>${c.verified ? H.verified('verified--sm') : '—'}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-c="${c.id}">Edit</button></td></tr>`), 'No companies yet');
+    qs('#main').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = rows.find(x => x.id === b.dataset.c); drawer(c.name, [['name', 'Name', 'text'], ['verified', 'Verified company', 'bool'], ['registration', 'Registration number (CAC/RC)', 'text'], ['stage', 'Stage', 'text'], ['city', 'City', 'text'], ['country', 'Country code', 'text'], ['team_size', 'Team size', 'number'], ['founded', 'Founded', 'number'], ['raised', 'Raised', 'text']], c, async v => { await A.updateCompany(c.id, v); toast('Saved'); V.companies(); }); };
+  };
+
+  // ---- reports
+  V.reports = async () => {
+    nav('reports'); const rows = await A.reports();
+    const link = r => ({ product: `<a class="link" href="#products">product</a>`, comment: 'comment', message: 'message', user: 'user', article: 'article' })[r.target_type] || r.target_type;
+    qs('#main').innerHTML = head('Reports', 'Flags from members. Remove the content or dismiss.') + tbl(['Reported', 'Type', 'Reason', 'By', 'Status', ''], rows.map(r => `<tr><td>${when(r.created_at)}</td><td>${link(r)}<br><span class="mono c-3" style="font-size:11px">${r.target_id.slice(0, 8)}</span></td><td style="max-width:360px">${esc(r.reason)}</td><td>${r.reporter ? esc(r.reporter.name) : '—'}</td><td>${badge(r.status)}</td><td style="text-align:right;white-space:nowrap">${r.status === 'open' ? `<button class="btn btn--secondary btn--sm" data-view="${r.id}">View</button> <button class="btn btn--primary btn--sm" data-rm="${r.id}">Remove content</button> <button class="btn btn--ghost btn--sm" data-dis="${r.id}">Dismiss</button>` : ''}</td></tr>`), 'No reports. The community is behaving.');
+    qs('#main').onclick = async e => {
+      const v = e.target.closest('[data-view]'), rm = e.target.closest('[data-rm]'), ds = e.target.closest('[data-dis]'); const el = v || rm || ds; if (!el) return; const rid = el.dataset.view || el.dataset.rm || el.dataset.dis; const r = rows.find(x => x.id === rid);
+      if (!r) return;
+      if (v) { const t = { comment: 'comments', message: 'messages', product: 'products', user: 'profiles', article: 'articles' }[r.target_type]; const { data } = await API.sb.from(t).select('*').eq('id', r.target_id).maybeSingle(); drawer('Reported ' + r.target_type, [['body', 'Content', 'readonly']], { body: data ? (data.body || data.name || data.title || JSON.stringify(data)) : '(already removed)' }, null); }
+      if (rm) { if (!confirm('Remove this ' + r.target_type + '?')) return; try { if (r.target_type === 'comment') await A.updateComment(r.target_id, { deleted: true }); else if (r.target_type === 'message') await A.deleteMessage(r.target_id); else if (r.target_type === 'product') await A.updateProduct(r.target_id, { status: 'archived' }); else if (r.target_type === 'user') await A.setUser(r.target_id, { banned: true }); else if (r.target_type === 'article') await A.upsertArticle({ id: r.target_id, status: 'draft' }); await A.updateReport(r.id, 'resolved'); toast('Removed and resolved'); V.reports(); } catch (err) { H.fail(err); } }
+      if (ds) { await A.updateReport(r.id, 'dismissed'); toast('Dismissed'); V.reports(); }
+    };
+  };
+
+  // ---- comments
+  V.comments = async () => {
+    nav('comments');
+    qs('#main').innerHTML = head('Comments', 'Every comment on products and news. Hide keeps a “deleted” placeholder; delete removes it and its replies.', search('q', 'Search comments')) + '<div id="list"></div>';
+    let rows = [];
+    const load = async () => { rows = await A.comments(qs('#q').value.trim()); qs('#list').innerHTML = tbl(['When', 'Who', 'On', 'Comment', ''], rows.map(c => `<tr${c.deleted ? ' style="opacity:.5"' : ''}><td>${when(c.created_at)}</td><td>${c.user ? esc(c.user.name) : '—'}</td><td>${c.product ? `<a class="link" href="/products/${c.product.slug}#c-${c.id}" target="_blank">${esc(c.product.name)}</a>` : c.article ? `<a class="link" href="/news/${c.article.slug}" target="_blank">${esc(c.article.title.slice(0, 40))}…</a>` : '—'}${c.parent_id ? '<br><span class="c-3">reply</span>' : ''}</td><td style="max-width:440px">${esc(c.body)}</td><td style="text-align:right;white-space:nowrap"><button class="btn btn--secondary btn--sm" data-hide="${c.id}">${c.deleted ? 'Restore' : 'Hide'}</button> <button class="btn btn--ghost btn--sm" data-del="${c.id}" aria-label="Delete">${icon('trash', 'ic-14')}</button></td></tr>`), 'No comments'); };
+    qs('#q').addEventListener('input', debounce(load));
+    qs('#list').onclick = async e => { const h = e.target.closest('[data-hide]'), d = e.target.closest('[data-del]'); try { if (h) { const c = rows.find(x => x.id === h.dataset.hide); await A.updateComment(c.id, { deleted: !c.deleted }); toast(c.deleted ? 'Restored' : 'Hidden'); load(); } if (d && confirm('Delete this comment and its replies permanently?')) { await A.hardDeleteComment(d.dataset.del); toast('Deleted'); load(); } } catch (err) { H.fail(err); } };
+    await load();
+  };
+
+  // ---- messages
+  V.messages = async () => {
+    nav('messages');
+    qs('#main').innerHTML = head('Messages', 'Channel and product-room messages. DMs are visible to admins only for moderation.', search('q', 'Search messages')) + '<div id="list"></div>';
+    let rows = [];
+    const load = async () => { rows = await A.messages(qs('#q').value.trim()); qs('#list').innerHTML = tbl(['When', 'Who', 'Where', 'Message', ''], rows.map(m => `<tr><td>${when(m.created_at)}</td><td>${m.user ? esc(m.user.name) : '—'}</td><td>${m.channel ? `<a class="link" href="${m.channel.kind === 'dm' ? '/chats/dm/' + m.channel_id : '/chats/' + m.channel.slug}" target="_blank">${m.channel.kind === 'dm' ? 'DM' : '#' + esc(m.channel.name)}</a>` : '—'}${m.parent_id ? '<br><span class="c-3">thread</span>' : ''}</td><td style="max-width:440px">${m.kind === 'voice' ? '🎙 voice note ' : m.kind === 'image' ? '🖼 image ' : ''}${esc(m.body || m.transcript || '')}</td><td style="text-align:right"><button class="btn btn--ghost btn--sm" data-del="${m.id}" aria-label="Delete">${icon('trash', 'ic-14')}</button></td></tr>`), 'No messages'); };
+    qs('#q').addEventListener('input', debounce(load));
+    qs('#list').onclick = async e => { const d = e.target.closest('[data-del]'); if (d && confirm('Delete this message?')) { try { await A.deleteMessage(d.dataset.del); toast('Deleted'); load(); } catch (err) { H.fail(err); } } };
+    await load();
+  };
+
+  // ---- channels
+  V.channels = async () => {
+    nav('channels'); const rows = (await A.channels()).filter(c => c.kind !== 'dm');
+    qs('#main').innerHTML = head('Channels', 'Public channels and product rooms. Pin an announcement to the top of any room.', `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New channel</button>`) + tbl(['Channel', 'Kind', 'Pinned', 'Order', 'State', ''], rows.map(c => `<tr><td><a class="link" href="/chats/${c.slug}" target="_blank"><b>${c.kind === 'channel' ? '#' : ''}${esc(c.name)}</b></a><br><span class="c-3">${esc(c.description || '')}</span></td><td>${esc(c.kind)}</td><td style="max-width:280px">${esc(c.pinned || '—')}</td><td class="mono">${c.position}</td><td>${c.archived ? badge('archived') : badge('live').replace('>live<', '>active<')}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-c="${c.id}">Edit</button></td></tr>`));
+    const edit = c => drawer(c ? (c.kind === 'channel' ? '#' : '') + c.name : 'New channel', [['name', 'Name', 'text'], ['slug', 'Slug (URL)', 'text'], ['description', 'Description', 'text'], ['pinned', 'Pinned announcement', 'textarea', { rows: 2 }], ['pinned_link', 'Pinned link', 'text'], ['rules', 'Room rules', 'list'], ['position', 'Sort order', 'number'], ['archived', 'Archived (hidden from the list)', 'bool']], c || { position: 100, kind: 'channel' }, async v => { if (!v.slug) v.slug = (v.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); await A.upsertChannel(Object.assign(c ? { id: c.id } : { kind: 'channel', created_by: API.uid }, v)); toast('Channel saved'); V.channels(); },
+      c && c.kind === 'channel' ? { danger: { label: 'Delete', confirm: `Delete #${c.name} and all its messages?`, run: async () => { await A.deleteChannel(c.id); toast('Deleted'); V.channels(); } } } : null);
+    qs('#add').onclick = () => edit(null);
+    qs('#main').onclick = e => { const b = e.target.closest('[data-c]'); if (b) edit(rows.find(x => x.id === b.dataset.c)); };
+  };
+
+  // ---- articles
+  V.articles = async () => {
+    nav('articles'); const rows = await A.articles();
+    qs('#main').innerHTML = head('Articles', 'Write, publish and feature the lead story on /news.', `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New article</button>`) + tbl(['Article', 'Topic', 'Source', 'Status', 'Lead', 'Comments', 'Published', ''], rows.map(a => `<tr><td style="max-width:380px"><a class="link" href="/news/${a.slug}" target="_blank"><b>${esc(a.title)}</b></a></td><td>${esc(a.topic)}</td><td>${esc(a.source || '')}</td><td>${badge(a.status)}</td><td>${a.is_lead ? '★' : ''}</td><td class="mono">${a.comment_count}</td><td>${when(a.published_at)}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-a="${a.id}">Edit</button></td></tr>`), 'No articles yet');
+    const edit = async a => {
+      const prods = a && a.product_ids && a.product_ids.length ? await API.productsByIds(a.product_ids) : [];
+      const d = drawer(a ? 'Edit article' : 'New article', [['title', 'Headline', 'text'], ['slug', 'Slug (blank = from headline)', 'text'], ['dek', 'Standfirst', 'textarea', { rows: 2 }], ['bullets', 'The short version', 'list'], ['topic', 'Topic', 'select', ['Launches', 'Funding', 'Policy', 'Fintech', 'Health', 'From Hentity']], ['country', 'Country code', 'text'], ['source', 'Source name', 'text'], ['source_initials', 'Source initials', 'text'], ['source_url', 'Source URL', 'text'], ['image_url', 'Cover image', 'image'], ['color', 'Cover colour (hex)', 'color'], ['read_minutes', 'Read time (min)', 'number'], ['channel_slug', 'Discussion channel slug', 'text'], ['products', 'Products in story (slugs)', 'list'], ['status', 'Status', 'select', ['draft', 'published']], ['is_lead', 'Lead story', 'bool'], ['published_at', 'Publish time', 'datetime']],
+        Object.assign({ topic: 'Launches', color: '#ff5b14', read_minutes: 3, status: 'draft', source: 'Hentity', source_initials: 'H' }, a || {}, { products: prods.map(p => p.slug) }), async v => {
+          const { products, ...rest } = v; if (!rest.slug) rest.slug = rest.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+          if (products && products.length) { const { data } = await API.sb.from('products').select('id,slug').in('slug', products); rest.product_ids = (data || []).map(x => x.id); } else rest.product_ids = [];
+          if (rest.status === 'published' && !rest.published_at) rest.published_at = new Date().toISOString();
+          if (rest.is_lead) await API.sb.from('articles').update({ is_lead: false }).neq('id', a ? a.id : '00000000-0000-0000-0000-000000000000');
+          await A.upsertArticle(Object.assign(a ? { id: a.id } : { created_by: API.uid }, rest)); toast(rest.status === 'published' ? 'Published' : 'Draft saved'); V.articles();
+        }, a ? { danger: { label: 'Delete', confirm: 'Delete this article and its comments?', run: async () => { await A.deleteArticle(a.id); toast('Deleted'); V.articles(); } } } : null);
+    };
+    qs('#add').onclick = () => edit(null);
+    qs('#main').onclick = e => { const b = e.target.closest('[data-a]'); if (b) edit(rows.find(x => x.id === b.dataset.a)); };
+  };
+
+  // ---- suggestions
+  V.suggestions = async () => {
+    nav('suggestions'); const rows = await A.suggestions();
+    qs('#main').innerHTML = head('Story suggestions', 'Tips from members. Turn one into an article or dismiss it.') + tbl(['When', 'From', 'Link', 'Note', 'Status', ''], rows.map(s => `<tr><td>${when(s.created_at)}</td><td>${s.user ? esc(s.user.name) : '—'}</td><td style="max-width:260px" class="truncate"><a class="link" href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.url)}</a></td><td style="max-width:300px">${esc(s.note || '')}</td><td>${badge(s.status)}</td><td style="text-align:right;white-space:nowrap">${s.status === 'new' ? `<button class="btn btn--primary btn--sm" data-use="${s.id}">Write it</button> <button class="btn btn--ghost btn--sm" data-dis="${s.id}">Dismiss</button>` : ''}</td></tr>`), 'No suggestions yet');
+    qs('#main').onclick = async e => { const u = e.target.closest('[data-use]'), d = e.target.closest('[data-dis]');
+      if (u) { const s = rows.find(x => x.id === u.dataset.use); await A.updateSuggestion(s.id, 'used'); location.hash = 'articles'; setTimeout(() => { qs('#add').click(); setTimeout(() => { const f = qs('#dform'); f.elements.source_url.value = s.url; f.elements.dek.value = s.note || ''; try { f.elements.source.value = new URL(s.url).hostname.replace('www.', ''); } catch (e) {} }, 50); }, 400); }
+      if (d) { await A.updateSuggestion(d.dataset.dis, 'dismissed'); V.suggestions(); } };
+  };
+
+  // ---- newsletter
+  V.newsletter = async () => {
+    nav('newsletter'); const rows = await A.newsletter();
+    qs('#main').innerHTML = head('Newsletter', `${rows.length} subscribers to the Monday brief.`, `<button class="btn btn--secondary btn--sm" id="exp">${icon('upload')}Export CSV</button><button class="btn btn--secondary btn--sm" id="cp">${icon('copy')}Copy emails</button>`) + tbl(['Email', 'Member', 'Subscribed', ''], rows.map(r => `<tr><td>${esc(r.email)}</td><td>${r.user_id ? 'Yes' : '—'}</td><td>${when(r.created_at)}</td><td style="text-align:right"><button class="btn btn--ghost btn--sm" data-rm="${esc(r.email)}">Remove</button></td></tr>`), 'No subscribers yet');
+    qs('#exp').onclick = () => csv('newsletter', rows); qs('#cp').onclick = () => { navigator.clipboard.writeText(rows.map(r => r.email).join(', ')); toast('Copied ' + rows.length + ' emails'); };
+    qs('#main').onclick = async e => { const b = e.target.closest('[data-rm]'); if (b && confirm('Unsubscribe ' + b.dataset.rm + '?')) { await A.removeSubscriber(b.dataset.rm); V.newsletter(); } };
+  };
+
+  // ---- broadcast
+  V.broadcast = async () => {
+    nav('broadcast');
+    qs('#main').innerHTML = head('Broadcast', 'Send an in-app notification to every member. It appears under System in their notifications.') + `<form class="card stack gap-16" id="bf" style="padding:24px;max-width:640px;gap:16px"><div class="field"><label class="field__label" for="bt">Title</label><input class="input" id="bt" maxlength="80" placeholder="Launch week 46 opens Monday"></div><div class="field"><label class="field__label" for="bb">Message</label><textarea class="input" id="bb" rows="4" maxlength="280" placeholder="Book your slot before Friday."></textarea></div><div class="field"><label class="field__label" for="bl">Link (optional)</label><input class="input" id="bl" placeholder="/launch"></div><div class="card" style="padding:14px;background:var(--color-bg-subtle)"><p class="t-caption c-3" style="font-weight:400">Preview</p><div class="row gap-10" style="margin-top:8px;gap:10px;align-items:flex-start"><span class="icon-badge" style="width:32px;height:32px">${icon('bell', 'ic-16')}</span><div><p class="t-label" id="pt">Title</p><p class="t-body-sm c-2" id="pb">Message</p></div></div></div><button class="btn btn--primary" style="align-self:flex-start">${icon('send')}Send to everyone</button></form>`;
+    const sync = () => { qs('#pt').textContent = qs('#bt').value || 'Title'; qs('#pb').textContent = qs('#bb').value || 'Message'; }; qs('#bf').addEventListener('input', sync);
+    qs('#bf').onsubmit = async e => { e.preventDefault(); const t = qs('#bt').value.trim(), b = qs('#bb').value.trim(); if (!t || !b) return toast('Add a title and message', 'error'); if (!confirm('Send “' + t + '” to every member?')) return; try { const n = await A.broadcast(t, b, qs('#bl').value.trim()); toast(`Sent to ${n} members`); e.target.reset(); sync(); } catch (err) { H.fail(err); } };
+  };
+
+  // ---- settings
+  V.settings = async () => {
+    nav('settings'); const rows = await A.settings(); const get = k => (rows.find(r => r.key === k) || {}).value || {};
+    const ann = get('announcement'), board = get('board'), brief = get('morning_brief'), st = get('stats');
+    const card = (id, title, sub, body) => `<form class="card" id="${id}" style="padding:24px;margin-bottom:16px"><p class="t-h4">${title}</p><p class="t-body-sm c-2" style="margin:4px 0 16px">${sub}</p>${body}<button class="btn btn--primary btn--sm" style="margin-top:8px">Save</button></form>`;
+    const fld = (n, l, v, t) => `<div class="field" style="margin-bottom:12px"><label class="field__label">${l}</label>${t === 'ta' ? `<textarea class="input" name="${n}" rows="3">${esc(v == null ? '' : v)}</textarea>` : `<input class="input" name="${n}" type="${t || 'text'}" value="${esc(v == null ? '' : v)}">`}</div>`;
+    qs('#main').innerHTML = head('Site settings', 'Changes go live immediately for every visitor.')
+      + card('s-ann', 'Announcement bar', 'A one-line banner across the top of every page.', `<label class="check" style="margin-bottom:12px"><input type="checkbox" name="enabled"${ann.enabled ? ' checked' : ''}><span class="check__box">${icon('check')}</span>Show the banner</label>${fld('text', 'Text', ann.text)}${fld('link', 'Link', ann.link)}`)
+      + card('s-board', 'Launch board', 'Default capacity for new weeks and how far ahead makers can book.', `${fld('capacity', 'Default weekly capacity', board.capacity, 'number')}${fld('booking_weeks_ahead', 'Weeks bookable ahead', board.booking_weeks_ahead, 'number')}${fld('reset', 'Reset time label', board.reset)}`)
+      + card('s-brief', 'Morning brief', 'The audio brief on /news. One headline per line; it’s read aloud in the browser.', `${fld('items', 'Headlines', (brief.items || []).join('\n'), 'ta')}${fld('length', 'Length label', brief.length)}${fld('languages', 'Languages label', brief.languages)}`)
+      + card('s-stats', 'Public stats', 'Numbers shown on the sign-in and sign-up screens.', `${fld('products', 'Products', st.products, 'number')}${fld('countries', 'Countries', st.countries, 'number')}${fld('makers', 'Makers', st.makers, 'number')}`);
+    const save = (id, key, map) => qs('#' + id).addEventListener('submit', async e => { e.preventDefault(); const f = e.target; try { await A.saveSetting(key, map(f)); toast('Saved'); } catch (err) { H.fail(err); } });
+    save('s-ann', 'announcement', f => ({ enabled: f.enabled.checked, text: f.text.value.trim(), link: f.link.value.trim() }));
+    save('s-board', 'board', f => ({ capacity: +f.capacity.value || 30, booking_weeks_ahead: +f.booking_weeks_ahead.value || 4, reset: f.reset.value }));
+    save('s-brief', 'morning_brief', f => ({ items: f.items.value.split('\n').map(s => s.trim()).filter(Boolean), length: f.length.value, languages: f.languages.value }));
+    save('s-stats', 'stats', f => ({ products: +f.products.value, countries: +f.countries.value, makers: +f.makers.value }));
+  };
+
+  // ---- audit
+  V.audit = async () => {
+    nav('audit'); const rows = await A.audit();
+    qs('#main').innerHTML = head('Audit log', 'Every review decision, role change and broadcast. Last 200 entries.', `<button class="btn btn--secondary btn--sm" id="exp">${icon('upload')}Export CSV</button>`) + tbl(['When', 'Who', 'Action', 'Target', 'Details'], rows.map(a => `<tr><td>${when(a.created_at)}</td><td>${a.actor ? esc(a.actor.name) : '<span class="c-3">system</span>'}</td><td class="mono">${esc(a.action)}</td><td>${esc(a.target_type || '')} <span class="mono c-3" style="font-size:11px">${esc((a.target_id || '').slice(0, 8))}</span></td><td class="mono c-2" style="font-size:11px;max-width:380px">${esc(JSON.stringify(a.meta || {}))}</td></tr>`), 'No entries yet');
+    qs('#exp').onclick = () => csv('audit', rows.map(({ actor, ...r }) => Object.assign(r, { actor: actor && actor.name })));
+  };
+
+  // ---------------------------------------------------------------- router
+  async function route() {
+    const [k, arg] = (location.hash.slice(1) || 'dashboard').split('/');
+    if (!V[k]) { location.hash = 'dashboard'; return; }
+    if (k === 'review' && arg && qs('.drawer')) return; // drawer already open
+    qsa('.drawer,.drawer-bg').forEach(x => x.remove());
+    qs('#main').innerHTML = '<div class="skel" style="height:40px;width:240px;margin-bottom:24px"></div><div class="skel" style="height:320px"></div>';
+    try { await V[k](arg); qs('#main').classList.remove('reveal'); void qs('#main').offsetWidth; qs('#main').classList.add('reveal'); } catch (e) { H.fail(e); qs('#main').innerHTML = `<div class="alert alert--error">${icon('alert-circle')}<div><p class="alert__title">Couldn’t load ${esc(k)}</p><p class="alert__body">${esc(e.message)}</p></div></div>`; }
+    document.title = (SECTIONS.flatMap(s => s[1]).find(s => s[0] === k) || [, 'Admin'])[1] + ' · Admin · Hentity';
+  }
+  window.addEventListener('hashchange', route);
+  try { stats = await A.stats(); } catch (e) {}
+  nav((location.hash.slice(1) || 'dashboard').split('/')[0]);
+  route();
+  // Live: new submissions and reports bump the counters
+  API.live('adm-p', 'products', null, async ({ new: n, old }) => { if (n && n.status === 'review' && (!old || old.status !== 'review')) { toast(`New submission: ${n.name}`); stats = await A.stats(); nav((location.hash.slice(1) || 'dashboard').split('/')[0]); } });
+})();
+</script>
+</body>
+</html>

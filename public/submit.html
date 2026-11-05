@@ -3,16 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
-<title>Launch your product · Hentity</title>
+<script src="/assets/motion.js"></script>
+<title>Submit a product · Hentity</title>
+<meta name="robots" content="noindex">
 <style>
-.sb{max-width:1448px;margin:0 auto;padding:40px 24px 96px;display:grid;grid-template-columns:200px minmax(0,636px) 380px;gap:32px;justify-content:center}
+.sb{max-width:1192px;margin:0 auto;padding:40px 24px 96px;display:grid;grid-template-columns:180px minmax(0,600px) 340px;gap:28px;justify-content:center}
 .sidx{position:sticky;top:104px;align-self:start}
 .sidx ol{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
 .sidx a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:var(--radius-md);font-size:13px;font-weight:500;color:var(--color-text-secondary)}
@@ -56,19 +67,30 @@
 .readybar{height:4px;border-radius:2px;background:var(--color-bg-muted);overflow:hidden}
 .readybar i{display:block;height:100%;background:var(--color-accent-default);transition:width .25s}
 .toast--info .ic{color:#fff}
-@media (max-width:1280px){.sb{grid-template-columns:minmax(0,636px) 340px}.sidx{display:none}}
+@media (max-width:1400px){.sb{grid-template-columns:minmax(0,600px) 320px}.sidx{display:none}}
 @media (max-width:1024px){.sb{grid-template-columns:minmax(0,1fr)}.side{position:static;order:-1}}
 @media (max-width:768px){.sb{padding:16px 16px 120px;gap:16px}.sec{padding:16px}.gal{grid-template-columns:repeat(3,1fr)}.side #preview-wrap{display:none}}
 </style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Submit a product · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/submit">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Submit a product · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="subtle">
 <div data-header></div>
 <div class="sb">
   <nav class="sidx" aria-label="Sections">
     <p class="t-eyebrow c-3">Launch your product</p>
-    <p class="t-h3" id="idx-name" style="margin-top:6px">Ledgerline</p>
+    <p class="t-h3 truncate" id="idx-name" style="margin-top:6px">Untitled product</p>
     <ol id="idx"></ol>
-    <p class="row gap-6 t-caption c-3" style="font-weight:400;margin:14px 10px 0" id="saved"><span data-icon="check" data-cls="ic-12"></span>Draft saved</p>
+    <p class="row gap-6 t-caption c-3" style="font-weight:400;margin:14px 10px 0" id="saved">Saves as you type</p>
   </nav>
 
   <form class="stack gap-16" id="form" novalidate>
@@ -90,7 +112,7 @@
     <!-- 02 Media -->
     <section class="card sec" id="media" data-sec>
       <div class="sec-h"><span class="n">02</span><div><h2 class="t-h3">Media</h2><p class="t-body-sm c-2">Up to 5 images or GIFs. We compress them on your device first, so uploads work on slow connections.</p></div></div>
-      <div class="row gap-16" style="margin-bottom:20px"><span class="plogo plogo--64" id="logo" style="background:#000;background-size:cover">L</span><div class="stack gap-8"><p class="t-label" id="logo-meta">Logo · 512×512 · 38 KB</p><label class="btn btn--secondary btn--sm" style="cursor:pointer;align-self:flex-start"><span data-icon="upload"></span>Replace<input type="file" accept="image/*" class="sr-only" id="logo-in"></label></div></div>
+      <div class="row gap-16" style="margin-bottom:20px"><span class="plogo plogo--64" id="logo" style="background:#000">L</span><div class="stack gap-8"><p class="t-label" id="logo-meta">Logo · square, 240px or larger</p><label class="btn btn--secondary btn--sm" style="cursor:pointer;align-self:flex-start"><span data-icon="upload"></span>Replace<input type="file" accept="image/*" class="sr-only" id="logo-in"></label></div></div>
       <div class="gal" id="gal"></div>
       <p class="field__hint" style="margin:12px 0 20px">Drag to reorder · 1270×760 recommended</p>
       <input type="file" accept="image/*" multiple class="sr-only" id="img-in">
@@ -100,7 +122,7 @@
     <!-- 03 Makers -->
     <section class="card sec" id="makers" data-sec>
       <div class="sec-h"><span class="n">03</span><h2 class="t-h3">Makers &amp; company</h2></div>
-      <button class="company" type="button" id="company"><span class="plogo plogo--32">L</span><span class="grow"><span class="t-label" style="display:block">Ledgerline Technologies Ltd</span><span class="t-caption c-3" style="font-weight:400">Pre-seed · Lagos · 6 people</span></span><span data-icon="chevron-down"></span></button>
+      <button class="company" type="button" id="company"></button>
       <div class="row gap-8 wrap" style="margin-top:16px" id="maker-list"></div>
       <div id="add-maker" class="row gap-8" hidden style="margin-top:12px"></div>
     </section>
@@ -137,167 +159,232 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/data.js"></script>
 <script src="/assets/launch.js"></script>
 <script>
-if (!H.session()) location.replace('/signin?next=' + encodeURIComponent(location.pathname + location.search));
-H.mount({ active: 'Launches', tab: 'Launch' });
-(function () {
-  const { qs, qsa, icon, esc, store, toast, COUNTRY } = H;
+H.mount({ active: '', tab: 'launch' });
+(async function () {
+  const { qs, qsa, icon, esc, toast, COUNTRY, avatar } = H;
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=' + encodeURIComponent(location.pathname + location.search)); return; }
   const prm = H.params();
-  if (prm.get('new')) { store.del('submission'); history.replaceState(null, '', '/submit'); }
-  let s = L.sub();
-  if (s.status === 'review') { location.replace('/under-review'); return; }
   const form = qs('#form');
-  let ready = false;
-  // ---- Basics
+  let ready = false, p = null, saving = null, saveT;
+  // Load or prepare the draft
+  if (prm.get('id')) p = (await API.myProducts()).find(x => x.id === prm.get('id')) || null;
+  else if (!prm.get('new')) { const all = await API.myProducts(); p = all.find(x => x.status === 'changes') || all.find(x => x.status === 'draft') || null; }
+  if (p && ['review'].includes(p.status)) { location.replace('/under-review?p=' + p.slug); return; }
+  if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
+  const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
+  if (p) history.replaceState(null, '', '/submit?id=' + p.id + (prm.get('step') ? '&step=' + prm.get('step') : ''));
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
-  qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video || '';
+  qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video_url || '';
   qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   qs('#country').value = s.country;
-  const CATS = ['Fintech', 'SaaS', 'AI', 'Commerce', 'Productivity', 'Developer Tools', 'Health', 'Education', 'Agriculture', 'Logistics'];
-  const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Free'];
-  qs('#cats').innerHTML = CATS.map(c => `<button class="chip" type="button" data-chip data-cat="${c}" aria-pressed="${s.cats.includes(c)}">${icon('check')}${c}</button>`).join('');
-  qs('#pay').innerHTML = PAY.map(c => `<button class="chip" type="button" data-chip data-pay="${c}" aria-pressed="${s.pay.includes(c)}">${icon('check')}${c}</button>`).join('');
+  const CATS = ['Fintech', 'SaaS', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Transfer', 'Free'];
+  qs('#cats').innerHTML = CATS.map(c => `<button class="chip" type="button" data-chip data-cat="${c}" aria-pressed="${s.categories.includes(c)}">${icon('check')}${c}</button>`).join('');
+  qs('#pay').innerHTML = PAY.map(c => `<button class="chip" type="button" data-chip data-pay="${c}" aria-pressed="${s.pay_methods.includes(c)}">${icon('check')}${c}</button>`).join('');
   H.bindChips(qs('#cats'), () => {
     let sel = qsa('#cats [aria-pressed="true"]').map(b => b.dataset.cat);
-    if (sel.length > 3) { const last = document.activeElement; last.setAttribute('aria-pressed', 'false'); toast('Pick up to 3 categories'); sel = sel.filter(c => c !== last.dataset.cat); }
-    s.cats = sel; update();
+    if (sel.length > 3) { const last = document.activeElement; last.setAttribute('aria-pressed', 'false'); toast('Pick up to 3 categories', 'error'); sel = sel.filter(c => c !== last.dataset.cat); }
+    s.categories = sel; update();
   });
-  H.bindChips(qs('#pay'), () => { s.pay = qsa('#pay [aria-pressed="true"]').map(b => b.dataset.pay); update(); });
+  H.bindChips(qs('#pay'), () => { s.pay_methods = qsa('#pay [aria-pressed="true"]').map(b => b.dataset.pay); update(); });
 
-  // AI suggestions (canned, deterministic)
+  // AI suggestions: three rewrites built from the maker's own words
   qs('#ai').addEventListener('click', () => {
-    const box = qs('#ai-sugg'); const n = form.name.value || 'It';
-    const base = (form.tagline.value || 'bookkeeping for small businesses').replace(/\.$/, '');
-    const sug = [`Turn mobile money statements into a monthly P&L`, `${base.charAt(0).toUpperCase() + base.slice(1)}, in minutes`, `Books for Lagos traders, straight from MoMo and OPay`];
+    const box = qs('#ai-sugg'); const t = (form.tagline.value || '').trim().replace(/\.$/, '');
+    if (t.length < 8) { toast('Write a first version of your tagline, then we’ll suggest clearer ones', 'error'); return; }
+    const verbs = { 'that reads': 'reads', 'that helps': 'helps', 'for': 'for' };
+    const words = t.split(/\s+/); const cap = x => x.charAt(0).toUpperCase() + x.slice(1);
+    const where = form.city.value ? ` in ${form.city.value}` : '';
+    const sug = [...new Set([cap(t.replace(/^(an?|the)\s+/i, '')), `${cap(words.slice(0, 7).join(' '))}${where}`, `${cap((s.categories[0] || 'Software').toLowerCase())} that ${t.replace(/^(an?|the)\s+/i, '').replace(/^[A-Z]/, c => c.toLowerCase())}`.slice(0, 140)])];
     box.innerHTML = `<p class="t-caption c-3" style="font-weight:400">Pick one or keep yours</p>` + sug.map(x => `<button type="button" data-s="${esc(x)}">${esc(x)}</button>`).join('');
-    box.hidden = false;
+    box.hidden = false; M.stagger(box, 'button');
   });
   qs('#ai-sugg').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; form.tagline.value = b.dataset.s; qs('#ai-sugg').hidden = true; update(); toast('Tagline updated'); });
 
-  // Website check
+  const normUrl = v => { try { const u = new URL(/^https?:/.test(v) ? v : 'https://' + v); return /\./.test(u.hostname) ? u.href.replace(/\/$/, '') : null; } catch (e) { return null; } };
   form.website.addEventListener('blur', () => {
-    const v = form.website.value.trim(); const h = qs('#web-hint');
-    if (!v) return;
-    let ok = false; try { const u = new URL(/^https?:/.test(v) ? v : 'https://' + v); ok = /\./.test(u.hostname); if (ok && !/^https?:/.test(v)) form.website.value = u.href.replace(/\/$/, ''); } catch (e) {}
-    qs('#f-web').classList.toggle('is-error', !ok);
-    h.className = 'field__hint' + (ok ? ' is-success' : ' is-error');
-    h.textContent = ok ? 'Opens fine · not a waitlist' : 'Enter a full link, like https://yourproduct.com';
+    const v = form.website.value.trim(); const h = qs('#web-hint'); if (!v) return;
+    const u = normUrl(v); qs('#f-web').classList.toggle('is-error', !u);
+    if (u) form.website.value = u;
+    h.className = 'field__hint' + (u ? ' is-success' : ' is-error');
+    h.textContent = u ? 'Looks good · moderators check it opens and isn’t a waitlist' : 'Enter a full link, like https://yourproduct.com';
     update();
   });
 
   // ---- Media
-  let media = s.media.map(m => ({ bg: m })); let logoSrc = null;
+  let media = (s.media || []).map(m => Object.assign({}, m));
+  if (s.logo_url) { const el = qs('#logo'); el.style.background = `#fff url('${s.logo_url}') center/cover`; el.textContent = ''; qs('#logo-meta').textContent = 'Logo uploaded'; } else qs('#logo').textContent = (s.name || 'L')[0];
   function renderGal() {
-    const g = qs('#gal');
-    g.innerHTML = media.map((m, i) => m.error ? `<div class="tile is-error" data-i="${i}" role="button" tabindex="0" aria-label="${esc(m.name)} failed to upload, retry">${icon('alert-circle', 'ic-20')}<span>${esc(m.name)} · retry</span></div>`
-      : `<div class="tile${m.loading ? ' is-loading' : ''}" draggable="true" data-i="${i}" style="${m.url ? `background-image:url('${m.url}')` : `background:${m.bg}`}" tabindex="0" aria-label="Image ${i + 1}${i === 0 ? ', cover' : ''}">${i === 0 ? '<span class="cover">COVER</span>' : ''}<button class="rm" type="button" data-rm="${i}" aria-label="Remove image ${i + 1}">${icon('x', 'ic-14')}</button></div>`).join('') +
+    qs('#gal').innerHTML = media.map((m, i) => m.error ? `<div class="tile is-error" data-i="${i}" role="button" tabindex="0" aria-label="${esc(m.name)} failed to upload, retry">${icon('alert-circle', 'ic-20')}<span>${esc(m.name)} · retry</span></div>`
+      : `<div class="tile${m.loading ? ' is-loading' : ''}" draggable="true" data-i="${i}" style="${m.url ? `background-image:url('${esc(m.preview || m.url)}')` : `background:${esc(m.color)}`}" tabindex="0" aria-label="Image ${i + 1}${i === 0 ? ', cover' : ''}">${i === 0 ? '<span class="cover">COVER</span>' : ''}<button class="rm" type="button" data-rm="${i}" aria-label="Remove image ${i + 1}">${icon('x', 'ic-14')}</button></div>`).join('') +
       (media.length < 5 ? `<label class="add-tile" for="img-in">${icon('plus', 'ic-20')}<span>${media.filter(m => !m.error).length} / 5</span></label>` : '');
     update();
   }
-  renderGal();
   qs('#gal').addEventListener('click', e => {
     const rm = e.target.closest('[data-rm]'); if (rm) { media.splice(+rm.dataset.rm, 1); renderGal(); return; }
-    const err = e.target.closest('.tile.is-error'); if (err) { const m = media[+err.dataset.i]; m.error = false; upload(m, true); }
+    const err = e.target.closest('.tile.is-error'); if (err) { const m = media[+err.dataset.i]; m.error = false; upload(m); }
   });
   let dragI = null;
   qs('#gal').addEventListener('dragstart', e => { const t = e.target.closest('.tile'); if (t) dragI = +t.dataset.i; });
   qs('#gal').addEventListener('dragover', e => { const t = e.target.closest('.tile'); if (t) { e.preventDefault(); qsa('.tile').forEach(x => x.classList.toggle('drag-over', x === t)); } });
   qs('#gal').addEventListener('drop', e => { const t = e.target.closest('.tile'); if (!t || dragI === null) return; e.preventDefault(); const to = +t.dataset.i; const [m] = media.splice(dragI, 1); media.splice(to, 0, m); dragI = null; renderGal(); });
   qs('#gal').addEventListener('dragend', () => qsa('.tile').forEach(x => x.classList.remove('drag-over')));
-  function upload(m, retry) {
-    m.loading = true; renderGal(); let p = 0;
-    const t = setInterval(() => {
-      p += 25; const el = qs(`.tile[data-i="${media.indexOf(m)}"]`); if (el) el.style.setProperty('--p', p + '%');
-      if (p >= 100) { clearInterval(t); m.loading = false; if (m.fail && !retry) { m.error = true; toast(`${m.name} couldn’t upload. Tap it to retry.`); } renderGal(); }
-    }, 180);
+  async function compress(file, max) {
+    if (!/image\/(jpeg|png|webp)/.test(file.type)) return file;
+    const img = await createImageBitmap(file); const k = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return new Promise(r => c.toBlob(b => r(new File([b], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })), 'image/jpeg', .85));
+  }
+  async function upload(m) {
+    m.loading = true; renderGal(); let pr = 10;
+    const tick = setInterval(() => { pr = Math.min(90, pr + 12); const el = qs(`.tile[data-i="${media.indexOf(m)}"]`); el && el.style.setProperty('--p', pr + '%'); }, 200);
+    try { await ensureDraft(); m.url = await API.upload(await compress(m.file, 1600), 'products/' + p.id); m.loading = false; delete m.error; }
+    catch (e) { m.loading = false; m.error = true; toast(`${m.name} couldn’t upload. Tap it to retry.`, 'error'); }
+    finally { clearInterval(tick); renderGal(); scheduleSave(); }
   }
   qs('#img-in').addEventListener('change', e => {
     [...e.target.files].slice(0, 5 - media.length).forEach(f => {
-      const m = { name: f.name.length > 14 ? f.name.slice(0, 11) + '…' : f.name, url: /image\//.test(f.type) ? URL.createObjectURL(f) : null, fail: !/image\//.test(f.type) || f.size > 8 * 1024 * 1024 };
-      if (!m.url) m.bg = 'var(--color-bg-muted)';
+      if (!/image\//.test(f.type) || f.size > 8 * 1024 * 1024) { media.push({ name: f.name.slice(0, 14), error: true, file: f }); toast(`${f.name} is not an image under 8 MB`, 'error'); return; }
+      const m = { name: f.name.length > 14 ? f.name.slice(0, 11) + '…' : f.name, file: f, preview: URL.createObjectURL(f) };
       media.push(m); upload(m);
     });
-    e.target.value = '';
+    e.target.value = ''; renderGal();
   });
-  qs('#logo-in').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const u = URL.createObjectURL(f); const img = new Image(); img.onload = () => { const el = qs('#logo'); el.style.backgroundImage = `url('${u}')`; el.textContent = ''; qs('#logo-meta').textContent = `Logo · ${img.naturalWidth}×${img.naturalHeight} · ${Math.round(f.size / 1024)} KB`; if (img.naturalWidth < 240) toast('Logos look best at 240px or larger'); }; img.src = u; });
-  qs('#video').addEventListener('blur', () => { const v = qs('#video').value.trim(); const h = qs('#vid-hint'); if (!v) { h.className = 'field__hint'; h.textContent = 'YouTube or Loom. No 50 MB uploads needed.'; return; } const ok = /(youtu\.be|youtube\.com|loom\.com)\//.test(v); h.className = 'field__hint' + (ok ? ' is-success' : ' is-error'); h.textContent = ok ? 'Video found' : 'Use a YouTube or Loom link.'; });
+  qs('#logo-in').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return; e.target.value = '';
+    const img = await createImageBitmap(f).catch(() => null); if (!img) { toast('That file isn’t an image', 'error'); return; }
+    const el = qs('#logo'); el.style.background = `#fff url('${URL.createObjectURL(f)}') center/cover`; el.textContent = '';
+    qs('#logo-meta').textContent = `Logo · ${img.width}×${img.height} · uploading…`;
+    try { await ensureDraft(); s.logo_url = await API.upload(await compress(f, 512), 'products/' + p.id); qs('#logo-meta').textContent = `Logo · ${img.width}×${img.height} · ${Math.round(f.size / 1024)} KB`; if (img.width < 240) toast('Logos look best at 240px or larger'); scheduleSave(); }
+    catch (err) { qs('#logo-meta').textContent = 'Logo upload failed · try again'; H.fail(err); }
+  });
+  qs('#video').addEventListener('blur', () => { const v = qs('#video').value.trim(); const h = qs('#vid-hint'); if (!v) { h.className = 'field__hint'; h.textContent = 'YouTube or Loom. No 50 MB uploads needed.'; return; } const ok = /(youtu\.be|youtube\.com|loom\.com)\//.test(v); h.className = 'field__hint' + (ok ? ' is-success' : ' is-error'); h.textContent = ok ? 'Video link looks good' : 'Use a YouTube or Loom link.'; });
 
-  // ---- Makers
-  let makers = store.get('subMakers', [['Ada Okafor', 'Founder', 'AO', true], ['Ifeanyi Duru', 'Engineering', 'ID'], ['Sade Balogun', 'Design · invited', 'SB']]);
-  function renderMakers() {
-    qs('#maker-list').innerHTML = makers.map(([n, r, i, me], k) => `<span class="maker-chip"><span class="avatar avatar--28${me ? ' avatar--photo' : ''}">${i}</span><span class="stack"><span class="t-label">${esc(n)}</span><span class="t-caption c-3" style="font-weight:400;font-size:11px;line-height:13px">${esc(r)}</span></span>${me ? '' : `<button type="button" data-rmm="${k}" aria-label="Remove ${esc(n)}" class="c-3" style="margin-left:2px">${icon('x', 'ic-14')}</button>`}</span>`).join('') +
-      `<button class="btn btn--ghost btn--sm" type="button" id="add-m">${icon('plus')}Add maker</button>`;
-    store.set('subMakers', makers); update();
+  // ---- Company & makers
+  let companies = await API.myCompanies();
+  function renderCompany() {
+    const c = companies.find(x => x.id === s.company_id);
+    qs('#company').innerHTML = c ? `${H.plogo({ name: c.name, color: '#000' }, 32)}<span class="grow"><span class="t-label" style="display:block">${esc(c.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc(c.stage)} · ${esc(c.city)} · ${c.team_size} people</span></span>${icon('chevron-down')}` : `<span class="icon-tile" style="width:32px;height:32px">${icon('plus', 'ic-14')}</span><span class="grow"><span class="t-label" style="display:block">Add your company</span><span class="t-caption c-3" style="font-weight:400">Optional · shown on your product page</span></span>${icon('chevron-down')}`;
   }
-  renderMakers();
-  qs('#maker-list').addEventListener('click', e => {
-    const r = e.target.closest('[data-rmm]'); if (r) { makers.splice(+r.dataset.rmm, 1); renderMakers(); return; }
-    if (e.target.closest('#add-m')) { const f = qs('#add-maker'); f.hidden = false; f.innerHTML = `<input class="input grow" id="m-user" placeholder="Hentity username, e.g. kofi" aria-label="Maker username" style="max-width:300px"><button class="btn btn--primary btn--sm" type="button" id="m-go">Invite</button>`; qs('#m-user').focus(); }
+  renderCompany();
+  qs('#company').addEventListener('click', () => {
+    if (qs('#co-pick')) { qs('#co-pick').remove(); return; }
+    qs('#company').insertAdjacentHTML('afterend', `<div id="co-pick" class="card card--pad stack gap-12 reveal" style="margin-top:8px">${companies.map(c => `<button type="button" class="cmdk__opt" data-co="${c.id}">${H.plogo({ name: c.name, color: '#000' }, 28)}<span class="grow" style="text-align:left">${esc(c.name)}</span>${c.id === s.company_id ? icon('check') : ''}</button>`).join('')}
+      <form class="stack gap-8" id="co-new"><p class="t-label">New company</p><input class="input" name="name" placeholder="Registered name" required><div class="grid-2" style="gap:8px"><select class="input" name="stage"><option>Bootstrapped</option><option selected>Pre-seed</option><option>Seed</option><option>Series A+</option></select><input class="input" name="team" type="number" min="1" value="1" aria-label="Team size"></div><input class="input" name="city" placeholder="City" value="${esc(form.city.value)}"><button class="btn btn--primary btn--sm" style="align-self:flex-start">Add company</button></form></div>`);
+    qs('#co-pick').addEventListener('click', e => { const b = e.target.closest('[data-co]'); if (!b) return; s.company_id = b.dataset.co; renderCompany(); qs('#co-pick').remove(); scheduleSave(); });
+    qs('#co-new').addEventListener('submit', async e => { e.preventDefault(); const f = e.target; try { const c = await API.createCompany({ name: f.name.value.trim(), stage: f.stage.value, team_size: +f.team.value || 1, city: f.city.value.trim(), country: qs('#country').value }); companies.push(c); s.company_id = c.id; renderCompany(); qs('#co-pick').remove(); scheduleSave(); toast('Company added'); } catch (err) { H.fail(err); } });
   });
-  function addMaker(e) { e.preventDefault(); const u = qs('#m-user').value.trim().replace(/^@/, ''); if (!u) return; const p = D.PEOPLE[u.toLowerCase()]; const n = p ? p.name : u.charAt(0).toUpperCase() + u.slice(1); makers.push([n, 'Maker · invited', H.initials(n)]); qs('#add-maker').hidden = true; renderMakers(); toast('Invite sent to @' + u); }
-  qs('#add-maker').addEventListener('click', e => { if (e.target.closest('#m-go')) addMaker(e); });
-  qs('#add-maker').addEventListener('keydown', e => { if (e.key === 'Enter') addMaker(e); });
-  qs('#company').addEventListener('click', () => toast('One company per maker for now — edit it in your company page'));
+  let makers = [];
+  async function loadMakers() { makers = p ? (await API.makers(p.id)).filter(m => m.user.id !== API.uid) : []; renderMakers(); }
+  function renderMakers() {
+    qs('#maker-list').innerHTML = `<span class="maker-chip">${avatar(API.profile, 28)}<span class="stack"><span class="t-label">${esc(API.profile.name)}</span><span class="t-caption c-3" style="font-weight:400;font-size:11px;line-height:13px">Founder</span></span></span>` + makers.map(m => `<span class="maker-chip">${avatar(m.user, 28)}<span class="stack"><span class="t-label">${esc(m.user.name)}</span><span class="t-caption c-3" style="font-weight:400;font-size:11px;line-height:13px">${esc(m.role)}${m.accepted ? '' : ' · invited'}</span></span><button type="button" data-rmm="${m.user.id}" aria-label="Remove ${esc(m.user.name)}" class="c-3" style="margin-left:2px">${icon('x', 'ic-14')}</button></span>`).join('') + `<button class="btn btn--ghost btn--sm" type="button" id="add-m">${icon('plus')}Add maker</button>`;
+    update();
+  }
+  qs('#maker-list').addEventListener('click', async e => {
+    const r = e.target.closest('[data-rmm]'); if (r) { try { await API.removeMaker(p.id, r.dataset.rmm); loadMakers(); } catch (err) { H.fail(err); } return; }
+    if (e.target.closest('#add-m')) { const f = qs('#add-maker'); f.hidden = false; f.innerHTML = `<div class="stack gap-4 grow" style="max-width:340px"><input class="input" id="m-user" placeholder="Search by name or @username" aria-label="Find a maker" autocomplete="off"><div id="m-res" class="stack"></div></div>`; qs('#m-user').focus(); }
+  });
+  qs('#add-maker').addEventListener('input', async e => { if (e.target.id !== 'm-user') return; const t = e.target.value.trim().replace(/^@/, '').replace(/[%,()]/g, ''); if (t.length < 2) { qs('#m-res').innerHTML = ''; return; } const r = await API.searchProfiles(t); qs('#m-res').innerHTML = r.filter(x => x.id !== API.uid && !makers.some(m => m.user.id === x.id)).map(x => `<button type="button" class="cmdk__opt" data-uid="${x.id}" data-name="${esc(x.name)}">${avatar(x, 28)}<span class="grow" style="text-align:left">${esc(x.name)} <span class="c-3">@${esc(x.username)}</span></span></button>`).join('') || '<p class="t-caption c-3" style="padding:6px">No makers found. They need a Hentity account first.</p>'; });
+  qs('#add-maker').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b) return; try { await ensureDraft(); await API.addMaker(p.id, b.dataset.uid, 'Maker'); qs('#add-maker').hidden = true; await loadMakers(); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
 
   // ---- Weeks
-  const left = store.get('weekLeft', { 46: 0, 47: 4, 48: 19, 49: 30 });
+  let slots = await API.weekSlots();
   function renderWeeks() {
-    qs('#weeks').innerHTML = Object.entries(L.WEEKS).map(([w, d]) => { const full = left[w] === 0; const on = +w === s.week; const lc = full ? 'c-3' : on ? 'c-accent' : left[w] > 10 ? 'c-success' : 'c-warning';
-      return `<button class="week" type="button" role="radio" aria-checked="${on}" data-w="${w}" ${full ? 'disabled' : ''}><span class="rad"></span><span class="stack"><span class="t-label">Week ${w}</span><span class="t-caption c-3" style="font-weight:400">${d}${w === '46' ? ' · this week' : ''}</span></span><span class="left ${lc}">${full ? 'Full' : `${left[w]} of 30 left`}</span></button>`; }).join('');
+    qs('#weeks').innerHTML = slots.map((w, i) => { const full = w.taken >= w.capacity && w.id !== (p && p.week_id); const on = w.id === s.week_id; const left = w.capacity - w.taken; const lc = full ? 'c-3' : on ? 'c-accent' : left > 10 ? 'c-success' : 'c-warning';
+      const st = new Date(w.starts_at), en = new Date(new Date(w.ends_at) - 864e5); const started = st <= new Date();
+      return `<button class="week" type="button" role="radio" aria-checked="${on}" data-w="${w.id}" ${full || started ? 'disabled' : ''}><span class="rad"></span><span class="stack"><span class="t-label">Week ${w.id}</span><span class="t-caption c-3" style="font-weight:400">${st.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}–${en.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}${started ? ' · this week' : ''}</span></span><span class="left ${lc}">${started ? 'Live now' : full ? 'Full' : `${left} of ${w.capacity} left`}</span></button>`; }).join('');
+    M.stagger(qs('#weeks'));
   }
   renderWeeks();
-  qs('#weeks').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b || b.disabled) return; s.week = +b.dataset.w; renderWeeks(); update(); });
+  qs('#weeks').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b || b.disabled) return; s.week_id = +b.dataset.w; renderWeeks(); update(); });
 
   // ---- Verification
   function renderV() {
-    const V = [['domain', 'Domain verified', (form.website.value || 'yourdomain').replace(/^https?:\/\//, '').replace(/\/.*/, '') + ' · DNS record found', 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
-    qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? '<span class="badge">Done</span>' : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">Add</button>`}</div>`).join('');
+    const dom = (normUrl(form.website.value) || 'yourdomain.com').replace(/^https?:\/\//, '').replace(/\/.*/, '');
+    const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
+    qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? `<span class="badge">${s.verified ? 'Verified' : 'Pending review'}</span>` : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">${k === 'domain' ? 'I’ve added it' : 'Add'}</button>`}</div>`).join('');
   }
-  renderV();
-  qs('#vlist').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; const row = b.closest('.vrow'); const k = b.dataset.v; b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); });
-  qs('#vlist').addEventListener('click', e => { const b = e.target.closest('[data-vs]'); if (!b) return; const v = qs(`[data-vi="${b.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${b.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[b.dataset.vs] = v; renderV(); update(); toast('Added for verification'); });
+  qs('#vlist').addEventListener('click', e => {
+    const b = e.target.closest('[data-v]'); if (b) { const k = b.dataset.v; if (k === 'domain') { s.verify.domain = 'TXT record added · checked during review'; renderV(); scheduleSave(); return; } const row = b.closest('.vrow'); b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); return; }
+    const sv = e.target.closest('[data-vs]'); if (sv) { const v = qs(`[data-vi="${sv.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${sv.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[sv.dataset.vs] = v; renderV(); update(); toast('Added for verification'); }
+  });
 
-  // ---- Progress, preview, autosave
+  // ---- Persistence
+  const slugify = t => (t || 'product').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'product';
+  async function ensureDraft() {
+    if (p) return p;
+    if (saving) return saving;
+    saving = (async () => {
+      let slug = slugify(form.name.value), n = 1; while (!(await API.slugFree(slug))) slug = slugify(form.name.value) + '-' + (++n);
+      p = await API.createDraft({ slug, name: form.name.value.trim() || 'Untitled product', tagline: form.tagline.value.trim() });
+      history.replaceState(null, '', '/submit?id=' + p.id); return p;
+    })();
+    try { return await saving; } finally { saving = null; }
+  }
+  function payload() {
+    return { name: form.name.value.trim() || 'Untitled product', tagline: form.tagline.value.trim(), website: normUrl(form.website.value.trim()) || form.website.value.trim(), categories: s.categories, country: qs('#country').value, city: form.city.value.trim(), countries: [qs('#country').value], pay_methods: s.pay_methods, media: media.filter(m => !m.error && !m.loading && (m.url || m.color)).map(m => m.url ? { url: m.url } : { color: m.color }), video_url: qs('#video').value.trim() || null, intro: qs('#intro-t').value, week_id: s.week_id, verify: s.verify, logo_url: s.logo_url, company_id: s.company_id, description: qs('#intro-t').value.replace(/^hi hentity\W*/i, '').slice(0, 2000) };
+  }
+  function scheduleSave() {
+    clearTimeout(saveT);
+    saveT = setTimeout(async () => {
+      const pl = payload(); if (!p && !pl.tagline && pl.name === 'Untitled product') return;
+      try { await ensureDraft(); if (!['draft', 'changes'].includes(p.status)) return; p = Object.assign(p, await API.saveProduct(p.id, pl)); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + new Date().toTimeString().slice(0, 5); }
+      catch (e) { qs('#saved').innerHTML = icon('alert-circle', 'ic-12') + 'Not saved · ' + H.esc(e.message).slice(0, 60); }
+    }, 700);
+  }
+
   const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch week'], ['intro', 'Introduction'], ['verify', 'Verification', true]];
-  let current = 'basics', saveT;
+  let current = 'basics';
   function done() {
-    const web = (() => { try { return /\./.test(new URL(/^https?:/.test(form.website.value) ? form.website.value : 'https://' + form.website.value).hostname); } catch (e) { return false; } })();
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && web && s.cats.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: makers.length > 0, week: !!s.week && left[s.week] > 0, intro: qs('#intro-t').value.trim().length >= 40, verify: Object.values(s.verify).every(Boolean) };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: true, week: !!s.week_id && slots.some(w => w.id === s.week_id && (w.taken < w.capacity || w.id === (p && p.week_id))), intro: qs('#intro-t').value.trim().length >= 40, verify: Object.values(s.verify).filter(Boolean).length >= 1 };
   }
   function update() {
     if (!ready) return;
     qsa('[data-count]').forEach(c => { const f = qs('#' + c.dataset.count); c.textContent = f.value.length + ' / ' + f.maxLength; });
-    qs('#cat-count').textContent = s.cats.length + ' / 3';
-    Object.assign(s, { name: form.name.value, tagline: form.tagline.value, website: form.website.value, city: form.city.value, country: qs('#country').value, intro: qs('#intro-t').value, video: qs('#video').value, media: media.filter(m => !m.url && !m.error).map(m => m.bg) });
+    qs('#cat-count').textContent = s.categories.length + ' / 3';
     const d = done(); const req = ['basics', 'media', 'makers', 'week', 'intro']; const n = req.filter(k => d[k]).length;
     qs('#idx').innerHTML = SECS.map(([k, l, opt]) => `<li><a href="#${k}" class="${d[k] ? 'is-done' : ''}"${k === current ? ' aria-current="true"' : ''}><span class="st">${d[k] ? icon('check') : ''}</span>${l.replace('&', '&amp;')}${opt ? '<span class="opt">Optional</span>' : ''}</a></li>`).join('');
-    qs('#idx-name').textContent = s.name || 'Untitled product';
+    qs('#idx-name').textContent = form.name.value || 'Untitled product';
     qs('#ready-n').textContent = n + ' / 5'; qs('#ready-bar').style.width = (n / 5 * 100) + '%';
     const missing = req.filter(k => !d[k]).map(k => SECS.find(x => x[0] === k)[1]);
     qs('#ready-hint').textContent = missing.length ? 'Finish ' + missing.join(' and ').replace(/ and (?=.* and )/g, ', ') + ' to submit.' : qs('#support').checked ? 'Ready when you are.' : 'Tick the box above to submit.';
     qs('#submit').disabled = !(n === 5 && qs('#support').checked);
-    qs('#preview').innerHTML = L.card(s, { flag: true }).replace('class="card lcard"', 'class="card lcard" style="padding:20px 16px"');
-    clearTimeout(saveT); saveT = setTimeout(() => { L.save(s); const t = new Date().toTimeString().slice(0, 5); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + t; }, 500);
+    const preview = Object.assign({}, s, payload(), { logo_url: s.logo_url });
+    qs('#preview').innerHTML = L.card(preview, { flag: true }).replace('class="card lcard"', 'class="card lcard" style="padding:20px 16px"');
+    renderV();
   }
-  form.addEventListener('input', update); form.addEventListener('change', update); qs('#support').addEventListener('change', update);
+  form.addEventListener('input', () => { update(); scheduleSave(); }); form.addEventListener('change', () => { update(); scheduleSave(); }); qs('#support').addEventListener('change', update);
+  qsa('#cats, #pay, #weeks').forEach(el => el.addEventListener('click', scheduleSave));
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { current = e.target.id; qsa('#idx a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + current))); } }), { rootMargin: '-40% 0px -55% 0px' });
   qsa('[data-sec]').forEach(x => io.observe(x));
-  ready = true; update();
+  ready = true; renderGal(); await loadMakers(); update();
+  if (p && p.status === 'changes') { qs('#form').insertAdjacentHTML('afterbegin', `<div class="alert alert--warning reveal"><span>${icon('alert-circle')}</span><div><p class="alert__title">Changes requested</p><p class="alert__body">${esc(p.review_note || 'See the moderator note.')}</p></div><a class="link alert__action" href="/changes-requested?p=${p.slug}">See details</a></div>`); }
+  if (location.hash) setTimeout(() => { const t = qs(location.hash); t && t.scrollIntoView({ behavior: 'smooth' }); }, 200);
+  M.stagger(qs('#form'), '.sec');
 
-  // ---- Submit
-  qs('#submit').addEventListener('click', () => {
-    if (s.week === 47 && !store.get('weekFullShown', false)) {
-      store.set('weekFullShown', true); left[47] = 0; store.set('weekLeft', left); s.week = 48; renderWeeks(); update();
-      qs('#week').scrollIntoView({ behavior: 'smooth' });
-      let w = qs('.toasts'); if (!w) { w = document.createElement('div'); w.className = 'toasts'; document.body.appendChild(w); }
-      const t = document.createElement('div'); t.className = 'toast toast--info'; t.setAttribute('role', 'alert');
-      t.innerHTML = `${icon('info')}<span>Week 47 filled up while you were editing. We’ve held a spot in Week 48.</span><a href="#week" class="c-accent" style="margin-left:8px">Change</a>`;
-      w.appendChild(t); setTimeout(() => t.remove(), 7000); return;
+  // ---- Submit for review
+  qs('#submit').addEventListener('click', async () => {
+    const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Submitting';
+    try {
+      clearTimeout(saveT); await ensureDraft();
+      await API.saveProduct(p.id, Object.assign(payload(), { support_pledge: true }));
+      await API.saveProduct(p.id, { status: 'review' });
+      location.href = '/under-review?p=' + p.slug;
+    } catch (e) {
+      btn.innerHTML = icon('rocket') + 'Submit for review'; btn.disabled = false;
+      if (/WEEK_FULL/.test(e.message)) {
+        const was = s.week_id; slots = await API.weekSlots(); const nx = slots.find(w => w.id > was && w.taken < w.capacity && new Date(w.starts_at) > new Date());
+        if (nx) { s.week_id = nx.id; renderWeeks(); update(); await API.saveProduct(p.id, { week_id: nx.id }); }
+        qs('#week').scrollIntoView({ behavior: 'smooth' });
+        let w = qs('.toasts'); if (!w) { w = document.createElement('div'); w.className = 'toasts'; document.body.appendChild(w); }
+        const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'alert');
+        t.innerHTML = `${icon('info')}<span>Week ${was} filled up while you were editing.${nx ? ` We’ve held a spot in Week ${nx.id}.` : ''}</span><a href="#week" class="c-accent" style="margin-left:8px">Change</a>`;
+        w.appendChild(t); setTimeout(() => t.remove(), 8000);
+      } else H.fail(e);
     }
-    s.status = 'review'; s.submittedAt = Date.now(); s.support = true; L.save(s);
-    location.href = '/under-review';
   });
 })();
 </script>

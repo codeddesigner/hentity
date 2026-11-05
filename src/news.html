@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>News · African tech, startups and launches · Hentity</title>
+<meta name="description" content="Daily African tech news for makers: funding rounds, policy, fintech and launches from Lagos to Nairobi, with a 3-minute morning brief.">
+<link rel="canonical" href="https://hentity.vercel.app/news">
+</head>
+<body>
+<div data-header></div>
+<main class="news" id="main">
+  <header class="row between wrap gap-16">
+    <div><p class="kicker" id="today"></p><h1 class="t-h1 words" style="margin-top:6px">What African makers are reading</h1></div>
+    <button class="btn btn--secondary btn--sm" type="button" id="suggest"><span data-icon="plus"></span>Suggest a story</button>
+  </header>
+  <div class="chips" id="topics" data-single style="margin-top:24px;flex-wrap:nowrap;overflow-x:auto"></div>
+  <div class="news-grid">
+    <div style="min-width:0">
+      <div id="lead"></div>
+      <h2 class="t-eyebrow c-3" style="margin-top:40px">Latest</h2>
+      <div id="latest"></div>
+    </div>
+    <aside class="stack gap-24" style="gap:24px">
+      <section class="brief" data-scroll-reveal id="brief"></section>
+      <section class="card" style="padding:20px"><p class="t-eyebrow c-3">Discussed in Chats</p><div class="stack gap-12" id="discussed" style="margin-top:12px"></div></section>
+      <section class="card" style="padding:20px">
+        <p class="t-h4">The Monday brief</p>
+        <p class="t-body-sm c-2" style="margin-top:6px">The week’s launches and the news behind them. One email, every Monday at 07:00 WAT.</p>
+        <form class="stack gap-8" id="nl" style="margin-top:14px" novalidate><input class="input" type="email" id="nl-email" placeholder="you@company.com" aria-label="Email" autocomplete="email"><button class="btn btn--primary btn--block">Subscribe</button></form>
+      </section>
+    </aside>
+  </div>
+</main>
+<div data-tabbar></div>
+<script>
+H.mount({ active: 'news', tab: 'news' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const TOPICS = ['All', 'Launches', 'Funding', 'Policy', 'Fintech', 'Health', 'From Hentity'];
+  qs('#today').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  const want = H.params().get('topic') || 'All';
+  qs('#topics').innerHTML = TOPICS.map(t => `<button class="chip" type="button" data-chip data-topic="${t}" aria-pressed="${t === want}">${icon('check')}${t}</button>`).join('');
+  M.words(qs('.words'));
+  const img = (a, cls) => `<div class="${cls}" style="--c:${esc(a.color || '#ff5b14')}">${a.image_url ? `<img src="${esc(a.image_url)}" alt="" loading="lazy">` : ''}</div>`;
+  const meta = a => `<span class="row gap-6 t-caption c-3" style="font-weight:400"><span class="avatar avatar--20" style="background:${esc(a.color)};color:#fff;font-size:9px">${esc(a.source_initials || 'H')}</span>${esc(a.source)} · ${H.ago(a.published_at)} · ${a.read_minutes} min · ${icon('chats', 'ic-14')}${a.comment_count}</span>`;
+  async function load(topic) {
+    qs('#latest').innerHTML = '<div class="skel" style="height:96px;margin:20px 0"></div>'.repeat(3);
+    const list = await API.articles({ topic }).catch(e => (H.fail(e), []));
+    const lead = list[0], rest = list.slice(1);
+    qs('#lead').innerHTML = lead ? `<a class="stack gap-16 reveal" href="/news/${lead.slug}" style="gap:16px">${img(lead, 'art-img')}<p class="kicker">${esc(lead.topic)}</p><h2 class="t-h2" style="margin-top:-6px">${esc(lead.title)}</h2><p class="body c-2">${esc(lead.dek)}</p>${meta(lead)}</a>` : `<div class="empty"><p class="t-h4">Nothing in ${esc(topic)} yet</p><p class="t-body-sm c-2">Check back tomorrow morning.</p></div>`;
+    qs('#latest').innerHTML = rest.map(a => `<a class="art-row" data-scroll-reveal href="/news/${a.slug}"><div class="grow stack gap-8" style="min-width:0"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4">${esc(a.title)}</h3><p class="t-body-sm c-2 hide-sm">${esc(a.dek)}</p>${meta(a)}</div>${img(a, 'art-thumb')}</a>`).join('') || (lead ? '<p class="t-body-sm c-3" style="padding:20px 0">That’s everything for now.</p>' : '');
+    M.scroll(document);
+    // discussed
+    const top = [...list].sort((a, b) => b.comment_count - a.comment_count).slice(0, 3);
+    qs('#discussed').innerHTML = top.map(a => `<a class="row gap-10" style="gap:10px;align-items:flex-start" href="${a.channel_slug ? '/chats/' + a.channel_slug : '/news/' + a.slug}"><span class="icon-badge" style="width:28px;height:28px;flex:none">${icon('hash', 'ic-14')}</span><span><span class="t-label" style="display:block">${esc(a.title)}</span><span class="t-caption c-3" style="font-weight:400">${a.comment_count} comments${a.channel_slug ? ' · #' + esc(a.channel_slug) : ''}</span></span></a>`).join('') || '<p class="t-caption c-3">Quiet so far today.</p>';
+  }
+  H.bindChips(qs('#topics'), () => { const b = qs('#topics [aria-pressed="true"]'); const t = b ? b.dataset.topic : 'All'; history.replaceState(null, '', t === 'All' ? '/news' : '/news?topic=' + encodeURIComponent(t)); load(t); });
+  load(want);
+  // Morning brief — read aloud with speech synthesis
+  const b = await API.settings('morning_brief').catch(() => null) || { items: [] };
+  qs('#brief').innerHTML = `<div class="row gap-12"><button class="play" type="button" id="listen" aria-label="Play the morning brief">${icon('play')}</button><div><p class="t-label">Morning brief</p><p class="t-caption" style="color:rgba(255,255,255,.6);font-weight:400">${esc(b.length || '3 min listen')} · ${esc(b.languages || 'English')}</p></div></div><ul class="stack gap-8" style="list-style:none;margin:16px 0 0;padding:0">${(b.items || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  qs('#listen').addEventListener('click', e => {
+    const s = window.speechSynthesis; if (!s) { toast('Your browser can’t play audio briefs'); return; }
+    if (s.speaking) { s.cancel(); e.currentTarget.innerHTML = icon('play'); return; }
+    const u = new SpeechSynthesisUtterance('Good morning from Hentity. ' + (b.items || []).join('. ') + '. That’s your brief.'); u.lang = 'en-GB'; u.rate = 1;
+    u.onend = () => { qs('#listen').innerHTML = icon('play'); }; s.speak(u); e.currentTarget.innerHTML = icon('x');
+  });
+  qs('#nl').addEventListener('submit', async e => {
+    e.preventDefault(); const v = qs('#nl-email').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { toast('Enter a valid email', 'error'); return; }
+    try { await API.subscribe(v); e.target.innerHTML = `<p class="row gap-8 t-body-sm reveal">${icon('check')}You’re in. First brief lands Monday.</p>`; } catch (err) { H.fail(err); }
+  });
+  qs('#suggest').addEventListener('click', async () => {
+    if (!API.uid) { location.href = '/signin?next=/news'; return; }
+    const url = prompt('Link to the story'); if (!url) return; if (!/^https?:\/\//.test(url)) { toast('Paste a full link starting with https://', 'error'); return; }
+    const note = prompt('Why should makers read it? (optional)') || '';
+    try { await API.suggestStory(url, note); toast('Thanks — the editors will take a look'); } catch (err) { H.fail(err); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -3,14 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>You · Hentity</title>
+<meta name="robots" content="noindex">
 <style>
 .me{max-width:560px;margin:0 auto;padding:24px 16px 40px}
 .me-stats{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 16px}
@@ -20,21 +31,32 @@
 .me-menu .ic{width:18px;height:18px}
 .me-menu .meta{margin-left:auto;font-size:13px;color:var(--color-text-tertiary);font-weight:400}
 </style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="You · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/me">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="You · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="subtle">
 <div data-header></div>
 <main class="me">
   <h1 class="t-h2" style="margin-bottom:20px">You</h1>
   <section class="card card--pad">
-    <div class="row gap-16"><span data-avatar="72"></span><div><p class="t-h4"><span data-user="name"></span></p><p class="row gap-6 t-body-sm c-3">@<span data-user="username"></span> <span data-flag="NG"></span> <span data-user="city"></span></p></div></div>
-    <div class="me-stats"><div><b>1.2k</b><span class="t-caption c-3" style="font-weight:400">followers</span></div><div><b>184</b><span class="t-caption c-3" style="font-weight:400">following</span></div><div><b>3</b><span class="t-caption c-3" style="font-weight:400">products</span></div></div>
-    <a class="btn btn--secondary btn--sm btn--block" id="pub" href="/makers/ada"><span data-icon="arrow-up-right"></span>View public profile</a>
+    <div class="row gap-16"><span id="me-av" class="avatar avatar--72"></span><div><p class="t-h4" id="me-name"></p><p class="row gap-6 t-body-sm c-3">@<span id="me-handle"></span> <span id="me-city" class="row gap-6"></span></p></div></div>
+    <div class="me-stats"><div><b id="f1" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">followers</span></div><div><b id="f2" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">following</span></div><div><b id="f3" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">products</span></div></div>
+    <a class="btn btn--secondary btn--sm btn--block" id="pub" href="/"><span data-icon="arrow-up-right"></span>View public profile</a>
   </section>
   <nav class="card me-menu" style="margin-top:16px;padding:6px 0;overflow:hidden">
-    <a href="/my-products"><span data-icon="rocket"></span>My products<span class="meta">4</span></a>
-    <a href="/makers/ada#collections"><span data-icon="bookmark"></span>Saved<span class="meta">14</span></a>
+    <a href="/my-products"><span data-icon="rocket"></span>My products<span class="meta" id="mp-n"></span></a>
+    <a href="/saved"><span data-icon="bookmark"></span>Saved<span class="meta" id="sv-n"></span></a>
     <a href="/notifications"><span data-icon="bell"></span>Notifications<span class="meta" id="unread"></span></a>
-    <a href="/settings/profile"><span data-icon="lock"></span>Settings</a>
+    <a href="/settings/profile"><span data-icon="settings"></span>Settings</a><a href="/admin" id="admin-link" hidden><span data-icon="shield"></span>Admin</a><a href="/news"><span data-icon="newspaper"></span>News</a>
     <label><span data-icon="eye"></span>Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle aria-label="Dark mode"><span class="toggle__track"></span></span></label>
     <a href="/guidelines"><span data-icon="info"></span>Help &amp; guidelines</a>
   </nav>
@@ -42,11 +64,21 @@
 </main>
 <div data-tabbar></div>
 <script>
-if (!H.session()) location.replace('/signin?next=/me');
-H.mount({ tab: 'Profile' });
-H.qs('#pub').href = '/makers/' + H.user().username;
-const n = H.store.get('unread', 3); H.qs('#unread').textContent = n ? n + ' new' : '';
-H.qs('[data-theme-toggle]').checked = document.documentElement.dataset.theme === 'dark';
+H.mount({ tab: 'you' });
+(async () => {
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/me'); return; }
+  H.mount({ tab: 'you' });
+  const u = H.user();
+  H.qs('#me-av').outerHTML = H.avatar(u, 72); H.qs('#me-name').textContent = u.name; H.qs('#me-handle').textContent = u.username; H.qs('#me-city').innerHTML = H.flag(u.country || 'NG') + ' ' + H.esc(u.city || '');
+  H.qs('#pub').href = '/makers/' + u.username;
+  const c = await API.followCounts(u.id); H.qs('#f1').dataset.countTo = c.followers; H.qs('#f2').dataset.countTo = c.following;
+  const mp = await API.myProducts(); H.qs('#f3').dataset.countTo = mp.length; H.qs('#mp-n').textContent = mp.length || ''; M.countUp();
+  const b = await API.bookmarks('product'); H.qs('#sv-n').textContent = b.length || '';
+  const n = await API.unreadCount(); H.qs('#unread').textContent = n ? n + ' new' : '';
+  if (API.isAdmin) H.qs('#admin-link').hidden = false;
+  H.qs('[data-theme-toggle]').checked = document.documentElement.dataset.theme === 'dark';
+})();
 </script>
 </body>
 </html>

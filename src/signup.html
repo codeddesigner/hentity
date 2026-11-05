@@ -44,16 +44,17 @@
 <script src="/assets/auth.js"></script>
 <script>
 H.mount();
-(function () {
-  const { qs, store } = H; const form = qs('#form');
-  const taken = ['admin', 'hentity', 'kofi', 'wanjiru', 'thandi', 'support'];
+(async function () {
+  const { qs } = H; const form = qs('#form');
+  await API.ready; if (API.uid) { location.replace('/'); return; }
   let userOk = false, timer;
   function strength(p) { let s = 0; if (p.length >= 10) s++; if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++; if (/\d/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++; return s; }
   function update() {
     const pw = form.password.value, ph = qs('#p-hint');
-    if (!pw) { ph.textContent = 'At least 10 characters.'; ph.className = 'field__hint'; }
-    else if (pw.length < 10) { ph.textContent = `At least 10 characters. ${10 - pw.length} to go`; ph.className = 'field__hint'; }
-    else { const s = strength(pw); ph.textContent = 'At least 10 characters. ' + (s >= 3 ? 'Strong ✓' : s === 2 ? 'Good' : 'Fair — add numbers or symbols'); ph.className = 'field__hint'; }
+    ph.className = 'field__hint';
+    if (!pw) ph.textContent = 'At least 10 characters.';
+    else if (pw.length < 10) ph.textContent = `At least 10 characters. ${10 - pw.length} to go`;
+    else { const s = strength(pw); ph.textContent = 'At least 10 characters. ' + (s >= 3 ? 'Strong ✓' : s === 2 ? 'Good' : 'Fair — add numbers or symbols'); if (s >= 3) ph.className = 'field__hint is-success'; }
     qs('#submit').disabled = !(form.name.value.trim() && userOk && Auth.emailOk(form.email.value.trim()) && pw.length >= 10 && qs('#terms').checked);
   }
   form.username.addEventListener('input', () => {
@@ -62,26 +63,28 @@ H.mount();
     userOk = false; clearTimeout(timer); qs('#f-username').classList.remove('is-error');
     if (!v) { h.textContent = 'Lowercase letters, numbers and underscores.'; h.className = 'field__hint'; update(); return; }
     if (v.length < 3) { h.textContent = 'At least 3 characters.'; h.className = 'field__hint'; update(); return; }
-    h.textContent = 'Checking hentity.com/makers/' + v + '…'; h.className = 'field__hint';
-    timer = setTimeout(() => {
-      const accts = Object.values(Auth.accounts()).map(a => a.username);
-      if (taken.includes(v) || (accts.includes(v) && v !== 'ada')) { h.textContent = 'hentity.com/makers/' + v + ' · taken. Try ' + v + '_' + (Math.floor(Math.random() * 90) + 10); h.className = 'field__hint is-error'; qs('#f-username').classList.add('is-error'); }
-      else { h.textContent = 'hentity.com/makers/' + v + ' · available'; h.className = 'field__hint is-success'; userOk = true; }
+    h.textContent = 'Checking hentity.vercel.app/makers/' + v + '…'; h.className = 'field__hint';
+    timer = setTimeout(async () => {
+      const ok = await API.usernameAvailable(v);
+      if (form.username.value !== v) return;
+      if (!ok) { h.textContent = '@' + v + ' is taken. Try ' + v + '_' + (Math.floor(Math.random() * 90) + 10); h.className = 'field__hint is-error'; qs('#f-username').classList.add('is-error'); }
+      else { h.textContent = 'hentity.vercel.app/makers/' + v + ' · available'; h.className = 'field__hint is-success'; userOk = true; }
       update();
     }, 350);
   });
+  form.name.addEventListener('blur', () => { if (!form.username.value && form.name.value.trim()) { form.username.value = form.name.value.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30); form.username.dispatchEvent(new Event('input')); } });
   form.addEventListener('input', update); form.addEventListener('change', update);
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault(); if (qs('#submit').disabled) return;
-    const email = form.email.value.trim().toLowerCase();
-    const accts = Auth.accounts();
-    if (accts[email] && email !== 'ada@ledgerline.app') { qs('#f-email').classList.add('is-error'); const eh = qs('#e-hint'); eh.hidden = false; eh.innerHTML = 'This email already has an account. <a class="link" href="/signin">Sign in</a>'; return; }
-    accts[email] = { name: form.name.value.trim(), username: form.username.value, password: form.password.value, verified: false };
-    store.set('accounts', accts);
-    store.set('pending', { email, name: form.name.value.trim(), username: form.username.value });
-    location.href = '/check-email';
+    const email = form.email.value.trim().toLowerCase(); const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Creating account';
+    try {
+      const r = await API.auth.signUp({ email, password: form.password.value, name: form.name.value.trim(), username: form.username.value });
+      if (r.user && r.user.identities && r.user.identities.length === 0) throw new Error('already registered');
+      sessionStorage.setItem('hentity.pending', JSON.stringify({ email, name: form.name.value.trim() }));
+      location.href = r.session ? '/welcome' : '/check-email';
+    } catch (ex) { const [t, b] = Auth.friendly(ex.message); qs('#f-email').classList.add('is-error'); const eh = qs('#e-hint'); eh.hidden = false; eh.innerHTML = H.esc(t) + (/already/.test(t) ? ' <a class="link" href="/signin">Sign in</a>' : '. ' + H.esc(b)); btn.disabled = false; btn.textContent = 'Create account'; }
   });
-  qs('#google').addEventListener('click', e => { e.preventDefault(); Auth.startSession('ada@ledgerline.app'); location.href = '/welcome?via=google'; });
+  qs('#google').addEventListener('click', async e => { e.preventDefault(); try { await API.auth.google('/welcome?via=google'); } catch (ex) { H.toast(Auth.friendly(ex.message)[0], 'error'); } });
 })();
 </script>
 </body>

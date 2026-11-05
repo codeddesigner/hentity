@@ -10,7 +10,7 @@
   <main class="auth__side">
     <div data-mobilebar></div>
     <form class="auth__form" id="form" style="max-width:460px">
-      <div class="alert alert--success" role="status">
+      <div class="alert alert--success reveal" role="status" id="verified-alert">
         <span data-icon="check"></span>
         <div><p class="alert__title">Email verified</p><p class="alert__body">You’re in. Two quick questions to tune your feed.</p></div>
       </div>
@@ -34,25 +34,25 @@
 </div>
 <script src="/assets/auth.js"></script>
 <script>
-(function () {
-  const { qs, qsa, store, icon } = H;
-  const pending = store.get('pending', null);
-  if (pending && pending.name) store.set('profile', Object.assign({}, store.get('profile', {}), { name: pending.name, username: pending.username, email: pending.email }));
-  if (!H.session()) Auth.startSession((pending && pending.email) || 'ada@ledgerline.app');
+(async function () {
+  const { qs, qsa, icon } = H;
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/welcome'); return; }
   H.mount();
+  if (H.params().get('via') === 'google') { qs('#verified-alert .alert__title').textContent = 'Signed in with Google'; }
   const cats = ['Fintech', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Hardware'];
-  const sel = new Set(store.get('interests', ['Fintech', 'AI', 'Agriculture']));
+  const sel = new Set((API.profile.interests || []).length ? API.profile.interests : []);
   qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');
+  M.stagger(qs('#interests'));
   H.bindChips(qs('#interests'), validate);
   qsa('[data-use]').forEach(b => b.addEventListener('click', () => { qsa('[data-use]').forEach(o => o.setAttribute('aria-checked', String(o === b))); }));
   function picked() { return qsa('#interests [aria-pressed="true"]').map(c => c.textContent.trim()); }
   function validate() { const n = picked().length; qs('#hint').textContent = n < 3 ? `Pick ${3 - n} more to continue.` : ''; qs('#go').disabled = n < 3; }
   validate();
-  qs('#form').addEventListener('submit', e => {
+  qs('#form').addEventListener('submit', async e => {
     e.preventDefault(); if (picked().length < 3) return;
-    store.set('interests', picked()); store.del('pending');
     const use = qs('[data-use][aria-checked="true"]').dataset.use;
-    location.href = use === 'launch' ? '/submit' : '/';
+    try { await API.updateProfile({ interests: picked(), settings: Object.assign({}, API.profile.settings, { onboarded: true, use }) }); sessionStorage.removeItem('hentity.pending'); location.href = use === 'launch' ? '/submit?new=1' : '/'; } catch (ex) { H.fail(ex); }
   });
 })();
 </script>

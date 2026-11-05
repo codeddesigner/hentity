@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings/
+Disallow: /me
+Disallow: /my-products
+Disallow: /notifications
+Disallow: /saved
+Disallow: /submit
+Disallow: /api/
+
+Sitemap: https://hentity.vercel.app/sitemap.xml

@@ -3,18 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Maker · Hentity</title>
 <style>
 .cover{height:180px;background:#000;position:relative;overflow:hidden}
-.cover::after{content:"";position:absolute;width:760px;height:760px;border-radius:50%;background:#e8560f;right:-260px;top:-20px}
-.mk{max-width:1248px;margin:0 auto;padding:0 24px}
+.cover::after{content:"";position:absolute;width:760px;height:760px;border-radius:50%;background:var(--orb,#e8560f);right:-260px;top:-20px;animation:orb 1.2s cubic-bezier(.2,.8,.2,1) both}
+@keyframes orb{from{transform:translate(120px,80px) scale(.85);opacity:.4}}
+.mk{max-width:1136px;margin:0 auto;padding:0 56px;box-sizing:content-box}
 .mk-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
 .mk-avatar{margin-top:-52px;position:relative;z-index:1;border:4px solid var(--color-bg-canvas)}
 .mk-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--color-text-secondary)}
@@ -24,11 +35,23 @@
 .mk-stats{display:flex;gap:28px;flex-wrap:wrap;font-size:13px;color:var(--color-text-secondary)}
 .mk-stats b{font-size:18px;font-weight:600;color:var(--color-text-primary);margin-right:6px;letter-spacing:-0.01em}
 .mk-body{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:64px;padding:28px 0 96px}
-.mk-tabs{margin:28px -24px 0;padding:0 24px}
+.mk-tabs{margin:28px 0 0}
 .medal{width:28px;height:28px;border-radius:50%;flex:none}
 @media (max-width:1024px){.mk-body{grid-template-columns:1fr;gap:24px}}
 @media (max-width:768px){.mk-tabs{margin:24px -16px 0;padding:0 16px}.cover{height:140px}.cover::after{width:420px;height:420px;right:-160px}.mk{padding:0 16px}.mk h1{font-size:30px!important;line-height:36px!important}.mk-head .row.gap-8{width:100%}.mk-head .row.gap-8 .btn{flex:1}}
 </style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Maker · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/maker">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Maker · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body>
 <div data-header></div>
@@ -37,57 +60,71 @@
 <div data-tabbar></div>
 <script src="/assets/data.js"></script>
 <script>
-H.mount({ active: 'Community', tab: 'Profile' });
-(function () {
-  const { qs, qsa, icon, flag, esc, store, toast } = H;
-  const handle = location.pathname.split('/').filter(Boolean)[1] || 'ada';
-  const me = H.user();
-  const isMe = handle === me.username || handle === 'ada';
-  const person = isMe ? me : Object.assign({ username: handle, headline: 'Maker', bio: '', country: (D.PEOPLE[handle] || {}).cc || 'NG', website: '', x: '', linkedin: '' }, D.PEOPLE[handle] || { name: handle });
-  document.title = person.name + ' (@' + person.username + ') · Hentity';
-  const prods = isMe ? ['ledgerline', 'ledgerline-for-accountants', 'momo-parser'].map(D.bySlug) : D.P.filter(p => p.cc === person.cc).slice(0, 2);
-  const fol = store.get('following', {});
-  const followers = 1204 + (fol[handle] ? 1 : 0);
+H.mount({ active: '', tab: 'you' });
+(async function () {
+  const { qs, qsa, icon, flag, esc, store, toast, plogo, avatar } = H;
+  const handle = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || '');
+  await API.ready;
+  const person = await API.profileByUsername(handle).catch(() => null);
+  if (!person) { document.title = 'Maker not found · Hentity'; qs('.cover').remove(); qs('#mk').innerHTML = '<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">No maker called @' + esc(handle) + '</h1><p class="c-2" style="margin:8px 0 20px">They may have changed their username.</p><a class="btn btn--primary" href="/directory">Search the directory</a></div>'; return; }
+  const isMe = person.id === API.uid;
+  document.title = `${person.name} (@${person.username}) · Hentity`;
+  if (person.avatar_color) qs('.cover').style.setProperty('--orb', person.avatar_color);
+  const [{ data: owned }, { data: made }, counts, fol] = await Promise.all([
+    API.sb.from('product_feed').select('*').eq('owner_id', person.id).in('status', ['scheduled', 'live']).order('upvote_count', { ascending: false }),
+    API.sb.from('product_makers').select('product:products(*)').eq('user_id', person.id),
+    API.followCounts(person.id),
+    API.following('user', [person.id])
+  ]);
+  const prods = [...(owned || []), ...((made || []).map(m => m.product).filter(x => x && ['scheduled', 'live'].includes(x.status) && !(owned || []).some(o => o.id === x.id)))];
+  let following = fol.has(person.id); let followers = counts.followers;
+  const settings = person.settings || {};
+  const top = prods.filter(x => x.upvote_count >= 500);
   qs('#mk').innerHTML = `
   <div class="mk-head">
     <div class="stack gap-12">
-      ${H.avatar(person, 104, 'mk-avatar')}
-      <div class="row gap-12 wrap"><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">${esc(person.name)}</h1><span class="badge badge--success badge--pill" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">${icon('check', 'ic-12 c-success')}Verified maker</span></div>
-      <div class="mk-meta"><span>@${esc(person.username)}</span><span>·</span><span class="row gap-8">${flag(person.country || 'NG')}${esc(person.city || 'Lagos')}, ${H.COUNTRY[person.country] || 'Nigeria'}</span><span>·</span><span>${esc(person.headline || 'Maker')} · joined Mar 2024</span></div>
-      ${person.bio ? `<p style="max-width:640px">${esc(person.bio)}</p>` : ''}
-      <div class="mk-links">${person.website ? `<a href="${esc(/^https?:/.test(person.website) ? person.website : 'https://' + person.website)}" target="_blank" rel="noopener">${icon('globe', 'ic-14')}${esc(person.website.replace(/^https?:\/\//, ''))}</a>` : ''}${person.linkedin ? `<a href="https://${esc(person.linkedin.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener">${icon('link', 'ic-14')}${esc(person.linkedin)}</a>` : ''}${person.x ? `<a href="https://x.com/${esc(person.x)}" target="_blank" rel="noopener">${icon('link', 'ic-14')}x.com/${esc(person.x)}</a>` : ''}</div>
-      <div class="mk-stats"><span><b id="fcount">${D.fmt(followers)}</b>followers</span><span><b>184</b>following</span><span><b>${prods.length}</b>products</span><span><b>412</b>upvotes given</span></div>
+      ${avatar(person, 104, 'mk-avatar reveal')}
+      <div class="row gap-12 wrap reveal" style="--i:1"><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">${esc(person.name)}</h1>${person.is_verified ? `<span class="badge badge--pill" style="gap:6px">${icon('check', 'ic-12 c-success')}Verified maker</span>` : ''}${person.role !== 'user' ? `<span class="badge badge--accent badge--pill">Hentity ${esc(person.role)}</span>` : ''}</div>
+      <div class="mk-meta reveal" style="--i:2"><span>@${esc(person.username)}</span>${settings.showCity !== false && person.city ? `<span>·</span><span class="row gap-8">${flag(person.country || 'NG')}${esc(person.city)}, ${H.COUNTRY[person.country] || ''}</span>` : ''}<span>·</span><span>${esc(person.headline || 'Maker')} · joined ${new Date(person.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span></div>
+      ${person.bio ? `<p style="max-width:640px" class="reveal" style="--i:3">${esc(person.bio)}</p>` : ''}
+      <div class="mk-links reveal" style="--i:3">${person.website ? `<a href="${esc(/^https?:/.test(person.website) ? person.website : 'https://' + person.website)}" target="_blank" rel="noopener nofollow">${icon('globe', 'ic-14')}${esc(person.website.replace(/^https?:\/\//, ''))}</a>` : ''}${person.linkedin ? `<a href="https://${esc(person.linkedin.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}${esc(person.linkedin)}</a>` : ''}${person.x ? `<a href="https://x.com/${esc(person.x.replace('@', ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}x.com/${esc(person.x.replace('@', ''))}</a>` : ''}</div>
+      <div class="mk-stats reveal" style="--i:4"><span><b id="fcount" data-count-to="${followers}">0</b>followers</span><span><b data-count-to="${counts.following}">0</b>following</span><span><b>${prods.length}</b>products</span><span><b data-count-to="${counts.upvotes}">0</b>upvotes given</span></div>
     </div>
-    <div class="row gap-8">
+    <div class="row gap-8 reveal" style="--i:2">
       <button class="btn btn--ghost" type="button" id="share">${icon('share')}Share</button>
-      ${isMe ? `<a class="btn btn--primary" href="/settings/profile">Edit profile</a>` : `<button class="btn btn--primary" type="button" id="follow"></button>`}
+      ${isMe ? `<a class="btn btn--primary" href="/settings/profile">${icon('edit')}Edit profile</a>` : `<button class="btn btn--secondary" type="button" id="dm">${icon('chats')}Message</button><button class="btn btn--primary" type="button" id="follow"></button>`}
     </div>
   </div>
   <div class="tabs mk-tabs" role="tablist" id="tabs">
-    ${[['products', 'Products · ' + prods.length], ['launches', 'Launches · 4'], ['upvoted', 'Upvoted · 412'], ['collections', 'Collections · 2'], ['activity', 'Activity']].map(([k, l], i) => `<button class="tab" role="tab" aria-selected="${i === 0}" data-tab="${k}">${l}</button>`).join('')}
+    ${[['products', 'Products · ' + prods.length], settings.showUpvotes !== false || isMe ? ['upvoted', 'Upvoted · ' + counts.upvotes] : null, ['activity', 'Activity'], isMe ? ['saved', 'Saved'] : null].filter(Boolean).map(([k, l], i) => `<button class="tab" role="tab" aria-selected="${i === 0}" data-tab="${k}">${l}</button>`).join('')}
   </div>
   <div class="mk-body">
     <div class="feed" id="panel"></div>
     <aside class="stack gap-16">
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Achievements</h2><div class="stack gap-16">
-        <div class="row gap-12"><span class="medal" style="background:var(--award-gold)"></span><div><p class="t-label">#1 Product of the Week</p><p class="t-caption c-3" style="font-weight:400">Ledgerline · Week 47, 2026</p></div></div>
-        <div class="row gap-12"><span class="medal" style="background:var(--color-accent-default)"></span><div><p class="t-label">Responsive maker</p><p class="t-caption c-3" style="font-weight:400">Replied to 94% of comments</p></div></div></div></section>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Company</h2><div class="row gap-12"><span class="plogo plogo--32">L</span><div><p class="t-label">Ledgerline Technologies Ltd</p><p class="t-caption c-3" style="font-weight:400">Founder · Pre-seed · 6 people</p></div></div></section>
+      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Achievements</h2><div class="stack gap-16">
+        ${top.map(x => `<div class="row gap-12"><span class="medal" style="background:var(--award-gold)"></span><div><p class="t-label">Top launch · ${D.fmt(x.upvote_count)} upvotes</p><p class="t-caption c-3" style="font-weight:400">${esc(x.name)} · Week ${x.week_id}</p></div></div>`).join('')}
+        ${person.is_verified ? `<div class="row gap-12"><span class="medal" style="background:var(--color-accent-default)"></span><div><p class="t-label">Verified maker</p><p class="t-caption c-3" style="font-weight:400">Identity confirmed by Hentity</p></div></div>` : ''}
+        ${!top.length && !person.is_verified ? '<p class="t-body-sm c-2">Medals from launches show up here.</p>' : ''}</div></section>
     </aside>
   </div>`;
-  function panel(k) {
-    const el = qs('#panel');
-    if (k === 'products') el.innerHTML = prods.map(p => D.row(Object.assign({}, p, { rails: '' }), 0, { noRank: true }).replace('<span class="prow__rank" aria-hidden="true"></span>', '')).join('');
-    else if (k === 'upvoted') el.innerHTML = D.board().filter(p => !p.promoted).slice(1, 5).map(p => D.row(p, 0, { noRank: true }).replace('<span class="prow__rank" aria-hidden="true"></span>', '')).join('');
-    else if (k === 'launches') el.innerHTML = `<div class="stack gap-12">${[['Ledgerline', 'Week 47, 2026', '#1 · 1,106 upvotes'], ['MoMo Parser', 'Week 38, 2026', '#9 · 233 upvotes'], ['Ledgerline beta', 'Week 12, 2026', '#4 · 640 upvotes'], ['Ledgerline API', 'Week 2, 2026', '#12 · 188 upvotes']].map(([n, w, r]) => `<div class="card row gap-12" style="padding:14px 16px"><span class="icon-tile">${icon('calendar')}</span><div class="grow"><p class="t-label">${n}</p><p class="t-caption c-3" style="font-weight:400">${w}</p></div><span class="mono t-body-sm">${r}</span></div>`).join('')}</div>`;
-    else if (k === 'collections') el.innerHTML = `<div class="grid-2">${[['Tools Lagos traders use', '#16a34a', 12], ['Fintech infra to watch', '#2563eb', 9]].map(([n, c, k]) => `<a class="card" href="/directory" style="overflow:hidden"><i style="display:block;height:64px;background:${c}"></i><div style="padding:14px"><p class="t-label">${n}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${k} products</p></div></a>`).join('')}</div>`;
-    else el.innerHTML = `<ul class="stack gap-16" style="list-style:none;margin:0;padding:0">${[['Replied to Kwame on Ledgerline', '5h ago'], ['Upvoted Ward Health', 'yesterday'], ['Followed Farmcast', '2 days ago'], ['Commented on Swahili Speech Kit', '3 days ago']].map(([t, m]) => `<li class="row gap-12"><span class="icon-tile">${icon('comment')}</span><div><p class="t-body-sm">${t}</p><p class="t-caption c-3" style="font-weight:400">${m}</p></div></li>`).join('')}</ul>`;
+  M.countUp(); M.scroll();
+  async function panel(k) {
+    const el = qs('#panel'); el.innerHTML = '<div class="skel" style="height:80px;border-radius:14px"></div>';
+    if (k === 'products') { await D.loadVotes(prods); el.innerHTML = prods.length ? prods.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : `<p class="t-body-sm c-2" style="padding:16px 0">${isMe ? 'You haven’t launched anything yet. <a class="link link--accent" href="/launch">Start a launch</a>' : 'No launches yet.'}</p>`; }
+    else if (k === 'upvoted') { const v = await API.upvotedBy(person.id); const ps = await API.productsByIds(v.map(x => x.product_id)); await D.loadVotes(ps); el.innerHTML = ps.length ? ps.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : '<p class="t-body-sm c-2" style="padding:16px 0">No upvotes yet.</p>'; }
+    else if (k === 'saved') { const b = await API.bookmarks('product'); const ps = await API.productsByIds(b.map(x => x.target_id)); await D.loadVotes(ps); el.innerHTML = ps.length ? ps.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : '<p class="t-body-sm c-2" style="padding:16px 0">Nothing saved yet.</p>'; }
+    else { const { data } = await API.sb.from('comments').select('body,created_at,product:products(name,slug),article:articles(title,slug)').eq('user_id', person.id).eq('deleted', false).order('created_at', { ascending: false }).limit(20); el.innerHTML = (data || []).length ? `<ul class="stack gap-16" style="list-style:none;margin:0;padding:0">${data.map(c => `<li class="row gap-12" style="align-items:flex-start"><span class="icon-tile">${icon('comment')}</span><div><p class="t-body-sm">Commented on <a class="link" href="${c.product ? '/products/' + c.product.slug : '/news/' + (c.article && c.article.slug)}">${esc(c.product ? c.product.name : c.article ? c.article.title : 'a launch')}</a></p><p class="t-body-sm c-2" style="margin-top:2px">“${esc(c.body.slice(0, 160))}”</p><p class="t-caption c-3" style="font-weight:400">${H.ago(c.created_at)}</p></div></li>`).join('')}</ul>` : '<p class="t-body-sm c-2" style="padding:16px 0">No activity yet.</p>'; }
+    M.stagger(el);
   }
   qsa('#tabs [role=tab]').forEach(t => t.addEventListener('click', () => { qsa('#tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); panel(t.dataset.tab); }));
-  panel(location.hash === '#collections' ? (qs('[data-tab=collections]').click(), 'collections') : 'products');
+  panel('products');
   qs('#share').addEventListener('click', async () => { try { if (navigator.share) await navigator.share({ title: person.name + ' on Hentity', url: location.href }); else { await navigator.clipboard.writeText(location.href); toast('Profile link copied'); } } catch (e) {} });
   const f = qs('#follow');
-  if (f) { const set = () => { f.innerHTML = fol[handle] ? 'Following' : icon('plus') + 'Follow'; f.className = 'btn ' + (fol[handle] ? 'btn--secondary' : 'btn--primary'); qs('#fcount').textContent = D.fmt(1204 + (fol[handle] ? 1 : 0)); }; set(); f.addEventListener('click', () => { if (!H.session()) { location.href = '/signin?next=' + location.pathname; return; } fol[handle] = !fol[handle]; store.set('following', fol); set(); }); }
+  if (f) {
+    const set = () => { f.innerHTML = following ? icon('check') + 'Following' : icon('plus') + 'Follow'; f.className = 'btn ' + (following ? 'btn--secondary' : 'btn--primary'); };
+    set(); f.addEventListener('click', async () => { try { following = !following; await API.follow('user', person.id, following); followers += following ? 1 : -1; set(); M.roll(qs('#fcount'), D.fmt(followers), !following); } catch (e) { following = !following; set(); H.fail(e); } });
+    qs('#dm').addEventListener('click', async () => { try { API.requireAuth(); const c = await API.openDM(person.id); location.href = '/chats/dm/' + c; } catch (e) { H.fail(e); } });
+  }
 })();
 </script>
 </body>

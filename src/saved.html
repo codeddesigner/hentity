@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Saved · Hentity</title>
+<meta name="robots" content="noindex">
+<style>.sv{max-width:820px;margin:0 auto;padding:40px 32px 96px}@media (max-width:768px){.sv{padding:16px 16px 32px}}</style>
+</head>
+<body>
+<div data-header></div>
+<main class="sv">
+  <div class="row between wrap gap-12 reveal"><div><h1 class="t-h2">Saved</h1><p class="c-2" style="margin-top:4px">Products and stories you bookmarked. Only you can see this list.</p></div>
+  <div class="seg" role="tablist" id="tabs"><button role="tab" aria-selected="true" data-t="product">Products</button><button role="tab" aria-selected="false" data-t="article">Stories</button></div></div>
+  <div class="feed" id="list" style="margin-top:24px"></div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'saved', tab: 'you' });
+(async function () {
+  const { qs, qsa, icon, esc, toast } = H;
+  await API.ready; if (!API.uid) { location.replace('/signin?next=/saved'); return; }
+  let tab = 'product';
+  async function load() {
+    const el = qs('#list'); el.innerHTML = '<div class="skel" style="height:90px;border-radius:14px"></div>';
+    const b = await API.bookmarks(tab);
+    if (tab === 'product') {
+      const ps = await API.productsByIds(b.map(x => x.target_id)); await D.loadVotes(ps);
+      const order = new Map(b.map((x, i) => [x.target_id, i])); ps.sort((a, c) => order.get(a.id) - order.get(c.id));
+      el.innerHTML = ps.length ? ps.map(p => D.row(p, 0, { noRank: true, noRails: true, trailing: `<button class="btn btn--ghost btn--sm" data-unsave="${p.id}">Remove</button>` })).join('') : empty('products', '/');
+    } else {
+      const { data } = b.length ? await API.sb.from('articles').select('slug,title,dek,topic,source,published_at,color,image_url,id').in('id', b.map(x => x.target_id)) : { data: [] };
+      el.innerHTML = (data || []).length ? data.map(a => `<article class="art-row"><div class="grow"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4" style="margin:6px 0"><a href="/news/${a.slug}">${esc(a.title)}</a></h3><p class="t-body-sm c-2">${esc(a.dek)}</p><button class="btn btn--ghost btn--sm" style="margin-top:8px;padding-left:0" data-unsave="${a.id}">Remove</button></div><a class="art-thumb" href="/news/${a.slug}" style="--c:${esc(a.color)}" tabindex="-1">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}</a></article>`).join('') : empty('stories', '/news');
+    }
+    M.stagger(el);
+  }
+  const empty = (w, h) => `<div class="card card--pad" style="text-align:center;padding:48px 20px"><div class="icon-badge" style="margin:0 auto 14px">${icon('bookmark')}</div><p class="t-h4">No saved ${w} yet</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Tap Save on any ${w === 'products' ? 'product page' : 'story'} to keep it here.</p><a class="btn btn--secondary btn--sm" href="${h}">Browse ${w}</a></div>`;
+  qsa('#tabs [role=tab]').forEach(t => t.addEventListener('click', () => { qsa('#tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); tab = t.dataset.t; load(); }));
+  qs('#list').addEventListener('click', async e => { const b = e.target.closest('[data-unsave]'); if (!b) return; try { await API.bookmark(tab, b.dataset.unsave, false); const row = b.closest('.prow,.art-row'); row.style.transition = 'opacity .25s, transform .25s'; row.style.opacity = 0; row.style.transform = 'translateX(16px)'; setTimeout(load, 260); toast('Removed from saved'); } catch (err) { H.fail(err); } });
+  load();
+})();
+</script>
+</body>
+</html>

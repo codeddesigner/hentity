@@ -3,13 +3,15 @@
 import http.server, json, pathlib, re, sys
 ROOT = pathlib.Path(__file__).parent
 PUB = ROOT / 'public'
-RW = [(re.compile('^' + re.sub(r':\w+', '[^/]+', r['source']) + '$'), r['destination']) for r in json.loads((ROOT / 'vercel.json').read_text()).get('rewrites', [])]
+RW = [(re.compile('^' + re.sub(r':\w+', '[^/]+', r['source'].replace(':path*', '.*')) + '$'), r['destination']) for r in json.loads((ROOT / 'vercel.json').read_text()).get('rewrites', [])]
 class H(http.server.SimpleHTTPRequestHandler):
     def __init__(s, *a, **k): super().__init__(*a, directory=str(PUB), **k)
     def translate_path(s, path):
         p = path.split('?')[0].split('#')[0]
         for rx, dst in RW:
-            if rx.match(p): p = dst; break
+            if rx.match(p):
+                # SSR rewrites serve the static template locally (the function only adds meta tags)
+                m = re.match(r'/api/ssr\?type=(\w+)', dst); p = '/' + m.group(1) if m else dst; break
         if p == '/': p = '/index'
         f = PUB / p.lstrip('/')
         if not f.exists() and (PUB / (p.lstrip('/') + '.html')).exists(): return str(PUB / (p.lstrip('/') + '.html'))

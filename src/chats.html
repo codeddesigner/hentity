@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Chats · Hentity</title>
+<meta name="description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
+</head>
+<body class="chat-page">
+<div data-header></div>
+<div class="chat" id="chat">
+  <section class="clist" aria-label="Conversations">
+    <div class="clist__head"><h1 class="t-h3">Chats</h1><button class="nav__icon" type="button" id="new-dm" aria-label="New message" style="border:1px solid var(--color-border-default)"><span data-icon="plus"></span></button></div>
+    <label class="clist__search"><span data-icon="search" data-cls="ic-14"></span><input id="jump" placeholder="Jump to a chat" aria-label="Jump to a chat"></label>
+    <div class="chips show-sm" style="padding:4px 16px 8px;flex-wrap:nowrap;overflow-x:auto" id="mfilters" data-single></div>
+    <div class="clist__scroll" id="clist"></div>
+  </section>
+  <section class="conv" id="conv" aria-live="polite">
+    <div class="conv__head" id="chead"></div>
+    <div class="conv__pin" id="cpin" hidden></div>
+    <div class="conv__body">
+      <div class="stack grow" style="min-width:0;min-height:0">
+        <div class="conv__scroll" id="cscroll"></div>
+        <div class="typing" id="typing" aria-live="polite"></div>
+        <form class="composer" id="composer">
+          <div id="attach-prev"></div>
+          <textarea id="msg" rows="1" placeholder="Message" aria-label="Message"></textarea>
+          <div class="composer__bar">
+            <button class="nav__icon" type="button" id="share-prod" aria-label="Share a product"><span data-icon="plus"></span></button>
+            <label class="nav__icon" aria-label="Attach an image" style="cursor:pointer"><span data-icon="paperclip"></span><input type="file" accept="image/*" class="sr-only" id="file"></label>
+            <label class="nav__icon hide-sm" aria-label="Attach an image" style="cursor:pointer"><span data-icon="image"></span><input type="file" accept="image/*" class="sr-only" id="file2"></label>
+            <button class="nav__icon" type="button" id="emoji" aria-label="Add emoji"><span data-icon="smile"></span></button>
+            <button class="nav__icon" type="button" id="mention" aria-label="Mention someone"><span data-icon="at-sign"></span></button>
+            <span class="grow"></span>
+            <span class="t-caption c-3 mono" id="rec-time" hidden></span>
+            <button class="nav__icon" type="button" id="mic" aria-label="Record a voice note"><span data-icon="mic"></span></button>
+            <button class="send" type="submit" id="send" aria-label="Send"><span data-icon="send" data-cls="ic-16"></span></button>
+          </div>
+        </form>
+      </div>
+      <aside class="side-info" id="side" hidden></aside>
+    </div>
+  </section>
+  <aside class="thread" id="thread" hidden aria-label="Thread"></aside>
+</div>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'chats', tab: 'chats' });
+(async function () {
+  const { qs, qsa, icon, esc, toast, avatar, plogo, verified } = H;
+  await API.ready;
+  const me = API.profile;
+  let channels = [], dms = [], unread = {}, cur = null, msgs = [], thread = null, stopMsg = null, presence = null, typingNames = new Map(), members = [], profileCache = new Map();
+  const parts = location.pathname.split('/').filter(Boolean);
+  const want = parts[1] === 'dm' ? { dm: parts[2] } : parts[1] ? { slug: parts[1] } : null;
+  const isMobile = () => matchMedia('(max-width:768px)').matches;
+
+  // ---------- list
+  async function loadList() {
+    channels = await API.channels();
+    const mem = await API.myMemberships();
+    unread = API.uid ? await API.unreadByChannel(mem) : {};
+    const dmIds = channels.filter(c => c.kind === 'dm').map(c => c.id);
+    const partners = await API.dmPartners(dmIds);
+    dms = channels.filter(c => c.kind === 'dm').map(c => Object.assign(c, { other: (partners.find(x => x.channel_id === c.id) || {}).user }));
+    renderList();
+    H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0));
+  }
+  const mini = p => `<span class="plogo" style="width:20px;height:20px;min-width:20px;border-radius:5px;font-size:10px;line-height:20px;display:grid;place-items:center;${p.logo_url ? `background:#fff url('${esc(p.logo_url)}') center/cover` : 'background:' + esc(p.color || '#000')}">${p.logo_url ? '' : esc((p.name || '?')[0])}</span>`;
+  let filterM = 'all';
+  function renderList() {
+    const q = (qs('#jump').value || '').toLowerCase();
+    const match = c => !q || (c.name || '').toLowerCase().includes(q) || (c.other && c.other.name.toLowerCase().includes(q));
+    const item = (c, inner) => `<a class="citem${unread[c.id] ? ' has-unread' : ''}" href="${c.kind === 'dm' ? '/chats/dm/' + c.id : '/chats/' + c.slug}" data-id="${c.id}"${cur && cur.id === c.id ? ' aria-current="true"' : ''}>${inner}${unread[c.id] ? `<span class="n">${unread[c.id]}</span>` : ''}</a>`;
+    const ch = channels.filter(c => c.kind === 'channel' && match(c) && (filterM === 'all' || filterM === 'channels' || (filterM === 'unread' && unread[c.id])));
+    const pr = channels.filter(c => c.kind === 'product' && c.product && match(c) && (filterM === 'all' || filterM === 'products' || (filterM === 'unread' && unread[c.id]))).sort((a, b) => (unread[b.id] || 0) - (unread[a.id] || 0) || (b.product.upvote_count - a.product.upvote_count)).slice(0, q ? 50 : 8);
+    const dm = dms.filter(c => match(c) && (filterM === 'all' || filterM === 'dms' || (filterM === 'unread' && unread[c.id])));
+    qs('#clist').innerHTML =
+      (ch.length ? `<p class="clist__sec">Channels</p>` + ch.map(c => item(c, `${icon('hash')}<span class="truncate">${esc(c.name)}</span>`)).join('') : '') +
+      (pr.length ? `<p class="clist__sec">Product rooms</p>` + pr.map(c => item(c, `${mini(c.product)}<span class="truncate">${esc(c.name)}</span>`)).join('') : '') +
+      `<p class="clist__sec">Direct messages</p>` + (dm.length ? dm.map(c => item(c, `<span style="position:relative">${c.other ? avatar(c.other, 24) : '<span class="avatar avatar--24">?</span>'}</span><span class="truncate">${esc(c.other ? c.other.name : c.name)}</span>`)).join('') : `<p class="t-caption c-3" style="padding:4px 10px;font-weight:400">${API.uid ? 'Message a maker from their profile, or tap +.' : '<a class="link" href="/signin?next=/chats">Sign in</a> to message makers.'}</p>`);
+  }
+  qs('#jump').addEventListener('input', renderList);
+  qs('#mfilters').innerHTML = [['all', 'All'], ['unread', 'Unread'], ['channels', 'Channels'], ['products', 'Products'], ['dms', 'DMs']].map(([k, l], i) => `<button class="chip" type="button" data-chip data-mf="${k}" aria-pressed="${i === 0}">${icon('check')}${l}</button>`).join('');
+  H.bindChips(qs('#mfilters'), () => { const b = qs('#mfilters [aria-pressed="true"]'); filterM = b ? b.dataset.mf : 'all'; renderList(); });
+  qs('#clist').addEventListener('click', e => { const a = e.target.closest('.citem'); if (!a) return; e.preventDefault(); history.pushState(null, '', a.getAttribute('href')); open(channels.find(c => c.id === a.dataset.id)); });
+  window.addEventListener('popstate', () => { const p = location.pathname.split('/').filter(Boolean); if (!p[1]) { qs('#chat').classList.remove('in-conv'); return; } const c = p[1] === 'dm' ? channels.find(x => x.id === p[2]) : channels.find(x => x.slug === p[1]); if (c) open(c); });
+
+  // ---------- conversation
+  const nameOf = m => m.user ? m.user.name : 'Deleted maker';
+  const isMakerOf = (u) => cur && cur.kind === 'product' && u && members.some(m => m.id === u.id && m.maker);
+  function wave(seed, on) { let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) | 0; return Array.from({ length: 36 }, (_, i) => { const v = 4 + Math.abs(Math.sin(h + i * 1.7)) * 18; return `<i style="height:${v}px" class="${i / 36 < on ? 'on' : ''}"></i>`; }).join(''); }
+  function reactsHTML(m) {
+    const g = {}; (m.reactions || []).forEach(r => { g[r.emoji] = g[r.emoji] || { n: 0, mine: false }; g[r.emoji].n++; if (r.user_id === API.uid) g[r.emoji].mine = true; });
+    const ICON = { upvote: icon('upvote'), rocket: icon('rocket'), check: icon('check'), heart: '❤️', fire: '🔥', clap: '👏' };
+    return `<div class="reacts">${Object.entries(g).map(([e, v]) => `<button class="react${v.mine ? ' is-mine' : ''}" type="button" data-react="${e}" data-mid="${m.id}" aria-pressed="${v.mine}">${ICON[e]}${v.n}</button>`).join('')}<button class="react" type="button" data-pick="${m.id}" aria-label="Add reaction">${icon('smile')}</button></div>`;
+  }
+  function msgHTML(m, opts) {
+    opts = opts || {};
+    if (m.kind === 'system') return `<div class="sysline" data-mid="${m.id}">${icon('upvote')}${esc(m.body)}</div>`;
+    if (m.deleted) return `<div class="msg" data-mid="${m.id}"><span class="avatar">·</span><div class="grow"><p class="msg__body c-3" style="font-style:italic">This message was deleted.</p></div></div>`;
+    const u = m.user || {};
+    let body = m.body ? `<p class="msg__body">${linkify(esc(m.body))}</p>` : '';
+    if (m.kind === 'product' && m.product) body += `<div class="pcard">${plogo(m.product, 40)}<a class="grow" href="/products/${m.product.slug}" style="min-width:0"><p class="t-label row gap-6">${esc(m.product.name)}${m.product.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-2 truncate" style="font-weight:400">${esc(m.product.tagline)}</p></a>${D.upBtn(m.product)}</div>`;
+    if (m.kind === 'voice') body += `<div><div class="voice" data-audio="${esc(m.attachment_url || '')}" data-dur="${m.duration || 0}"><button class="voice__play" type="button" aria-label="Play voice note">${icon('play')}</button><span class="wave">${wave(m.id, 0)}</span><span class="mono t-body-sm">${Math.floor((m.duration || 0) / 60)}:${String((m.duration || 0) % 60).padStart(2, '0')}</span></div>${m.transcript ? `<p class="t-caption c-2" style="margin-top:6px;font-weight:400"><button class="link" type="button" data-tr>Show transcript</button><span class="c-3"> · auto transcript</span></p><p class="t-body-sm c-2" hidden style="margin-top:4px">${esc(m.transcript)}</p>` : ''}</div>`;
+    if (m.kind === 'image' && m.attachment_url) body += `<a href="${esc(m.attachment_url)}" target="_blank" rel="noopener"><img src="${esc(m.attachment_url)}" alt="Image from ${esc(nameOf(m))}" style="max-width:320px;max-height:260px;border-radius:12px;margin-top:8px;border:1px solid var(--color-border-default)"></a>`;
+    const replies = !opts.inThread && m.reply_count ? `<div class="replies"><span class="stackav">${(m._replyUsers || []).slice(0, 3).map(x => avatar(x, 24)).join('')}</span><button class="link link--accent" type="button" data-thread="${m.id}" style="font-size:13px">${m.reply_count} ${m.reply_count === 1 ? 'reply' : 'replies'}</button><span class="t-caption c-3" style="font-weight:400">Last reply ${H.ago(m.last_reply_at || m.created_at)}</span></div>` : '';
+    return `<div class="msg${opts.fresh ? ' is-new' : ''}${thread && thread.id === m.id && !opts.inThread ? ' is-hl' : ''}" data-mid="${m.id}">
+      <a href="/makers/${esc(u.username || '')}" tabindex="-1">${avatar(u, null)}</a>
+      <div class="grow" style="min-width:0">
+        <p class="msg__meta"><a href="/makers/${esc(u.username || '')}">${esc(nameOf(m))}</a>${isMakerOf(u) || (cur && cur.kind !== 'dm' && u.is_verified) ? '<span class="badge badge--accent" style="padding:1px 6px">Maker</span>' : ''}<time datetime="${m.created_at}">${H.hhmm(m.created_at)}</time></p>
+        ${body}${opts.noReacts ? '' : reactsHTML(m)}${replies}
+      </div>
+      <div class="msg__tools">${opts.inThread ? '' : `<button type="button" data-thread="${m.id}" aria-label="Reply in thread">${icon('reply', 'ic-14')}</button>`}<button type="button" data-quick="upvote" data-mid="${m.id}" aria-label="Upvote message">${icon('upvote', 'ic-14')}</button>${m.user_id === API.uid || API.isAdmin ? `<button type="button" data-delmsg="${m.id}" aria-label="Delete message">${icon('trash', 'ic-14')}</button>` : `<button type="button" data-reportmsg="${m.id}" aria-label="Report message">${icon('flag', 'ic-14')}</button>`}</div>
+    </div>`;
+  }
+  function linkify(t) { return t.replace(/(https?:\/\/[^\s<]+)/g, '<a class="link link--accent" href="$1" target="_blank" rel="noopener nofollow">$1</a>').replace(/(^|\s)@([a-z0-9_]{3,30})/g, '$1<a class="link link--accent" href="/makers/$2">@$2</a>'); }
+  function dayLabel(ts) { const d = new Date(ts), t = new Date(); const y = new Date(t - 864e5); return d.toDateString() === t.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }); }
+  async function hydrateReplies(list) {
+    const ids = list.filter(m => m.reply_count).map(m => m.id); if (!ids.length) return;
+    const { data } = await API.sb.from('messages').select('parent_id,user:profiles(id,name,username,avatar_url,avatar_color)').in('parent_id', ids).order('created_at', { ascending: false }).limit(100);
+    list.forEach(m => { const seen = new Set(); m._replyUsers = (data || []).filter(r => r.parent_id === m.id && r.user && !seen.has(r.user.id) && seen.add(r.user.id)).map(r => r.user); });
+  }
+  function renderMsgs(scroll) {
+    const box = qs('#cscroll'); const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    let last = '';
+    box.innerHTML = msgs.length ? msgs.map(m => { const d = dayLabel(m.created_at); const sep = d !== last ? `<div class="day-sep">${d}</div>` : ''; last = d; return sep + msgHTML(m); }).join('')
+      : `<div class="reveal" style="margin:auto;text-align:center;max-width:360px"><div class="icon-badge" style="margin:0 auto 12px">${icon(cur.kind === 'dm' ? 'chats' : 'hash')}</div><p class="t-h4">${cur.kind === 'dm' ? 'Say hello' : 'No messages yet'}</p><p class="t-body-sm c-2" style="margin-top:6px">${cur.kind === 'product' ? 'Ask the makers anything. They answer here first.' : 'Start the conversation.'}</p></div>`;
+    if (scroll || atBottom) box.scrollTop = box.scrollHeight;
+  }
+  function renderHead() {
+    const c = cur;
+    if (c.kind === 'product' && c.product) {
+      const p = c.product; D.remember([Object.assign({ effective_status: 'live' }, p, { id: c.product_id })]);
+      qs('#chead').innerHTML = `<button class="nav__icon show-sm" type="button" data-back aria-label="Back">${icon('arrow-left')}</button>${plogo(p, 40)}<div class="grow" style="min-width:0"><p class="t-h4 row gap-8">${esc(p.name)}${p.verified ? verified('verified--sm') : ''}<span class="badge badge--accent badge--pill hide-sm" id="room-rank"><span class="dot marquee-dot"></span>Live</span></p><p class="t-caption c-3 truncate" style="font-weight:400">Product room · <span id="mcount">${members.length}</span> members · makers answer here first</p></div>${D.upBtn(Object.assign({}, p, { id: c.product_id }))}<button class="nav__icon" type="button" id="more" aria-label="More">${icon('more')}</button>`;
+      API.board({ week: null }).catch(() => {});
+    } else if (c.kind === 'dm') {
+      qs('#chead').innerHTML = `<button class="nav__icon show-sm" type="button" data-back aria-label="Back">${icon('arrow-left')}</button>${c.other ? avatar(c.other, 36) : ''}<div class="grow"><p class="t-h4"><a href="/makers/${esc(c.other ? c.other.username : '')}">${esc(c.other ? c.other.name : c.name)}</a></p><p class="t-caption c-3" style="font-weight:400" id="dm-status">Direct message</p></div><button class="nav__icon" type="button" id="more" aria-label="More">${icon('more')}</button>`;
+    } else {
+      qs('#chead').innerHTML = `<button class="nav__icon show-sm" type="button" data-back aria-label="Back">${icon('arrow-left')}</button><div class="grow" style="min-width:0"><p class="t-h4 row gap-6">${icon('hash', 'ic-18')}${esc(c.name)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(c.description || '')}</p></div><span class="row hide-sm" id="mav" style="margin-right:4px"></span><span class="t-body-sm c-2 hide-sm" id="mcount">${members.length.toLocaleString('en-US')}</span><button class="nav__icon hide-sm" type="button" id="search-in" aria-label="Search this channel">${icon('search')}</button><button class="nav__icon" type="button" id="more" aria-label="More">${icon('more')}</button>`;
+      qs('#mav').innerHTML = members.slice(0, 3).map(m => avatar(m, 24)).map(a => a.replace('class="avatar', 'style="margin-left:-6px;border:2px solid var(--color-bg-canvas)" class="avatar')).join('');
+    }
+    const pin = qs('#cpin');
+    if (c.pinned) { pin.hidden = false; pin.innerHTML = `${icon(c.kind === 'product' ? 'mic' : 'pin')}<p>${esc(c.pinned)}</p>${c.pinned_link ? `<a class="link link--accent" href="${esc(c.pinned_link)}">${c.pinned_link === '/' ? 'View board' : 'Open'}</a>` : c.kind === 'product' ? `<button class="link link--accent" type="button" id="remind">Set reminder</button>` : ''}`; const r = qs('#remind'); r && r.addEventListener('click', () => { toast('We’ll ping you here when it starts'); }); }
+    else pin.hidden = true;
+    qs('#msg').placeholder = c.kind === 'product' ? `Ask the ${c.name} makers something` : c.kind === 'dm' ? `Message ${c.other ? c.other.name.split(' ')[0] : ''}` : `Message #${c.name}`;
+  }
+  async function renderSide() {
+    const side = qs('#side'); const c = cur;
+    if (c.kind !== 'product' || !c.product) { side.hidden = true; return; }
+    side.hidden = false;
+    const ms = await API.makers(c.product_id); const { data: own } = await API.sb.from('products').select('owner:profiles!products_owner_id_fkey(id,name,username,avatar_url,avatar_color)').eq('id', c.product_id).maybeSingle();
+    const team = [own && own.owner && { user: own.owner, role: 'Founder' }, ...ms.filter(m => !own || !own.owner || m.user.id !== own.owner.id)].filter(Boolean);
+    members.forEach(m => m.maker = team.some(t => t.user.id === m.id));
+    team.forEach(t => { if (!members.some(m => m.id === t.user.id)) members.push(Object.assign({ maker: true }, t.user)); });
+    side.innerHTML = `<p class="t-eyebrow c-3">About</p><p class="t-body-sm" style="margin:10px 0 20px">${esc(c.product.tagline)}</p><a class="btn btn--secondary btn--sm btn--block" href="/products/${c.product.slug}" style="margin-bottom:20px">${icon('arrow-up-right')}Product page</a>
+      <p class="t-eyebrow c-3">Makers</p><div class="stack gap-12" style="margin:12px 0 20px" id="makers-online">${team.map(t => `<a class="row gap-10" style="gap:10px" href="/makers/${t.user.username}"><span style="position:relative">${avatar(t.user, 32)}<span class="online" data-online="${t.user.id}" hidden style="position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;background:var(--color-success);border:2px solid var(--color-bg-canvas)"></span></span><span><span class="t-label" style="display:block">${esc(t.user.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc(t.role)}</span></span></a>`).join('')}</div>
+      ${(c.rules || []).length ? `<p class="t-eyebrow c-3">Room rules</p><ul class="stack gap-10" style="list-style:none;margin:12px 0 0;padding:0;gap:10px">${c.rules.map(r => `<li class="row gap-8 t-caption c-2" style="align-items:flex-start;font-weight:400">${icon('check', 'ic-14')}${esc(r)}</li>`).join('')}</ul>` : ''}`;
+    renderMsgs();
+  }
+  async function open(c) {
+    if (!c) return;
+    cur = c; thread = null; qs('#thread').hidden = true;
+    qs('#chat').classList.add('in-conv'); renderList();
+    document.title = (c.kind === 'dm' ? (c.other ? c.other.name : 'Direct message') : c.kind === 'product' ? c.name + ' room' : '#' + c.name) + ' · Chats · Hentity';
+    qs('#cscroll').innerHTML = Array.from({ length: 4 }, () => `<div class="msg"><span class="skel" style="width:36px;height:36px;border-radius:50%"></span><div class="grow stack gap-8"><span class="skel" style="width:30%;height:12px"></span><span class="skel" style="width:70%;height:14px"></span></div></div>`).join('');
+    members = (await API.channelMembers(c.id).catch(() => [])).map(m => m.user).filter(Boolean);
+    renderHead();
+    msgs = (await API.messages(c.id)).reverse();
+    const prods = msgs.filter(m => m.product).map(m => Object.assign({ effective_status: 'live' }, m.product)); await D.loadVotes(prods);
+    await hydrateReplies(msgs);
+    renderMsgs(true); renderSide();
+    if (API.uid) { await API.joinChannel(c.id); unread[c.id] = 0; renderList(); H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0)); }
+    subscribe();
+    if (!isMobile()) qs('#msg').focus();
+  }
+  qs('#chead').addEventListener('click', async e => {
+    if (e.target.closest('[data-back]')) { history.pushState(null, '', '/chats'); qs('#chat').classList.remove('in-conv'); cur = null; renderList(); return; }
+    if (e.target.closest('#search-in')) { const t = prompt('Search #' + cur.name); if (!t) return; const { data } = await API.sb.from('messages').select('id').eq('channel_id', cur.id).ilike('body', `%${t}%`).order('created_at', { ascending: false }).limit(1); if (data && data[0]) { const el = qs(`[data-mid="${data[0].id}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); } else toast('Found an older message — scroll up to load more'); } else toast('No messages match “' + t + '”'); }
+    if (e.target.closest('#more')) {
+      const items = [['Copy link', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); }], ['Mark as read', () => { API.markChannelRead(cur.id); toast('Marked as read'); }]];
+      if (cur.kind !== 'dm') items.push(['Leave channel', async () => { await API.sb.from('channel_members').delete().eq('channel_id', cur.id).eq('user_id', API.uid); toast('You left #' + cur.name); }]);
+      if (cur.kind === 'dm' && cur.other) items.push(['Block ' + cur.other.name.split(' ')[0], async () => { if (!confirm('Block ' + cur.other.name + '? They won’t be able to message you.')) return; await API.block(cur.other.id, true); toast('Blocked'); }]);
+      const m = document.createElement('div'); m.className = 'menu'; m.dataset.menu = ''; m.style.position = 'fixed'; const r = e.target.closest('#more').getBoundingClientRect(); m.style.top = r.bottom + 6 + 'px'; m.style.right = (innerWidth - r.right) + 'px';
+      m.innerHTML = items.map(([l], i) => `<button class="menu__item" data-i="${i}">${esc(l)}</button>`).join(''); document.body.appendChild(m);
+      m.addEventListener('click', ev => { const b = ev.target.closest('[data-i]'); if (b) { items[+b.dataset.i][1](); m.remove(); } });
+    }
+  });
+
+  // ---------- realtime
+  function subscribe() {
+    stopMsg && stopMsg(); presence && presence.leave();
+    stopMsg = API.live('msgs', 'messages', 'channel_id=eq.' + cur.id, async ({ eventType, new: n, old }) => {
+      if (eventType === 'INSERT') {
+        const full = await API.message(n.id); if (!full) return;
+        if (full.product) { D.remember([Object.assign({ effective_status: 'live' }, full.product)]); }
+        if (!full.parent_id || full.also_in_channel) { if (!msgs.some(m => m.id === full.id)) { msgs.push(full); renderMsgs(full.user_id === API.uid); const el = qs(`[data-mid="${full.id}"]`); el && el.classList.add('is-new'); } }
+        if (full.parent_id) { const parent = msgs.find(m => m.id === full.parent_id); if (parent) { parent.reply_count = (parent.reply_count || 0) + (parent._counted === full.id ? 0 : 1); parent.last_reply_at = full.created_at; parent._replyUsers = [full.user, ...(parent._replyUsers || []).filter(u => u && u.id !== full.user_id)]; renderMsgs(); } if (thread && thread.id === full.parent_id) appendThread(full); }
+        API.markChannelRead(cur.id);
+      } else if (eventType === 'UPDATE') { const i = msgs.findIndex(m => m.id === n.id); if (i > -1) { msgs[i] = Object.assign(msgs[i], n); renderMsgs(); } }
+      else if (eventType === 'DELETE') { msgs = msgs.filter(m => m.id !== old.id); renderMsgs(); }
+    });
+    presence = API.presence(cur.id, me, (state, typing) => {
+      const online = new Set(Object.values(state).flat().map(x => x.id));
+      qsa('[data-online]').forEach(el => el.hidden = !online.has(el.dataset.online));
+      if (cur.kind === 'dm' && cur.other && qs('#dm-status')) qs('#dm-status').textContent = online.has(cur.other.id) ? 'Online now' : 'Direct message';
+      if (typing && typing.name && (!me || typing.name !== me.name)) { typingNames.set(typing.name, Date.now()); renderTyping(); }
+    });
+  }
+  function renderTyping() {
+    const now = Date.now(); [...typingNames].forEach(([n, t]) => { if (now - t > 3500) typingNames.delete(n); });
+    const names = [...typingNames.keys()];
+    qs('#typing').innerHTML = names.length ? `<span class="dots"><i></i><i></i><i></i></span>${esc(names.slice(0, 2).join(' and '))}${names.length > 2 ? ' and others' : ''} ${names.length > 1 ? 'are' : 'is'} typing…` : '';
+  }
+  setInterval(renderTyping, 1500);
+  API.live('reacts', 'reactions', null, async ({ eventType, new: n, old }) => {
+    const mid = (n && n.message_id) || (old && old.message_id); const m = msgs.find(x => x.id === mid) || (thread && thread._all && thread._all.find(x => x.id === mid)); if (!m) return;
+    const fresh = await API.message(mid); if (fresh) { m.reactions = fresh.reactions; renderMsgs(); if (thread) renderThread(); }
+  });
+  API.live('chan-unread', 'messages', null, ({ new: n }) => { if (!n || (cur && n.channel_id === cur.id) || n.parent_id || n.user_id === API.uid) return; if (channels.some(c => c.id === n.channel_id)) { unread[n.channel_id] = (unread[n.channel_id] || 0) + 1; renderList(); H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0)); } });
+
+  // ---------- threads
+  async function openThread(id) {
+    const parent = msgs.find(m => m.id === id) || await API.message(id); if (!parent) return;
+    thread = parent; renderMsgs();
+    const all = await API.messages(cur.id, id); thread._all = all;
+    renderThread();
+  }
+  function renderThread() {
+    const t = qs('#thread'); t.hidden = false;
+    const all = thread._all || [thread]; const replies = all.filter(m => m.id !== thread.id);
+    t.innerHTML = `<div class="conv__head" style="justify-content:space-between"><div><p class="t-h4">Thread</p><p class="t-caption c-3" style="font-weight:400">${cur.kind === 'dm' ? 'Direct message' : '#' + esc(cur.name)}</p></div><button class="nav__icon" type="button" id="t-close" aria-label="Close thread">${icon('x')}</button></div>
+      <div class="conv__scroll" id="tscroll">${msgHTML(all.find(m => m.id === thread.id) || thread, { inThread: true })}<div class="day-sep">${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}</div>${replies.map(m => msgHTML(m, { inThread: true })).join('')}</div>
+      <form class="composer" id="t-form" style="margin:0 16px 8px"><textarea rows="2" placeholder="Reply…" aria-label="Reply in thread" id="t-msg"></textarea><div class="composer__bar"><span class="grow"></span><button class="send" type="submit" aria-label="Send reply">${icon('send', 'ic-16')}</button></div></form>
+      <label class="check" style="margin:0 16px 16px"><input type="checkbox" id="t-also"><span class="check__box">${icon('check')}</span>Also send to ${cur.kind === 'dm' ? 'the conversation' : '#' + esc(cur.name)}</label>`;
+    const ts = qs('#tscroll'); ts.scrollTop = ts.scrollHeight;
+    qs('#t-close').onclick = () => { t.hidden = true; thread = null; renderMsgs(); };
+    const tm = qs('#t-msg'); tm.focus();
+    tm.addEventListener('input', () => t.querySelector('.send').classList.toggle('is-ready', !!tm.value.trim()));
+    tm.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); qs('#t-form').requestSubmit(); } });
+    qs('#t-form').onsubmit = async e => { e.preventDefault(); const v = tm.value.trim(); if (!v) return; tm.value = ''; try { await API.send({ channel: cur.id, body: v, parent: thread.id, alsoInChannel: qs('#t-also').checked }); } catch (err) { tm.value = v; H.fail(err); } };
+  }
+  function appendThread(m) { if (!thread._all.some(x => x.id === m.id)) { thread._all.push(m); renderThread(); } }
+
+  // ---------- message actions
+  document.addEventListener('click', async e => {
+    const th = e.target.closest('[data-thread]'); if (th) { openThread(th.dataset.thread); return; }
+    const tr = e.target.closest('[data-tr]'); if (tr) { const p = tr.closest('p').nextElementSibling; p.hidden = !p.hidden; tr.textContent = p.hidden ? 'Show transcript' : 'Hide transcript'; return; }
+    const rc = e.target.closest('[data-react]'), qk = e.target.closest('[data-quick]');
+    if (rc || qk) { const el = rc || qk; const emoji = rc ? rc.dataset.react : qk.dataset.quick; const mid = el.dataset.mid; const m = msgs.find(x => x.id === mid) || (thread && thread._all.find(x => x.id === mid)); const mine = (m.reactions || []).some(r => r.emoji === emoji && r.user_id === API.uid);
+      try { m.reactions = mine ? m.reactions.filter(r => !(r.emoji === emoji && r.user_id === API.uid)) : [...(m.reactions || []), { emoji, user_id: API.uid }]; renderMsgs(); if (thread) renderThread(); await API.react(mid, emoji, !mine); } catch (err) { H.fail(err); } return; }
+    const pk = e.target.closest('[data-pick]'); if (pk) { qsa('.emoji-pop').forEach(x => x.remove()); const pop = document.createElement('div'); pop.className = 'emoji-pop'; pop.innerHTML = [['upvote', icon('upvote', 'ic-14')], ['rocket', icon('rocket', 'ic-14')], ['check', icon('check', 'ic-14')], ['heart', '❤️'], ['fire', '🔥'], ['clap', '👏']].map(([k, v]) => `<button type="button" data-react="${k}" data-mid="${pk.dataset.pick}" aria-label="${k}">${v}</button>`).join(''); pk.parentElement.style.position = 'relative'; pk.parentElement.appendChild(pop); setTimeout(() => document.addEventListener('click', () => pop.remove(), { once: true }), 0); return; }
+    const dl = e.target.closest('[data-delmsg]'); if (dl) { if (!confirm('Delete this message?')) return; try { await API.deleteMessage(dl.dataset.delmsg); const m = msgs.find(x => x.id === dl.dataset.delmsg); if (m) m.deleted = true; renderMsgs(); } catch (err) { H.fail(err); } return; }
+    const rp = e.target.closest('[data-reportmsg]'); if (rp) { const why = prompt('Why are you reporting this message?'); if (why) { try { await API.report('message', rp.dataset.reportmsg, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } } return; }
+    const v = e.target.closest('.voice__play'); if (v) playVoice(v.closest('.voice'));
+  });
+  let audio = null;
+  function playVoice(el) {
+    const src = el.dataset.audio, dur = +el.dataset.dur || 1, w = el.querySelector('.wave'); const seed = el.closest('[data-mid]').dataset.mid;
+    if (audio) { audio.pause(); audio = null; qsa('.voice__play').forEach(b => b.innerHTML = icon('play')); return; }
+    el.querySelector('.voice__play').innerHTML = icon('x');
+    const start = Date.now(); const tick = () => { if (!el.isConnected) return; const p = audio && audio.duration ? audio.currentTime / audio.duration : (Date.now() - start) / (dur * 1000); w.innerHTML = wave(seed, p); if (p < 1 && audio) requestAnimationFrame(tick); else { audio = null; w.innerHTML = wave(seed, 0); el.querySelector('.voice__play').innerHTML = icon('play'); } };
+    if (src) { audio = new Audio(src); audio.play().catch(() => {}); } else { audio = { pause() {} }; toast('Playing transcript only — this note has no audio file'); }
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- composer
+  const ta = qs('#msg'); let attach = null, shareProduct = null, lastTyping = 0;
+  function readyState() { qs('#send').classList.toggle('is-ready', !!(ta.value.trim() || attach || shareProduct)); ta.style.height = 'auto'; ta.style.height = Math.min(180, ta.scrollHeight) + 'px'; }
+  ta.addEventListener('input', () => { readyState(); if (presence && me && Date.now() - lastTyping > 2000) { lastTyping = Date.now(); presence.typing(me.name.split(' ')[0]); } mentionCheck(); });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !qs('.mention-pop')) { e.preventDefault(); qs('#composer').requestSubmit(); } });
+  ta.addEventListener('focus', () => { if (!API.uid) location.href = '/signin?next=' + encodeURIComponent(location.pathname); });
+  qs('#composer').addEventListener('submit', async e => {
+    e.preventDefault(); if (!cur) return; const v = ta.value.trim(); if (!v && !attach && !shareProduct) return;
+    const payload = { channel: cur.id, body: v };
+    if (attach) Object.assign(payload, { kind: 'image', attachment: attach });
+    if (shareProduct) Object.assign(payload, { kind: 'product', product: shareProduct.id });
+    ta.value = ''; attach = null; shareProduct = null; qs('#attach-prev').innerHTML = ''; readyState();
+    const btn = qs('#send'); btn.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(6px,-6px)', opacity: 0 }, { transform: 'translate(-4px,4px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 400, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    try { await API.send(payload); } catch (err) { ta.value = v; H.fail(err); }
+  });
+  async function attachFile(f) { if (!f) return; if (!/image\//.test(f.type) || f.size > 8 * 1024 * 1024) { toast('Images up to 8 MB', 'error'); return; } qs('#attach-prev').innerHTML = `<div class="row gap-8" style="padding:10px 16px 0"><span class="skel" style="width:48px;height:48px;border-radius:8px"></span><span class="t-caption c-3">Uploading…</span></div>`; try { attach = await API.upload(f, 'chat'); qs('#attach-prev').innerHTML = `<div class="row gap-8" style="padding:10px 16px 0"><img src="${attach}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px"><button class="link" type="button" id="rm-att">Remove</button></div>`; qs('#rm-att').onclick = () => { attach = null; qs('#attach-prev').innerHTML = ''; readyState(); }; readyState(); } catch (err) { qs('#attach-prev').innerHTML = ''; H.fail(err); } }
+  qs('#file').addEventListener('change', e => { attachFile(e.target.files[0]); e.target.value = ''; });
+  qs('#file2').addEventListener('change', e => { attachFile(e.target.files[0]); e.target.value = ''; });
+  qs('#emoji').addEventListener('click', e => { e.stopPropagation(); qsa('.emoji-pop').forEach(x => x.remove()); const pop = document.createElement('div'); pop.className = 'emoji-pop'; pop.style.bottom = '48px'; pop.style.left = '120px'; pop.innerHTML = ['👋', '🙏', '🔥', '🚀', '👏', '😂', '🇳🇬', '🇰🇪', '🇬🇭', '🇿🇦'].map(x => `<button type="button" data-emo="${x}">${x}</button>`).join(''); qs('#composer').style.position = 'relative'; qs('#composer').appendChild(pop); pop.addEventListener('click', ev => { const b = ev.target.closest('[data-emo]'); if (b) { ta.setRangeText(b.dataset.emo, ta.selectionStart, ta.selectionEnd, 'end'); ta.focus(); readyState(); } }); setTimeout(() => document.addEventListener('click', () => pop.remove(), { once: true }), 0); });
+  qs('#mention').addEventListener('click', () => { ta.setRangeText('@', ta.selectionStart, ta.selectionEnd, 'end'); ta.focus(); mentionCheck(); });
+  let mT;
+  function mentionCheck() {
+    qsa('.mention-pop').forEach(x => x.remove());
+    const m = ta.value.slice(0, ta.selectionStart).match(/@([a-z0-9_]*)$/i); if (!m) return;
+    clearTimeout(mT); mT = setTimeout(async () => {
+      const r = m[1].length ? await API.searchProfiles(m[1]) : members.slice(0, 6);
+      if (!r.length) return; const pop = document.createElement('div'); pop.className = 'card mention-pop'; pop.style.cssText = 'position:absolute;bottom:100%;left:12px;margin-bottom:6px;padding:6px;min-width:240px;box-shadow:var(--shadow-pop);z-index:5';
+      pop.innerHTML = r.map(u => `<button type="button" class="cmdk__opt" style="width:100%" data-un="${esc(u.username)}">${avatar(u, 24)}<span>${esc(u.name)} <span class="c-3">@${esc(u.username)}</span></span></button>`).join('');
+      qs('#composer').style.position = 'relative'; qs('#composer').appendChild(pop);
+      pop.addEventListener('click', ev => { const b = ev.target.closest('[data-un]'); if (!b) return; const pos = ta.selectionStart; const before = ta.value.slice(0, pos).replace(/@([a-z0-9_]*)$/i, '@' + b.dataset.un + ' '); ta.value = before + ta.value.slice(pos); ta.focus(); pop.remove(); readyState(); });
+    }, 150);
+  }
+  qs('#share-prod').addEventListener('click', async () => {
+    if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; }
+    const t = prompt('Share a product — type its name'); if (!t) return;
+    const { data } = await API.sb.from('product_feed').select('id,slug,name,tagline,color,logo_url,verified,upvote_count,effective_status').in('status', ['scheduled', 'live']).ilike('name', `%${t.replace(/[%,()]/g, '')}%`).limit(1);
+    if (!data || !data[0]) { toast('No product called “' + t + '”', 'error'); return; }
+    shareProduct = data[0]; D.remember([shareProduct]);
+    qs('#attach-prev').innerHTML = `<div class="row gap-8" style="padding:10px 16px 0">${plogo(shareProduct, 32)}<span class="t-label">${esc(shareProduct.name)}</span><button class="link" type="button" id="rm-prod">Remove</button></div>`;
+    qs('#rm-prod').onclick = () => { shareProduct = null; qs('#attach-prev').innerHTML = ''; readyState(); }; readyState();
+  });
+  // Voice notes: MediaRecorder + live transcript where the browser supports speech recognition
+  let rec = null, chunks = [], recStart = 0, recT, transcript = '', sr = null;
+  qs('#mic').addEventListener('click', async () => {
+    if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; }
+    const mic = qs('#mic');
+    if (rec) { rec.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      rec = new MediaRecorder(stream); chunks = []; transcript = ''; recStart = Date.now();
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) { sr = new SR(); sr.continuous = true; sr.interimResults = false; sr.lang = navigator.language || 'en-GB'; sr.onresult = ev => { for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) transcript += ev.results[i][0].transcript + ' '; }; try { sr.start(); } catch (e) {} }
+      rec.ondataavailable = ev => chunks.push(ev.data);
+      rec.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop()); sr && sr.stop(); clearInterval(recT); mic.classList.remove('rec'); qs('#rec-time').hidden = true;
+        const dur = Math.round((Date.now() - recStart) / 1000); rec = null; if (dur < 1) return;
+        const blob = new Blob(chunks, { type: chunks[0] && chunks[0].type || 'audio/webm' });
+        try { toast('Sending voice note…'); const url = await API.upload(new File([blob], 'voice.' + (blob.type.includes('mp4') ? 'mp4' : 'webm'), { type: blob.type.split(';')[0] }), 'voice'); await API.send({ channel: cur.id, kind: 'voice', attachment: url, duration: dur, transcript: transcript.trim() || null }); } catch (err) { H.fail(err); }
+      };
+      rec.start(); mic.classList.add('rec'); qs('#rec-time').hidden = false;
+      recT = setInterval(() => { const s = Math.round((Date.now() - recStart) / 1000); qs('#rec-time').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} · tap to send`; if (s >= 300) rec && rec.stop(); }, 250);
+    } catch (err) { toast('Allow microphone access to record voice notes', 'error'); }
+  });
+  // New DM
+  qs('#new-dm').addEventListener('click', async () => {
+    if (!API.uid) { location.href = '/signin?next=/chats'; return; }
+    const t = prompt('Message who? Type a name or @username'); if (!t) return;
+    const r = await API.searchProfiles(t.replace(/^@/, '').replace(/[%,()]/g, '')); const u = r.find(x => x.id !== API.uid);
+    if (!u) { toast('No maker called “' + t + '”', 'error'); return; }
+    try { const id = await API.openDM(u.id); await loadList(); history.pushState(null, '', '/chats/dm/' + id); open(channels.find(c => c.id === id)); } catch (e) { H.fail(e); }
+  });
+
+  // ---------- boot
+  try { await loadList(); } catch (e) { H.fail(e); }
+  let first = want ? (want.dm ? channels.find(c => c.id === want.dm) : channels.find(c => c.slug === want.slug)) : null;
+  if (!first && !isMobile()) first = channels.find(c => c.slug === 'launch-week') || channels[0];
+  if (first) open(first); else if (want) toast('That chat doesn’t exist or you don’t have access', 'error');
+  M.stagger(qs('#clist'), '.citem');
+})();
+</script>
+</body>
+</html>

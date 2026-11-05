@@ -13,7 +13,7 @@
       <div class="stack gap-16" style="align-items:flex-start"><span class="status-dot badge--success">Approved · Scheduled</span><h1 class="big-title" id="title"></h1><p class="lead" id="lead"></p></div>
       <div class="countdown" role="timer" aria-label="Time until launch"><div><b id="cd-d">10</b><span>days</span></div><div><b id="cd-h">07</b><span>hours</span></div><div><b id="cd-m">54</b><span>minutes</span></div></div>
       <section class="card card--pad stack gap-14" style="gap:14px">
-        <div class="row between"><h2 class="t-label">Your upcoming page is live</h2><span class="badge badge--accent badge--pill">38 following</span></div>
+        <div class="row between"><h2 class="t-label">Your upcoming page is live</h2><span class="badge badge--accent badge--pill" id="following">0 following</span></div>
         <p class="t-body-sm c-2">Followers get an email and a WhatsApp reminder when your week starts. Share it now so they’re ready on Monday.</p>
         <div class="row gap-8"><input class="input grow" id="url" readonly aria-label="Upcoming page link"><button class="btn btn--secondary" type="button" id="copy"><span data-icon="copy"></span>Copy</button></div>
         <div class="grid-2" style="grid-template-columns:repeat(4,1fr);gap:8px" id="share"></div>
@@ -24,37 +24,41 @@
       <div><p class="t-eyebrow c-3" style="margin-bottom:12px">How it looks in “Upcoming”</p>
         <div class="card card--pad stack gap-12"><div class="row between"><span class="plogo plogo--32" data-s0>L</span><span class="row gap-4 mono t-body-sm c-2"><span data-icon="calendar" data-cls="ic-14"></span><span id="up-date">NOV 16</span></span></div><div><p class="t-h4" data-s="name"></p><p class="t-body-sm c-2" style="margin-top:4px" data-s="tagline"></p></div><button class="btn btn--secondary btn--sm btn--block" type="button" disabled style="opacity:1"><span data-icon="bell"></span>Notify me</button></div>
       </div>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">Need a different week?</h2><p class="t-body-sm c-2">You can move or cancel until Friday, Nov 13. Your upcoming page and followers carry over.</p>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">Need a different week?</h2><p class="t-body-sm c-2">You can move or cancel until the Friday before your week. Your upcoming page and followers carry over.</p>
         <div class="grid-2" style="gap:8px;margin-top:14px"><a class="btn btn--secondary btn--sm" href="/submit#week" id="resched"><span data-icon="calendar"></span>Reschedule</a><button class="btn btn--ghost btn--sm" type="button" id="cancel">Cancel launch</button></div></section>
-      <a class="btn btn--ghost btn--sm" href="/launch-week" style="align-self:flex-start"><span data-icon="arrow-right"></span>Preview launch week (demo)</a>
+      
     </aside>
   </div>
 </main>
 <div data-tabbar></div>
 <script src="/assets/launch.js"></script>
 <script>
-H.mount({ active: 'Launches', tab: 'Launch' });
-(function () {
-  const { qs, qsa, store, icon, toast } = H; const s = L.sub();
-  if (s.status !== 'scheduled') { s.status = 'scheduled'; L.save(s); }
-  qsa('[data-s]').forEach(el => el.textContent = s[el.dataset.s]); qs('[data-s0]').textContent = (s.name || 'L')[0];
-  const range = L.WEEKS[s.week]; qs('#title').textContent = `You’re in Week ${s.week} · ${range}`;
-  qs('#lead').textContent = `${s.name} goes live Monday at 06:00 WAT and stays on the Week ${s.week} board for 7 days.`;
-  const startDay = { 47: 16, 48: 23, 49: 30 }[s.week] || 16; qs('#up-date').textContent = (s.week === 49 ? 'NOV ' : 'NOV ') + startDay;
-  const start = Date.UTC(2026, 10, startDay, 5, 0); // 06:00 WAT = 05:00 UTC
-  function tick() { let ms = Math.max(0, start - Date.now()); const d = Math.floor(ms / 864e5); ms -= d * 864e5; const h = Math.floor(ms / 36e5); ms -= h * 36e5; const m = Math.floor(ms / 6e4); qs('#cd-d').textContent = String(d).padStart(2, '0'); qs('#cd-h').textContent = String(h).padStart(2, '0'); qs('#cd-m').textContent = String(m).padStart(2, '0'); }
-  tick(); setInterval(tick, 15000);
-  const slug = (s.name || 'ledgerline').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const url = location.origin + '/products/' + slug; qs('#url').value = url.replace(/^https?:\/\//, '');
+H.mount({ active: 'my-products', tab: 'launch' });
+(async function () {
+  const { qs, qsa, icon, toast } = H;
+  let p; try { ({ p } = await L.mine(['scheduled'])); } catch (e) { return; }
+  if (!p) { L.none('Nothing is scheduled yet'); return; }
+  if ((p.effective_status || p.status) === 'live') { location.replace('/launch-week?p=' + p.slug); return; }
+  qsa('[data-s="name"]').forEach(el => el.textContent = p.name); qsa('[data-s="tagline"]').forEach(el => el.textContent = p.tagline);
+  qs('[data-s0]').outerHTML = H.plogo(p, 32);
+  qs('#title').textContent = `You’re in Week ${p.week_id} · ${L.range(p)}`;
+  qs('#lead').textContent = `${p.name} goes live Monday at 06:00 WAT and stays on the Week ${p.week_id} board for 7 days.`;
+  qs('#up-date').textContent = new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase();
+  const start = new Date(p.week_starts_at).getTime();
+  function tick() { let ms = Math.max(0, start - Date.now()); const d = Math.floor(ms / 864e5); ms -= d * 864e5; const h = Math.floor(ms / 36e5); ms -= h * 36e5; const m = Math.floor(ms / 6e4); [['#cd-d', d], ['#cd-h', h], ['#cd-m', m]].forEach(([s, v]) => { const el = qs(s); const t = String(v).padStart(2, '0'); if (el.textContent !== t) M.roll(el, t, true); }); }
+  tick(); setInterval(tick, 10000);
+  const { count } = await API.sb.from('notify_requests').select('*', { count: 'exact', head: true }).eq('product_id', p.id);
+  qs('#following').textContent = (count || 0) + ' following';
+  const url = location.origin + '/products/' + p.slug; qs('#url').value = url.replace(/^https?:\/\//, '');
   qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(url); toast('Link copied'); });
-  const txt = encodeURIComponent(`${s.name} launches on Hentity on Monday. Follow it here: ${url}`);
-  qs('#share').innerHTML = [['WhatsApp', 'https://wa.me/?text=' + txt], ['LinkedIn', 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url)], ['X', 'https://x.com/intent/post?text=' + txt], ['Email', 'mailto:?subject=' + encodeURIComponent(s.name + ' launches Monday') + '&body=' + txt]].map(([l, h]) => `<a class="btn btn--secondary btn--sm" href="${h}" target="_blank" rel="noopener">${icon('share')}${l}</a>`).join('');
+  const txt = encodeURIComponent(`${p.name} launches on Hentity on Monday. Follow it here: ${url}`);
+  qs('#share').innerHTML = [['WhatsApp', 'https://wa.me/?text=' + txt], ['LinkedIn', 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url)], ['X', 'https://x.com/intent/post?text=' + txt], ['Email', 'mailto:?subject=' + encodeURIComponent(p.name + ' launches Monday') + '&body=' + txt]].map(([l, h]) => `<a class="btn btn--secondary btn--sm" href="${h}" target="_blank" rel="noopener">${icon('share')}${l}</a>`).join('');
   const C = ['Introduction comment is ready (posts when your week starts)', 'Makers have accepted their invites', 'Someone on the team replies to comments every day of the week', 'WhatsApp and LinkedIn posts scheduled for Monday morning'];
-  const done = store.get('weekCheck', [s.intro.length >= 40, true, false, false]);
+  const key = 'week.' + p.id; const done = H.store.get(key, [(p.intro || '').length >= 40, true, false, false]);
   qs('#check').innerHTML = C.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
-  qs('#check').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; store.set('weekCheck', done); });
-  qs('#resched').addEventListener('click', () => { s.status = 'draft'; L.save(s); });
-  qs('#cancel').addEventListener('click', () => { if (!confirm(`Cancel the Week ${s.week} launch? Your spot is released and the product goes back to draft.`)) return; s.status = 'draft'; L.save(s); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); });
+  qs('#check').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; H.store.set(key, done); });
+  qs('#resched').addEventListener('click', async e => { e.preventDefault(); if (!confirm('Move to a different week? Your product goes back to draft so you can pick a new week and resubmit.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id + '#week'; } catch (err) { H.fail(err); } });
+  qs('#cancel').addEventListener('click', async () => { if (!confirm(`Cancel the Week ${p.week_id} launch? Your spot is released and the product goes back to draft.`)) return; try { await API.saveProduct(p.id, { status: 'draft', week_id: null }); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); } catch (e) { H.fail(e); } });
 })();
 </script>
 <style>@media (max-width:768px){#share{grid-template-columns:1fr 1fr!important}}</style>

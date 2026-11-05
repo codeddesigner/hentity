@@ -36,9 +36,28 @@
     copy: ['M16.6666 6.66667H8.33329C7.41282 6.66667 6.66663 7.41286 6.66663 8.33333V16.6667C6.66663 17.5871 7.41282 18.3333 8.33329 18.3333H16.6666C17.5871 18.3333 18.3333 17.5871 18.3333 16.6667V8.33333C18.3333 7.41286 17.5871 6.66667 16.6666 6.66667Z', 'M3.33329 13.3333C2.41663 13.3333 1.66663 12.5833 1.66663 11.6667V3.33333C1.66663 2.41667 2.41663 1.66667 3.33329 1.66667H11.6666C12.5833 1.66667 13.3333 2.41667 13.3333 3.33333'],
     link: ['M8.33337 10.8333C8.69125 11.3118 9.14784 11.7077 9.67217 11.9941C10.1965 12.2806 10.7763 12.4509 11.3722 12.4936C11.9682 12.5363 12.5664 12.4503 13.1262 12.2415C13.686 12.0327 14.1943 11.7059 14.6167 11.2833L17.1167 8.78333C17.8757 7.99749 18.2957 6.94498 18.2862 5.85249C18.2767 4.76001 17.8385 3.71496 17.066 2.94242C16.2934 2.16989 15.2484 1.73169 14.1559 1.72219C13.0634 1.7127 12.0109 2.13267 11.225 2.89167L9.79171 4.31667', 'M11.6667 9.16667C11.3088 8.68823 10.8522 8.29235 10.3279 8.00588C9.80359 7.71942 9.22379 7.54907 8.62784 7.50639C8.03188 7.46371 7.43372 7.54969 6.87392 7.75852C6.31412 7.96734 5.80578 8.29411 5.38338 8.71667L2.88338 11.2167C2.12439 12.0025 1.70441 13.055 1.7139 14.1475C1.7234 15.24 2.1616 16.285 2.93413 17.0576C3.70667 17.8301 4.75172 18.2683 5.84421 18.2778C6.93669 18.2873 7.9892 17.8673 8.77504 17.1083L10.2 15.6833'],
     'bar-chart': ['M2.5 2.5V15.8333C2.5 16.2754 2.67559 16.6993 2.98816 17.0118C3.30072 17.3244 3.72464 17.5 4.16667 17.5H17.5', 'M15 14.1667V7.5', 'M10.8334 14.1667V4.16667', 'M6.66663 14.1667V11.6667'],
-    sparkles: ['M8.28337 11.7167L3.33337 16.6667', 'M10 2.5L11.5834 7.33333L16.6667 9.16667L11.5834 11L10 15.8333L8.41671 11L3.33337 9.16667L8.41671 7.33333L10 2.5Z']
+    sparkles: ['M8.28337 11.7167L3.33337 16.6667', 'M10 2.5L11.5834 7.33333L16.6667 9.16667L11.5834 11L10 15.8333L8.41671 11L3.33337 9.16667L8.41671 7.33333L10 2.5Z'],
+    hash: ['M3.33337 7.5H16.6667M3.33337 12.5H16.6667M8.33337 2.5L6.66671 17.5M13.3334 2.5L11.6667 17.5'],
+    mic: ['M15.8333 8.33333V10C15.8333 11.5471 15.2187 13.0308 14.1247 14.1248C13.0308 15.2188 11.5471 15.8333 9.99996 15.8333M9.99996 15.8333C8.45286 15.8333 6.96913 15.2188 5.87517 14.1248C4.78121 13.0308 4.16663 11.5471 4.16663 10V8.33333M9.99996 15.8333V18.3333M9.99996 1.66667C9.33692 1.66667 8.70103 1.93006 8.23219 2.3989C7.76335 2.86774 7.49996 3.50363 7.49996 4.16667V10C7.49996 10.663 7.76335 11.2989 8.23219 11.7678C8.70103 12.2366 9.33692 12.5 9.99996 12.5C10.663 12.5 11.2989 12.2366 11.7677 11.7678C12.2366 11.2989 12.5 10.663 12.5 10V4.16667C12.5 3.50363 12.2366 2.86774 11.7677 2.3989C11.2989 1.93006 10.663 1.66667 9.99996 1.66667Z'],
+    send: ['M9.16663 10.8333L1.66663 7.5L18.3333 1.66667L12.5 18.3333L9.16663 10.8333ZM18.3333 1.66667L9.16663 10.8333'],
+    smile: ['M6.66663 11.6667C6.66663 11.6667 7.91663 13.3333 9.99996 13.3333C12.0833 13.3333 13.3333 11.6667 13.3333 11.6667M7.49996 7.5H7.50829M12.5 7.5H12.5083M18.3333 10C18.3333 14.6024 14.6023 18.3333 9.99996 18.3333C5.39759 18.3333 1.66663 14.6024 1.66663 10C1.66663 5.39763 5.39759 1.66667 9.99996 1.66667C14.6023 1.66667 18.3333 5.39763 18.3333 10Z'],
+    pin: ['M9.99996 14.1667V18.3333M4.16663 14.1667H15.8333V12.7C15.8331 12.3899 15.7465 12.0861 15.5831 11.8225C15.4196 11.559 15.186 11.3463 14.9083 11.2083L13.425 10.4583C13.1473 10.3204 12.9136 10.1076 12.7502 9.84413C12.5868 9.58061 12.5001 9.27674 12.5 8.96667V5H13.3333C13.7753 5 14.1992 4.82441 14.5118 4.51184C14.8244 4.19928 15 3.77536 15 3.33333C15 2.89131 14.8244 2.46738 14.5118 2.15482C14.1992 1.84226 13.7753 1.66667 13.3333 1.66667H6.66663C6.2246 1.66667 5.80068 1.84226 5.48811 2.15482C5.17555 2.46738 4.99996 2.89131 4.99996 3.33333C4.99996 3.77536 5.17555 4.19928 5.48811 4.51184C5.80068 4.82441 6.2246 5 6.66663 5H7.49996V8.96667C7.49979 9.27674 7.41314 9.58061 7.24973 9.84413C7.08632 10.1076 6.85264 10.3204 6.57496 10.4583L5.09163 11.2083C4.81395 11.3463 4.58027 11.559 4.41686 11.8225C4.25345 12.0861 4.16679 12.3899 4.16663 12.7V14.1667Z'],
+    paperclip: ['M17.8667 9.20833L10.2084 16.8667C9.27017 17.8049 7.99769 18.3319 6.67087 18.3319C5.34405 18.3319 4.07157 17.8049 3.13337 16.8667C2.19517 15.9285 1.66809 14.656 1.66809 13.3292C1.66809 12.0023 2.19517 10.7299 3.13337 9.79167L10.275 2.65C10.9005 2.02343 11.7493 1.67098 12.6346 1.6702C13.5199 1.66942 14.3693 2.02036 14.9959 2.64583C15.6224 3.2713 15.9749 4.12006 15.9757 5.00539C15.9765 5.89071 15.6255 6.74009 15 7.36667L7.8417 14.5083C7.52897 14.8211 7.10481 14.9968 6.66254 14.9968C6.22026 14.9968 5.79611 14.8211 5.48337 14.5083C5.17064 14.1956 4.99494 13.7714 4.99494 13.3292C4.99494 12.8869 5.17064 12.4627 5.48337 12.15L12.5584 5.08333'],
+    newspaper: ['M3.33329 18.3333H16.6666C17.1087 18.3333 17.5326 18.1577 17.8451 17.8452C18.1577 17.5326 18.3333 17.1087 18.3333 16.6667V3.33333C18.3333 2.89131 18.1577 2.46738 17.8451 2.15482C17.5326 1.84226 17.1087 1.66667 16.6666 1.66667H6.66663C6.2246 1.66667 5.80067 1.84226 5.48811 2.15482C5.17555 2.46738 4.99996 2.89131 4.99996 3.33333V7.5M3.33329 18.3333C3.77532 18.3333 4.19924 18.1577 4.5118 17.8452C4.82436 17.5326 4.99996 17.1087 4.99996 16.6667V7.5M3.33329 18.3333C2.89127 18.3333 2.46734 18.1577 2.15478 17.8452C1.84222 17.5326 1.66663 17.1087 1.66663 16.6667V9.16667C1.66663 8.25 2.41663 7.5 3.33329 7.5H4.99996M15 11.6667H8.33329M12.5 15H8.33329M8.33329 5H15V8.33333H8.33329V5Z'],
+    chats: ['M15 7.5H16.6666C17.1087 7.5 17.5326 7.6756 17.8451 7.98816C18.1577 8.30072 18.3333 8.72464 18.3333 9.16667V18.3333L15 15H9.99996C9.55793 15 9.13401 14.8244 8.82145 14.5118C8.50889 14.1993 8.33329 13.7754 8.33329 13.3333V12.5M11.6666 7.5C11.6666 7.94203 11.491 8.36595 11.1785 8.67851C10.8659 8.99107 10.442 9.16667 9.99996 9.16667H4.99996L1.66663 12.5V3.33333C1.66663 2.89131 1.84222 2.46738 2.15478 2.15482C2.46734 1.84226 2.89127 1.66667 3.33329 1.66667H9.99996C10.442 1.66667 10.8659 1.84226 11.1785 2.15482C11.491 2.46738 11.6666 2.89131 11.6666 3.33333V7.5Z'],
+    more: ['M10 10.8333C10.4603 10.8333 10.8334 10.4602 10.8334 10C10.8334 9.53976 10.4603 9.16667 10 9.16667C9.5398 9.16667 9.16671 9.53976 9.16671 10C9.16671 10.4602 9.5398 10.8333 10 10.8333Z', 'M15.8334 10.8333C16.2936 10.8333 16.6667 10.4602 16.6667 10C16.6667 9.53976 16.2936 9.16667 15.8334 9.16667C15.3731 9.16667 15 9.53976 15 10C15 10.4602 15.3731 10.8333 15.8334 10.8333Z', 'M4.16671 10.8333C4.62694 10.8333 5.00004 10.4602 5.00004 10C5.00004 9.53976 4.62694 9.16667 4.16671 9.16667C3.70647 9.16667 3.33337 9.53976 3.33337 10C3.33337 10.4602 3.70647 10.8333 4.16671 10.8333Z'],
+    users: ['M13.3333 17.5V15.8333C13.3333 14.9493 12.9821 14.1014 12.357 13.4763C11.7319 12.8512 10.884 12.5 9.99996 12.5H4.99996C4.1159 12.5 3.26806 12.8512 2.64294 13.4763C2.01782 14.1014 1.66663 14.9493 1.66663 15.8333V17.5M18.3333 17.5V15.8333C18.3327 15.0948 18.0869 14.3773 17.6344 13.7936C17.1819 13.2099 16.5484 12.793 15.8333 12.6083M13.3333 2.60833C14.0503 2.79192 14.6858 3.20892 15.1397 3.79359C15.5935 4.37827 15.8398 5.09736 15.8398 5.8375C15.8398 6.57764 15.5935 7.29673 15.1397 7.88141C14.6858 8.46608 14.0503 8.88308 13.3333 9.06667M10.8333 5.83333C10.8333 7.67428 9.34091 9.16667 7.49996 9.16667C5.65901 9.16667 4.16663 7.67428 4.16663 5.83333C4.16663 3.99238 5.65901 2.5 7.49996 2.5C9.34091 2.5 10.8333 3.99238 10.8333 5.83333Z'],
+    package: ['M6.25 3.55833L13.75 7.85M2.75 5.83333L10 10M10 10L17.25 5.83333M10 10L10 18.3333M17.5 6.66667C17.4997 6.3744 17.4225 6.08734 17.2763 5.8343C17.13 5.58126 16.9198 5.37114 16.6667 5.225L10.8333 1.89167C10.58 1.74539 10.2926 1.66838 10 1.66838C9.70744 1.66838 9.42003 1.74539 9.16667 1.89167L3.33333 5.225C3.08022 5.37114 2.86998 5.58126 2.72372 5.8343C2.57745 6.08734 2.5003 6.3744 2.5 6.66667V13.3333C2.5003 13.6256 2.57745 13.9127 2.72372 14.1657C2.86998 14.4187 3.08022 14.6289 3.33333 14.775L9.16667 18.1083C9.42003 18.2546 9.70744 18.3316 10 18.3316C10.2926 18.3316 10.58 18.2546 10.8333 18.1083L16.6667 14.775C16.9198 14.6289 17.13 14.4187 17.2763 14.1657C17.4225 13.9127 17.4997 13.6256 17.5 13.3333V6.66667Z'],
+    reply: ['M7.49992 3.33333L3.33325 7.5L7.49992 11.6667M3.33325 7.5H13.3333C14.2173 7.5 15.0652 7.85119 15.6903 8.47631C16.3154 9.10143 16.6666 9.94928 16.6666 10.8333V16.6667'],
+    'at-sign': ['M13.3334 6.66667V10.8333C13.3334 11.4964 13.5968 12.1323 14.0657 12.6011C14.5345 13.0699 15.1704 13.3333 15.8334 13.3333C16.4965 13.3333 17.1323 13.0699 17.6012 12.6011C18.07 12.1323 18.3334 11.4964 18.3334 10.8333V10C18.3334 8.12275 17.6996 6.3005 16.5346 4.82847C15.3696 3.35645 13.7417 2.32089 11.9147 1.88959C10.0877 1.45829 8.16854 1.65651 6.46823 2.45213C4.76792 3.24775 3.38606 4.59416 2.54653 6.27322C1.707 7.95228 1.45899 9.86562 1.84268 11.7032C2.22636 13.5409 3.21927 15.1951 4.66053 16.3979C6.10179 17.6008 7.90696 18.2817 9.78357 18.3305C11.6602 18.3793 13.4983 17.793 15.0001 16.6667M13.3334 10C13.3334 11.8409 11.841 13.3333 10.0001 13.3333C8.15914 13.3333 6.66676 11.8409 6.66676 10C6.66676 8.15905 8.15914 6.66667 10.0001 6.66667C11.841 6.66667 13.3334 8.15905 13.3334 10Z'],
+    settings: ['M10.1833 1.66667H9.81667C9.37464 1.66667 8.95072 1.84226 8.63816 2.15482C8.3256 2.46738 8.15 2.89131 8.15 3.33333V3.48333C8.1497 3.7756 8.07255 4.06266 7.92628 4.3157C7.78002 4.56874 7.56978 4.77886 7.31667 4.925L6.95833 5.13333C6.70497 5.27961 6.41756 5.35662 6.125 5.35662C5.83244 5.35662 5.54503 5.27961 5.29167 5.13333L5.16667 5.06667C4.78422 4.84605 4.32987 4.7862 3.90334 4.90026C3.47681 5.01431 3.11296 5.29295 2.89167 5.675L2.70833 5.99167C2.48772 6.37411 2.42787 6.82847 2.54192 7.255C2.65598 7.68153 2.93461 8.04537 3.31667 8.26667L3.44167 8.35C3.69356 8.49543 3.90302 8.70424 4.04921 8.95569C4.1954 9.20714 4.27325 9.49248 4.275 9.78333V10.2083C4.27617 10.502 4.19971 10.7908 4.05337 11.0454C3.90703 11.3001 3.69601 11.5115 3.44167 11.6583L3.31667 11.7333C2.93461 11.9546 2.65598 12.3185 2.54192 12.745C2.42787 13.1715 2.48772 13.6259 2.70833 14.0083L2.89167 14.325C3.11296 14.7071 3.47681 14.9857 3.90334 15.0997C4.32987 15.2138 4.78422 15.1539 5.16667 14.9333L5.29167 14.8667C5.54503 14.7204 5.83244 14.6434 6.125 14.6434C6.41756 14.6434 6.70497 14.7204 6.95833 14.8667L7.31667 15.075C7.56978 15.2211 7.78002 15.4313 7.92628 15.6843C8.07255 15.9373 8.1497 16.2244 8.15 16.5167V16.6667C8.15 17.1087 8.3256 17.5326 8.63816 17.8452C8.95072 18.1577 9.37464 18.3333 9.81667 18.3333H10.1833C10.6254 18.3333 11.0493 18.1577 11.3618 17.8452C11.6744 17.5326 11.85 17.1087 11.85 16.6667V16.5167C11.8503 16.2244 11.9275 15.9373 12.0737 15.6843C12.22 15.4313 12.4302 15.2211 12.6833 15.075L13.0417 14.8667C13.295 14.7204 13.5824 14.6434 13.875 14.6434C14.1676 14.6434 14.455 14.7204 14.7083 14.8667L14.8333 14.9333C15.2158 15.1539 15.6701 15.2138 16.0967 15.0997C16.5232 14.9857 16.887 14.7071 17.1083 14.325L17.2917 14C17.5123 13.6176 17.5721 13.1632 17.4581 12.7367C17.344 12.3101 17.0654 11.9463 16.6833 11.725L16.5583 11.6583C16.304 11.5115 16.093 11.3001 15.9466 11.0454C15.8003 10.7908 15.7238 10.502 15.725 10.2083V9.79167C15.7238 9.49798 15.8003 9.20921 15.9466 8.95458C16.093 8.69995 16.304 8.48851 16.5583 8.34167L16.6833 8.26667C17.0654 8.04537 17.344 7.68153 17.4581 7.255C17.5721 6.82847 17.5123 6.37411 17.2917 5.99167L17.1083 5.675C16.887 5.29295 16.5232 5.01431 16.0967 4.90026C15.6701 4.7862 15.2158 4.84605 14.8333 5.06667L14.7083 5.13333C14.455 5.27961 14.1676 5.35662 13.875 5.35662C13.5824 5.35662 13.295 5.27961 13.0417 5.13333L12.6833 4.925C12.4302 4.77886 12.22 4.56874 12.0737 4.3157C11.9275 4.06266 11.8503 3.7756 11.85 3.48333V3.33333C11.85 2.89131 11.6744 2.46738 11.3618 2.15482C11.0493 1.84226 10.6254 1.66667 10.1833 1.66667Z', 'M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z'],
+    shield: ['M16.6667 10.8333C16.6667 15 13.75 17.0833 10.2834 18.2917C10.1018 18.3532 9.90466 18.3503 9.72504 18.2833C6.25004 17.0833 3.33337 15 3.33337 10.8333V5C3.33337 4.77899 3.42117 4.56703 3.57745 4.41075C3.73373 4.25447 3.94569 4.16667 4.16671 4.16667C5.83337 4.16667 7.91671 3.16667 9.36671 1.9C9.54325 1.74916 9.76784 1.66628 10 1.66628C10.2322 1.66628 10.4568 1.74916 10.6334 1.9C12.0917 3.175 14.1667 4.16667 15.8334 4.16667C16.0544 4.16667 16.2663 4.25447 16.4226 4.41075C16.5789 4.56703 16.6667 4.77899 16.6667 5V10.8333Z'],
+    flag: ['M3.33337 12.5C3.33337 12.5 4.16671 11.6667 6.66671 11.6667C9.16671 11.6667 10.8334 13.3333 13.3334 13.3333C15.8334 13.3333 16.6667 12.5 16.6667 12.5V2.5C16.6667 2.5 15.8334 3.33333 13.3334 3.33333C10.8334 3.33333 9.16671 1.66667 6.66671 1.66667C4.16671 1.66667 3.33337 2.5 3.33337 2.5V12.5Z', 'M3.33337 18.3333V12.5'],
+    edit: ['M14.1667 2.5C14.3856 2.28113 14.6455 2.10751 14.9314 1.98906C15.2174 1.87061 15.5239 1.80964 15.8334 1.80964C16.1429 1.80964 16.4494 1.87061 16.7354 1.98906C17.0214 2.10751 17.2812 2.28113 17.5 2.5C17.7189 2.71887 17.8926 2.97871 18.011 3.26468C18.1295 3.55064 18.1904 3.85714 18.1904 4.16667C18.1904 4.4762 18.1295 4.7827 18.011 5.06866C17.8926 5.35463 17.7189 5.61447 17.5 5.83333L6.25004 17.0833L1.66671 18.3333L2.91671 13.75L14.1667 2.5Z'],
+    log: ['M3.33337 5H16.6667', 'M3.33337 10H16.6667', 'M3.33337 15H11.6667']
   };
   const FILLED = {
+    play: '<path d="M5 2.5L16.6667 10L5 17.5V2.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.6667" stroke-linejoin="round"/>',
     upvote: '<path d="M10 3.33333L17.0833 15.4167H2.91667L10 3.33333Z" fill="currentColor"/>',
     google: '<path d="M18.8 10.2083C18.8 9.55833 18.7417 8.93333 18.6333 8.33333H10V11.8833H14.9333C14.7167 13.025 14.0667 13.9917 13.0917 14.6417V16.95H16.0667C17.8 15.35 18.8 13 18.8 10.2083Z" fill="#4285F4"/><path d="M9.99998 19.1667C12.475 19.1667 14.55 18.35 16.0667 16.95L13.0917 14.6417C12.275 15.1917 11.2333 15.525 9.99998 15.525C7.61665 15.525 5.59165 13.9167 4.86665 11.75H1.81665V14.1167C3.32498 17.1083 6.41665 19.1667 9.99998 19.1667Z" fill="#34A853"/><path d="M4.86671 11.7417C4.68337 11.1917 4.57504 10.6083 4.57504 10C4.57504 9.39167 4.68337 8.80833 4.86671 8.25833V5.89167H1.81671C1.19171 7.125 0.833374 8.51667 0.833374 10C0.833374 11.4833 1.19171 12.875 1.81671 14.1083L4.86671 11.7417Z" fill="#FBBC05"/><path d="M9.99998 4.48333C11.35 4.48333 12.55 4.95 13.5083 5.85L16.1333 3.225C14.5417 1.74167 12.475 0.833334 9.99998 0.833334C6.41665 0.833334 3.32498 2.89167 1.81665 5.89167L4.86665 8.25833C5.59165 6.09167 7.61665 4.48333 9.99998 4.48333Z" fill="#EA4335"/>'
   };
@@ -77,88 +96,108 @@
     return `<svg class="verified${cls ? ' ' + cls : ''}" viewBox="0 0 20 20" fill="none" role="img" aria-label="Verified"><path d="M8.81087 1.01337C9.49609 0.429429 10.5039 0.429429 11.1891 1.01337L12.6098 2.22403C12.9034 2.47426 13.2685 2.62548 13.6531 2.65617L15.5137 2.80465C16.4111 2.87627 17.1237 3.5889 17.1954 4.48634L17.3438 6.34694C17.3745 6.73151 17.5257 7.0966 17.776 7.39023L18.9866 8.81087C19.5706 9.49609 19.5706 10.5039 18.9866 11.1891L17.776 12.6098C17.5257 12.9034 17.3745 13.2685 17.3438 13.6531L17.1954 15.5137C17.1237 16.4111 16.4111 17.1237 15.5137 17.1954L13.6531 17.3438C13.2685 17.3745 12.9034 17.5257 12.6098 17.776L11.1891 18.9866C10.5039 19.5706 9.49609 19.5706 8.81087 18.9866L7.39023 17.776C7.0966 17.5257 6.73151 17.3745 6.34694 17.3438L4.48634 17.1954C3.5889 17.1237 2.87627 16.4111 2.80465 15.5137L2.65617 13.6531C2.62548 13.2685 2.47426 12.9034 2.22403 12.6098L1.01337 11.1891C0.429429 10.5039 0.429429 9.49609 1.01337 8.81087L2.22403 7.39023C2.47426 7.0966 2.62548 6.73151 2.65617 6.34694L2.80465 4.48634C2.87627 3.5889 3.5889 2.87627 4.48634 2.80465L6.34694 2.65617C6.73151 2.62548 7.0966 2.47426 7.39023 2.22403L8.81087 1.01337Z" fill="currentColor"/><path d="M10.7871 9.1816H14.3754V10.9137C14.2315 10.8922 14.084 10.8813 13.9342 10.8813C12.3004 10.8815 10.976 12.2058 10.9759 13.8396C10.9759 14.0335 10.9951 14.2232 11.0307 14.4066H9.08738V10.8813H5.625V9.11368C5.82785 9.15766 6.03829 9.18158 6.2543 9.1816C7.88831 9.1816 9.21324 7.85666 9.21324 6.22265C9.21322 6.00664 9.1893 5.7962 9.14533 5.59335H10.7871V9.1816Z" fill="#fff"/></svg>`;
   }
 
-  // ---------- Storage + session ----------
+  // ---------- Storage (per-browser conveniences only; product data lives in Supabase) ----------
   const store = {
     get(k, d) { try { const v = localStorage.getItem('hentity.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem('hentity.' + k, JSON.stringify(v)); } catch (e) {} },
     del(k) { try { localStorage.removeItem('hentity.' + k); } catch (e) {} }
   };
-  const DEMO_USER = {
-    name: 'Ada Okafor', username: 'ada', email: 'ada@ledgerline.app', headline: 'Founder of Ledgerline',
-    bio: 'Building bookkeeping for Lagos traders. Ask me about mobile money reconciliation.',
-    country: 'NG', city: 'Lagos', website: 'https://ledgerline.app', x: 'ada_builds', linkedin: 'linkedin.com/in/adaokafor', photo: null
-  };
-  function user() { return Object.assign({}, DEMO_USER, store.get('profile', {})); }
-  function session() { return store.get('session', null); }
+  const GUEST = { name: 'Guest', username: 'guest', email: '', country: 'NG', city: '', avatar_url: null };
+  function user() { return (window.API && API.profile) || GUEST; }
+  function session() { return window.API ? API.session : null; }
   function initials(name) { return (name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('') || '?'; }
+  const AV_COLORS = ['linear-gradient(140deg,#f6a26b,#a83a12)', 'linear-gradient(140deg,#22c55e,#14532d)', 'linear-gradient(140deg,#a78bfa,#5b21b6)', 'linear-gradient(140deg,#38bdf8,#1e3a8a)', 'linear-gradient(140deg,#f2c14e,#9a5b0c)', 'linear-gradient(140deg,#fb7185,#9f1239)'];
+  function avatarBg(u) {
+    if (u.avatar_color) return u.avatar_color;
+    if (!u.username || u.username === 'guest') return null;
+    let h = 0; for (const c of u.username) h = (h * 31 + c.charCodeAt(0)) | 0;
+    return AV_COLORS[Math.abs(h) % AV_COLORS.length];
+  }
   function avatar(u, size, extra) {
     u = u || user();
-    const cls = 'avatar' + (size ? ' avatar--' + size : '') + ' avatar--photo' + (extra ? ' ' + extra : '');
-    if (u.photo) return `<span class="${cls} avatar--img" style="background-image:url('${u.photo}')" role="img" aria-label="${esc(u.name)}"></span>`;
-    return `<span class="${cls}" aria-hidden="true">${initials(u.name)}</span>`;
+    const cls = 'avatar' + (size ? ' avatar--' + size : '') + (extra ? ' ' + extra : '');
+    if (u.avatar_url || u.photo) return `<span class="${cls} avatar--img" style="background-image:url('${esc(u.avatar_url || u.photo)}')" role="img" aria-label="${esc(u.name)}"></span>`;
+    const bg = avatarBg(u);
+    return `<span class="${cls}"${bg ? ` style="background:${bg};color:#fff"` : ''} aria-hidden="true">${initials(u.name)}</span>`;
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function ago(ts) {
+    const s = (Date.now() - new Date(ts).getTime()) / 1000;
+    if (s < 45) return 'just now'; if (s < 3600) return Math.round(s / 60) + 'm ago'; if (s < 86400) return Math.round(s / 3600) + 'h ago';
+    if (s < 7 * 86400) return new Date(ts).toLocaleDateString('en-GB', { weekday: 'short' });
+    return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+  function hhmm(ts) { return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
 
   // ---------- Theme ----------
   function applyTheme(t) { document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'; }
   applyTheme(store.get('theme', 'light'));
 
   // ---------- Toasts ----------
-  function toast(msg) {
+  function toast(msg, kind) {
     let wrap = document.querySelector('.toasts');
     if (!wrap) { wrap = document.createElement('div'); wrap.className = 'toasts'; wrap.setAttribute('role', 'status'); wrap.setAttribute('aria-live', 'polite'); document.body.appendChild(wrap); }
-    const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = icon('check') + '<span>' + esc(msg) + '</span>';
-    wrap.appendChild(t); setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .2s'; setTimeout(() => t.remove(), 220); }, 2600);
+    const t = document.createElement('div'); t.className = 'toast' + (kind === 'error' ? ' toast--error' : '');
+    t.innerHTML = icon(kind === 'error' ? 'alert-circle' : 'check') + '<span>' + esc(msg) + '</span>';
+    wrap.appendChild(t); setTimeout(() => { t.classList.add('is-leaving'); setTimeout(() => t.remove(), 260); }, 3200);
   }
+  function fail(e) { if (e && e.message === 'AUTH_REQUIRED') return; console.error(e); toast(e && e.message ? e.message.replace(/^.*?: /, '') : 'Something went wrong', 'error'); }
 
-  // ---------- Header ----------
-  const NAV = [['Discover', '/'], ['Launches', '/launches'], ['Categories', '/directory'], ['Collections', '/directory#collections'], ['Community', '/community']];
-  function unreadCount() { return store.get('unread', 3); }
-  function header(active) {
-    const s = session();
-    const u = user();
-    const links = NAV.map(([l, h]) => `<a href="${h}"${l === active ? ' aria-current="page"' : ''}>${l}</a>`).join('');
-    const unread = unreadCount();
-    const right = s
-      ? `<a class="nav__icon${unread ? ' has-unread' : ''}" href="/notifications" aria-label="Notifications${unread ? ', ' + unread + ' unread' : ''}">${icon('bell', 'ic-18')}</a>
-         <a class="btn btn--primary btn--sm" href="/submit">${icon('plus')}Submit</a>
-         <button class="nav__avatar" type="button" aria-haspopup="menu" aria-expanded="false" data-account-btn>${avatar(u, null, '')}</button>`
-      : `<a class="btn btn--ghost btn--sm" href="/signin">Sign in</a>
-         <a class="btn btn--primary btn--sm" href="/submit">${icon('plus')}Submit</a>`;
-    return `<header class="nav">
-      <div class="nav__left"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><nav class="nav__links nav__desktop" aria-label="Primary">${links}</nav></div>
-      <div class="nav__right nav__desktop">
-        <form class="search" role="search" action="/directory"><span aria-hidden="true">${icon('search')}</span><input name="q" type="search" placeholder="Search products, makers, companies" aria-label="Search"><span class="kbd" aria-hidden="true">/</span></form>
-        ${right}
+  // ---------- App shell: sidebar (Figma "App sidebar" 62:497) + tab bar (62:798) ----------
+  const counts = { chats: store.get('count.chats', 0), notifs: store.get('count.notifs', 0) };
+  function sidebar(active) {
+    const s = session(); const u = user();
+    const item = (key, label, href, ic, count, accentCount) => `<a class="sb-item" href="${href}"${key === active ? ' aria-current="page"' : ''}>${icon(ic, 'ic-20')}<span>${label}</span>${count ? `<span class="sb-count${accentCount || key === active ? ' is-accent' : ''}" data-count="${key}">${count}</span>` : `<span class="sb-count" data-count="${key}" hidden></span>`}</a>`;
+    return `<aside class="sidebar" aria-label="Main">
+      <a class="logo sb-logo" href="/" aria-label="Hentity home">${logo()}</a>
+      <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
+      <nav class="sb-nav" aria-label="Primary">
+        ${item('products', 'Products', '/', 'package')}
+        ${item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true)}
+        ${item('news', 'News', '/news', 'newspaper')}
+      </nav>
+      ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
+        ${item('my-products', 'My products', '/my-products', 'rocket')}
+        ${item('notifications', 'Notifications', '/notifications', 'bell', counts.notifs)}
+        ${item('saved', 'Saved', '/saved', 'bookmark')}
+        ${window.API && API.isAdmin ? item('admin', 'Admin', '/admin', 'shield') : ''}
+      </nav>` : ''}
+      <div class="sb-bottom">
+        <a class="btn btn--accent btn--block" href="/submit">${icon('plus')}Submit a product</a>
+        ${s ? `<div class="sb-user"><button class="sb-me" type="button" data-account-btn aria-haspopup="menu" aria-expanded="false">${avatar(u, 32)}<span class="stack" style="min-width:0;text-align:left"><span class="t-label truncate">${esc(u.name)}</span><span class="t-caption c-3 truncate" style="font-weight:400">@${esc(u.username)}</span></span></button><a class="nav__icon" href="/settings/profile" aria-label="Settings">${icon('settings', 'ic-18')}</a></div>`
+          : `<div class="grid-2" style="gap:8px"><a class="btn btn--secondary btn--sm" href="/signin">Sign in</a><a class="btn btn--primary btn--sm" href="/signup">Join</a></div>`}
       </div>
-      <div class="nav__mobile">
-        <a class="nav__icon" href="/directory" aria-label="Search">${icon('search', 'ic-20')}</a>
-        ${s ? `<a class="nav__icon${unread ? ' has-unread' : ''}" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}</a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}
-      </div>
-    </header>`;
+    </aside>
+    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4"><button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
   }
   function tabbar(active) {
     const s = session();
-    const items = [['Home', '/', 'home'], ['Directory', '/directory', 'compass'], ['Launch', '/submit', 'plus'], ['Alerts', '/notifications', 'bell'], ['Profile', s ? '/me' : '/signin', 'user']];
-    return `<nav class="tabbar" aria-label="Tabs">${items.map(([l, h, ic]) => l === 'Launch'
-      ? `<a class="tabbar__launch" href="${h}"${l === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
-      : `<a href="${h}"${l === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}</a>`).join('')}</nav>`;
+    const items = [['products', 'Products', '/', 'package'], ['chats', 'Chats', '/chats', 'chats'], ['launch', 'Launch', '/submit', 'plus'], ['news', 'News', '/news', 'newspaper'], ['you', 'You', s ? '/me' : '/signin', 'user']];
+    return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
+      ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
+      : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s && counts.chats ? `<span class="tab-badge">${counts.chats}</span>` : ''}</a>`).join('')}</nav>`;
+  }
+  function setCount(key, n) {
+    counts[key] = n; store.set('count.' + key, n);
+    document.querySelectorAll(`[data-count="${key}"]`).forEach(el => { el.textContent = n; el.hidden = !n; });
+    document.querySelectorAll(`[data-count-dot="${key}"]`).forEach(el => { el.hidden = !n; });
+    document.querySelectorAll('.tab-badge').forEach(el => { if (key === 'chats') { el.textContent = n; el.hidden = !n; } });
   }
 
   function accountMenu(btn) {
     closeMenus();
     const u = user();
-    const unread = unreadCount();
     const dark = document.documentElement.dataset.theme === 'dark';
     const m = document.createElement('div');
     m.className = 'menu'; m.setAttribute('role', 'menu'); m.dataset.menu = '';
-    m.innerHTML = `<div class="menu__head">${avatar(u, 40)}<div class="stack"><span class="t-label-md">${esc(u.name)}</span><span class="t-caption c-3">@${esc(u.username)} · Maker</span></div></div>
+    m.innerHTML = `<div class="menu__head">${avatar(u, 40)}<div class="stack" style="min-width:0"><span class="t-label-md truncate">${esc(u.name)}</span><span class="t-caption c-3">@${esc(u.username)}${u.role && u.role !== 'user' ? ' · ' + u.role : ''}</span></div></div>
       <div class="menu__sep"></div>
       <a class="menu__item" role="menuitem" href="/makers/${esc(u.username)}">${icon('user')}Your profile</a>
-      <a class="menu__item" role="menuitem" href="/my-products">${icon('rocket')}My products<span class="menu__meta">4</span></a>
-      <a class="menu__item" role="menuitem" href="/makers/${esc(u.username)}#collections">${icon('bookmark')}Saved<span class="menu__meta">14</span></a>
-      <a class="menu__item" role="menuitem" href="/notifications">${icon('bell')}Notifications${unread ? `<span class="menu__meta">${unread} new</span>` : ''}</a>
-      <a class="menu__item" role="menuitem" href="/settings/profile">${icon('lock')}Settings</a>
+      <a class="menu__item" role="menuitem" href="/my-products">${icon('rocket')}My products</a>
+      <a class="menu__item" role="menuitem" href="/saved">${icon('bookmark')}Saved</a>
+      <a class="menu__item" role="menuitem" href="/notifications">${icon('bell')}Notifications${counts.notifs ? `<span class="menu__meta">${counts.notifs} new</span>` : ''}</a>
+      <a class="menu__item" role="menuitem" href="/settings/profile">${icon('settings')}Settings</a>
+      ${window.API && API.isAdmin ? `<a class="menu__item" role="menuitem" href="/admin">${icon('shield')}Admin</a>` : ''}
       <div class="menu__sep"></div>
       <label class="menu__item" role="menuitemcheckbox" aria-checked="${dark}">${icon('eye')}Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle ${dark ? 'checked' : ''} aria-label="Dark mode"><span class="toggle__track"></span></span></label>
       <a class="menu__item" role="menuitem" href="/guidelines">${icon('info')}Help &amp; guidelines</a>
@@ -166,8 +205,10 @@
       <button class="menu__item menu__item--danger" role="menuitem" type="button" data-signout>${icon('arrow-left')}Sign out</button>`;
     document.body.appendChild(m);
     const r = btn.getBoundingClientRect();
-    m.style.top = (r.bottom + window.scrollY + 8) + 'px';
-    m.style.right = Math.max(16, document.documentElement.clientWidth - r.right) + 'px';
+    const h = m.offsetHeight;
+    const top = r.top - h - 8 > 8 ? r.top - h - 8 : r.bottom + 8;
+    m.style.position = 'fixed'; m.style.top = top + 'px'; m.style.left = Math.max(12, Math.min(r.left, window.innerWidth - 292)) + 'px';
+    m.style.transformOrigin = top < r.top ? 'bottom left' : 'top left';
     btn.setAttribute('aria-expanded', 'true');
     const first = m.querySelector('.menu__item'); first && first.focus();
     m.addEventListener('keydown', e => {
@@ -182,29 +223,75 @@
     document.querySelectorAll('[data-menu]').forEach(m => m.remove());
     document.querySelectorAll('[data-account-btn]').forEach(b => b.setAttribute('aria-expanded', 'false'));
   }
+  async function signOut() { try { await API.auth.signOut(); } catch (e) {} store.del('count.chats'); store.del('count.notifs'); toast('Signed out'); setTimeout(() => { location.href = '/'; }, 400); }
 
-  function signOut() { store.del('session'); toast('Signed out'); setTimeout(() => { location.href = '/'; }, 500); }
+  // ---------- Command palette search (⌘K) ----------
+  let searchT;
+  function openSearch() {
+    if (document.querySelector('.cmdk')) return;
+    const el = document.createElement('div'); el.className = 'scrim cmdk-scrim';
+    el.innerHTML = `<div class="cmdk" role="dialog" aria-modal="true" aria-label="Search"><div class="cmdk__in">${icon('search', 'ic-18')}<input type="search" placeholder="Search products, makers, news" aria-label="Search"><kbd class="kbd">esc</kbd></div><div class="cmdk__res" role="listbox"><p class="cmdk__hint">Type to search the board, the directory, makers and news.</p></div></div>`;
+    document.body.appendChild(el);
+    const inp = el.querySelector('input'); inp.focus();
+    const close = () => { el.classList.add('is-leaving'); setTimeout(() => el.remove(), 160); };
+    el.addEventListener('click', e => { if (e.target === el) close(); });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Escape') close();
+      const opts = [...el.querySelectorAll('.cmdk__opt')]; const i = opts.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); (opts[i + 1] || opts[0])?.focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); (i <= 0 ? inp : opts[i - 1]).focus(); }
+      if (e.key === 'Enter' && document.activeElement === inp && opts[0]) opts[0].click();
+    });
+    inp.addEventListener('input', () => {
+      clearTimeout(searchT); const t = inp.value.trim().replace(/[%,()]/g, '');
+      if (t.length < 2) { el.querySelector('.cmdk__res').innerHTML = '<p class="cmdk__hint">Type to search the board, the directory, makers and news.</p>'; return; }
+      searchT = setTimeout(async () => {
+        const [p, u, a] = await Promise.all([
+          API.sb.from('products').select('slug,name,tagline,color,logo_url').in('status', ['scheduled', 'live']).or(`name.ilike.%${t}%,tagline.ilike.%${t}%`).limit(6),
+          API.sb.from('profiles').select('username,name,avatar_url,avatar_color').or(`name.ilike.%${t}%,username.ilike.%${t}%`).limit(4),
+          API.sb.from('articles').select('slug,title,topic').eq('status', 'published').ilike('title', `%${t}%`).limit(4)
+        ]);
+        const rows = [
+          ...(p.data || []).map(x => `<a class="cmdk__opt" href="/products/${x.slug}">${plogo(x, 28)}<span class="grow truncate"><b>${esc(x.name)}</b> <span class="c-3">${esc(x.tagline)}</span></span><span class="c-3 t-caption">Product</span></a>`),
+          ...(u.data || []).map(x => `<a class="cmdk__opt" href="/makers/${x.username}">${avatar(x, 28)}<span class="grow truncate"><b>${esc(x.name)}</b> <span class="c-3">@${esc(x.username)}</span></span><span class="c-3 t-caption">Maker</span></a>`),
+          ...(a.data || []).map(x => `<a class="cmdk__opt" href="/news/${x.slug}"><span class="icon-tile" style="width:28px;height:28px">${icon('newspaper', 'ic-14')}</span><span class="grow truncate"><b>${esc(x.title)}</b></span><span class="c-3 t-caption">${esc(x.topic)}</span></a>`)
+        ];
+        el.querySelector('.cmdk__res').innerHTML = rows.length ? rows.join('') + `<a class="cmdk__opt" href="/directory?q=${encodeURIComponent(t)}">${icon('search', 'ic-14')}<span class="grow">Search the directory for “${esc(t)}”</span></a>` : `<p class="cmdk__hint">Nothing matches “${esc(t)}”. <a class="link link--accent" href="/directory?q=${encodeURIComponent(t)}">Try the directory</a></p>`;
+      }, 180);
+    });
+  }
+
+  function plogo(p, size) {
+    const sz = size ? ' plogo--' + size : '';
+    if (p.logo_url) return `<span class="plogo${sz}" style="background:#fff url('${esc(p.logo_url)}') center/cover"></span>`;
+    return `<span class="plogo${sz}" style="background:${esc(p.color || '#000')}">${esc((p.name || '?')[0].toUpperCase())}</span>`;
+  }
 
   // global delegated handlers
   document.addEventListener('click', e => {
     const ab = e.target.closest('[data-account-btn]');
     if (ab) { e.stopPropagation(); if (ab.getAttribute('aria-expanded') === 'true') closeMenus(); else accountMenu(ab); return; }
     if (e.target.closest('[data-signout]')) { signOut(); return; }
+    if (e.target.closest('[data-open-search]')) { openSearch(); return; }
     if (!e.target.closest('[data-menu]')) closeMenus();
   });
   document.addEventListener('change', e => {
     if (e.target.matches('[data-theme-toggle]')) { const t = e.target.checked ? 'dark' : 'light'; store.set('theme', t); applyTheme(t); }
   });
   document.addEventListener('keydown', e => {
-    if (e.key === '/' && !e.target.closest('input,textarea,select,[contenteditable]')) {
-      const s = document.querySelector('.search input'); if (s) { e.preventDefault(); s.focus(); }
-    }
+    if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !e.target.closest('input,textarea,select,[contenteditable]'))) { e.preventDefault(); openSearch(); }
   });
 
+  let mountOpts = {};
+  function renderShell() {
+    const sb = document.querySelector('.sidebar'); const mt = document.querySelector('.mtop'); const tb = document.querySelector('.tabbar');
+    if (sb) { const tmp = document.createElement('div'); tmp.innerHTML = sidebar(mountOpts.active); sb.replaceWith(tmp.children[0]); mt && mt.replaceWith(tmp.children[0]); }
+    if (tb) { const tmp = document.createElement('div'); tmp.innerHTML = tabbar(mountOpts.tab); tb.replaceWith(tmp.firstElementChild); }
+  }
   function mount(opts) {
-    opts = opts || {};
+    mountOpts = opts = opts || mountOpts || {};
     const h = document.querySelector('[data-header]');
-    if (h) h.outerHTML = header(opts.active);
+    if (h) { h.outerHTML = sidebar(opts.active); document.body.classList.add('has-sidebar'); }
     const t = document.querySelector('[data-tabbar]');
     if (t) t.outerHTML = tabbar(opts.tab);
     document.querySelectorAll('[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon, el.dataset.cls); });
@@ -212,7 +299,21 @@
     document.querySelectorAll('[data-flag]').forEach(el => { el.outerHTML = flag(el.dataset.flag); });
     document.querySelectorAll('[data-verified]').forEach(el => { el.outerHTML = verified(el.dataset.cls); });
     document.querySelectorAll('[data-avatar]').forEach(el => { el.outerHTML = avatar(user(), el.dataset.avatar, el.dataset.cls); });
-    document.querySelectorAll('[data-user]').forEach(el => { const u = user(); el.textContent = el.dataset.user === 'firstName' ? u.name.split(' ')[0] : (u[el.dataset.user] || ''); });
+    document.querySelectorAll('[data-user]').forEach(el => { const u = user(); el.textContent = el.dataset.user === 'firstName' ? (u.name || '').split(' ')[0] : (u[el.dataset.user] || ''); });
+  }
+  // Refresh the shell once the real session is known, and keep counts live
+  if (window.API) {
+    let stopN = null;
+    async function refreshCounts() {
+      if (!API.session) return;
+      try {
+        setCount('notifs', await API.unreadCount());
+        const mem = await API.myMemberships(); const un = await API.unreadByChannel(mem);
+        setCount('chats', Object.values(un).reduce((a, b) => a + b, 0));
+      } catch (e) {}
+    }
+    API.ready.then(() => { renderShell(); refreshCounts(); if (API.session) stopN = API.live('notif', 'notifications', 'user_id=eq.' + API.uid, () => refreshCounts()); });
+    API.onAuth((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT' || ev === 'USER_UPDATED') renderShell(); });
   }
 
   // Simple form helpers
@@ -228,5 +329,5 @@
   }
   function params() { return new URLSearchParams(location.search); }
 
-  window.H = { icon, logo, flag, verified, avatar, initials, esc, store, user, session, toast, mount, header, tabbar, qs, qsa, bindChips, params, COUNTRY, applyTheme, DEMO_USER };
+  window.H = { icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();

@@ -32,11 +32,11 @@
 <div data-tabbar></div>
 <script src="/assets/settings.js"></script>
 <script>
-H.mount({ active: 'Discover', tab: 'Profile' });
-(function () {
-  const { qs, qsa, store, toast, esc } = H;
-  const wa = store.get('wa', null); if (wa) qs('#wa').textContent = wa;
-  // [key, title, desc, inApp, email, whatsapp]  null = channel not available
+H.mount({ active: '', tab: 'you' });
+(async function () {
+  const { qs, qsa, toast, esc } = H;
+  await SettingsReady; if (!API.uid) return;
+  if (API.profile.whatsapp) qs('#wa').textContent = API.profile.whatsapp; else qs('#wa').textContent = 'your WhatsApp number (not added yet)';
   const groups = [
     ['Your launches', [
       ['review', 'Review decisions', 'Approved, changes requested or declined', true, true, null],
@@ -51,22 +51,23 @@ H.mount({ active: 'Discover', tab: 'Profile' });
     ['Digests', [
       ['digest', 'Weekly leaderboard digest', 'Mondays after the board resets · 06:00 WAT', null, true, null]]]
   ];
-  const prefs = store.get('notifPrefs', {});
+  const st = () => Object.assign({}, API.profile.settings || {});
+  const prefs = Object.assign({}, st().notif || {});
   const ch = ['In-app', 'Email', 'WhatsApp'];
   qs('#matrix').innerHTML = groups.map(([g, rows]) => `<tbody><tr><th scope="col">${esc(g)}</th>${ch.map(c => `<th scope="col">${c}</th>`).join('')}</tr>
     ${rows.map(([k, t, d, ...def], ri) => `<tr${ri === rows.length - 1 ? ' class="group-end"' : ''}><td><p class="ev">${esc(t)}</p><p class="ev-d">${esc(d)}</p></td>
       ${def.map((v, ci) => { const key = k + '.' + ci; const on = key in prefs ? prefs[key] : v; return v === null ? '<td><span class="dash" aria-label="Not available">—</span></td>' : `<td><label class="toggle"><input type="checkbox" data-pref="${key}" ${on ? 'checked' : ''} aria-label="${esc(t)} by ${ch[ci]}"><span class="toggle__track"></span></label></td>`; }).join('')}</tr>`).join('')}</tbody>`).join('');
-  qs('#matrix').addEventListener('change', e => { const i = e.target.closest('[data-pref]'); if (!i) return; prefs[i.dataset.pref] = i.checked; store.set('notifPrefs', prefs); toast('Saved'); });
+  qs('#matrix').addEventListener('change', async e => { const i = e.target.closest('[data-pref]'); if (!i) return; prefs[i.dataset.pref] = i.checked; try { await API.updateProfile({ settings: Object.assign(st(), { notif: prefs }) }); toast('Saved'); } catch (err) { i.checked = !i.checked; H.fail(err); } });
   H.bindChips(qs('#pause-len'), () => { if (qs('#pause').checked) setPause(true); });
-  function setPause(on) {
+  async function setPause(on, silent) {
     const len = (qs('#pause-len [aria-pressed="true"]') || {}).dataset?.len || '1 week';
-    const until = new Date(Date.now() + (len === '1 day' ? 1 : 7) * 864e5);
+    const until = on ? (silent && st().pause_until ? new Date(st().pause_until) : new Date(Date.now() + (len === '1 day' ? 1 : 7) * 864e5)) : null;
     qs('#pause-desc').textContent = on ? `Paused until ${until.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}. Security alerts still reach you, and your launch still goes live.` : 'Mute everything except security alerts for a while. Your launch still goes live on schedule.';
     qsa('[data-pref]').forEach(i => i.disabled = on);
-    store.set('pause', on ? until.getTime() : 0);
+    if (!silent) await API.updateProfile({ settings: Object.assign(st(), { pause_until: until ? until.toISOString() : null }) });
   }
-  qs('#pause').addEventListener('change', e => { setPause(e.target.checked); toast(e.target.checked ? 'Notifications paused' : 'Notifications resumed'); });
-  if (store.get('pause', 0) > Date.now()) { qs('#pause').checked = true; setPause(true); }
+  qs('#pause').addEventListener('change', async e => { try { await setPause(e.target.checked); toast(e.target.checked ? 'Notifications paused' : 'Notifications resumed'); } catch (err) { H.fail(err); } });
+  if (st().pause_until && new Date(st().pause_until) > new Date()) { qs('#pause').checked = true; setPause(true, true); }
 })();
 </script>
 </body>

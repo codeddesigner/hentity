@@ -21,7 +21,7 @@
       </div>
       <div class="field" id="f-email">
         <label class="field__label" for="email">Email</label>
-        <input class="input" id="email" name="email" type="email" autocomplete="email" value="ada@ledgerline.app" required>
+        <input class="input" id="email" name="email" type="email" autocomplete="email" required>
       </div>
       <button class="btn btn--primary btn--block" type="submit">Send a new link</button>
       <p class="auth__switch">Need help? <a href="mailto:support@hentity.com">Contact support</a></p>
@@ -31,12 +31,17 @@
 <script src="/assets/auth.js"></script>
 <script>
 H.mount();
-H.qs('#form').addEventListener('submit', e => {
-  e.preventDefault(); const f = e.target;
-  const ok = Auth.emailOk(f.email.value.trim());
-  H.qs('#f-email').classList.toggle('is-error', !ok);
-  if (ok) { H.qs('#sent').hidden = false; H.toast('New link sent'); }
-});
+(function () {
+  const { qs } = H; const type = H.params().get('type') === 'recovery' ? 'recovery' : 'signup';
+  const pending = JSON.parse(sessionStorage.getItem('hentity.pending') || sessionStorage.getItem('hentity.resetEmail') && JSON.stringify({ email: sessionStorage.getItem('hentity.resetEmail') }) || '{}');
+  qs('#email').value = pending.email || '';
+  qs('#form').addEventListener('submit', async e => {
+    e.preventDefault(); const email = e.target.email.value.trim();
+    const ok = Auth.emailOk(email); qs('#f-email').classList.toggle('is-error', !ok); if (!ok) return;
+    try { if (type === 'recovery') await API.auth.forgot(email); else await API.auth.resend(email, 'signup'); qs('#sent').hidden = false; qs('#sent').classList.add('reveal'); H.toast('New link sent'); }
+    catch (ex) { H.toast(/rate/i.test(ex.message) ? 'Too many requests. Wait a minute and try again.' : ex.message, 'error'); }
+  });
+})();
 </script>
 </body>
 </html>

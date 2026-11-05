@@ -3,14 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Under review · Hentity</title>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Under review · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/under-review">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Under review · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="subtle">
 <div data-header></div>
@@ -24,36 +46,39 @@
         <p class="lead" id="lead"></p>
       </div>
       <section class="card card--pad"><h2 class="t-label" style="margin-bottom:16px">Progress</h2><div id="tl"></div></section>
-      <div class="row gap-12 wrap"><a class="btn btn--secondary btn--lg" href="/products/ledgerline"><span data-icon="eye"></span>View submission</a><button class="btn btn--ghost btn--lg" type="button" id="withdraw"><span data-icon="arrow-left"></span>Withdraw to edit</button></div>
-      <div class="card" style="padding:14px 16px;border-style:dashed"><p class="t-caption c-3" style="font-weight:400;margin-bottom:10px">Demo controls — simulate the moderator’s decision</p><div class="row gap-8 wrap"><button class="btn btn--primary btn--sm" type="button" id="approve"><span data-icon="check"></span>Approve &amp; schedule</button><button class="btn btn--secondary btn--sm" type="button" id="changes">Request changes</button></div></div>
+      <div class="row gap-12 wrap"><a class="btn btn--secondary btn--lg" href="#" id="view"><span data-icon="eye"></span>View submission</a><button class="btn btn--ghost btn--lg" type="button" id="withdraw"><span data-icon="arrow-left"></span>Withdraw to edit</button></div>
+      <div class="card" style="padding:14px 16px" id="admin-box" hidden><p class="t-body-sm c-2" style="margin-bottom:10px">You’re an admin. Review this submission in the moderation queue.</p><a class="btn btn--primary btn--sm" id="admin-link" href="/admin"><span data-icon="shield"></span>Open in admin</a></div>
     </div>
     <aside class="stack gap-20">
       <div><p class="t-eyebrow c-3" style="margin-bottom:12px">Your launch card</p><div id="card"></div></div>
       <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">While you wait</h2><div class="stack gap-12" id="wait"></div></section>
-      <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Editing is paused during review</p><p class="alert__body">Withdraw the submission to make changes. You’ll keep your Week <span data-s="week"></span> spot if you resubmit before Nov 14.</p></div></div>
+      <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Editing is paused during review</p><p class="alert__body">Withdraw the submission to make changes. You’ll keep your Week <span data-s="week"></span> spot while it has room.</p></div></div>
     </aside>
   </div>
 </main>
 <div data-tabbar></div>
 <script src="/assets/launch.js"></script>
 <script>
-H.mount({ active: 'Launches', tab: 'Launch' });
-(function () {
-  const { qs, qsa, store, icon, esc, toast } = H;
-  const s = L.sub();
-  if (s.status !== 'review') { s.status = 'review'; s.submittedAt = s.submittedAt || Date.now() - 864e5; L.save(s); }
-  qsa('[data-s]').forEach(el => el.textContent = s[el.dataset.s]);
-  const at = new Date(s.submittedAt);
-  qs('#lead').textContent = `Submitted ${at.toLocaleDateString('en-GB', { weekday: 'long' })} at ${at.toTimeString().slice(0, 5)}. Most reviews finish within 48 hours; we’ll email ${H.user().email} either way.`;
-  qs('#tl').innerHTML = L.timeline([['done', 'Draft created', 'Nov 3 · 18:40'], ['done', 'Submitted for review', L.fmtDate(s.submittedAt)], ['now', 'Moderator review', 'Picked up ' + L.fmtDate(s.submittedAt + 11 * 36e5) + ' · checking website, media and eligibility'], ['todo', 'Approved & scheduled', 'Your upcoming page goes live so people can follow'], ['todo', `Launch week · ${L.WEEKS[s.week]}`, 'Starts Mon 06:00 WAT']]);
-  qs('#card').innerHTML = L.card(s);
+H.mount({ active: 'my-products', tab: 'launch' });
+(async function () {
+  const { qs, qsa, icon, toast, esc } = H;
+  let p; try { ({ p } = await L.mine(['review'])); } catch (e) { return; }
+  if (!p) { L.none('Nothing is in review right now'); return; }
+  if (p.status !== 'review') { location.replace(({ changes: '/changes-requested', scheduled: '/scheduled', live: '/launch-week', draft: '/submit?id=' + p.id }[p.effective_status || p.status] || '/my-products') + (p.status === 'draft' ? '' : '?p=' + p.slug)); return; }
+  qsa('[data-s="name"]').forEach(el => el.textContent = p.name);
+  qsa('[data-s="week"]').forEach(el => el.textContent = p.week_id || '—');
+  const at = new Date(p.submitted_at || Date.now());
+  qs('#lead').textContent = `Submitted ${at.toLocaleDateString('en-GB', { weekday: 'long' })} at ${at.toTimeString().slice(0, 5)}. Most reviews finish within 48 hours; we’ll email ${API.session.user.email} either way.`;
+  qs('#tl').innerHTML = L.timeline([['done', 'Draft created', L.fmtDate(p.created_at)], ['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Moderator review', 'Checking website, media and eligibility'], ['todo', 'Approved & scheduled', 'Your upcoming page goes live so people can follow'], ['todo', `Launch week${p.week_id ? ' · ' + L.range(p) : ''}`, 'Starts Mon 06:00 WAT']]);
+  qs('#card').innerHTML = L.card(p);
   const W = ['Tell your team the launch date', 'Draft your launch-week post for WhatsApp and LinkedIn', 'Prepare answers to the three questions you expect', 'Invite early users to follow your upcoming page'];
-  const done = store.get('waitList', [true, false, false, false]);
+  const key = 'wait.' + p.id; const done = H.store.get(key, [false, false, false, false]);
   qs('#wait').innerHTML = W.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
-  qs('#wait').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; store.set('waitList', done); });
-  qs('#withdraw').addEventListener('click', () => { if (!confirm('Withdraw from review? You can edit and resubmit; your week is held until Nov 14.')) return; s.status = 'draft'; L.save(s); location.href = '/submit'; });
-  qs('#approve').addEventListener('click', () => { s.status = 'scheduled'; L.save(s); location.href = '/scheduled'; });
-  qs('#changes').addEventListener('click', () => { s.status = 'changes'; L.save(s); location.href = '/changes-requested'; });
+  qs('#wait').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; H.store.set(key, done); });
+  qs('#view').href = '/submit?id=' + p.id;
+  qs('#withdraw').addEventListener('click', async () => { if (!confirm('Withdraw from review? You can edit and resubmit; your week is held while there are spots.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id; } catch (e) { H.fail(e); } });
+  if (API.isAdmin) qs('#admin-box').hidden = false, qs('#admin-link').href = '/admin#review/' + p.id;
+  API.live('rv', 'products', 'id=eq.' + p.id, ({ new: n }) => { if (n && n.status !== 'review') { toast('Your review decision is in'); setTimeout(() => location.reload(), 900); } });
 })();
 </script>
 </body>

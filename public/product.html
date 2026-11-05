@@ -3,135 +3,205 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Product · Hentity</title>
+<meta name="description" content="A product launched on Hentity, the weekly board for what’s being built in Africa.">
 <style>
-.pp{max-width:1248px;margin:0 auto;padding:24px 24px 96px}
-.crumbs{display:flex;gap:8px;font-size:13px;line-height:16px;color:var(--color-text-secondary);margin-bottom:24px}
-.crumbs a:hover{color:var(--color-text-primary)}
-.pp-top{display:grid;grid-template-columns:minmax(0,672px) minmax(0,1fr);gap:48px}
-.stage{position:relative;aspect-ratio:672/394;border-radius:20px;background:#000;display:grid;place-items:center;overflow:hidden;transition:background .2s}
+.pp{max-width:1136px;margin:0 auto;padding:24px 56px 96px;box-sizing:content-box}
+.crumbs{margin-bottom:24px}
+.pp-top{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:48px}
+.stage{position:relative;aspect-ratio:672/394;border-radius:20px;background:#000;display:grid;place-items:center;overflow:hidden;transition:background .4s}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:fade .35s}
+.stage .btn{position:relative;z-index:1;border-radius:999px}
 .thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
-.thumbs button{aspect-ratio:126/72;border-radius:var(--radius-md);border:2px solid transparent}
+.thumbs button{aspect-ratio:126/72;border-radius:var(--radius-md);border:2px solid transparent;background-size:cover;background-position:center;transition:transform .2s,border-color .2s}
+.thumbs button:hover{transform:translateY(-2px)}
 .thumbs button[aria-selected="true"]{border-color:var(--color-accent-default)}
 .award{display:inline-flex;align-items:center;gap:10px;height:30px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--color-border-default);font-size:13px;font-weight:500}
 .award i{width:16px;height:16px;border-radius:50%}
 .facts{display:grid;grid-template-columns:repeat(5,1fr);margin-top:28px;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);background:var(--color-bg-subtle)}
 .facts>div{padding:20px;border-left:1px solid var(--color-border-default);display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:18px;font-weight:500}
 .facts>div:first-child{border-left:0}
-.pp-body{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:48px;margin-top:28px}
+.pp-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:48px;margin-top:28px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 32px}
 .kpi{padding:16px;border-radius:var(--radius-md);border:1px solid var(--color-border-default)}
 .kpi b{display:block;font-size:20px;line-height:26px;font-weight:600;letter-spacing:-0.015em}
 .kv{display:flex;justify-content:space-between;font-size:13px;line-height:18px;padding:6px 0}
 .kv span:first-child{color:var(--color-text-secondary)}
-.comment{display:flex;gap:12px}
-.comment .reply{margin:16px 0 0}
 .badge--founder{background:#000;color:#fff}
 :root[data-theme="dark"] .badge--founder{background:#fff;color:#000}
 .share{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500}
 .share button,.share a{display:inline-flex;align-items:center;gap:6px}
+.share a:hover,.share button:hover{color:var(--color-accent-default)}
+@media (max-width:1180px){.pp{padding:24px 32px 80px}}
 @media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
 @media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
 </style>
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Product · Hentity">
+<meta property="og:description" content="A product launched on Hentity, the weekly board for what’s being built in Africa.">
+<meta property="og:url" content="https://hentity.vercel.app/product">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Product · Hentity">
+<meta name="twitter:description" content="A product launched on Hentity, the weekly board for what’s being built in Africa.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body>
 <div data-header></div>
-<main class="pp" id="pp"></main>
+<main class="pp" id="pp">
+  <div class="stack gap-16" aria-hidden="true"><span class="skel" style="width:200px;height:14px"></span><div class="pp-top"><span class="skel" style="aspect-ratio:672/394;border-radius:20px"></span><div class="stack gap-16"><span class="skel" style="width:64px;height:64px;border-radius:14px"></span><span class="skel" style="width:70%;height:44px"></span><span class="skel" style="width:90%;height:20px"></span></div></div></div>
+</main>
 <div data-tabbar></div>
 <script src="/assets/data.js"></script>
 <script>
-H.mount({ active: 'Discover', tab: 'Home' });
-(function () {
-  const { qs, qsa, icon, flag, verified, esc, store, toast } = H;
-  const slug = location.pathname.split('/').filter(Boolean)[1] || H.params().get('p') || 'ledgerline';
-  const base = D.bySlug(slug);
-  if (!base) { qs('#pp').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed or unpublished.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
-  const L = D.bySlug('ledgerline');
-  const p = Object.assign({ countries: [base.cc], pay: base.rails || '—', cur: { NG: 'NGN', GH: 'GHS', KE: 'KES', ZA: 'ZAR', RW: 'RWF', MA: 'MAD' }[base.cc], lang: base.lang || 'English', plat: 'Web · Android', makers: ['ada'], followers: Math.round(base.votes * 0.55), company: base.n + ' Ltd', team: 4, founded: 2025,
-    about: `${base.n} is built in ${base.city}. ${base.t}. Launched this week on Hentity.` }, base);
-  document.title = p.n + ' · ' + p.t + ' · Hentity';
-  const rank = D.board().filter(x => !x.promoted).sort((a, b) => D.count(b) - D.count(a)).findIndex(x => x.slug === p.slug) + 1;
-  const gallery = [p.c, '#ff5b14', '#16a34a', '#2563eb', '#7c3aed'];
-  const people = p.makers.map(k => Object.assign({ k }, D.PEOPLE[k]));
+H.mount({ active: 'products', tab: 'products' });
+(async function () {
+  const { qs, qsa, icon, flag, verified, esc, toast, plogo, avatar } = H;
+  const slug = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || H.params().get('p') || '');
+  await API.ready;
+  let p;
+  try { p = await API.product(slug); } catch (e) { H.fail(e); }
+  if (!p) { document.title = 'Product not found · Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
+  document.title = `${p.name} · ${p.tagline} · Hentity`;
+  D.remember([p]);
+  const [makers, company, cur, alts, isSaved, comments] = await Promise.all([API.makers(p.id), API.company(p.company_id), API.currentWeek(), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id), API.comments({ product: p.id })]);
+  await D.loadVotes([p]);
+  const owner = p.owner_id ? (await API.profilesByIds([p.owner_id]))[0] : null;
+  const team = [owner && { user: owner, role: 'Founder' }, ...makers.filter(m => !owner || m.user.id !== owner.id)].filter(Boolean);
+  const makerIds = new Set(team.map(m => m.user.id));
+  const following = await API.following('user', [...makerIds]);
+  const followingProduct = await API.following('product', [p.id]);
+  let rank = 0;
+  if (D.isLive(p)) { const b = await API.board({ week: p.week_id }); rank = b.filter(x => !x.promoted).findIndex(x => x.id === p.id) + 1; }
+  const live = D.isLive(p);
+  const media = (p.media && p.media.length ? p.media : [{ color: p.color }]).slice(0, 5);
+  const mediaStyle = m => m.url ? `background-image:url('${esc(m.url)}')` : `background:${esc(m.color || '#000')}`;
+  const weekDate = p.week_starts_at ? new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '';
+  const voteLabel = () => (D.voted.has(p.id) ? 'Upvoted · ' : 'Upvote · ') + D.fmt(p.upvote_count);
   qs('#pp').innerHTML = `
-  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Discover</a><span>/</span><a href="/directory?sector=${encodeURIComponent(p.cat)}">${esc(p.cat)}</a><span>/</span><span style="color:var(--color-text-primary)" aria-current="page">${esc(p.n)}</span></nav>
+  <nav class="crumbs reveal" aria-label="Breadcrumb"><a href="/">Discover</a><span>/</span><a href="/directory?sector=${encodeURIComponent((p.categories || [])[0] || '')}">${esc((p.categories || [])[0] || 'Products')}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav>
   <div class="pp-top">
-    <div>
-      <div class="stage" id="stage" style="background:${gallery[0]}"><button class="btn btn--secondary" type="button" id="demo" style="border-radius:999px">${icon('video')}Watch the 60-second demo</button></div>
-      <div class="thumbs" role="tablist" aria-label="Gallery">${gallery.map((g, i) => `<button role="tab" aria-selected="${i === 0}" aria-label="Image ${i + 1}" style="background:${g}" data-g="${g}"></button>`).join('')}</div>
+    <div class="reveal" style="--i:1">
+      <div class="stage" id="stage" style="${media[0].url ? '' : mediaStyle(media[0])}">${media[0].url ? `<img src="${esc(media[0].url)}" alt="${esc(p.name)} screenshot 1">` : ''}${p.video_url ? `<a class="btn btn--secondary" href="${esc(p.video_url)}" target="_blank" rel="noopener">${icon('video')}Watch the demo</a>` : ''}</div>
+      <div class="thumbs" role="tablist" aria-label="Gallery">${media.map((m, i) => `<button role="tab" aria-selected="${i === 0}" aria-label="Image ${i + 1}" style="${mediaStyle(m)}" data-i="${i}"></button>`).join('')}</div>
     </div>
-    <div class="stack gap-20">
-      <span class="plogo plogo--64" style="background:${p.c}">${p.n[0]}</span>
-      <div><h1 class="pp-title row gap-12" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.n)}${p.verified ? verified('ic-24') : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.t)}</p></div>
-      ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} Product of the Week · Nov 9–15</span>${p.slug === 'ledgerline' ? '<span class="award"><i style="background:var(--award-silver)"></i>#2 Fintech of the Month · Nov</span>' : ''}</div>` : `<div><span class="badge">${esc(p.cat)}</span></div>`}
+    <div class="stack gap-20 reveal" style="--i:2">
+      ${plogo(p, 64)}
+      <div><h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? verified('ic-24') : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p></div>
+      ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} this week${p.week_id === (cur && cur.id) ? ' · live now' : ''}</span></div>` : `<div class="row gap-8 wrap">${(p.categories || []).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${!live && p.status === 'scheduled' ? `<span class="badge badge--upcoming">Launches ${weekDate}</span>` : ''}</div>`}
       <div class="grid-2" style="gap:12px">
-        <a class="btn btn--secondary btn--lg" href="https://${p.slug.replace(/-/g, '')}.app" target="_blank" rel="noopener">${icon('arrow-up-right')}Get it</a>
-        <button class="btn btn--lg ${D.voted(p.slug) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote">${icon('upvote')}<span id="vote-l"></span></button>
+        <a class="btn btn--secondary btn--lg" href="${esc(p.website || '#')}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Get it</a>
+        ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
-        <a href="https://wa.me/?text=${encodeURIComponent(p.n + ' on Hentity ' + location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}WhatsApp</a>
+        <a href="https://wa.me/?text=${encodeURIComponent(p.name + ' on Hentity ' + location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}WhatsApp</a>
         <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}LinkedIn</a>
-        <a href="https://x.com/intent/post?url=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}X</a>
-        <button type="button" id="copy">${icon('link', 'ic-14')}Copy link</button></div>
+        <a href="https://x.com/intent/post?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.name + ' — ' + p.tagline)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}X</a>
+        <button type="button" id="copy">${icon('link', 'ic-14')}Copy link</button>
+        <button type="button" id="save" aria-pressed="${isSaved}">${icon('bookmark', 'ic-14')}<span>${isSaved ? 'Saved' : 'Save'}</span></button></div>
     </div>
   </div>
-  <div class="facts">
-    <div><span class="t-eyebrow c-3">Countries</span><span class="row gap-4">${p.countries.map(flag).join('')}</span><span>${p.countries.map(c => H.COUNTRY[c]).join(', ')}</span></div>
-    <div><span class="t-eyebrow c-3">Pay with</span><span>${esc(p.pay)}</span></div>
-    <div><span class="t-eyebrow c-3">Currencies</span><span>${esc(p.cur)}</span></div>
-    <div><span class="t-eyebrow c-3">Languages</span><span>${esc(p.lang)}</span></div>
-    <div><span class="t-eyebrow c-3">Platforms</span><span>${esc(p.plat)}</span></div>
+  <div class="facts" data-scroll-reveal>
+    <div><span class="t-eyebrow c-3">Countries</span><span class="row gap-4">${(p.countries && p.countries.length ? p.countries : [p.country]).map(flag).join('')}</span><span>${(p.countries && p.countries.length ? p.countries : [p.country]).map(c => H.COUNTRY[c] || c).join(', ')}</span></div>
+    <div><span class="t-eyebrow c-3">Pay with</span><span>${esc((p.pay_methods || []).join(' · ') || '—')}</span></div>
+    <div><span class="t-eyebrow c-3">Currencies</span><span>${esc(p.currencies || '—')}</span></div>
+    <div><span class="t-eyebrow c-3">Languages</span><span>${esc(p.languages || '—')}</span></div>
+    <div><span class="t-eyebrow c-3">Platforms</span><span>${esc(p.platforms || '—')}</span></div>
   </div>
   <div class="pp-body">
     <div>
       <p class="t-eyebrow c-3" style="margin-bottom:12px">About this launch</p>
-      <p class="c-2" style="max-width:68ch">${esc(p.about)}</p>
+      <p class="c-2" style="max-width:68ch;white-space:pre-line">${esc(p.description || p.tagline)}</p>
       <div class="kpis">
-        <div class="kpi"><b id="kpi-votes">${D.fmt(D.count(p))}</b><span class="t-caption c-2" style="font-weight:400">upvotes</span><p class="t-caption c-success" style="font-weight:400">+212 today</p></div>
-        <div class="kpi"><b>${p.comments}</b><span class="t-caption c-2" style="font-weight:400">comments</span><p class="t-caption c-success" style="font-weight:400">${Math.round(p.comments * .94)} answered</p></div>
-        <div class="kpi"><b class="c-accent">#${rank || '—'}</b><span class="t-caption c-2" style="font-weight:400">this week</span><p class="t-caption c-accent" style="font-weight:400">of 30</p></div>
-        <div class="kpi"><b>${D.fmt(p.followers)}</b><span class="t-caption c-2" style="font-weight:400">followers</span><p class="t-caption c-success" style="font-weight:400">+48 today</p></div>
+        <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.upvote_count}" id="kpi-votes">0</b><span class="t-caption c-2" style="font-weight:400">upvotes</span></div>
+        <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.comment_count}" id="kpi-comments">0</b><span class="t-caption c-2" style="font-weight:400">comments</span></div>
+        <div class="kpi lift card" data-scroll-reveal><b class="c-accent">${rank ? '#' + rank : '—'}</b><span class="t-caption c-2" style="font-weight:400">${rank ? 'this week' : live ? 'unranked' : 'not live yet'}</span></div>
+        <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.follower_count}">0</b><span class="t-caption c-2" style="font-weight:400">followers</span></div>
       </div>
-      <div class="row between wrap gap-12" style="margin-bottom:20px"><h2 class="t-h3">Discussion · <span id="c-count">${p.comments}</span></h2><span class="badge badge--accent badge--pill">${icon('clock', 'ic-14')}Makers reply in ~2h · 94% answered</span></div>
-      <form class="row gap-12" id="c-form" style="margin-bottom:24px;align-items:flex-start">${H.session() ? H.avatar(H.user(), 32) : '<span class="avatar">?</span>'}<div class="grow stack gap-8"><textarea class="input" id="c-text" rows="2" placeholder="${H.session() ? 'Ask the makers a question or share feedback' : 'Sign in to join the discussion'}" aria-label="Write a comment"></textarea><div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--sm" type="submit">Comment</button></div></div></form>
-      <div class="stack gap-24" id="comments">
-        <div class="comment"><span class="avatar">KM</span><div class="grow"><p class="t-label">Kwame Mensah <span class="c-3" style="font-weight:400">· 6h</span></p><p style="margin-top:6px">Tried it on a GTBank statement and it got 47 of 50 transactions right. Any plans for Ghana Mobile Money?</p>
-          <div class="comment reply"><span class="avatar avatar--photo">AO</span><div><p class="t-label row gap-8 wrap">Ada Okafor <span class="badge badge--founder">Founder of ${esc(p.n)}</span><span class="c-3" style="font-weight:400">· 5h</span></p><p style="margin-top:6px">Thank you Kwame! MTN MoMo Ghana is in testing now; Telecel Cash next. Can I DM you for a sample statement?</p></div></div></div></div>
-      </div>
+      <div class="row between wrap gap-12" style="margin-bottom:20px"><h2 class="t-h3">Discussion · <span id="c-count">${p.comment_count}</span></h2><a class="badge badge--accent badge--pill" href="/chats/p-${p.slug}">${icon('chats', 'ic-14')}Open the product room</a></div>
+      <form class="row gap-12" id="c-form" style="margin-bottom:28px;align-items:flex-start">${API.uid ? avatar(H.user(), 32) : '<span class="avatar">?</span>'}<div class="grow stack gap-8"><textarea class="input" id="c-text" rows="2" maxlength="4000" placeholder="${API.uid ? 'Ask the makers a question or share feedback' : 'Sign in to join the discussion'}" aria-label="Write a comment"></textarea><div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--sm" type="submit">Comment</button></div></div></form>
+      <div class="stack gap-24" id="comments"></div>
     </div>
     <aside class="stack gap-20">
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Company</h2>
-        <div class="row gap-12" style="margin-bottom:14px"><span class="plogo plogo--32" style="background:${p.c}">${p.n[0]}</span><div><p class="t-label">${esc(p.company)}</p><p class="t-caption c-success row gap-4" style="font-weight:400">${icon('check', 'ic-12')}Verified startup · CAC registered</p></div></div>
-        <div class="kv"><span>Stage</span><span>${esc(p.stage || 'Pre-seed')}</span></div><div class="kv"><span>HQ</span><span>${esc(p.city)}, ${H.COUNTRY[p.cc]}</span></div><div class="kv"><span>Team</span><span>${p.team} people</span></div><div class="kv"><span>Founded</span><span>${p.founded}</span></div><div class="kv"><span>Raised</span><span>Undisclosed</span></div>
-        <a class="btn btn--secondary btn--sm btn--block" style="margin-top:14px" href="mailto:founders@${p.slug.replace(/-/g, '')}.app">${icon('mail')}Contact the founders</a></section>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-12">${people.map(m => `<div class="row gap-12"><span class="avatar${m.photo ? ' avatar--photo' : ''}">${H.initials(m.name)}</span><a class="grow" href="/makers/${m.k}"><p class="t-label">${esc(m.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')} · ${esc(m.city)}</p></a><button class="btn btn--secondary btn--sm" data-follow="${m.k}">Follow</button></div>`).join('')}</div></section>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${[D.bySlug('kobo-ledger'), D.bySlug('invoicely-ng')].filter(a => a.slug !== p.slug).map(a => `<a class="row gap-12" href="/products/${a.slug}"><span class="plogo plogo--32" style="background:${a.c}">${a.n[0]}</span><div><p class="t-label row gap-6">${a.n}${flag(a.cc)}</p><p class="t-caption c-3" style="font-weight:400">${a.t}</p></div></a>`).join('')}</div></section>
+      ${company ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Company</h2>
+        <div class="row gap-12" style="margin-bottom:14px">${plogo({ name: company.name, color: p.color }, 32)}<div><p class="t-label">${esc(company.name)}</p>${company.verified ? `<p class="t-caption c-success row gap-4" style="font-weight:400">${icon('check', 'ic-12')}Verified startup${company.registration ? ' · ' + esc(company.registration) : ''}</p>` : ''}</div></div>
+        <div class="kv"><span>Stage</span><span>${esc(company.stage || p.stage)}</span></div><div class="kv"><span>HQ</span><span>${esc(company.city)}, ${H.COUNTRY[company.country] || company.country}</span></div><div class="kv"><span>Team</span><span>${company.team_size} people</span></div>${company.founded ? `<div class="kv"><span>Founded</span><span>${company.founded}</span></div>` : ''}<div class="kv"><span>Raised</span><span>${esc(company.raised || 'Undisclosed')}</span></div></section>` : ''}
+      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-12">${team.map(m => `<div class="row gap-12">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p></a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div></section>
+      ${alts.length ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${alts.map(a => `<a class="row gap-12" href="/products/${a.slug}">${plogo(a, 32)}<div><p class="t-label row gap-6">${esc(a.name)}${flag(a.country)}</p><p class="t-caption c-3" style="font-weight:400">${esc(a.tagline)}</p></div></a>`).join('')}</div></section>` : ''}
     </aside>
   </div>`;
-  // Gallery
-  qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); qs('#stage').style.background = b.dataset.g; }));
-  qs('#demo').addEventListener('click', () => toast('Demo video plays here once the maker uploads it'));
-  // Vote
-  function voteUI() { const on = D.voted(p.slug); qs('#vote').className = 'btn btn--lg ' + (on ? 'btn--secondary' : 'btn--accent'); qs('#vote-l').textContent = (on ? 'Upvoted · ' : 'Upvote · ') + D.fmt(D.count(p)); qs('#vote').setAttribute('aria-pressed', on); qs('#kpi-votes').textContent = D.fmt(D.count(p)); }
-  voteUI();
-  qs('#vote').addEventListener('click', () => { if (!H.session()) { location.href = '/signin?next=' + location.pathname; return; } const v = store.get('votes', {}); v[p.slug] = !v[p.slug]; store.set('votes', v); voteUI(); if (v[p.slug]) toast('Upvoted ' + p.n); });
+  M.scroll(); M.countUp();
+  API.trackView(p.id);
+  qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+  qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));
+  const vb = qs('#vote');
+  if (vb) {
+    vb.dataset.vote = p.id;
+    vb.addEventListener('click', () => setTimeout(() => { vb.className = 'btn btn--lg ' + (D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'); qs('#vote-l').textContent = voteLabel(); M.roll(qs('#kpi-votes'), D.fmt(p.upvote_count)); }, 30));
+    D.liveCounts(() => { qs('#vote-l').textContent = voteLabel(); M.roll(qs('#kpi-votes'), D.fmt(p.upvote_count)); });
+  }
+  const nb = qs('#notify'); if (nb) { let on = (await API.notifyRequests()).has(p.id); const set = () => nb.innerHTML = on ? icon('check') + 'You’ll be notified' : icon('bell') + 'Notify me on launch day'; set(); nb.addEventListener('click', async () => { try { on = !on; await API.notifyMe(p.id, on); set(); toast(on ? 'We’ll remind you on launch day' : 'Reminder removed'); } catch (e) { on = !on; set(); H.fail(e); } }); }
+  const fp = qs('#follow-p'); if (fp) { let on = followingProduct.has(p.id); const set = () => fp.innerHTML = on ? icon('check') + 'Following' : icon('plus') + 'Follow'; set(); fp.addEventListener('click', async () => { try { on = !on; await API.follow('product', p.id, on); set(); } catch (e) { on = !on; set(); H.fail(e); } }); }
   qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); });
-  // Follow
-  const fol = store.get('following', {});
-  qsa('[data-follow]').forEach(b => { const set = () => { b.textContent = fol[b.dataset.follow] ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (fol[b.dataset.follow] ? 'btn--ghost' : 'btn--secondary'); }; set(); b.addEventListener('click', () => { if (!H.session()) { location.href = '/signin?next=' + location.pathname; return; } fol[b.dataset.follow] = !fol[b.dataset.follow]; store.set('following', fol); set(); }); });
-  // Comments
-  const saved = store.get('comments.' + p.slug, []);
-  function addComment(c, prepend) { const el = document.createElement('div'); el.className = 'comment'; el.innerHTML = `${H.avatar(H.user(), null)}<div class="grow"><p class="t-label">${esc(H.user().name)} <span class="c-3" style="font-weight:400">· ${esc(c.t)}</span></p><p style="margin-top:6px">${esc(c.text)}</p></div>`; qs('#comments')[prepend ? 'prepend' : 'append'](el); }
-  saved.forEach(c => addComment(c, true)); qs('#c-count').textContent = p.comments + saved.length;
-  qs('#c-text').addEventListener('focus', () => { if (!H.session()) location.href = '/signin?next=' + location.pathname; });
-  qs('#c-form').addEventListener('submit', e => { e.preventDefault(); const v = qs('#c-text').value.trim(); if (!v) return; const c = { text: v, t: 'just now' }; saved.push(c); store.set('comments.' + p.slug, saved); addComment(c, true); qs('#c-text').value = ''; qs('#c-count').textContent = p.comments + saved.length; toast('Comment posted'); });
+  qs('#save').addEventListener('click', async e => { const b = e.currentTarget; const on = b.getAttribute('aria-pressed') !== 'true'; try { await API.bookmark('product', p.id, on); b.setAttribute('aria-pressed', on); b.querySelector('span').textContent = on ? 'Saved' : 'Save'; toast(on ? 'Saved to your list' : 'Removed from saved'); } catch (err) { H.fail(err); } });
+  qsa('[data-follow]').forEach(b => b.addEventListener('click', async () => { const id = b.dataset.follow; const on = b.textContent !== 'Following'; try { await API.follow('user', id, on); b.textContent = on ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (on ? 'btn--ghost' : 'btn--secondary'); } catch (e) { H.fail(e); } }));
+
+  // Comments (threaded)
+  let all = comments;
+  function cHTML(c, isReply) {
+    const isMaker = c.user && makerIds.has(c.user.id);
+    return `<div class="comment" id="c-${c.id}">${c.user ? avatar(c.user, isReply ? 28 : null) : '<span class="avatar">?</span>'}<div class="grow" style="min-width:0">
+      <p class="t-label row gap-8 wrap">${c.user ? `<a href="/makers/${c.user.username}">${esc(c.user.name)}</a>` : 'Deleted maker'}${isMaker ? `<span class="badge badge--founder">${owner && c.user.id === owner.id ? 'Founder' : 'Maker'} of ${esc(p.name)}</span>` : ''}<span class="c-3" style="font-weight:400">· ${H.ago(c.created_at)}</span></p>
+      <p class="body" style="margin-top:6px;white-space:pre-wrap;${c.deleted ? 'color:var(--color-text-tertiary);font-style:italic' : ''}">${c.deleted ? 'This comment was deleted.' : esc(c.body)}</p>
+      ${c.deleted ? '' : `<div class="c-actions">${!isReply ? `<button type="button" data-reply="${c.id}">Reply</button>` : ''}${c.user && c.user.id === API.uid ? `<button type="button" data-del="${c.id}">Delete</button>` : `<button type="button" data-report="${c.id}">Report</button>`}</div>`}
+      ${!isReply ? `<div class="replies-in" data-replies="${c.id}">${all.filter(r => r.parent_id === c.id).map(r => cHTML(r, true)).join('')}</div>` : ''}
+    </div></div>`;
+  }
+  function renderComments() { qs('#comments').innerHTML = all.filter(c => !c.parent_id).reverse().map(c => cHTML(c)).join('') || '<p class="t-body-sm c-2">No comments yet. Ask the makers something.</p>'; }
+  renderComments();
+  if (location.hash) setTimeout(() => { const t = document.querySelector(location.hash); t && t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+  qs('#c-text').addEventListener('focus', () => { if (!API.uid) location.href = '/signin?next=' + location.pathname; });
+  qs('#c-form').addEventListener('submit', async e => {
+    e.preventDefault(); const v = qs('#c-text').value.trim(); if (!v) return;
+    const btn = e.target.querySelector('button'); btn.disabled = true;
+    try { const c = await API.comment({ product: p.id, body: v }); all.push(c); renderComments(); qs('#c-' + c.id).classList.add('reveal'); qs('#c-text').value = ''; p.comment_count++; M.roll(qs('#c-count'), p.comment_count); toast('Comment posted'); } catch (err) { H.fail(err); } finally { btn.disabled = false; }
+  });
+  qs('#comments').addEventListener('click', async e => {
+    const r = e.target.closest('[data-reply]'), d = e.target.closest('[data-del]'), rp = e.target.closest('[data-report]');
+    if (r) {
+      if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; }
+      const box = qs(`[data-replies="${r.dataset.reply}"]`); if (box.querySelector('form')) return;
+      box.insertAdjacentHTML('beforeend', `<form class="stack gap-8 reveal"><textarea class="input" rows="2" placeholder="Write a reply" aria-label="Reply"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Reply</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div></form>`);
+      const f = box.querySelector('form'); f.querySelector('textarea').focus();
+      f.querySelector('[data-cancel]').onclick = () => f.remove();
+      f.onsubmit = async ev => { ev.preventDefault(); const v = f.querySelector('textarea').value.trim(); if (!v) return; try { const c = await API.comment({ product: p.id, parent: r.dataset.reply, body: v }); all.push(c); renderComments(); toast('Reply posted'); } catch (err) { H.fail(err); } };
+    }
+    if (d) { if (!confirm('Delete this comment?')) return; try { await API.deleteComment(d.dataset.del); const c = all.find(x => x.id === d.dataset.del); c.deleted = true; renderComments(); toast('Comment deleted'); } catch (err) { H.fail(err); } }
+    if (rp) { const why = prompt('Why are you reporting this comment?'); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
+  });
+  API.live('pc', 'comments', 'product_id=eq.' + p.id, async ({ eventType, new: n }) => {
+    if (eventType !== 'INSERT' || all.some(c => c.id === n.id)) return;
+    const [u] = await API.profilesByIds([n.user_id]); all.push(Object.assign({}, n, { user: u })); renderComments(); const el = qs('#c-' + n.id); el && el.classList.add('flash'); M.roll(qs('#c-count'), all.length);
+  });
 })();
 </script>
 </body>

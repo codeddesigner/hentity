@@ -6,12 +6,24 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/makers/:handle",
-      "destination": "/maker"
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
     },
     {
       "source": "/products/:slug",
-      "destination": "/product"
+      "destination": "/api/ssr?type=product&slug=:slug"
+    },
+    {
+      "source": "/makers/:handle",
+      "destination": "/api/ssr?type=maker&slug=:handle"
+    },
+    {
+      "source": "/news/:slug",
+      "destination": "/api/ssr?type=article&slug=:slug"
+    },
+    {
+      "source": "/chats/:path*",
+      "destination": "/chats"
     }
   ],
   "redirects": [
@@ -39,6 +51,43 @@
       "source": "/community",
       "destination": "/guidelines",
       "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), geolocation=(), microphone=(self)"
+        }
+      ]
     }
   ]
 }

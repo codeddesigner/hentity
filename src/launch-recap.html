@@ -21,24 +21,24 @@
 <div data-header></div>
 <main class="wrap-1248 stack gap-24">
   <section class="win">
-    <div class="medal-big" aria-hidden="true"><b>#1</b><span class="t-eyebrow" style="font-size:11px">of the week</span></div>
+    <div class="medal-big reveal" aria-hidden="true"><b id="medal-n">#1</b><span class="t-eyebrow" style="font-size:11px">of the week</span></div>
     <div class="stack gap-16" style="align-items:flex-start">
-      <p class="t-eyebrow c-accent">Week 47 · Nov 16–22 · Final</p>
-      <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">Ledgerline is Product of the Week</h1>
-      <p class="t-body-lg" style="color:var(--gray-400)">Ranked #1 of 30 launches. The medal stays on your product page and your profile.</p>
-      <div class="row gap-12 wrap"><button class="btn btn--accent btn--lg" type="button" id="share"><span data-icon="share"></span>Share the win</button><a class="btn btn--lg" style="background:#fff;color:#000" href="/products/ledgerline"><span data-icon="arrow-up-right"></span>View product page</a></div>
+      <p class="t-eyebrow c-accent" id="kicker"></p>
+      <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em" id="win-title"></h1>
+      <p class="t-body-lg" style="color:var(--gray-400)" id="win-sub"></p>
+      <div class="row gap-12 wrap"><button class="btn btn--accent btn--lg" type="button" id="share"><span data-icon="share"></span>Share the win</button><a class="btn btn--lg" style="background:#fff;color:#000" href="#" id="view"><span data-icon="arrow-up-right"></span>View product page</a></div>
     </div>
   </section>
   <div class="kpi-grid">
-    <div class="card kpi-card"><p class="t-body-sm c-2">Upvotes</p><p class="n">1,106</p><p class="t-caption c-2" style="font-weight:400">from 917 people</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">Comments</p><p class="n">84</p><p class="t-caption c-2" style="font-weight:400">you replied to 79</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">New followers</p><p class="n">612</p><p class="t-caption c-2" style="font-weight:400">product + makers</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">Website clicks</p><p class="n">3,940</p><p class="t-caption c-2" style="font-weight:400">7.9% of 49.8k views</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Upvotes</p><p class="n" id="k1">0</p><p class="t-caption c-2" style="font-weight:400">from the community</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Comments</p><p class="n" id="k2">0</p><p class="t-caption c-2" style="font-weight:400">in the discussion</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">New followers</p><p class="n" id="k3">0</p><p class="t-caption c-2" style="font-weight:400">following the product</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Website clicks</p><p class="n" id="k4">0</p><p class="t-caption c-2" style="font-weight:400" id="k4s"></p></div>
   </div>
   <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Your Product of the Week prizes</h2><div class="prizes"><div><p class="t-label">Cloud credits</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">From a hosting partner, applied to your account</p></div><div><p class="t-label">Accelerator intro</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">A warm introduction to a partner programme</p></div><div><p class="t-label">Newsletter feature</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">In the Hentity weekly digest and partner media</p></div></div></section>
   <div class="rc-grid">
     <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Add the badge to your site</h2>
-      <a class="badge-embed" href="/products/ledgerline"><span class="logo logo--inverse" data-logo style="--logo-knock:#000"></span><span class="stack"><span class="mono c-accent" style="font-size:12px;letter-spacing:.04em">#1 PRODUCT OF THE WEEK</span><span class="t-caption" style="font-weight:400;color:var(--gray-300)">Week 47 · 2026</span></span></a>
+      <div id="badge-img"></div>
       <pre class="code" id="code"></pre>
       <button class="btn btn--secondary btn--sm" type="button" id="copy"><span data-icon="copy"></span>Copy code</button></section>
     <section class="card card--pad"><h2 class="t-label" style="margin-bottom:16px">What’s next</h2><div id="tl"></div></section>
@@ -47,14 +47,31 @@
 <div data-tabbar></div>
 <script src="/assets/launch.js"></script>
 <script>
-H.mount({ active: 'Launches', tab: 'Launch' });
-(function () {
-  const { qs, toast } = H;
-  const code = `<a href="https://hentity.vercel.app/products/ledgerline">\n  <img src="https://hentity.vercel.app/badges/ledgerline/potw.svg"\n       alt="Ledgerline · #1 Product of the Week on Hentity" />\n</a>`;
+H.mount({ active: 'my-products', tab: 'launch' });
+(async function () {
+  const { qs, toast, icon, esc } = H;
+  let p; try { ({ p } = await L.mine(['live', 'scheduled'])); } catch (e) { return; }
+  if (!p || !p.week_id) { L.none('No launch to recap yet'); return; }
+  const board = await API.board({ week: p.week_id }); const ranked = board.filter(x => !x.promoted); const rank = ranked.findIndex(x => x.id === p.id) + 1;
+  const final = new Date(p.week_ends_at) < new Date();
+  qs('#kicker').textContent = `Week ${p.week_id} · ${L.range(p)} · ${final ? 'Final' : 'So far'}`;
+  qs('#medal-n').textContent = '#' + (rank || '—');
+  if (rank > 3 || !rank) qs('.medal-big').style.background = 'var(--color-bg-muted)', qs('.medal-big').style.color = 'var(--color-text-primary)';
+  else qs('.medal-big').style.background = `var(--award-${['gold', 'silver', 'bronze'][rank - 1]})`;
+  qs('#win-title').textContent = rank && rank <= 3 ? `${p.name} is ${rank === 1 ? 'Product' : '#' + rank + ' Product'} of the Week` : `${p.name} finished #${rank} of ${ranked.length}`;
+  qs('#win-sub').textContent = `Ranked #${rank} of ${ranked.length} launches. ${rank <= 3 ? 'The medal stays on your product page and your profile.' : 'Your page stays live and searchable permanently.'}`;
+  M.words(qs('#win-title'));
+  qs('#k1').dataset.countTo = p.upvote_count; qs('#k2').dataset.countTo = p.comment_count; qs('#k3').dataset.countTo = p.follower_count; qs('#k4').dataset.countTo = p.click_count;
+  qs('#k4s').textContent = p.view_count ? `${(p.click_count / p.view_count * 100).toFixed(1)}% of ${p.view_count.toLocaleString('en-US')} views` : 'from your product page';
+  M.countUp();
+  qs('#view').href = '/products/' + p.slug;
+  const base = location.origin;
+  const code = `<a href="${base}/products/${p.slug}">\n  <img src="${base}/api/badge?slug=${p.slug}"\n       alt="${p.name} · #${rank} on Hentity, week ${p.week_id}" width="250" height="54" />\n</a>`;
   qs('#code').textContent = code;
+  qs('#badge-img').innerHTML = `<img src="/api/badge?slug=${encodeURIComponent(p.slug)}" alt="Your Hentity badge" width="250" height="54" onerror="this.replaceWith(document.createTextNode(''))">`;
   qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(code); toast('Badge code copied'); });
-  qs('#tl').innerHTML = L.timeline([['done', 'Launch week complete', 'Your page stays live and searchable permanently'], ['now', 'Reply to the last 5 comments', 'Discussions stay open after the week ends'], ['todo', 'Post updates to your followers', '612 people will see your next update'], ['todo', 'Plan a major-update launch', 'Ship something big? Launch it as a new event on the same page']]);
-  qs('#share').addEventListener('click', async () => { const url = location.origin + '/products/ledgerline'; try { if (navigator.share) await navigator.share({ title: 'Ledgerline is #1 Product of the Week on Hentity', url }); else { await navigator.clipboard.writeText('Ledgerline is #1 Product of the Week on Hentity 🏅 ' + url); toast('Share text copied'); } } catch (e) {} });
+  qs('#tl').innerHTML = L.timeline([[final ? 'done' : 'now', 'Launch week ' + (final ? 'complete' : 'in progress'), 'Your page stays live and searchable permanently'], [final ? 'now' : 'todo', 'Reply to every comment', 'Discussions stay open after the week ends'], ['todo', 'Post updates to your followers', `${p.follower_count} people follow ${esc(p.name)}`], ['todo', 'Plan a major-update launch', 'Ship something big? Launch it again as a new event']]);
+  qs('#share').addEventListener('click', async () => { const url = base + '/products/' + p.slug; try { if (navigator.share) await navigator.share({ title: qs('#win-title').getAttribute('aria-label') || p.name, url }); else { await navigator.clipboard.writeText(`${p.name} finished #${rank} on Hentity 🏅 ${url}`); toast('Share text copied'); } } catch (e) {} });
 })();
 </script>
 </body>

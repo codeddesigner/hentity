@@ -3,14 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Sign in · Hentity</title>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<link rel="canonical" href="https://hentity.vercel.app/signin">
+<meta property="og:title" content="Sign in · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/signin">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sign in · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="no-tabbar">
 <div class="auth">
@@ -26,7 +48,7 @@
         <span data-icon="alert-circle"></span>
         <div><p class="alert__title" id="err-title">Email or password is incorrect</p><p class="alert__body" id="err-body">Check both and try again. After 8 attempts sign-in pauses for 15 minutes.</p></div>
       </div>
-      <a class="btn btn--secondary btn--block" href="/welcome?via=google" id="google"><span data-icon="google"></span>Continue with Google</a>
+      <a class="btn btn--secondary btn--block" href="#" id="google"><span data-icon="google"></span>Continue with Google</a>
       <div class="divider-label">or</div>
       <div class="field" id="f-email">
         <label class="field__label" for="email">Email</label>
@@ -40,46 +62,54 @@
         </div>
       </div>
       <div class="auth__row">
-        <label class="check"><input type="checkbox" checked name="remember"><span class="check__box"><span data-icon="check"></span></span>Keep me signed in</label>
+        <label class="check"><input type="checkbox" checked name="remember" id="remember"><span class="check__box"><span data-icon="check"></span></span>Keep me signed in</label>
         <a class="link" href="/forgot-password"><span class="hide-sm">Forgot password?</span><span class="show-sm">Forgot?</span></a>
       </div>
       <button class="btn btn--primary btn--block" type="submit">Sign in</button>
       <p class="auth__switch">New to Hentity? <a href="/signup">Create an account</a></p>
-      <p class="t-caption c-3" style="text-align:center">Demo account: ada@ledgerline.app · hentity2026</p>
     </form>
   </main>
 </div>
 <script src="/assets/auth.js"></script>
+<template id="mfa-tpl"><form class="auth__form" id="mfa-form" novalidate><div class="icon-badge"><span data-icon="shield"></span></div><div class="auth__heading"><h1 class="t-h2">Enter your code</h1><p class="c-2">Open your authenticator app and type the 6-digit code for Hentity.</p></div><div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.3em;font-size:20px"></div><button class="btn btn--primary btn--block" type="submit">Verify</button><button class="link" type="button" id="mfa-back" style="align-self:center">Use a different account</button></form></template>
 <script>
 H.mount();
-(function () {
-  const { qs, store, toast } = H;
+(async function () {
+  const { qs, toast } = H;
   const form = qs('#form'), err = qs('#err');
-  const next = H.params().get('next') || '/';
-  let attempts = store.get('attempts', 0);
-  function fail(title, body) {
-    qs('#err-title').textContent = title; qs('#err-body').textContent = body;
-    err.hidden = false; qs('#f-email').classList.add('is-error'); qs('#f-password').classList.add('is-error');
-  }
+  await API.ready;
+  if (API.uid && !H.params().get('force')) { const { data } = await API.sb.auth.mfa.getAuthenticatorAssuranceLevel(); if (!(data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2')) { location.replace(Auth.next()); return; } else showMfa(); }
+  function fail([title, body]) { qs('#err-title').textContent = title; qs('#err-body').textContent = body; err.hidden = false; err.classList.remove('reveal'); void err.offsetWidth; err.classList.add('reveal'); qs('#f-email').classList.add('is-error'); qs('#f-password').classList.add('is-error'); }
   form.addEventListener('input', () => { err.hidden = true; qs('#f-email').classList.remove('is-error'); qs('#f-password').classList.remove('is-error'); });
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     const email = form.email.value.trim().toLowerCase(), pw = form.password.value;
-    if (!Auth.emailOk(email) || !pw) return fail('Enter your email and password', 'Both fields are needed to sign in.');
-    const lock = store.get('lockUntil', 0);
-    if (Date.now() < lock) return fail('Sign-in is paused', 'Too many attempts. Try again in ' + Math.ceil((lock - Date.now()) / 60000) + ' minutes, or reset your password.');
-    const acct = Auth.accounts()[email];
-    if (!acct || acct.password !== pw) {
-      attempts++; store.set('attempts', attempts);
-      if (attempts >= 8) { store.set('lockUntil', Date.now() + 15 * 60000); store.set('attempts', 0); }
-      return fail('Email or password is incorrect', 'Check both and try again. After 8 attempts sign-in pauses for 15 minutes.');
-    }
-    store.set('attempts', 0);
-    Auth.startSession(email);
-    toast('Signed in as ' + acct.name);
-    setTimeout(() => location.href = next, 400);
+    if (!Auth.emailOk(email) || !pw) return fail(['Enter your email and password', 'Both fields are needed to sign in.']);
+    const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Signing in';
+    try {
+      await API.auth.signIn(email, pw);
+      const { data } = await API.sb.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2') { showMfa(); return; }
+      done();
+    } catch (ex) {
+      if (/Email not confirmed/i.test(ex.message)) { sessionStorage.setItem('hentity.pending', JSON.stringify({ email })); location.href = '/check-email?unconfirmed=1'; return; }
+      fail(Auth.friendly(ex.message));
+    } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
   });
-  qs('#google').addEventListener('click', e => { e.preventDefault(); Auth.startSession('ada@ledgerline.app'); location.href = next === '/' ? '/' : next; });
+  function done() { const p = API.profile; toast('Signed in as ' + (p ? p.name : 'you')); setTimeout(() => location.href = Auth.next(), 350); }
+  function showMfa() {
+    form.replaceWith(qs('#mfa-tpl').content.cloneNode(true)); H.mount();
+    const mf = qs('#mfa-form'); qs('#code').focus();
+    qs('#mfa-back').onclick = async () => { await API.auth.signOut(); location.reload(); };
+    mf.addEventListener('submit', async e => {
+      e.preventDefault();
+      const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = (f.totp || []).find(x => x.status === 'verified');
+      const { error } = await API.sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: qs('#code').value.trim() });
+      if (error) { qs('#f-code').classList.add('is-error'); toast('That code didn’t match. Use the newest one.', 'error'); return; }
+      await API.refreshProfile(); done();
+    });
+  }
+  qs('#google').addEventListener('click', async e => { e.preventDefault(); try { await API.auth.google(Auth.next()); } catch (ex) { fail(Auth.friendly(ex.message)); } });
 })();
 </script>
 </body>

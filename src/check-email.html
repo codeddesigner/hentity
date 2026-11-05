@@ -33,37 +33,34 @@
         <div class="field" id="f-email"><label class="field__label" for="email">New email</label><input class="input" id="email" type="email" autocomplete="email" required></div>
         <div class="row gap-8"><button class="btn btn--primary" type="submit">Send link</button><button class="btn btn--ghost" type="button" id="cancel">Cancel</button></div>
       </form>
-      <a class="btn btn--primary btn--block" href="/welcome" id="verify">I’ve verified — continue (demo)</a>
+      <a class="link" href="/signin" style="align-self:center">Already verified? Sign in</a>
     </div>
   </main>
 </div>
 <script src="/assets/auth.js"></script>
 <script>
 H.mount();
-(function () {
-  const { qs, qsa, store, toast } = H;
-  const pending = store.get('pending', { email: 'ada@ledgerline.app' });
+(async function () {
+  const { qs, qsa, toast } = H;
+  const pending = JSON.parse(sessionStorage.getItem('hentity.pending') || '{}');
+  if (!pending.email) { location.replace('/signup'); return; }
   qs('#to').textContent = pending.email;
+  const dom = pending.email.split('@')[1] || '';
+  if (/outlook|hotmail|live\./.test(dom)) qs('#to').closest('.stack').insertAdjacentHTML('afterend', '');
   let left = 45, t;
   function tick() {
-    const s = `0:${String(left).padStart(2, '0')}`;
-    qsa('[data-left]').forEach(el => el.textContent = s);
+    const s = `0:${String(left).padStart(2, '0')}`; qsa('[data-left]').forEach(el => el.textContent = s);
     const r = qs('#resend');
     if (left <= 0) { clearInterval(t); r.disabled = false; r.style.color = ''; r.textContent = 'Resend email'; qs('#info-body').textContent = 'Check spam or promotions, or resend the link now.'; }
     left--;
   }
   function start() { left = 45; const r = qs('#resend'); r.disabled = true; r.style.color = 'var(--color-text-tertiary)'; r.innerHTML = 'Resend email (<span data-left>0:45</span>)'; qs('#info-body').innerHTML = 'Check spam or promotions. You can request a new link in <span class="mono" data-left>0:45</span>.'; clearInterval(t); tick(); t = setInterval(tick, 1000); }
   start();
-  qs('#resend').addEventListener('click', () => { toast('Verification email sent'); start(); });
-  qs('#change').addEventListener('click', () => { qs('#change-form').hidden = false; qs('#email').value = pending.email; qs('#email').focus(); });
-  qs('#cancel').addEventListener('click', () => qs('#change-form').hidden = true);
-  qs('#change-form').addEventListener('submit', e => {
-    e.preventDefault(); const v = qs('#email').value.trim().toLowerCase();
-    if (!Auth.emailOk(v)) { qs('#f-email').classList.add('is-error'); return; }
-    const accts = Auth.accounts(); if (accts[pending.email] && pending.email !== v) { accts[v] = accts[pending.email]; delete accts[pending.email]; store.set('accounts', accts); }
-    pending.email = v; store.set('pending', pending); qs('#to').textContent = v; qs('#change-form').hidden = true; toast('Link sent to ' + v); start();
-  });
-  qs('#verify').addEventListener('click', e => { e.preventDefault(); Auth.startSession(pending.email); location.href = '/welcome?verified=1'; });
+  qs('#resend').addEventListener('click', async () => { try { await API.auth.resend(pending.email, 'signup'); toast('Verification email sent'); start(); } catch (e) { toast(/rate/i.test(e.message) ? 'Too many requests. Wait a minute.' : e.message, 'error'); } });
+  qs('#change').addEventListener('click', () => { location.href = '/signup'; });
+  // When they verify in another tab, this tab notices
+  API.onAuth((ev, s) => { if (s) location.href = '/welcome?verified=1'; });
+  setInterval(async () => { const { data } = await API.sb.auth.getSession(); if (data.session) location.href = '/welcome?verified=1'; }, 4000);
 })();
 </script>
 </body>

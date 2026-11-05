@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>News · Hentity</title>
+<meta name="description" content="African tech news for makers on Hentity.">
+</head>
+<body>
+<div data-header></div>
+<main class="news" id="main" style="max-width:1136px">
+  <a class="link row gap-6" href="/news" style="width:max-content"><span data-icon="arrow-left" data-cls="ic-14"></span>News</a>
+  <div class="news-grid" style="margin-top:20px">
+    <article id="art" style="min-width:0"><div class="skel" style="height:340px;border-radius:20px"></div></article>
+    <aside class="stack gap-24" style="gap:24px" id="aside"></aside>
+  </div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'news', tab: 'news' });
+(async function () {
+  const { qs, esc, icon, toast, avatar } = H;
+  const slug = location.pathname.split('/').filter(Boolean)[1];
+  const a = slug && await API.article(slug).catch(() => null);
+  if (!a) { qs('#art').innerHTML = `<div class="empty"><p class="t-h3">Story not found</p><p class="t-body-sm c-2">It may have been unpublished.</p><a class="btn btn--secondary btn--sm" href="/news">All news</a></div>`; return; }
+  document.title = a.title + ' · Hentity News';
+  const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', a.dek);
+  const [products, related, comments, saved] = await Promise.all([
+    a.product_ids && a.product_ids.length ? API.productsByIds(a.product_ids) : [],
+    API.articles({ topic: a.topic, limit: 5 }).then(r => r.filter(x => x.id !== a.id).slice(0, 3)),
+    API.comments({ article: a.id }), API.isBookmarked('article', a.id)
+  ]);
+  await D.loadVotes(products);
+  qs('#art').innerHTML = `
+    <p class="kicker reveal">${esc(a.topic)}</p>
+    <h1 class="t-h1 words" style="margin-top:10px">${esc(a.title)}</h1>
+    <p class="body-lg c-2 reveal" style="margin-top:14px">${esc(a.dek)}</p>
+    <div class="row between wrap gap-12 reveal" style="margin:20px 0">
+      <span class="row gap-8 t-body-sm c-2"><span class="avatar avatar--24" style="background:${esc(a.color)};color:#fff;font-size:10px">${esc(a.source_initials || 'H')}</span>${a.source_url ? `<a class="link" href="${esc(a.source_url)}" target="_blank" rel="noopener">${esc(a.source)}</a>` : esc(a.source)} · <time datetime="${a.published_at}">${new Date(a.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time> · ${a.read_minutes} min read</span>
+      <span class="row gap-8"><button class="btn btn--secondary btn--sm" id="save" aria-pressed="${saved}">${icon('bookmark')}<span>${saved ? 'Saved' : 'Save'}</span></button><button class="btn btn--secondary btn--sm" id="share">${icon('share')}Share</button></span>
+    </div>
+    <div class="art-img lift" style="--c:${esc(a.color)}">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}</div>
+    <section class="card" data-scroll-reveal style="padding:20px;margin-top:28px"><p class="t-eyebrow c-3">The short version</p><ul class="stack gap-10" style="margin:14px 0 0;padding-left:18px;gap:10px">${(a.bullets || []).map(b => `<li class="body">${esc(b)}</li>`).join('')}</ul>${a.source_url ? `<a class="link link--accent row gap-6" style="margin-top:16px;width:max-content" href="${esc(a.source_url)}" target="_blank" rel="noopener">Read the full story on ${esc(a.source)}${icon('arrow-up-right', 'ic-14')}</a>` : ''}</section>
+    ${products.length ? `<section data-scroll-reveal style="margin-top:32px"><h2 class="t-eyebrow c-3">Products in this story</h2><div class="card" style="margin-top:12px;padding:0 16px">${products.map(p => D.row(p, 0, { noRank: true, noRails: true })).join('')}</div></section>` : ''}
+    <section style="margin-top:40px" id="discussion"><div class="row between"><h2 class="t-h3">Discussion <span class="c-3 mono" id="c-count">${comments.filter(c => !c.deleted).length}</span></h2>${a.channel_slug ? `<a class="link link--accent row gap-6" href="/chats/${esc(a.channel_slug)}">${icon('hash', 'ic-14')}Continue in #${esc(a.channel_slug)}</a>` : ''}</div>
+      <form class="composer" id="c-form" style="margin:16px 0 8px"><textarea id="c-text" rows="2" placeholder="What do you think?" aria-label="Comment"></textarea><div class="composer__bar"><span class="grow"></span><button class="btn btn--primary btn--sm">Comment</button></div></form>
+      <div id="comments"></div></section>`;
+  M.words(qs('#art .words')); M.scroll(qs('#art'));
+  qs('#aside').innerHTML = `<section class="card" style="padding:20px"><p class="t-eyebrow c-3">Related</p><div class="stack" style="margin-top:4px">${related.map(r => `<a class="art-row" style="padding:14px 0;gap:12px" href="/news/${r.slug}"><div class="grow" style="min-width:0"><p class="kicker" style="font-size:11px">${esc(r.topic)}</p><p class="t-label" style="margin-top:4px">${esc(r.title)}</p></div></a>`).join('') || '<p class="t-caption c-3" style="padding-top:10px">More soon.</p>'}</div></section>
+    <section class="card" style="padding:20px"><p class="t-h4">Get the Monday brief</p><form class="stack gap-8" id="nl" style="margin-top:12px" novalidate><input class="input" type="email" id="nl-email" placeholder="you@company.com" aria-label="Email"><button class="btn btn--primary btn--block">Subscribe</button></form></section>`;
+  // JSON-LD for crawlers that run JS
+  const ld = document.createElement('script'); ld.type = 'application/ld+json'; ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'NewsArticle', headline: a.title, description: a.dek, datePublished: a.published_at, publisher: { '@type': 'Organization', name: 'Hentity' }, mainEntityOfPage: location.href }); document.head.appendChild(ld);
+  qs('#save').addEventListener('click', async e => { const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true'; try { await API.bookmark('article', a.id, on); b.setAttribute('aria-pressed', on); b.querySelector('span').textContent = on ? 'Saved' : 'Save'; toast(on ? 'Saved to your list' : 'Removed'); } catch (err) { H.fail(err); } });
+  qs('#share').addEventListener('click', async () => { if (navigator.share) { try { await navigator.share({ title: a.title, url: location.href }); } catch (e) {} } else { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); } });
+  qs('#nl').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#nl-email').value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { toast('Enter a valid email', 'error'); return; } try { await API.subscribe(v); e.target.innerHTML = `<p class="row gap-8 t-body-sm">${icon('check')}You’re in.</p>`; } catch (err) { H.fail(err); } });
+
+  // Comments
+  let all = comments;
+  const cHTML = (c, isReply) => `<div class="comment" id="c-${c.id}">${c.user ? avatar(c.user, isReply ? 28 : null) : '<span class="avatar">?</span>'}<div class="grow" style="min-width:0">
+      <p class="t-label row gap-8 wrap">${c.user ? `<a href="/makers/${c.user.username}">${esc(c.user.name)}</a>` : 'Deleted maker'}<span class="c-3" style="font-weight:400">· ${H.ago(c.created_at)}</span></p>
+      <p class="body" style="margin-top:6px;white-space:pre-wrap;${c.deleted ? 'color:var(--color-text-tertiary);font-style:italic' : ''}">${c.deleted ? 'This comment was deleted.' : esc(c.body)}</p>
+      ${c.deleted ? '' : `<div class="c-actions">${!isReply ? `<button type="button" data-reply="${c.id}">Reply</button>` : ''}${c.user && c.user.id === API.uid ? `<button type="button" data-del="${c.id}">Delete</button>` : `<button type="button" data-report="${c.id}">Report</button>`}</div>`}
+      ${!isReply ? `<div class="replies-in" data-replies="${c.id}">${all.filter(r => r.parent_id === c.id).map(r => cHTML(r, true)).join('')}</div>` : ''}</div></div>`;
+  const render = () => { qs('#comments').innerHTML = all.filter(c => !c.parent_id).reverse().map(c => cHTML(c)).join('') || '<p class="t-body-sm c-2">Be the first to comment.</p>'; };
+  render();
+  qs('#c-text').addEventListener('focus', () => { if (!API.uid) location.href = '/signin?next=' + location.pathname; });
+  qs('#c-form').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#c-text').value.trim(); if (!v) return; try { const c = await API.comment({ article: a.id, body: v }); all.push(c); render(); qs('#c-' + c.id).classList.add('reveal'); qs('#c-text').value = ''; M.roll(qs('#c-count'), all.filter(x => !x.deleted).length); } catch (err) { H.fail(err); } });
+  qs('#comments').addEventListener('click', async e => {
+    const r = e.target.closest('[data-reply]'), d = e.target.closest('[data-del]'), rp = e.target.closest('[data-report]');
+    if (r) { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } const box = qs(`[data-replies="${r.dataset.reply}"]`); if (box.querySelector('form')) return; box.insertAdjacentHTML('beforeend', `<form class="stack gap-8 reveal"><textarea class="input" rows="2" placeholder="Write a reply" aria-label="Reply"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Reply</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div></form>`); const f = box.querySelector('form'); f.querySelector('textarea').focus(); f.querySelector('[data-cancel]').onclick = () => f.remove(); f.onsubmit = async ev => { ev.preventDefault(); const v = f.querySelector('textarea').value.trim(); if (!v) return; try { const c = await API.comment({ article: a.id, parent: r.dataset.reply, body: v }); all.push(c); render(); } catch (err) { H.fail(err); } }; }
+    if (d) { if (!confirm('Delete this comment?')) return; try { await API.deleteComment(d.dataset.del); all.find(x => x.id === d.dataset.del).deleted = true; render(); } catch (err) { H.fail(err); } }
+    if (rp) { const why = prompt('Why are you reporting this comment?'); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
+  });
+  API.live('ac', 'comments', 'article_id=eq.' + a.id, async ({ eventType, new: n }) => { if (eventType !== 'INSERT' || all.some(c => c.id === n.id)) return; const [u] = await API.profilesByIds([n.user_id]); all.push(Object.assign({}, n, { user: u })); render(); const el = qs('#c-' + n.id); el && el.classList.add('flash'); });
+})();
+</script>
+</body>
+</html>

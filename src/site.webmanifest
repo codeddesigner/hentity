@@ -1,0 +1,13 @@
+{
+  "name": "Hentity",
+  "short_name": "Hentity",
+  "description": "The best new products built by African makers. A fresh launch board every Monday.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff5b14",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

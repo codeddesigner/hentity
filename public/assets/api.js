@@ -1,0 +1,261 @@
+/* Hentity data layer: Supabase client, session/profile, and every query the product uses. */
+(function () {
+  'use strict';
+  const SUPABASE_URL = 'https://sislzikhjapilksictxd.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
+    realtime: { params: { eventsPerSecond: 5 } }
+  });
+
+  const PROFILE_KEY = 'hentity.profile.cache';
+  let session = null, profile = null;
+  try { profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch (e) {}
+  const listeners = new Set();
+
+  async function loadProfile() {
+    if (!session) { profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} return null; }
+    const { data } = await sb.rpc('my_profile');
+    profile = (data && data[0]) || null;
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
+    return profile;
+  }
+  const ready = (async () => {
+    const { data } = await sb.auth.getSession();
+    session = data.session;
+    if (!session) { profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} }
+    else await loadProfile();
+    return { session, profile };
+  })();
+  sb.auth.onAuthStateChange(async (event, s) => {
+    const changed = (s && s.user && s.user.id) !== (session && session.user && session.user.id);
+    session = s;
+    if (changed || event === 'USER_UPDATED') await loadProfile();
+    listeners.forEach(fn => fn(event, session, profile));
+  });
+
+  function err(e) { if (e) { const m = e.message || String(e); const x = new Error(m === 'WEEK_FULL' ? 'WEEK_FULL' : m); x.code = e.code; throw x; } }
+  async function q(promise) { const { data, error, count } = await promise; err(error); return count !== undefined && count !== null && data === null ? count : data; }
+  const uid = () => session && session.user.id;
+  function requireAuth(next) {
+    if (!uid()) { location.href = '/signin?next=' + encodeURIComponent(next || location.pathname + location.search); throw new Error('AUTH_REQUIRED'); }
+  }
+
+  const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
+  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at';
+
+  const API = {
+    sb, ready, url: SUPABASE_URL,
+    get session() { return session; }, get profile() { return profile; }, get uid() { return uid(); },
+    get isAdmin() { return !!profile && ['admin', 'moderator'].includes(profile.role); },
+    onAuth(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+    requireAuth,
+    refreshProfile: loadProfile,
+
+    // ---------------- auth
+    auth: {
+      async signIn(email, password) { const { error } = await sb.auth.signInWithPassword({ email, password }); err(error); await loadProfile(); },
+      async signUp({ email, password, name, username }) {
+        const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name, username }, emailRedirectTo: location.origin + '/welcome?verified=1' } });
+        err(error); return data;
+      },
+      async google(next) { const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + (next || '/welcome?via=google') } }); err(error); },
+      async resend(email, type) { const { error } = await sb.auth.resend({ type: type || 'signup', email, options: { emailRedirectTo: location.origin + '/welcome?verified=1' } }); err(error); },
+      async forgot(email) { const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/reset-password' }); err(error); },
+      async setPassword(password) { const { error } = await sb.auth.updateUser({ password }); err(error); },
+      async changeEmail(email) { const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + '/settings/account' }); err(error); },
+      async signOut(scope) { await sb.auth.signOut(scope ? { scope } : undefined); profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} },
+      identities() { return (session && session.user.identities) || []; },
+      async unlinkGoogle() { const g = API.auth.identities().find(i => i.provider === 'google'); if (!g) return; const { error } = await sb.auth.unlinkIdentity(g); err(error); },
+      async linkGoogle() { const { error } = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: location.origin + '/settings/account' } }); err(error); }
+    },
+
+    // ---------------- profiles
+    async updateProfile(patch) { err((await sb.from('profiles').update(patch).eq('id', uid())).error); const r = await loadProfile(); try { localStorage.setItem(PROFILE_KEY, JSON.stringify(r)); } catch (e) {} return r; },
+    async usernameAvailable(u) { const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle(); return !data || data.id === uid(); },
+    profileByUsername: u => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle()),
+    profilesByIds: ids => ids.length ? q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,is_verified').in('id', ids)) : Promise.resolve([]),
+    searchProfiles: (term) => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country').or(`username.ilike.%${term}%,name.ilike.%${term}%`).limit(8)),
+
+    // ---------------- weeks & board
+    weekSlots: () => q(sb.rpc('week_slots')),
+    async currentWeek() { const now = new Date().toISOString(); const r = await q(sb.from('weeks').select('*').lte('starts_at', now).gt('ends_at', now).maybeSingle()); return r; },
+    weeks: () => q(sb.from('weeks').select('*').order('id')),
+    async board({ week, country, pay, limit } = {}) {
+      let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).in('status', ['scheduled', 'live']);
+      if (country && country !== 'all') s = s.eq('country', country);
+      if (pay) s = s.contains('pay_methods', [pay]);
+      const rows = await q(s.order('upvote_count', { ascending: false }).limit(limit || 60));
+      return rows;
+    },
+    upcoming: (week) => q(sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('status', 'scheduled').order('verified', { ascending: false }).limit(20)),
+    wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
+    product: slug => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle()),
+    productsByIds: ids => ids.length ? q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids)) : Promise.resolve([]),
+    company: id => id ? q(sb.from('companies').select('*').eq('id', id).maybeSingle()) : Promise.resolve(null),
+    makers: pid => q(sb.from('product_makers').select('role,accepted,user:profiles(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid)),
+    async directory({ countries, pay, stages, sectors, langs, term, sort, scope }) {
+      let s = sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']);
+      if (scope === 'local') s = s.eq('country', 'NG'); else if (countries && countries.length) s = s.in('country', countries);
+      if (pay && pay.length) s = s.overlaps('pay_methods', pay);
+      if (stages && stages.length) s = s.in('stage', stages);
+      if (sectors && sectors.length) s = s.overlaps('categories', sectors);
+      if (langs && langs.length) s = s.or(langs.map(l => `languages.ilike.%${l}%`).join(','));
+      if (term) s = s.or(`name.ilike.%${term}%,tagline.ilike.%${term}%,city.ilike.%${term}%`);
+      const order = sort === 'az' ? ['name', true] : sort === 'new' ? ['created_at', false] : sort === 'votes' ? ['upvote_count', false] : ['follower_count', false];
+      return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(100));
+    },
+    alternatives: (p) => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3)),
+
+    // ---------------- votes, follows, bookmarks
+    async myVotes(ids) { if (!uid() || !ids.length) return new Set(); const r = await q(sb.from('upvotes').select('product_id').eq('user_id', uid()).in('product_id', ids)); return new Set(r.map(x => x.product_id)); },
+    async vote(pid, on) { requireAuth(); if (on) err((await sb.from('upvotes').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('upvotes').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
+    async following(type, ids) { if (!uid() || !ids.length) return new Set(); const r = await q(sb.from('follows').select('target_id').eq('follower_id', uid()).eq('target_type', type).in('target_id', ids)); return new Set(r.map(x => x.target_id)); },
+    async follow(type, id, on) { requireAuth(); if (on) err((await sb.from('follows').insert({ follower_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('follows').delete().eq('follower_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
+    followCounts: async (id) => ({
+      followers: await q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('target_type', 'user').eq('target_id', id)),
+      following: await q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id)),
+      upvotes: await q(sb.from('upvotes').select('*', { count: 'exact', head: true }).eq('user_id', id))
+    }),
+    async bookmarks(type) { if (!uid()) return []; return q(sb.from('bookmarks').select('target_id,created_at').eq('user_id', uid()).eq('target_type', type).order('created_at', { ascending: false })); },
+    async bookmark(type, id, on) { requireAuth(); if (on) err((await sb.from('bookmarks').insert({ user_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('bookmarks').delete().eq('user_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
+    async isBookmarked(type, id) { if (!uid()) return false; const r = await q(sb.from('bookmarks').select('target_id').eq('user_id', uid()).eq('target_type', type).eq('target_id', id).maybeSingle()); return !!r; },
+    async notifyRequests() { if (!uid()) return new Set(); const r = await q(sb.from('notify_requests').select('product_id').eq('user_id', uid())); return new Set(r.map(x => x.product_id)); },
+    async notifyMe(pid, on) { requireAuth(); if (on) err((await sb.from('notify_requests').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('notify_requests').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
+    trackClick: pid => sb.rpc('track_click', { p: pid }),
+    trackView: pid => sb.rpc('track_view', { p: pid }),
+    upvotedBy: (userId) => q(sb.from('upvotes').select('product_id,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(30)),
+    votesByDay: (pid) => q(sb.from('upvotes').select('created_at').eq('product_id', pid).gte('created_at', new Date(Date.now() - 8 * 864e5).toISOString())),
+
+    // ---------------- comments
+    comments: ({ product, article }) => q(sb.from('comments').select('id,body,created_at,parent_id,deleted,user:profiles(id,username,name,avatar_url,avatar_color)').eq(product ? 'product_id' : 'article_id', product || article).order('created_at')),
+    async comment({ product, article, parent, body }) { requireAuth(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles(id,username,name,avatar_url,avatar_color)').single()); },
+    deleteComment: id => q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id)),
+    async report(type, id, reason) { requireAuth(); err((await sb.from('reports').insert({ reporter_id: uid(), target_type: type, target_id: id, reason })).error); },
+
+    // ---------------- notifications
+    notifications: (limit) => q(sb.from('notifications').select('*,actor:profiles!notifications_actor_id_fkey(name,username,avatar_url,avatar_color),product:products(name,slug,color)').eq('user_id', uid()).order('created_at', { ascending: false }).limit(limit || 50)),
+    async unreadCount() { if (!uid()) return 0; return q(sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', uid()).is('read_at', null)); },
+    markRead: id => q(sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id)),
+    markAllRead: () => q(sb.rpc('mark_all_read')),
+
+    // ---------------- my products & submissions
+    myProducts: () => q(sb.from('product_feed').select(PRODUCT_COLS + ',review_note,review_items,intro').or(`owner_id.eq.${uid()}`).neq('status', 'archived').order('created_at', { ascending: false })),
+    async createDraft(fields) { requireAuth(); return q(sb.from('products').insert(Object.assign({ owner_id: uid() }, fields)).select().single()); },
+    saveProduct: (id, patch) => q(sb.from('products').update(patch).eq('id', id).select().single()),
+    deleteProduct: id => q(sb.from('products').delete().eq('id', id)),
+    addMaker: (pid, userId, role) => q(sb.from('product_makers').insert({ product_id: pid, user_id: userId, role: role || 'Maker', accepted: false })),
+    removeMaker: (pid, userId) => q(sb.from('product_makers').delete().eq('product_id', pid).eq('user_id', userId)),
+    myCompanies: () => q(sb.from('companies').select('*').eq('owner_id', uid())),
+    createCompany: c => q(sb.from('companies').insert(Object.assign({ owner_id: uid() }, c)).select().single()),
+    async slugFree(slug, id) { const { data } = await sb.from('products').select('id').eq('slug', slug).maybeSingle(); return !data || data.id === id; },
+
+    // ---------------- storage
+    async upload(file, folder) {
+      requireAuth();
+      const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const path = `${uid()}/${folder || 'files'}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await sb.storage.from('media').upload(path, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
+      err(error);
+      return sb.storage.from('media').getPublicUrl(path).data.publicUrl;
+    },
+
+    // ---------------- account
+    exportData: () => q(sb.rpc('export_my_data')),
+    requestDeletion: () => q(sb.rpc('request_deletion')),
+    cancelDeletion: () => q(sb.rpc('cancel_deletion')),
+    blocks: () => q(sb.from('blocks').select('created_at,blocked:profiles!blocks_blocked_id_fkey(id,name,username)').eq('user_id', uid())),
+    block: (id, on) => on ? q(sb.from('blocks').insert({ user_id: uid(), blocked_id: id })) : q(sb.from('blocks').delete().eq('user_id', uid()).eq('blocked_id', id)),
+
+    // ---------------- chats
+    channels: () => q(sb.from('channels').select('id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)').eq('archived', false).order('position').order('name')),
+    channelMembers: (cid) => q(sb.from('channel_members').select('user_id,last_read_at,user:profiles(id,name,username,avatar_url,avatar_color)').eq('channel_id', cid)),
+    async myMemberships() { if (!uid()) return []; return q(sb.from('channel_members').select('channel_id,last_read_at').eq('user_id', uid())); },
+    async joinChannel(cid) { if (!uid()) return; await sb.from('channel_members').upsert({ channel_id: cid, user_id: uid(), last_read_at: new Date().toISOString() }, { onConflict: 'channel_id,user_id' }); },
+    markChannelRead: (cid) => uid() ? sb.from('channel_members').update({ last_read_at: new Date().toISOString() }).eq('channel_id', cid).eq('user_id', uid()) : null,
+    messages: (cid, parent) => {
+      let s = sb.from('messages').select('*,user:profiles(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('channel_id', cid);
+      s = parent ? s.or(`id.eq.${parent},parent_id.eq.${parent}`) : s.or('parent_id.is.null,also_in_channel.eq.true');
+      return q(s.order('created_at', { ascending: !!parent }).limit(parent ? 200 : 80));
+    },
+    message: id => q(sb.from('messages').select('*,user:profiles(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('id', id).maybeSingle()),
+    async unreadByChannel(memberships) {
+      const out = {};
+      await Promise.all(memberships.map(async m => { out[m.channel_id] = await q(sb.from('messages').select('*', { count: 'exact', head: true }).eq('channel_id', m.channel_id).is('parent_id', null).gt('created_at', m.last_read_at).neq('user_id', uid())); }));
+      return out;
+    },
+    lastMessages: (ids) => q(sb.from('messages').select('channel_id,body,kind,created_at,user:profiles(name)').in('channel_id', ids).is('parent_id', null).order('created_at', { ascending: false }).limit(200)),
+    async send({ channel, body, parent, kind, product, attachment, duration, transcript, alsoInChannel }) {
+      requireAuth();
+      return q(sb.from('messages').insert({ channel_id: channel, user_id: uid(), body: body || '', parent_id: parent || null, kind: kind || 'text', product_id: product || null, attachment_url: attachment || null, duration: duration || null, transcript: transcript || null, also_in_channel: !!alsoInChannel }).select('id').single());
+    },
+    deleteMessage: id => q(sb.from('messages').update({ deleted: true, body: '' }).eq('id', id)),
+    async react(mid, emoji, on) { requireAuth(); if (on) err((await sb.from('reactions').insert({ message_id: mid, user_id: uid(), emoji })).error); else err((await sb.from('reactions').delete().eq('message_id', mid).eq('user_id', uid()).eq('emoji', emoji)).error); },
+    openDM: (other) => q(sb.rpc('open_dm', { other })),
+    dmPartners: async (cids) => { if (!cids.length) return []; return q(sb.from('channel_members').select('channel_id,user:profiles(id,name,username,avatar_url,avatar_color)').in('channel_id', cids).neq('user_id', uid())); },
+
+    // ---------------- news
+    articles: ({ topic, limit } = {}) => { let s = sb.from('articles').select('*').eq('status', 'published'); if (topic && topic !== 'All') s = s.eq('topic', topic); return q(s.order('is_lead', { ascending: false }).order('published_at', { ascending: false }).limit(limit || 30)); },
+    article: slug => q(sb.from('articles').select('*').eq('slug', slug).maybeSingle()),
+    subscribe: (email) => q(sb.from('newsletter').upsert({ email: email.toLowerCase(), user_id: uid() || null }, { onConflict: 'email', ignoreDuplicates: true })),
+    suggestStory: (url, note) => { requireAuth(); return q(sb.from('story_suggestions').insert({ url, note, user_id: uid() })); },
+    settings: async (key) => { const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
+
+    // ---------------- realtime
+    live(name, table, filter, cb) {
+      const ch = sb.channel(name + ':' + Math.random().toString(36).slice(2));
+      ch.on('postgres_changes', Object.assign({ event: '*', schema: 'public', table }, filter ? { filter } : {}), cb).subscribe();
+      return () => sb.removeChannel(ch);
+    },
+    presence(room, me, onSync) {
+      const ch = sb.channel('presence:' + room, { config: { presence: { key: me ? me.id : 'anon-' + Math.random() } } });
+      ch.on('presence', { event: 'sync' }, () => onSync(ch.presenceState()));
+      ch.on('broadcast', { event: 'typing' }, ({ payload }) => onSync(ch.presenceState(), payload));
+      ch.subscribe(async s => { if (s === 'SUBSCRIBED' && me) await ch.track({ id: me.id, name: me.name }); });
+      return { typing: (name) => ch.send({ type: 'broadcast', event: 'typing', payload: { name, at: Date.now() } }), leave: () => sb.removeChannel(ch) };
+    }
+  };
+
+  // ---------------- admin
+  API.admin = {
+    stats: () => q(sb.rpc('admin_stats')),
+    review: (p, decision, note, items, wk) => q(sb.rpc('admin_review', { p, decision, note: note || null, items: items || [], wk: wk || null })),
+    setUser: (u, patch) => q(sb.rpc('admin_set_user', { u, new_role: patch.role ?? null, verified: patch.verified ?? null, is_banned: patch.banned ?? null })),
+    broadcast: (t, b, l) => q(sb.rpc('admin_broadcast', { ttl: t, bdy: b, lnk: l || null })),
+    products: ({ status, term } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',updated_at,review_note,review_items,intro,verify,support_pledge,owner:profiles!products_owner_id_fkey(id,name,username)'); if (status && status !== 'all') s = status === 'live' ? s.eq('effective_status', 'live') : s.eq('status', status); if (term) s = s.or(`name.ilike.%${term}%,slug.ilike.%${term}%`); return q(s.order('updated_at', { ascending: false }).limit(200)); },
+    updateProduct: (id, patch) => q(sb.from('products').update(patch).eq('id', id).select().single()),
+    deleteProduct: id => q(sb.from('products').delete().eq('id', id)),
+    users: (term, ids) => q(sb.rpc('admin_users', { term: term || null, ids: ids || null })),
+    updateUser: (id, patch) => q(sb.from('profiles').update(patch).eq('id', id)),
+    deleteUser: id => q(sb.from('profiles').delete().eq('id', id)),
+    weeks: () => q(sb.from('weeks').select('*').order('id')),
+    upsertWeek: w => q(sb.from('weeks').upsert(w)),
+    weekCounts: () => q(sb.from('products').select('week_id,status').in('status', ['review', 'scheduled', 'live'])),
+    comments: (term) => { let s = sb.from('comments').select('*,user:profiles(name,username),product:products(name,slug),article:articles(title,slug)'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
+    updateComment: (id, patch) => q(sb.from('comments').update(patch).eq('id', id)),
+    hardDeleteComment: id => q(sb.from('comments').delete().eq('id', id)),
+    messages: (term) => { let s = sb.from('messages').select('*,user:profiles(name,username),channel:channels(name,slug,kind)').neq('kind', 'system'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
+    deleteMessage: id => q(sb.from('messages').delete().eq('id', id)),
+    reports: () => q(sb.from('reports').select('*,reporter:profiles!reports_reporter_id_fkey(name,username)').order('created_at', { ascending: false }).limit(200)),
+    updateReport: (id, status) => q(sb.from('reports').update({ status, resolved_by: uid() }).eq('id', id)),
+    channels: () => q(sb.from('channels').select('*').order('kind').order('position')),
+    upsertChannel: c => q(sb.from('channels').upsert(c).select().single()),
+    deleteChannel: id => q(sb.from('channels').delete().eq('id', id)),
+    articles: () => q(sb.from('articles').select('*').order('created_at', { ascending: false })),
+    upsertArticle: a => q(sb.from('articles').upsert(a).select().single()),
+    deleteArticle: id => q(sb.from('articles').delete().eq('id', id)),
+    suggestions: () => q(sb.from('story_suggestions').select('*,user:profiles(name,username)').order('created_at', { ascending: false })),
+    updateSuggestion: (id, status) => q(sb.from('story_suggestions').update({ status }).eq('id', id)),
+    newsletter: () => q(sb.from('newsletter').select('*').order('created_at', { ascending: false })),
+    removeSubscriber: email => q(sb.from('newsletter').delete().eq('email', email)),
+    settings: () => q(sb.from('site_settings').select('*').order('key')),
+    saveSetting: (key, value) => q(sb.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() })),
+    audit: () => q(sb.from('audit_log').select('*,actor:profiles(name,username)').order('created_at', { ascending: false }).limit(200)),
+    companies: () => q(sb.from('companies').select('*').order('created_at', { ascending: false })),
+    updateCompany: (id, patch) => q(sb.from('companies').update(patch).eq('id', id)),
+    makers: (pid) => q(sb.from('product_makers').select('*,user:profiles(name,username)').eq('product_id', pid)),
+    notifyRequests: (pid) => q(sb.from('notify_requests').select('*', { count: 'exact', head: true }).eq('product_id', pid))
+  };
+
+  window.API = API;
+})();

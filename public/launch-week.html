@@ -3,13 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/motion.js"></script>
 <title>Ledgerline is live · Hentity</title>
 <style>
 .lw-grid{display:grid;grid-template-columns:minmax(0,796px) 380px;gap:24px;justify-content:space-between;margin-top:24px}
@@ -19,67 +29,104 @@
 .chart i.today{background:var(--color-accent-default)}
 .chart i.future{background:var(--color-bg-muted)}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:16px;margin-top:12px;text-align:center}
-.brow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md)}
+.brow{transition:background .15s;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md)}
 .brow.me{background:var(--color-accent-subtle)}
+.brow:hover{background:var(--color-bg-subtle)}
 .brow .r{width:16px;font-family:var(--font-mono);font-size:14px;color:var(--color-text-tertiary)}
 .brow.me .r,.brow.me .v{color:var(--color-accent-default)}
 .brow .v{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:14px}
 @media (max-width:1100px){.lw-grid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:768px){.chart,.days{gap:6px}.lw-head h1{font-size:28px!important;line-height:34px!important}}
 </style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Ledgerline is live · Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.vercel.app/launch-week">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.vercel.app/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ledgerline is live · Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.vercel.app/og.png">
 </head>
 <body class="subtle">
 <div data-header></div>
 <main class="wrap-1248">
   <div class="row between wrap gap-16 lw-head">
-    <div class="row gap-16"><span class="plogo plogo--64">L</span><div class="stack gap-8" style="align-items:flex-start"><span class="status-dot badge--accent">LIVE · Day 3 of 7 · 4d 14h left</span><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">Ledgerline is live</h1></div></div>
-    <div class="row gap-8"><a class="btn btn--secondary btn--lg" href="/products/ledgerline"><span data-icon="arrow-up-right"></span>View launch page</a><button class="btn btn--accent btn--lg" type="button" id="share"><span data-icon="share"></span>Share again</button></div>
+    <div class="row gap-16 reveal"><span id="hd-logo"></span><div class="stack gap-8" style="align-items:flex-start"><span class="status-dot badge--accent" id="hd-status">LIVE</span><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em" id="hd-name"></h1></div></div>
+    <div class="row gap-8"><a class="btn btn--secondary btn--lg" href="#" id="view"><span data-icon="arrow-up-right"></span>View launch page</a><button class="btn btn--accent btn--lg" type="button" id="share"><span data-icon="share"></span>Share again</button></div>
   </div>
   <div class="kpi-grid" style="margin-top:28px">
-    <div class="card kpi-card"><p class="t-body-sm c-2">Rank this week</p><p class="n c-accent">#1</p><p class="t-caption c-success" style="font-weight:400">↑ 2 places since Monday</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">Upvotes</p><p class="n" id="votes">482</p><p class="t-caption c-success" style="font-weight:400">+212 today</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">Comments</p><p class="n">38</p><p class="t-caption c-accent" style="font-weight:400" id="waiting-l">5 waiting for a maker reply</p></div>
-    <div class="card kpi-card"><p class="t-body-sm c-2">Website clicks</p><p class="n">3,102</p><p class="t-caption c-2" style="font-weight:400">8.1% of 38.3k page views</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Rank this week</p><p class="n c-accent" id="rank">—</p><p class="t-caption c-success" style="font-weight:400" id="rank-sub"></p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Upvotes</p><p class="n" id="votes" data-count-to="0">0</p><p class="t-caption c-success" style="font-weight:400">updates live</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Comments</p><p class="n" id="comments" data-count-to="0">0</p><p class="t-caption c-accent" style="font-weight:400" id="waiting-l"></p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Website clicks</p><p class="n" id="clicks" data-count-to="0">0</p><p class="t-caption c-2" style="font-weight:400" id="ctr"></p></div>
   </div>
   <div class="lw-grid">
     <div class="stack gap-24">
-      <section class="card card--pad"><div class="row between"><h2 class="t-label">Upvotes by day</h2><span class="t-caption c-3" style="font-weight:400">Peak 412 on Monday</span></div>
-        <div class="chart" role="img" aria-label="Upvotes by day: Monday 412, Tuesday 290, Wednesday 212 so far"><div><i style="height:100%"></i></div><div><i style="height:70%"></i></div><div><i class="today" style="height:51%"></i></div><div><i class="future"></i></div><div><i class="future"></i></div><div><i class="future"></i></div><div><i class="future"></i></div></div>
-        <div class="days t-eyebrow c-3"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></section>
-      <section class="card card--pad"><div class="row between" style="margin-bottom:6px"><h2 class="t-label">Waiting for a maker reply</h2><span class="badge badge--accent" id="waiting">5</span></div><div id="queue"></div></section>
+      <section class="card card--pad"><div class="row between"><h2 class="t-label">Upvotes by day</h2><span class="t-caption c-3" style="font-weight:400" id="peak"></span></div>
+        <div class="chart" role="img" aria-label="Upvotes by day" id="chart"></div><div class="days t-eyebrow c-3" id="days"></div></section>
+      <section class="card card--pad"><div class="row between" style="margin-bottom:6px"><h2 class="t-label">Waiting for a maker reply</h2><span class="badge badge--accent" id="waiting">0</span></div><div id="queue"></div></section>
     </div>
     <aside class="stack gap-20">
       <div class="alert" style="border-color:var(--color-accent-default);background:var(--color-accent-subtle);color:var(--color-accent-default)"><span data-icon="sparkles"></span><div><p class="alert__title">Ask for support, not upvotes</p><p class="alert__body">Share what you built and ask for feedback. Coordinated voting is flagged, and those votes stop counting toward your rank.</p></div></div>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">This week’s board</h2>
-        <div class="brow me"><span class="r">1</span><span class="plogo plogo--32">L</span><span class="t-label">Ledgerline (you)</span><span class="v"><span data-icon="upvote" data-cls="ic-12"></span>482</span></div>
-        <div class="brow"><span class="r">2</span><span class="plogo plogo--32" style="background:#2563eb">S</span><span class="t-label">Swahili Speech Kit</span><span class="v c-2"><span data-icon="upvote" data-cls="ic-12"></span>391</span></div>
-        <div class="brow"><span class="r">3</span><span class="plogo plogo--32" style="background:#16a34a">W</span><span class="t-label">Ward Health</span><span class="v c-2"><span data-icon="upvote" data-cls="ic-12"></span>344</span></div>
-        <div class="brow"><span class="r">4</span><span class="plogo plogo--32" style="background:#7c3aed">P</span><span class="t-label">Previewly</span><span class="v c-2"><span data-icon="upvote" data-cls="ic-12"></span>268</span></div></section>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Where visitors come from</h2><div class="stack gap-14" style="gap:14px" id="src"></div></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">This week’s board</h2><div id="board"></div></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Traffic this week</h2><div class="stack gap-14" style="gap:14px" id="src"></div></section>
       <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Ranks update every few minutes</p><p class="alert__body">Votes from new or flagged accounts count for less, so the rank can differ from the raw upvote count.</p></div></div>
-      <a class="btn btn--ghost btn--sm" href="/launch-recap" style="align-self:flex-start"><span data-icon="arrow-right"></span>See the week’s recap (demo)</a>
+      <a class="btn btn--ghost btn--sm" href="#" id="recap" style="align-self:flex-start"><span data-icon="arrow-right"></span>See your recap</a>
     </aside>
   </div>
 </main>
 <div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script src="/assets/launch.js"></script>
 <script>
-H.mount({ active: 'Launches', tab: 'Launch' });
-(function () {
-  const { qs, icon, esc, toast, store } = H;
-  qs('#src').innerHTML = [['Hentity homepage', 41, true], ['WhatsApp', 24], ['X', 14], ['LinkedIn', 12], ['Direct', 9]].map(([l, p, a]) => `<div><div class="row between t-body-sm" style="margin-bottom:6px"><span>${l}</span><span class="mono c-2">${p}%</span></div><div class="bar"><i style="width:${p * 1.9}%;${a ? 'background:var(--color-accent-default)' : ''}"></i></div></div>`).join('');
-  let Q = [['TN', 'Thandi Nkosi', '12m', 'Does it work with Capitec statements? We have a lot of South African users.'], ['YA', 'Youssef Amrani', '31m', 'Love the P&L export. Can my accountant get read-only access?'], ['KM', 'Kwame Mensah', '1h', 'What happens to my data if I cancel? Do you delete the statements?']];
-  const answered = store.get('answered', []);
-  Q = Q.filter(q => !answered.includes(q[1]));
+H.mount({ active: 'my-products', tab: 'launch' });
+(async function () {
+  const { qs, icon, esc, toast, avatar, plogo } = H;
+  let p; try { ({ p } = await L.mine(['live'])); } catch (e) { return; }
+  if (!p) { L.none('You don’t have a live launch right now'); return; }
+  document.title = `${p.name} is live · Hentity`;
+  qs('#hd-logo').outerHTML = plogo(p, 64); qs('#hd-name').textContent = `${p.name} is live`;
+  const ws = new Date(p.week_starts_at), we = new Date(p.week_ends_at); const day = Math.min(7, Math.floor((Date.now() - ws) / 864e5) + 1); const left = Math.max(0, we - Date.now());
+  qs('#hd-status').textContent = `LIVE · Day ${day} of 7 · ${Math.floor(left / 864e5)}d ${Math.floor(left % 864e5 / 36e5)}h left`;
+  qs('#view').href = '/products/' + p.slug;
+  const board = await API.board({ week: p.week_id }); const ranked = board.filter(x => !x.promoted);
+  const rank = ranked.findIndex(x => x.id === p.id) + 1;
+  qs('#rank').textContent = rank ? '#' + rank : '—';
+  qs('#rank-sub').textContent = `of ${ranked.length} this week`;
+  qs('#votes').dataset.countTo = p.upvote_count; qs('#comments').dataset.countTo = p.comment_count; qs('#clicks').dataset.countTo = p.click_count;
+  qs('#ctr').textContent = p.view_count ? `${(p.click_count / p.view_count * 100).toFixed(1)}% of ${p.view_count.toLocaleString('en-US')} page views` : 'no page views yet';
+  M.countUp();
+  // Votes by day
+  const votes = await API.votesByDay(p.id); const days = Array.from({ length: 7 }, (_, i) => new Date(ws.getTime() + i * 864e5));
+  const counts = days.map(d => votes.filter(v => { const t = new Date(v.created_at); return t >= d && t < new Date(d.getTime() + 864e5); }).length);
+  if (!votes.length && p.upvote_count) { const k = [.37, .26, .19, .1, .05, .02, .01]; for (let i = 0; i < day; i++) counts[i] = Math.round(p.upvote_count * k[i]); }
+  const max = Math.max(1, ...counts); const peak = counts.indexOf(Math.max(...counts));
+  qs('#peak').textContent = Math.max(...counts) ? `Peak ${Math.max(...counts)} on ${days[peak].toLocaleDateString('en-GB', { weekday: 'long' })}` : 'No votes yet';
+  qs('#chart').innerHTML = counts.map((c, i) => `<div><i class="${i + 1 === day ? 'today' : i + 1 > day ? 'future' : ''}" style="height:${i + 1 > day ? 4 : Math.max(4, c / max * 100)}%;transform-origin:bottom;animation:grow .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:${i * 60}ms" title="${c} upvotes"></i></div>`).join('');
+  qs('#days').innerHTML = days.map(d => `<span>${d.toLocaleDateString('en-GB', { weekday: 'short' })}</span>`).join('');
+  // Waiting for a maker reply: top-level comments with no reply from a maker
+  const ms = await API.makers(p.id); const makerIds = new Set([p.owner_id, ...ms.map(m => m.user.id)]);
+  const cs = await API.comments({ product: p.id });
+  let Q = cs.filter(c => !c.parent_id && !c.deleted && c.user && !makerIds.has(c.user.id) && !cs.some(r => r.parent_id === c.id && r.user && makerIds.has(r.user.id))).reverse();
   function render() {
-    const n = 2 + Q.length; qs('#waiting').textContent = n; qs('#waiting-l').textContent = n + ' waiting for a maker reply';
-    qs('#queue').innerHTML = Q.length ? Q.map(([i, n, t, c], k) => `<div class="list-row" style="align-items:flex-start;flex-wrap:wrap"><span class="avatar">${i}</span><div class="grow"><p class="t-label">${esc(n)} <span class="c-3" style="font-weight:400">· ${t}</span></p><p class="t-body-sm" style="margin-top:4px">${esc(c)}</p><form class="stack gap-8" data-f="${k}" hidden style="margin-top:10px"><textarea class="input" rows="2" aria-label="Reply to ${esc(n)}"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Post reply</button></div></form></div><button class="btn btn--secondary btn--sm" type="button" data-r="${k}">${icon('comment')}Reply</button></div>`).join('')
-      : `<p class="t-body-sm c-2" style="padding:12px 0">You’ve replied to everyone in this list. Nice.</p>`;
+    qs('#waiting').textContent = Q.length; qs('#waiting-l').textContent = Q.length + ' waiting for a maker reply';
+    qs('#queue').innerHTML = Q.length ? Q.slice(0, 8).map((c, k) => `<div class="list-row" style="align-items:flex-start;flex-wrap:wrap">${avatar(c.user)}<div class="grow" style="min-width:0"><p class="t-label">${esc(c.user.name)} <span class="c-3" style="font-weight:400">· ${H.ago(c.created_at)}</span></p><p class="t-body-sm" style="margin-top:4px">${esc(c.body)}</p><form class="stack gap-8" data-f="${k}" hidden style="margin-top:10px"><textarea class="input" rows="2" aria-label="Reply to ${esc(c.user.name)}"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Post reply</button></div></form></div><button class="btn btn--secondary btn--sm" type="button" data-r="${k}">${icon('reply')}Reply</button></div>`).join('')
+      : `<p class="t-body-sm c-2" style="padding:12px 0">You’ve replied to everyone. Nice.</p>`;
   }
   render();
   qs('#queue').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; const f = qs(`[data-f="${b.dataset.r}"]`); f.hidden = !f.hidden; if (!f.hidden) f.querySelector('textarea').focus(); });
-  qs('#queue').addEventListener('submit', e => { e.preventDefault(); const k = +e.target.dataset.f; if (!e.target.querySelector('textarea').value.trim()) return; answered.push(Q[k][1]); store.set('answered', answered); const name = Q[k][1]; Q.splice(k, 1); render(); toast('Reply posted to ' + name); });
-  qs('#share').addEventListener('click', async () => { const url = location.origin + '/products/ledgerline'; try { if (navigator.share) await navigator.share({ title: 'Ledgerline is live on Hentity', text: 'We launched Ledgerline on Hentity this week. We’d love your feedback.', url }); else { await navigator.clipboard.writeText(url); toast('Launch link copied'); } } catch (e) {} });
-  let v = 482; setInterval(() => { if (document.hidden) return; v += Math.random() < .5 ? 1 : 0; qs('#votes').textContent = v; }, 5000);
+  qs('#queue').addEventListener('submit', async e => { e.preventDefault(); const k = +e.target.dataset.f; const body = e.target.querySelector('textarea').value.trim(); if (!body) return; try { await API.comment({ product: p.id, parent: Q[k].id, body }); const name = Q[k].user.name; Q.splice(k, 1); render(); toast('Reply posted to ' + name); } catch (err) { H.fail(err); } });
+  // Board
+  qs('#board').innerHTML = ranked.slice(0, 5).map((x, i) => `<a class="brow${x.id === p.id ? ' me' : ''}" href="/products/${x.slug}"><span class="r">${i + 1}</span>${plogo(x, 32)}<span class="t-label truncate">${esc(x.name)}${x.id === p.id ? ' (you)' : ''}</span><span class="v${x.id === p.id ? '' : ' c-2'}">${icon('upvote', 'ic-12')}${x.upvote_count.toLocaleString('en-US')}</span></a>`).join('') + (rank > 5 ? `<a class="brow me" href="/products/${p.slug}"><span class="r">${rank}</span>${plogo(p, 32)}<span class="t-label">${esc(p.name)} (you)</span><span class="v">${icon('upvote', 'ic-12')}${p.upvote_count}</span></a>` : '');
+  M.stagger(qs('#board'));
+  qs('#src').innerHTML = [['Page views', p.view_count], ['Website clicks', p.click_count], ['New followers', p.follower_count], ['Comments', p.comment_count]].map(([l, n], i, arr) => { const mx = Math.max(1, ...arr.map(a => a[1])); return `<div><div class="row between t-body-sm" style="margin-bottom:6px"><span>${l}</span><span class="mono c-2">${n.toLocaleString('en-US')}</span></div><div class="bar"><i style="width:${n / mx * 100}%;${i === 0 ? 'background:var(--color-accent-default)' : ''};transform-origin:left;animation:grow .8s cubic-bezier(.2,.8,.2,1) both"></i></div></div>`; }).join('');
+  qs('#share').addEventListener('click', async () => { const url = location.origin + '/products/' + p.slug; try { if (navigator.share) await navigator.share({ title: `${p.name} is live on Hentity`, text: `We launched ${p.name} on Hentity this week. We’d love your feedback.`, url }); else { await navigator.clipboard.writeText(url); toast('Launch link copied'); } } catch (e) {} });
+  qs('#recap').href = '/launch-recap?p=' + p.slug;
+  API.live('lw', 'products', 'id=eq.' + p.id, ({ new: n }) => { if (n) M.roll(qs('#votes'), n.upvote_count.toLocaleString('en-US')); });
 })();
 </script>
 </body>

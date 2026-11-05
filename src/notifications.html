@@ -4,7 +4,7 @@
 <!--#head-->
 <title>Notifications · Hentity</title>
 <style>
-.inbox{display:grid;grid-template-columns:200px minmax(0,712px);gap:48px;justify-content:center;padding:40px 24px 96px}
+.inbox{display:grid;grid-template-columns:200px minmax(0,712px);gap:48px;justify-content:center;padding:40px 32px 96px}
 .filters-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:104px;align-self:start}
 .filters-nav button{display:flex;align-items:center;height:36px;padding:0 12px;border-radius:var(--radius-md);font-size:13px;font-weight:500;color:var(--color-text-secondary);text-align:left}
 .filters-nav button:hover{background:var(--color-bg-muted);color:var(--color-text-primary)}
@@ -29,54 +29,48 @@
 <div class="inbox">
   <nav class="filters-nav" role="tablist" aria-label="Filter notifications" id="filters"></nav>
   <main>
-    <div class="row between wrap gap-12" style="margin-bottom:20px"><h1 class="t-h2">Notifications</h1><div class="row gap-4"><button class="btn btn--ghost btn--sm" type="button" id="readall"><span data-icon="check"></span>Mark all as read</button><a class="btn btn--ghost btn--sm" href="/settings/notifications"><span data-icon="lock"></span>Settings</a></div></div>
+    <div class="row between wrap gap-12" style="margin-bottom:20px"><h1 class="t-h2">Notifications</h1><div class="row gap-4"><button class="btn btn--ghost btn--sm" type="button" id="readall"><span data-icon="check"></span>Mark all as read</button><a class="btn btn--ghost btn--sm" href="/settings/notifications"><span data-icon="settings"></span>Settings</a></div></div>
     <div id="list" class="stack gap-12"></div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn--ghost btn--sm" type="button" id="older">Load older</button></div>
   </main>
 </div>
 <div data-tabbar></div>
-<script src="/assets/data.js"></script>
 <script>
-H.mount({ active: 'Discover', tab: 'Alerts' });
-(function () {
-  const { qs, qsa, icon, esc, store, toast } = H;
-  const N = [
-    { id: 1, g: 'today', type: 'launches', av: ['L', '#7c3aed', 'plogo'], html: '<b>Ledgerline for Accountants</b> was approved and booked for the week of 16 Nov.', meta: 'Review · 2h', action: ['View schedule', '/my-products'] },
-    { id: 2, g: 'today', type: 'launches', av: ['KM', '#15803d', 'avatar'], html: '<b>Kofi Mensah</b> and 23 others upvoted <b>Ledgerline</b>', meta: 'Upvotes · 3h' },
-    { id: 3, g: 'today', type: 'comments', av: ['WN', '#6d28d9', 'avatar'], html: '<b>Wanjiru Njeri</b> replied: “We tested it on Sheng too, the accuracy holds up surprisingly well.”', meta: 'Swahili Speech Kit · 5h', action: ['Reply', '/products/swahili-speech-kit'] },
-    { id: 4, g: 'week', type: 'launches', av: ['★', '#e8b024', 'avatar'], html: '<b>Ledgerline</b> won <b>#1 Product of the Week</b> for week 47.', meta: 'Award · Mon', action: ['Get your badge', '/launch-recap'] },
-    { id: 5, g: 'week', type: 'followers', av: ['TB', '#0369a1', 'avatar'], html: '<b>Thandi Bhengu</b> started following you.', meta: 'Followers · Sun', action: ['Follow back', '#follow'] },
-    { id: 6, g: 'week', type: 'launches', av: ['M', '#2563eb', 'plogo'], html: '<b>MoMo Parser</b> needs changes: add a short demo video and a link to the repo.', meta: 'Review · Sat', action: ['Edit submission', '/submit?product=momo-parser'] },
-    { id: 7, g: 'older', type: 'comments', av: ['SB', '#be185d', 'avatar'], html: '<b>Sade Balogun</b> mentioned you in <b>Ledgerline</b>: “@ada can you share the OPay import guide?”', meta: 'Ledgerline · 8 Nov', action: ['Reply', '/products/ledgerline'] },
-    { id: 8, g: 'older', type: 'followers', av: ['CE', '#a16207', 'avatar'], html: '<b>Chidi Eze</b> accepted your co-maker invite for <b>Ledgerline for Accountants</b>.', meta: 'Followers · 2 Nov' }
-  ];
-  let read = store.get('read', [4, 5, 6, 7, 8]); let filter = 'all'; let showOlder = false;
-  const unread = () => N.filter(n => !read.includes(n.id)).length;
-  const F = [['all', 'All'], ['unread', 'Unread'], ['launches', 'Your launches'], ['comments', 'Comments & replies'], ['followers', 'Followers']];
+H.mount({ active: 'notifications', tab: 'you' });
+(async function () {
+  const { qs, qsa, icon, esc, store, toast, avatar, plogo } = H;
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/notifications'); return; }
+  let N = [], filter = 'all', showOlder = false;
+  const F = [['all', 'All'], ['unread', 'Unread'], ['launches', 'Your launches'], ['comments', 'Comments & replies'], ['followers', 'Followers'], ['system', 'From Hentity']];
+  const unread = () => N.filter(n => !n.read_at).length;
   function renderFilters() { qs('#filters').innerHTML = F.map(([k, l]) => `<button role="tab" aria-selected="${k === filter}" data-f="${k}">${l}${k === 'unread' && unread() ? `<span class="count">${unread()}</span>` : ''}</button>`).join(''); }
-  function av(a) { return a[2] === 'plogo' ? `<span class="plogo plogo--32" style="background:${a[1]}">${a[0]}</span>` : `<span class="avatar" style="background:${a[1]};color:#fff">${a[0] === '★' ? icon('sparkles', 'ic-14') : a[0]}</span>`; }
+  function av(n) { if (n.product && n.type === 'review') return plogo(n.product, 32); if (n.actor) return avatar(n.actor, 32); if (n.type === 'system') return `<span class="avatar" style="background:#000;color:#fff">H</span>`; if (n.type === 'upvotes') return `<span class="avatar" style="background:var(--color-accent-subtle);color:var(--color-accent-default)">${icon('upvote', 'ic-14')}</span>`; return `<span class="avatar">${icon('bell', 'ic-14')}</span>`; }
+  function bucket(ts) { const d = (Date.now() - new Date(ts)) / 864e5; return d < 1 && new Date(ts).getDate() === new Date().getDate() ? 'today' : d < 7 ? 'week' : 'older'; }
   function render() {
-    renderFilters(); store.set('unread', unread());
-    let L = N.filter(n => showOlder || n.g !== 'older');
-    if (filter === 'unread') L = L.filter(n => !read.includes(n.id)); else if (filter !== 'all') L = L.filter(n => n.type === filter);
+    renderFilters(); H.setCount('notifs', unread());
+    let L = N.filter(n => showOlder || bucket(n.created_at) !== 'older');
+    if (filter === 'unread') L = L.filter(n => !n.read_at); else if (filter !== 'all') L = L.filter(n => n.grp === filter);
     const groups = [['today', 'Today'], ['week', 'This week'], ['older', 'Earlier']];
-    qs('#list').innerHTML = groups.map(([g, label]) => { const items = L.filter(n => n.g === g); if (!items.length) return ''; const hasUnread = items.some(n => !read.includes(n.id));
-      return `<section><h2 class="t-eyebrow c-3" style="margin:12px 0 10px">${label}</h2><div class="ngroup${hasUnread ? ' unread' : ''}">${items.map(n => `<div class="nrow${read.includes(n.id) ? '' : ' is-unread'}" data-id="${n.id}" tabindex="0"><span class="ndot" aria-hidden="true"></span>${av(n.av)}<div class="grow"><p class="ntext">${n.html}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(n.meta)}</p></div>${n.action ? `<a class="btn btn--secondary btn--sm" href="${n.action[1]}" data-act="${n.id}">${n.action[0]}</a>` : ''}</div>`).join('')}</div></section>`; }).join('') ||
-      `<div class="card card--pad" style="text-align:center;padding:48px 20px"><div class="icon-badge" style="margin:0 auto 14px">${icon('bell')}</div><p class="t-h4">You’re all caught up</p><p class="t-body-sm c-2" style="margin-top:6px">New upvotes, replies and review decisions show up here.</p></div>`;
-    qs('#older').hidden = showOlder;
-    qsa('.nav__icon[href="/notifications"]').forEach(b => b.classList.toggle('has-unread', unread() > 0));
+    qs('#list').innerHTML = groups.map(([g, label]) => { const items = L.filter(n => bucket(n.created_at) === g); if (!items.length) return ''; const hasUnread = items.some(n => !n.read_at);
+      return `<section><h2 class="t-eyebrow c-3" style="margin:12px 0 10px">${label}</h2><div class="ngroup${hasUnread ? ' unread' : ''}">${items.map(n => `<div class="nrow${n.read_at ? '' : ' is-unread'}" data-id="${n.id}" data-link="${esc(n.link || '')}" tabindex="0" role="link"><span class="ndot" aria-hidden="true"></span>${av(n)}<div class="grow"><p class="ntext">${n.title}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(n.body || '')}${n.body ? ' · ' : ''}${H.ago(n.created_at)}</p></div>${n.action_label && n.link ? `<a class="btn btn--secondary btn--sm" href="${esc(n.link)}" data-act>${esc(n.action_label)}</a>` : ''}</div>`).join('')}</div></section>`; }).join('') ||
+      `<div class="card card--pad reveal" style="text-align:center;padding:48px 20px"><div class="icon-badge" style="margin:0 auto 14px">${icon('bell')}</div><p class="t-h4">You’re all caught up</p><p class="t-body-sm c-2" style="margin-top:6px">New upvotes, replies and review decisions show up here.</p></div>`;
+    qs('#older').hidden = showOlder || !N.some(n => bucket(n.created_at) === 'older');
+    M.stagger(qs('#list'), '.nrow');
   }
+  async function load() { try { N = await API.notifications(100); render(); } catch (e) { H.fail(e); } }
   qs('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; render(); });
-  qs('#list').addEventListener('click', e => {
-    const a = e.target.closest('[data-act]'); const r = e.target.closest('.nrow'); if (!r) return;
-    const id = +r.dataset.id; if (!read.includes(id)) { read.push(id); store.set('read', read); }
-    if (a && a.getAttribute('href') === '#follow') { e.preventDefault(); a.textContent = 'Following'; a.className = 'btn btn--ghost btn--sm'; toast('Following Thandi Bhengu'); r.classList.remove('is-unread'); return; }
-    if (!a) render();
+  qs('#list').addEventListener('click', async e => {
+    const r = e.target.closest('.nrow'); if (!r) return;
+    const n = N.find(x => x.id === r.dataset.id);
+    if (n && !n.read_at) { n.read_at = new Date().toISOString(); API.markRead(n.id).catch(() => {}); }
+    if (!e.target.closest('[data-act]') && r.dataset.link) location.href = r.dataset.link; else render();
   });
   qs('#list').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList.contains('nrow')) e.target.click(); });
-  qs('#readall').addEventListener('click', () => { read = N.map(n => n.id); store.set('read', read); render(); toast('All caught up'); });
+  qs('#readall').addEventListener('click', async () => { try { await API.markAllRead(); N.forEach(n => n.read_at = n.read_at || new Date().toISOString()); render(); toast('All caught up'); } catch (e) { H.fail(e); } });
   qs('#older').addEventListener('click', () => { showOlder = true; render(); });
-  render();
+  API.live('inbox', 'notifications', 'user_id=eq.' + API.uid, ({ eventType }) => { if (eventType === 'INSERT') load(); });
+  load();
 })();
 </script>
 </body>
