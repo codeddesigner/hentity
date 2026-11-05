@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>Launch your product · Hentity</title>
+<style>
+.sb{max-width:1448px;margin:0 auto;padding:40px 24px 96px;display:grid;grid-template-columns:200px minmax(0,636px) 380px;gap:32px;justify-content:center}
+.sidx{position:sticky;top:104px;align-self:start}
+.sidx ol{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.sidx a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:var(--radius-md);font-size:13px;font-weight:500;color:var(--color-text-secondary)}
+.sidx a:hover{color:var(--color-text-primary)}
+.sidx a[aria-current="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary)}
+.sidx .st{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong);display:grid;place-items:center;flex:none}
+.sidx .is-done .st{background:var(--color-success);border-color:var(--color-success);color:#fff}
+.sidx .is-done .st .ic{width:12px;height:12px}
+.sidx a[aria-current="true"] .st{border-color:var(--color-accent-default);border-width:2px}
+.sidx .opt{margin-left:auto;font-size:12px;color:var(--color-text-tertiary);font-weight:400}
+.sec{padding:24px;scroll-margin-top:96px}
+.sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:20px}
+.sec-h .n{font-family:var(--font-mono);font-size:13px;color:var(--color-text-tertiary)}
+.sec-h p{margin-top:6px}
+.gal{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tile{position:relative;aspect-ratio:108/94;border-radius:var(--radius-md);overflow:hidden;background-size:cover;background-position:center;cursor:grab}
+.tile .cover{position:absolute;left:8px;bottom:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;color:#fff}
+.tile .rm{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:none;place-items:center}
+.tile:hover .rm,.tile:focus-within .rm{display:grid}
+.tile.is-error{border:1.5px solid var(--color-error);background:var(--color-error-subtle);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--color-error);font-size:12px;font-weight:500;cursor:pointer}
+.tile.is-loading{background:var(--color-bg-muted)}
+.tile.is-loading::after{content:"";position:absolute;left:10px;right:10px;bottom:10px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--color-accent-default) var(--p,30%),var(--color-border-default) 0)}
+.tile.drag-over{outline:2px dashed var(--color-accent-default);outline-offset:2px}
+.add-tile{aspect-ratio:108/94;border-radius:var(--radius-md);border:1.5px dashed var(--color-border-strong);background:var(--color-bg-subtle);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--color-text-tertiary);font-size:12px;cursor:pointer}
+.add-tile:hover{border-color:var(--color-text-secondary)}
+.week{display:flex;align-items:center;gap:14px;width:100%;padding:12px 16px;border-radius:var(--radius-md);border:1px solid var(--color-border-default);background:var(--color-bg-canvas);text-align:left}
+.week + .week{margin-top:10px}
+.week .rad{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong);flex:none;display:grid;place-items:center}
+.week[aria-checked="true"]{border:1.5px solid var(--color-accent-default);background:var(--color-accent-subtle);padding:11.5px 15.5px}
+.week[aria-checked="true"] .rad{border:5px solid var(--color-accent-default)}
+.week:disabled{background:var(--color-bg-subtle);cursor:not-allowed}
+.week:disabled .t-label,.week:disabled .t-caption{color:var(--color-text-tertiary)}
+.week .left{margin-left:auto;font-size:13px;font-weight:500}
+.maker-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 6px;border-radius:999px;border:1px solid var(--color-border-default)}
+.company{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--color-border-strong);background:var(--color-bg-canvas);text-align:left}
+.vrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-md)}
+.vrow + .vrow{margin-top:10px}
+.ai-sugg button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--color-border-default);font-size:14px}
+.ai-sugg button:hover{border-color:var(--color-accent-default);background:var(--color-accent-subtle)}
+.side{position:sticky;top:104px;align-self:start}
+.readybar{height:4px;border-radius:2px;background:var(--color-bg-muted);overflow:hidden}
+.readybar i{display:block;height:100%;background:var(--color-accent-default);transition:width .25s}
+.toast--info .ic{color:#fff}
+@media (max-width:1280px){.sb{grid-template-columns:minmax(0,636px) 340px}.sidx{display:none}}
+@media (max-width:1024px){.sb{grid-template-columns:minmax(0,1fr)}.side{position:static;order:-1}}
+@media (max-width:768px){.sb{padding:16px 16px 120px;gap:16px}.sec{padding:16px}.gal{grid-template-columns:repeat(3,1fr)}.side #preview-wrap{display:none}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<div class="sb">
+  <nav class="sidx" aria-label="Sections">
+    <p class="t-eyebrow c-3">Launch your product</p>
+    <p class="t-h3" id="idx-name" style="margin-top:6px">Ledgerline</p>
+    <ol id="idx"></ol>
+    <p class="row gap-6 t-caption c-3" style="font-weight:400;margin:14px 10px 0" id="saved"><span data-icon="check" data-cls="ic-12"></span>Draft saved</p>
+  </nav>
+
+  <form class="stack gap-16" id="form" novalidate>
+    <!-- 01 Basics -->
+    <section class="card sec" id="basics" data-sec>
+      <div class="sec-h"><span class="n">01</span><h2 class="t-h3">Basics</h2></div>
+      <div class="stack gap-20">
+        <div class="field"><div class="field__row"><label class="field__label" for="name">Product name</label><span class="field__counter" data-count="name"></span></div><input class="input" id="name" name="name" maxlength="80" required></div>
+        <div class="field"><div class="field__row"><label class="field__label" for="tagline">Tagline</label><span class="field__counter" data-count="tagline"></span></div><input class="input" id="tagline" name="tagline" maxlength="140" required><p class="field__hint">Say what it does, not how great it is.</p>
+          <div class="row gap-12 wrap" style="margin-top:6px"><button class="btn btn--secondary btn--sm" type="button" id="ai"><span data-icon="sparkles"></span>Improve with AI</button><span class="t-caption c-3" style="font-weight:400">Suggests 3 clearer versions. You choose.</span></div>
+          <div class="ai-sugg stack gap-8" id="ai-sugg" hidden style="margin-top:8px"></div></div>
+        <div class="field" id="f-web"><label class="field__label" for="website">Website</label><input class="input" id="website" name="website" type="url" inputmode="url" required><p class="field__hint" id="web-hint">We check that it opens and isn’t a waitlist.</p></div>
+        <div class="field"><div class="field__row"><span class="field__label" id="cat-l">Categories</span><span class="field__counter" id="cat-count">0 / 3</span></div><div class="chips" id="cats" role="group" aria-labelledby="cat-l"></div></div>
+        <div class="grid-2"><div class="field"><label class="field__label" for="country">Country</label><select class="input" id="country" name="country"></select></div><div class="field"><label class="field__label" for="city">City</label><input class="input" id="city" name="city"></div></div>
+        <div class="field"><div class="field__row"><span class="field__label" id="pay-l">How can people pay?</span><span class="t-eyebrow c-3">Shown on your card</span></div><div class="chips" id="pay" role="group" aria-labelledby="pay-l"></div></div>
+      </div>
+    </section>
+
+    <!-- 02 Media -->
+    <section class="card sec" id="media" data-sec>
+      <div class="sec-h"><span class="n">02</span><div><h2 class="t-h3">Media</h2><p class="t-body-sm c-2">Up to 5 images or GIFs. We compress them on your device first, so uploads work on slow connections.</p></div></div>
+      <div class="row gap-16" style="margin-bottom:20px"><span class="plogo plogo--64" id="logo" style="background:#000;background-size:cover">L</span><div class="stack gap-8"><p class="t-label" id="logo-meta">Logo · 512×512 · 38 KB</p><label class="btn btn--secondary btn--sm" style="cursor:pointer;align-self:flex-start"><span data-icon="upload"></span>Replace<input type="file" accept="image/*" class="sr-only" id="logo-in"></label></div></div>
+      <div class="gal" id="gal"></div>
+      <p class="field__hint" style="margin:12px 0 20px">Drag to reorder · 1270×760 recommended</p>
+      <input type="file" accept="image/*" multiple class="sr-only" id="img-in">
+      <div class="field"><label class="field__label" for="video">Demo video link (optional)</label><input class="input" id="video" name="video" type="url" placeholder="https://youtu.be/…"><p class="field__hint" id="vid-hint">YouTube or Loom. No 50 MB uploads needed.</p></div>
+    </section>
+
+    <!-- 03 Makers -->
+    <section class="card sec" id="makers" data-sec>
+      <div class="sec-h"><span class="n">03</span><h2 class="t-h3">Makers &amp; company</h2></div>
+      <button class="company" type="button" id="company"><span class="plogo plogo--32">L</span><span class="grow"><span class="t-label" style="display:block">Ledgerline Technologies Ltd</span><span class="t-caption c-3" style="font-weight:400">Pre-seed · Lagos · 6 people</span></span><span data-icon="chevron-down"></span></button>
+      <div class="row gap-8 wrap" style="margin-top:16px" id="maker-list"></div>
+      <div id="add-maker" class="row gap-8" hidden style="margin-top:12px"></div>
+    </section>
+
+    <!-- 04 Week -->
+    <section class="card sec" id="week" data-sec>
+      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch week</h2><p class="t-body-sm c-2">The board resets Monday 06:00 WAT. Pick a week your team can reply to comments every day.</p></div></div>
+      <div role="radiogroup" aria-label="Launch week" id="weeks"></div>
+    </section>
+
+    <!-- 05 Intro -->
+    <section class="card sec" id="intro" data-sec>
+      <div class="sec-h"><span class="n">05</span><div><h2 class="t-h3">Introduction</h2><p class="t-body-sm c-2">Posted as the first comment when your week starts.</p></div></div>
+      <div class="field"><div class="field__row"><label class="field__label" for="intro-t">Maker introduction</label><span class="field__counter" data-count="intro-t"></span></div><textarea class="input" id="intro-t" rows="4" maxlength="2000" placeholder="Hi Hentity 👋 I spent three years doing books for market traders by hand. Ledgerline is the tool I wished I had…"></textarea><p class="field__hint">Say what it is, who it’s for, why you built it and what feedback you need.</p></div>
+    </section>
+
+    <!-- 06 Verification -->
+    <section class="card sec" id="verify" data-sec>
+      <div class="sec-h"><span class="n">06</span><div><h2 class="t-h3">Verification (optional)</h2><p class="t-body-sm c-2">Earn a “Verified startup” tick. Investors filter by it.</p></div></div>
+      <div id="vlist"></div>
+    </section>
+  </form>
+
+  <aside class="side stack gap-16">
+    <div id="preview-wrap"><p class="t-eyebrow c-3" style="margin-bottom:12px">Preview your card</p><div id="preview"></div></div>
+    <div class="card card--pad stack gap-12">
+      <div class="row between"><p class="t-label">Ready to submit</p><span class="mono t-body-sm" id="ready-n">0 / 5</span></div>
+      <div class="readybar"><i id="ready-bar"></i></div>
+      <label class="check"><input type="checkbox" id="support"><span class="check__box"><span data-icon="check"></span></span>I’ll ask for support, not upvotes</label>
+      <button class="btn btn--accent btn--block" type="button" id="submit" disabled><span data-icon="rocket"></span>Submit for review</button>
+      <p class="t-caption c-3" style="font-weight:400" id="ready-hint"></p>
+    </div>
+    <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Reviews take about 48 hours</p><p class="alert__body">We check the product is real and working, and has an African connection.</p></div></div>
+  </aside>
+</div>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script src="/assets/launch.js"></script>
+<script>
+if (!H.session()) location.replace('/signin?next=' + encodeURIComponent(location.pathname + location.search));
+H.mount({ active: 'Launches', tab: 'Launch' });
+(function () {
+  const { qs, qsa, icon, esc, store, toast, COUNTRY } = H;
+  const prm = H.params();
+  if (prm.get('new')) { store.del('submission'); history.replaceState(null, '', '/submit'); }
+  let s = L.sub();
+  if (s.status === 'review') { location.replace('/under-review'); return; }
+  const form = qs('#form');
+  let ready = false;
+  // ---- Basics
+  ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
+  qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video || '';
+  qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  qs('#country').value = s.country;
+  const CATS = ['Fintech', 'SaaS', 'AI', 'Commerce', 'Productivity', 'Developer Tools', 'Health', 'Education', 'Agriculture', 'Logistics'];
+  const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Free'];
+  qs('#cats').innerHTML = CATS.map(c => `<button class="chip" type="button" data-chip data-cat="${c}" aria-pressed="${s.cats.includes(c)}">${icon('check')}${c}</button>`).join('');
+  qs('#pay').innerHTML = PAY.map(c => `<button class="chip" type="button" data-chip data-pay="${c}" aria-pressed="${s.pay.includes(c)}">${icon('check')}${c}</button>`).join('');
+  H.bindChips(qs('#cats'), () => {
+    let sel = qsa('#cats [aria-pressed="true"]').map(b => b.dataset.cat);
+    if (sel.length > 3) { const last = document.activeElement; last.setAttribute('aria-pressed', 'false'); toast('Pick up to 3 categories'); sel = sel.filter(c => c !== last.dataset.cat); }
+    s.cats = sel; update();
+  });
+  H.bindChips(qs('#pay'), () => { s.pay = qsa('#pay [aria-pressed="true"]').map(b => b.dataset.pay); update(); });
+
+  // AI suggestions (canned, deterministic)
+  qs('#ai').addEventListener('click', () => {
+    const box = qs('#ai-sugg'); const n = form.name.value || 'It';
+    const base = (form.tagline.value || 'bookkeeping for small businesses').replace(/\.$/, '');
+    const sug = [`Turn mobile money statements into a monthly P&L`, `${base.charAt(0).toUpperCase() + base.slice(1)}, in minutes`, `Books for Lagos traders, straight from MoMo and OPay`];
+    box.innerHTML = `<p class="t-caption c-3" style="font-weight:400">Pick one or keep yours</p>` + sug.map(x => `<button type="button" data-s="${esc(x)}">${esc(x)}</button>`).join('');
+    box.hidden = false;
+  });
+  qs('#ai-sugg').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; form.tagline.value = b.dataset.s; qs('#ai-sugg').hidden = true; update(); toast('Tagline updated'); });
+
+  // Website check
+  form.website.addEventListener('blur', () => {
+    const v = form.website.value.trim(); const h = qs('#web-hint');
+    if (!v) return;
+    let ok = false; try { const u = new URL(/^https?:/.test(v) ? v : 'https://' + v); ok = /\./.test(u.hostname); if (ok && !/^https?:/.test(v)) form.website.value = u.href.replace(/\/$/, ''); } catch (e) {}
+    qs('#f-web').classList.toggle('is-error', !ok);
+    h.className = 'field__hint' + (ok ? ' is-success' : ' is-error');
+    h.textContent = ok ? 'Opens fine · not a waitlist' : 'Enter a full link, like https://yourproduct.com';
+    update();
+  });
+
+  // ---- Media
+  let media = s.media.map(m => ({ bg: m })); let logoSrc = null;
+  function renderGal() {
+    const g = qs('#gal');
+    g.innerHTML = media.map((m, i) => m.error ? `<div class="tile is-error" data-i="${i}" role="button" tabindex="0" aria-label="${esc(m.name)} failed to upload, retry">${icon('alert-circle', 'ic-20')}<span>${esc(m.name)} · retry</span></div>`
+      : `<div class="tile${m.loading ? ' is-loading' : ''}" draggable="true" data-i="${i}" style="${m.url ? `background-image:url('${m.url}')` : `background:${m.bg}`}" tabindex="0" aria-label="Image ${i + 1}${i === 0 ? ', cover' : ''}">${i === 0 ? '<span class="cover">COVER</span>' : ''}<button class="rm" type="button" data-rm="${i}" aria-label="Remove image ${i + 1}">${icon('x', 'ic-14')}</button></div>`).join('') +
+      (media.length < 5 ? `<label class="add-tile" for="img-in">${icon('plus', 'ic-20')}<span>${media.filter(m => !m.error).length} / 5</span></label>` : '');
+    update();
+  }
+  renderGal();
+  qs('#gal').addEventListener('click', e => {
+    const rm = e.target.closest('[data-rm]'); if (rm) { media.splice(+rm.dataset.rm, 1); renderGal(); return; }
+    const err = e.target.closest('.tile.is-error'); if (err) { const m = media[+err.dataset.i]; m.error = false; upload(m, true); }
+  });
+  let dragI = null;
+  qs('#gal').addEventListener('dragstart', e => { const t = e.target.closest('.tile'); if (t) dragI = +t.dataset.i; });
+  qs('#gal').addEventListener('dragover', e => { const t = e.target.closest('.tile'); if (t) { e.preventDefault(); qsa('.tile').forEach(x => x.classList.toggle('drag-over', x === t)); } });
+  qs('#gal').addEventListener('drop', e => { const t = e.target.closest('.tile'); if (!t || dragI === null) return; e.preventDefault(); const to = +t.dataset.i; const [m] = media.splice(dragI, 1); media.splice(to, 0, m); dragI = null; renderGal(); });
+  qs('#gal').addEventListener('dragend', () => qsa('.tile').forEach(x => x.classList.remove('drag-over')));
+  function upload(m, retry) {
+    m.loading = true; renderGal(); let p = 0;
+    const t = setInterval(() => {
+      p += 25; const el = qs(`.tile[data-i="${media.indexOf(m)}"]`); if (el) el.style.setProperty('--p', p + '%');
+      if (p >= 100) { clearInterval(t); m.loading = false; if (m.fail && !retry) { m.error = true; toast(`${m.name} couldn’t upload. Tap it to retry.`); } renderGal(); }
+    }, 180);
+  }
+  qs('#img-in').addEventListener('change', e => {
+    [...e.target.files].slice(0, 5 - media.length).forEach(f => {
+      const m = { name: f.name.length > 14 ? f.name.slice(0, 11) + '…' : f.name, url: /image\//.test(f.type) ? URL.createObjectURL(f) : null, fail: !/image\//.test(f.type) || f.size > 8 * 1024 * 1024 };
+      if (!m.url) m.bg = 'var(--color-bg-muted)';
+      media.push(m); upload(m);
+    });
+    e.target.value = '';
+  });
+  qs('#logo-in').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const u = URL.createObjectURL(f); const img = new Image(); img.onload = () => { const el = qs('#logo'); el.style.backgroundImage = `url('${u}')`; el.textContent = ''; qs('#logo-meta').textContent = `Logo · ${img.naturalWidth}×${img.naturalHeight} · ${Math.round(f.size / 1024)} KB`; if (img.naturalWidth < 240) toast('Logos look best at 240px or larger'); }; img.src = u; });
+  qs('#video').addEventListener('blur', () => { const v = qs('#video').value.trim(); const h = qs('#vid-hint'); if (!v) { h.className = 'field__hint'; h.textContent = 'YouTube or Loom. No 50 MB uploads needed.'; return; } const ok = /(youtu\.be|youtube\.com|loom\.com)\//.test(v); h.className = 'field__hint' + (ok ? ' is-success' : ' is-error'); h.textContent = ok ? 'Video found' : 'Use a YouTube or Loom link.'; });
+
+  // ---- Makers
+  let makers = store.get('subMakers', [['Ada Okafor', 'Founder', 'AO', true], ['Ifeanyi Duru', 'Engineering', 'ID'], ['Sade Balogun', 'Design · invited', 'SB']]);
+  function renderMakers() {
+    qs('#maker-list').innerHTML = makers.map(([n, r, i, me], k) => `<span class="maker-chip"><span class="avatar avatar--28${me ? ' avatar--photo' : ''}">${i}</span><span class="stack"><span class="t-label">${esc(n)}</span><span class="t-caption c-3" style="font-weight:400;font-size:11px;line-height:13px">${esc(r)}</span></span>${me ? '' : `<button type="button" data-rmm="${k}" aria-label="Remove ${esc(n)}" class="c-3" style="margin-left:2px">${icon('x', 'ic-14')}</button>`}</span>`).join('') +
+      `<button class="btn btn--ghost btn--sm" type="button" id="add-m">${icon('plus')}Add maker</button>`;
+    store.set('subMakers', makers); update();
+  }
+  renderMakers();
+  qs('#maker-list').addEventListener('click', e => {
+    const r = e.target.closest('[data-rmm]'); if (r) { makers.splice(+r.dataset.rmm, 1); renderMakers(); return; }
+    if (e.target.closest('#add-m')) { const f = qs('#add-maker'); f.hidden = false; f.innerHTML = `<input class="input grow" id="m-user" placeholder="Hentity username, e.g. kofi" aria-label="Maker username" style="max-width:300px"><button class="btn btn--primary btn--sm" type="button" id="m-go">Invite</button>`; qs('#m-user').focus(); }
+  });
+  function addMaker(e) { e.preventDefault(); const u = qs('#m-user').value.trim().replace(/^@/, ''); if (!u) return; const p = D.PEOPLE[u.toLowerCase()]; const n = p ? p.name : u.charAt(0).toUpperCase() + u.slice(1); makers.push([n, 'Maker · invited', H.initials(n)]); qs('#add-maker').hidden = true; renderMakers(); toast('Invite sent to @' + u); }
+  qs('#add-maker').addEventListener('click', e => { if (e.target.closest('#m-go')) addMaker(e); });
+  qs('#add-maker').addEventListener('keydown', e => { if (e.key === 'Enter') addMaker(e); });
+  qs('#company').addEventListener('click', () => toast('One company per maker for now — edit it in your company page'));
+
+  // ---- Weeks
+  const left = store.get('weekLeft', { 46: 0, 47: 4, 48: 19, 49: 30 });
+  function renderWeeks() {
+    qs('#weeks').innerHTML = Object.entries(L.WEEKS).map(([w, d]) => { const full = left[w] === 0; const on = +w === s.week; const lc = full ? 'c-3' : on ? 'c-accent' : left[w] > 10 ? 'c-success' : 'c-warning';
+      return `<button class="week" type="button" role="radio" aria-checked="${on}" data-w="${w}" ${full ? 'disabled' : ''}><span class="rad"></span><span class="stack"><span class="t-label">Week ${w}</span><span class="t-caption c-3" style="font-weight:400">${d}${w === '46' ? ' · this week' : ''}</span></span><span class="left ${lc}">${full ? 'Full' : `${left[w]} of 30 left`}</span></button>`; }).join('');
+  }
+  renderWeeks();
+  qs('#weeks').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b || b.disabled) return; s.week = +b.dataset.w; renderWeeks(); update(); });
+
+  // ---- Verification
+  function renderV() {
+    const V = [['domain', 'Domain verified', (form.website.value || 'yourdomain').replace(/^https?:\/\//, '').replace(/\/.*/, '') + ' · DNS record found', 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
+    qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? '<span class="badge">Done</span>' : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">Add</button>`}</div>`).join('');
+  }
+  renderV();
+  qs('#vlist').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; const row = b.closest('.vrow'); const k = b.dataset.v; b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); });
+  qs('#vlist').addEventListener('click', e => { const b = e.target.closest('[data-vs]'); if (!b) return; const v = qs(`[data-vi="${b.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${b.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[b.dataset.vs] = v; renderV(); update(); toast('Added for verification'); });
+
+  // ---- Progress, preview, autosave
+  const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch week'], ['intro', 'Introduction'], ['verify', 'Verification', true]];
+  let current = 'basics', saveT;
+  function done() {
+    const web = (() => { try { return /\./.test(new URL(/^https?:/.test(form.website.value) ? form.website.value : 'https://' + form.website.value).hostname); } catch (e) { return false; } })();
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && web && s.cats.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: makers.length > 0, week: !!s.week && left[s.week] > 0, intro: qs('#intro-t').value.trim().length >= 40, verify: Object.values(s.verify).every(Boolean) };
+  }
+  function update() {
+    if (!ready) return;
+    qsa('[data-count]').forEach(c => { const f = qs('#' + c.dataset.count); c.textContent = f.value.length + ' / ' + f.maxLength; });
+    qs('#cat-count').textContent = s.cats.length + ' / 3';
+    Object.assign(s, { name: form.name.value, tagline: form.tagline.value, website: form.website.value, city: form.city.value, country: qs('#country').value, intro: qs('#intro-t').value, video: qs('#video').value, media: media.filter(m => !m.url && !m.error).map(m => m.bg) });
+    const d = done(); const req = ['basics', 'media', 'makers', 'week', 'intro']; const n = req.filter(k => d[k]).length;
+    qs('#idx').innerHTML = SECS.map(([k, l, opt]) => `<li><a href="#${k}" class="${d[k] ? 'is-done' : ''}"${k === current ? ' aria-current="true"' : ''}><span class="st">${d[k] ? icon('check') : ''}</span>${l.replace('&', '&amp;')}${opt ? '<span class="opt">Optional</span>' : ''}</a></li>`).join('');
+    qs('#idx-name').textContent = s.name || 'Untitled product';
+    qs('#ready-n').textContent = n + ' / 5'; qs('#ready-bar').style.width = (n / 5 * 100) + '%';
+    const missing = req.filter(k => !d[k]).map(k => SECS.find(x => x[0] === k)[1]);
+    qs('#ready-hint').textContent = missing.length ? 'Finish ' + missing.join(' and ').replace(/ and (?=.* and )/g, ', ') + ' to submit.' : qs('#support').checked ? 'Ready when you are.' : 'Tick the box above to submit.';
+    qs('#submit').disabled = !(n === 5 && qs('#support').checked);
+    qs('#preview').innerHTML = L.card(s, { flag: true }).replace('class="card lcard"', 'class="card lcard" style="padding:20px 16px"');
+    clearTimeout(saveT); saveT = setTimeout(() => { L.save(s); const t = new Date().toTimeString().slice(0, 5); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + t; }, 500);
+  }
+  form.addEventListener('input', update); form.addEventListener('change', update); qs('#support').addEventListener('change', update);
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { current = e.target.id; qsa('#idx a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + current))); } }), { rootMargin: '-40% 0px -55% 0px' });
+  qsa('[data-sec]').forEach(x => io.observe(x));
+  ready = true; update();
+
+  // ---- Submit
+  qs('#submit').addEventListener('click', () => {
+    if (s.week === 47 && !store.get('weekFullShown', false)) {
+      store.set('weekFullShown', true); left[47] = 0; store.set('weekLeft', left); s.week = 48; renderWeeks(); update();
+      qs('#week').scrollIntoView({ behavior: 'smooth' });
+      let w = qs('.toasts'); if (!w) { w = document.createElement('div'); w.className = 'toasts'; document.body.appendChild(w); }
+      const t = document.createElement('div'); t.className = 'toast toast--info'; t.setAttribute('role', 'alert');
+      t.innerHTML = `${icon('info')}<span>Week 47 filled up while you were editing. We’ve held a spot in Week 48.</span><a href="#week" class="c-accent" style="margin-left:8px">Change</a>`;
+      w.appendChild(t); setTimeout(() => t.remove(), 7000); return;
+    }
+    s.status = 'review'; s.submittedAt = Date.now(); s.support = true; L.save(s);
+    location.href = '/under-review';
+  });
+})();
+</script>
+</body>
+</html>

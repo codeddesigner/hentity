@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>Ledgerline is Product of the Week · Hentity</title>
+<style>
+.win{background:#000;color:#fff;border-radius:20px;padding:48px 48px 40px 24px;display:flex;gap:32px;align-items:center}
+.medal-big{width:120px;height:120px;border-radius:50%;background:var(--award-gold);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;color:#fff}
+.medal-big b{font-size:44px;line-height:44px;font-weight:600;letter-spacing:-0.03em}
+.prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.prizes div{padding:14px;border:1px solid var(--color-border-default);border-radius:var(--radius-md)}
+.code{font-family:var(--font-mono);font-size:12px;line-height:18px;background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:14px;white-space:pre-wrap;word-break:break-all;margin:16px 0 14px}
+.badge-embed{display:inline-flex;align-items:center;gap:12px;padding:10px 16px;border-radius:var(--radius-md);background:#000;color:#fff}
+.badge-embed .logo svg{height:16px}
+.rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:1024px){.rc-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:768px){.win{flex-direction:column;align-items:flex-start;padding:28px 20px}.win h1{font-size:30px!important;line-height:36px!important}.prizes{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<main class="wrap-1248 stack gap-24">
+  <section class="win">
+    <div class="medal-big" aria-hidden="true"><b>#1</b><span class="t-eyebrow" style="font-size:11px">of the week</span></div>
+    <div class="stack gap-16" style="align-items:flex-start">
+      <p class="t-eyebrow c-accent">Week 47 · Nov 16–22 · Final</p>
+      <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">Ledgerline is Product of the Week</h1>
+      <p class="t-body-lg" style="color:var(--gray-400)">Ranked #1 of 30 launches. The medal stays on your product page and your profile.</p>
+      <div class="row gap-12 wrap"><button class="btn btn--accent btn--lg" type="button" id="share"><span data-icon="share"></span>Share the win</button><a class="btn btn--lg" style="background:#fff;color:#000" href="/products/ledgerline"><span data-icon="arrow-up-right"></span>View product page</a></div>
+    </div>
+  </section>
+  <div class="kpi-grid">
+    <div class="card kpi-card"><p class="t-body-sm c-2">Upvotes</p><p class="n">1,106</p><p class="t-caption c-2" style="font-weight:400">from 917 people</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Comments</p><p class="n">84</p><p class="t-caption c-2" style="font-weight:400">you replied to 79</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">New followers</p><p class="n">612</p><p class="t-caption c-2" style="font-weight:400">product + makers</p></div>
+    <div class="card kpi-card"><p class="t-body-sm c-2">Website clicks</p><p class="n">3,940</p><p class="t-caption c-2" style="font-weight:400">7.9% of 49.8k views</p></div>
+  </div>
+  <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Your Product of the Week prizes</h2><div class="prizes"><div><p class="t-label">Cloud credits</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">From a hosting partner, applied to your account</p></div><div><p class="t-label">Accelerator intro</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">A warm introduction to a partner programme</p></div><div><p class="t-label">Newsletter feature</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">In the Hentity weekly digest and partner media</p></div></div></section>
+  <div class="rc-grid">
+    <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Add the badge to your site</h2>
+      <a class="badge-embed" href="/products/ledgerline"><span class="logo logo--inverse" data-logo style="--logo-knock:#000"></span><span class="stack"><span class="mono c-accent" style="font-size:12px;letter-spacing:.04em">#1 PRODUCT OF THE WEEK</span><span class="t-caption" style="font-weight:400;color:var(--gray-300)">Week 47 · 2026</span></span></a>
+      <pre class="code" id="code"></pre>
+      <button class="btn btn--secondary btn--sm" type="button" id="copy"><span data-icon="copy"></span>Copy code</button></section>
+    <section class="card card--pad"><h2 class="t-label" style="margin-bottom:16px">What’s next</h2><div id="tl"></div></section>
+  </div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/launch.js"></script>
+<script>
+H.mount({ active: 'Launches', tab: 'Launch' });
+(function () {
+  const { qs, toast } = H;
+  const code = `<a href="https://hentity.vercel.app/products/ledgerline">\n  <img src="https://hentity.vercel.app/badges/ledgerline/potw.svg"\n       alt="Ledgerline · #1 Product of the Week on Hentity" />\n</a>`;
+  qs('#code').textContent = code;
+  qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(code); toast('Badge code copied'); });
+  qs('#tl').innerHTML = L.timeline([['done', 'Launch week complete', 'Your page stays live and searchable permanently'], ['now', 'Reply to the last 5 comments', 'Discussions stay open after the week ends'], ['todo', 'Post updates to your followers', '612 people will see your next update'], ['todo', 'Plan a major-update launch', 'Ship something big? Launch it as a new event on the same page']]);
+  qs('#share').addEventListener('click', async () => { const url = location.origin + '/products/ledgerline'; try { if (navigator.share) await navigator.share({ title: 'Ledgerline is #1 Product of the Week on Hentity', url }); else { await navigator.clipboard.writeText('Ledgerline is #1 Product of the Week on Hentity 🏅 ' + url); toast('Share text copied'); } } catch (e) {} });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Changes requested · Hentity</title>
+<style>.mod{background:var(--color-warning-subtle);border:1px solid var(--color-warning);border-radius:var(--radius-lg);padding:20px}</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<main class="wrap-1248">
+  <div class="two-col">
+    <div class="stack gap-24">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/my-products">Dashboard</a><span>/</span><a href="/my-products">Launches</a><span>/</span><span aria-current="page" data-s="name"></span></nav>
+      <div class="stack gap-16" style="align-items:flex-start"><span class="status-dot badge--warning">Changes requested</span><h1 class="big-title">Two quick fixes before approval</h1></div>
+      <section class="mod">
+        <div class="row gap-12" style="margin-bottom:16px"><span class="avatar" style="background:#000;color:#fff;font-size:12px">H</span><div><p class="t-label">Hentity moderation</p><p class="t-caption c-3" style="font-weight:400">Nov 6 · 11:40</p></div></div>
+        <p>Thanks <span data-user="firstName"></span>, this looks great. Two things before we can approve:</p>
+        <ol style="margin:12px 0 0;padding-left:20px"><li><span id="domain">ledgerline.app</span> shows a waitlist. Add a link where people can try the product today; a demo account is fine.</li><li>The second screenshot looks like a design mockup. Please replace it with a real screen from the app.</li></ol>
+      </section>
+      <section class="card" style="padding:4px 20px">
+        <div class="list-row" style="padding:16px 0"><span data-icon="alert-circle" data-cls="ic-18 c-warning"></span><div class="grow"><p class="list-row__title">Basic information · Website</p><p class="list-row__desc">Link to a page where people can use the product</p></div><a class="btn btn--secondary btn--sm" href="/submit#basics" data-fix>Fix</a></div>
+        <div class="list-row" style="padding:16px 0"><span data-icon="alert-circle" data-cls="ic-18 c-warning"></span><div class="grow"><p class="list-row__title">Media · Image 2</p><p class="list-row__desc">Replace “category-rules.png” with a real screenshot</p></div><a class="btn btn--secondary btn--sm" href="/submit#media" data-fix>Fix</a></div>
+      </section>
+      <div class="row gap-12 wrap"><a class="btn btn--primary btn--lg" href="/submit" data-fix><span data-icon="arrow-right"></span>Make changes &amp; resubmit</a><button class="btn btn--ghost btn--lg" type="button" id="reply"><span data-icon="comment"></span>Reply to moderator</button></div>
+      <form id="reply-f" class="card card--pad stack gap-12" hidden><label class="field__label" for="msg">Message to moderation</label><textarea class="input" id="msg" rows="3" placeholder="Thanks! The demo account is…"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Send</button><button class="btn btn--ghost btn--sm" type="button" id="reply-x">Cancel</button></div></form>
+    </div>
+    <aside class="stack gap-20">
+      <div class="alert alert--warning"><span data-icon="alert-circle"></span><div><p class="alert__title">Your Week <span data-s="week"></span> spot is held until Nov 14</p><p class="alert__body">Resubmit before Saturday 06:00 WAT to keep it. After that you’ll pick a new week.</p></div></div>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:16px">Progress</h2><div id="tl"></div></section>
+      <div><p class="t-eyebrow c-3" style="margin-bottom:12px">Your launch card</p><div id="card"></div></div>
+    </aside>
+  </div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/launch.js"></script>
+<script>
+H.mount({ active: 'Launches', tab: 'Launch' });
+(function () {
+  const { qs, qsa, toast } = H; const s = L.sub();
+  qsa('[data-s]').forEach(el => el.textContent = s[el.dataset.s]);
+  qs('#domain').textContent = (s.website || 'ledgerline.app').replace(/^https?:\/\//, '').replace(/\/.*/, '');
+  qs('#tl').innerHTML = L.timeline([['done', 'Submitted for review', 'Nov 5 · 22:06'], ['now', 'Changes requested', 'Nov 6 · 11:40'], ['todo', 'Resubmitted', 'Re-reviews usually take under 24 hours'], ['todo', 'Approved & scheduled']]);
+  qs('#card').innerHTML = L.card(s);
+  qsa('[data-fix]').forEach(a => a.addEventListener('click', () => { s.status = 'draft'; L.save(s); }));
+  qs('#reply').addEventListener('click', () => { qs('#reply-f').hidden = false; qs('#msg').focus(); });
+  qs('#reply-x').addEventListener('click', () => qs('#reply-f').hidden = true);
+  qs('#reply-f').addEventListener('submit', e => { e.preventDefault(); if (!qs('#msg').value.trim()) return; e.target.hidden = true; e.target.reset(); toast('Sent to Hentity moderation'); });
+})();
+</script>
+</body>
+</html>

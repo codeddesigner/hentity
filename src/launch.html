@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Launch your product · Hentity</title>
+<style>
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:40px 0}
+.steps .card{padding:20px}
+.need{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.need div{display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;border-radius:var(--radius-md);background:var(--color-bg-subtle);font-size:13px;font-weight:500}
+.need .ic{color:var(--color-text-secondary);width:18px;height:18px}
+.elig li{display:flex;gap:10px;font-size:13px;line-height:18px;color:var(--color-text-secondary)}
+.elig li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--color-accent-default);margin-top:7px;flex:none}
+.resume{display:flex;align-items:center;gap:12px;padding:6px 0}
+.resume:hover .ic{transform:translateX(2px)}
+.resume .ic{transition:transform .15s;color:var(--color-text-secondary)}
+@media (max-width:768px){.steps,.need{grid-template-columns:minmax(0,1fr)}.launch-h1{font-size:34px!important;line-height:40px!important}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="wrap-1248" style="padding-top:72px">
+  <div class="two-col">
+    <div>
+      <div class="icon-badge icon-badge--accent"><span data-icon="rocket"></span></div>
+      <h1 class="launch-h1" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em;margin:40px 0 20px">Launch your product to people who want to try it.</h1>
+      <p class="lead">Every approved product gets a permanent page and a week on the leaderboard. Makers, early adopters and investors across Africa and beyond see what you built.</p>
+      <ol class="steps" style="list-style:none;padding:0">
+        <li class="card"><p class="mono t-body-sm c-accent">01</p><p class="t-h4" style="margin:10px 0 12px">Prepare</p><p class="t-body-sm c-2">Fill in one page with a live preview. Most makers finish in about 15 minutes; it saves as you go, even on mobile.</p></li>
+        <li class="card"><p class="mono t-body-sm c-accent">02</p><p class="t-h4" style="margin:10px 0 12px">Review</p><p class="t-body-sm c-2">A moderator checks it’s real, working and has an African connection. You’ll hear back by email.</p></li>
+        <li class="card"><p class="mono t-body-sm c-accent">03</p><p class="t-h4" style="margin:10px 0 12px">Launch week</p><p class="t-body-sm c-2">Your week starts Monday 06:00 WAT. 30 products, 7 days of upvotes, comments and follows.</p></li>
+      </ol>
+      <h2 class="t-h4" style="margin-bottom:14px">What you’ll need</h2>
+      <div class="need">
+        <div><span data-icon="globe"></span>A working website or app link</div>
+        <div><span data-icon="image"></span>Your logo (square, 240px+)</div>
+        <div><span data-icon="image"></span>Up to 5 screenshots or a GIF</div>
+        <div><span data-icon="video"></span>Demo video link (YouTube or Loom)</div>
+        <div><span data-icon="user"></span>Your team’s Hentity usernames</div>
+        <div><span data-icon="comment"></span>A short intro for the community</div>
+      </div>
+      <div class="row gap-12 wrap" style="margin-top:36px"><a class="btn btn--accent btn--lg" href="/submit?new=1"><span data-icon="plus"></span>Start a launch draft</a><a class="btn btn--secondary btn--lg" href="/guidelines"><span data-icon="arrow-up-right"></span>Read the launch guidelines</a></div>
+    </div>
+    <aside class="stack gap-20">
+      <section class="card card--pad" id="resume-card"><h2 class="t-label" style="margin-bottom:12px">Continue where you left off</h2><div class="stack gap-8" id="resume"></div></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Eligible products</h2><ul class="elig stack gap-12" style="list-style:none;margin:0;padding:0"><li>Software, apps, APIs, AI tools, developer tools, hardware and infrastructure</li><li>Built by African founders or teams, or with significant development in Africa</li><li>Not eligible: agencies, basic company sites, concepts that aren’t live yet</li></ul></section>
+      <div class="alert" style="border-color:var(--color-accent-default);background:var(--color-accent-subtle);color:var(--color-accent-default)"><span data-icon="sparkles"></span><div><p class="alert__title">Launching is free</p><p class="alert__body">Core launches and discovery are free. Rankings can’t be bought, and sponsored spots are always labelled.</p></div></div>
+    </aside>
+  </div>
+</main>
+<div data-tabbar></div>
+<script src="/assets/launch.js"></script>
+<script>
+H.mount({ active: 'Launches', tab: 'Launch' });
+(function () {
+  const s = L.sub();
+  const done = ['name', 'tagline', 'website'].every(k => s[k]) + (s.media.length > 0) + 1 + !!s.week + (s.intro.length > 20) + (s.verify.domain ? 1 : 0);
+  const items = [[s.name || 'Untitled product', done, '/submit'], ['Ledgerline for Accountants', 1, '/submit?product=ledgerline-for-accountants']];
+  H.qs('#resume').innerHTML = items.map(([n, d, h]) => `<a class="resume" href="${h}"><span class="plogo plogo--32" style="background:${n.startsWith('Ledgerline for') ? '#7c3aed' : '#000'}">${H.esc(n[0])}</span><div class="grow stack gap-6"><p class="t-label">${H.esc(n)}</p><p class="t-caption c-3" style="font-weight:400">${Math.min(d, 6)} of 6 sections done</p><div class="progress" style="height:3px"><i style="width:${Math.min(d, 6) / 6 * 100}%"></i></div></div>${H.icon('arrow-right')}</a>`).join('');
+})();
+</script>
+<style>.progress{border-radius:999px;background:var(--color-bg-muted);overflow:hidden}.progress i{display:block;height:100%;background:var(--color-accent-default)}</style>
+</body>
+</html>

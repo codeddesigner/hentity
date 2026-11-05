@@ -31,12 +31,12 @@
 .up-card .plogo{width:32px;height:32px;border-radius:var(--radius-sm);font-size:16px}
 .skel-row{display:flex;gap:16px;align-items:center;padding:16px}
 .empty{padding:48px 16px;text-align:center;color:var(--color-text-secondary)}
-@media (max-width:1024px){.home-grid{grid-template-columns:1fr}.hero h1{font-size:56px;line-height:60px}}
+@media (max-width:1024px){.home-grid{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:56px;line-height:60px}}
 @media (max-width:768px){
   .home{padding:16px 16px 32px}
   .hero h1{display:none}
   .hero p{display:none}
-  .hero .m-title{display:block!important;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px}
+  .hero .m-title{display:block!important;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px;color:var(--color-text-primary)}
   .hero-meta .badge{background:none;padding:0}
   .home-grid{margin-top:16px}
   .filters{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}

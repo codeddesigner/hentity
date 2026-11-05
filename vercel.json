@@ -5,12 +5,40 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/makers/:handle", "destination": "/maker" },
-    { "source": "/products/:slug", "destination": "/product" }
+    {
+      "source": "/makers/:handle",
+      "destination": "/maker"
+    },
+    {
+      "source": "/products/:slug",
+      "destination": "/product"
+    }
   ],
   "redirects": [
-    { "source": "/settings", "destination": "/settings/profile", "permanent": false },
-    { "source": "/login", "destination": "/signin", "permanent": true },
-    { "source": "/register", "destination": "/signup", "permanent": true }
+    {
+      "source": "/settings",
+      "destination": "/settings/profile",
+      "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "/signin",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/signup",
+      "permanent": true
+    },
+    {
+      "source": "/launches",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/community",
+      "destination": "/guidelines",
+      "permanent": false
+    }
   ]
 }
