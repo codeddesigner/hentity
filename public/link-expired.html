@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<script src="/assets/app.js"></script>
+<title>This link has expired · Hentity</title>
+</head>
+<body class="no-tabbar">
+<div class="auth">
+  <div data-brand></div>
+  <main class="auth__side">
+    <div data-mobilebar data-back="/signin"></div>
+    <form class="auth__form" id="form" novalidate>
+      <div class="icon-badge"><span data-icon="clock"></span></div>
+      <div class="auth__heading">
+        <h1 class="t-h2">This link has expired</h1>
+        <p class="c-2">Verification links last 48 hours and reset links 1 hour. Each link works once, and only the newest one is valid.</p>
+      </div>
+      <div class="alert alert--success" id="sent" role="status" hidden>
+        <span data-icon="check"></span>
+        <div><p class="alert__title">New link sent</p><p class="alert__body">Use the newest email — older links stop working.</p></div>
+      </div>
+      <div class="field" id="f-email">
+        <label class="field__label" for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" autocomplete="email" value="ada@ledgerline.app" required>
+      </div>
+      <button class="btn btn--primary btn--block" type="submit">Send a new link</button>
+      <p class="auth__switch">Need help? <a href="mailto:support@hentity.com">Contact support</a></p>
+    </form>
+  </main>
+</div>
+<script src="/assets/auth.js"></script>
+<script>
+H.mount();
+H.qs('#form').addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target;
+  const ok = Auth.emailOk(f.email.value.trim());
+  H.qs('#f-email').classList.toggle('is-error', !ok);
+  if (ok) { H.qs('#sent').hidden = false; H.toast('New link sent'); }
+});
+</script>
+</body>
+</html>

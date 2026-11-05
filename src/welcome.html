@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Welcome · Hentity</title>
+</head>
+<body class="no-tabbar">
+<div class="auth">
+  <div data-brand></div>
+  <main class="auth__side">
+    <div data-mobilebar></div>
+    <form class="auth__form" id="form" style="max-width:460px">
+      <div class="alert alert--success" role="status">
+        <span data-icon="check"></span>
+        <div><p class="alert__title">Email verified</p><p class="alert__body">You’re in. Two quick questions to tune your feed.</p></div>
+      </div>
+      <h1 class="t-h2">Welcome to Hentity, <span data-user="firstName">Ada</span></h1>
+      <fieldset class="stack gap-12" style="border:0;padding:0;margin:0">
+        <legend class="t-label" style="margin-bottom:12px">What are you into? Pick at least 3.</legend>
+        <div class="chips" id="interests"></div>
+      </fieldset>
+      <fieldset class="stack gap-8" style="border:0;padding:0;margin:0" role="radiogroup" aria-label="How will you use Hentity?">
+        <legend class="t-label" style="margin-bottom:12px">How will you use Hentity?</legend>
+        <button class="choice" type="button" role="radio" aria-checked="false" data-use="discover"><span data-icon="compass"></span><span class="stack gap-4"><span class="choice__title">Discover products</span><span class="choice__desc">Follow makers and get a daily digest of new launches.</span></span></button>
+        <button class="choice" type="button" role="radio" aria-checked="true" data-use="launch"><span data-icon="rocket"></span><span class="stack gap-4"><span class="choice__title">Launch my product</span><span class="choice__desc">Set up your maker profile and start a launch draft.</span></span></button>
+      </fieldset>
+      <div class="auth__row">
+        <a class="btn btn--ghost" href="/">Skip for now</a>
+        <button class="btn btn--primary btn--lg" type="submit" id="go"><span data-icon="arrow-right"></span>Continue</button>
+      </div>
+      <p class="field__hint" id="hint" aria-live="polite"></p>
+    </form>
+  </main>
+</div>
+<script src="/assets/auth.js"></script>
+<script>
+(function () {
+  const { qs, qsa, store, icon } = H;
+  const pending = store.get('pending', null);
+  if (pending && pending.name) store.set('profile', Object.assign({}, store.get('profile', {}), { name: pending.name, username: pending.username, email: pending.email }));
+  if (!H.session()) Auth.startSession((pending && pending.email) || 'ada@ledgerline.app');
+  H.mount();
+  const cats = ['Fintech', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Hardware'];
+  const sel = new Set(store.get('interests', ['Fintech', 'AI', 'Agriculture']));
+  qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');
+  H.bindChips(qs('#interests'), validate);
+  qsa('[data-use]').forEach(b => b.addEventListener('click', () => { qsa('[data-use]').forEach(o => o.setAttribute('aria-checked', String(o === b))); }));
+  function picked() { return qsa('#interests [aria-pressed="true"]').map(c => c.textContent.trim()); }
+  function validate() { const n = picked().length; qs('#hint').textContent = n < 3 ? `Pick ${3 - n} more to continue.` : ''; qs('#go').disabled = n < 3; }
+  validate();
+  qs('#form').addEventListener('submit', e => {
+    e.preventDefault(); if (picked().length < 3) return;
+    store.set('interests', picked()); store.del('pending');
+    const use = qs('[data-use][aria-checked="true"]').dataset.use;
+    location.href = use === 'launch' ? '/submit' : '/';
+  });
+})();
+</script>
+</body>
+</html>

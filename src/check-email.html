@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Check your email · Hentity</title>
+</head>
+<body class="no-tabbar">
+<div class="auth">
+  <div data-brand></div>
+  <main class="auth__side">
+    <div data-mobilebar data-back="/signup"></div>
+    <div class="auth__form">
+      <div class="icon-badge icon-badge--accent"><span data-icon="mail"></span></div>
+      <h1 class="t-h2">Check your email</h1>
+      <div class="stack gap-4">
+        <p class="c-2">We sent a verification link to</p>
+        <p class="t-body" style="font-weight:500" id="to">ada@ledgerline.app</p>
+        <p class="c-2">Open it to finish creating your account. The link works for 48 hours.</p>
+      </div>
+      <div class="grid-2" style="gap:8px">
+        <a class="btn btn--secondary" href="https://mail.google.com/mail/u/0/#search/from%3Ahentity" target="_blank" rel="noopener"><span data-icon="google"></span>Open Gmail</a>
+        <a class="btn btn--secondary" href="https://outlook.live.com/mail/0/" target="_blank" rel="noopener"><span data-icon="mail"></span>Open Outlook</a>
+      </div>
+      <div class="alert alert--info" role="status">
+        <span data-icon="info"></span>
+        <div><p class="alert__title">Didn’t get it?</p><p class="alert__body" id="info-body">Check spam or promotions. You can request a new link in <span class="mono" data-left>0:45</span>.</p></div>
+      </div>
+      <div class="auth__row">
+        <button class="link" type="button" id="resend" disabled style="color:var(--color-text-tertiary);font-weight:500">Resend email (<span data-left>0:45</span>)</button>
+        <button class="link" type="button" id="change">Use a different email</button>
+      </div>
+      <form id="change-form" class="stack gap-12" hidden novalidate>
+        <div class="field" id="f-email"><label class="field__label" for="email">New email</label><input class="input" id="email" type="email" autocomplete="email" required></div>
+        <div class="row gap-8"><button class="btn btn--primary" type="submit">Send link</button><button class="btn btn--ghost" type="button" id="cancel">Cancel</button></div>
+      </form>
+      <a class="btn btn--primary btn--block" href="/welcome" id="verify">I’ve verified — continue (demo)</a>
+    </div>
+  </main>
+</div>
+<script src="/assets/auth.js"></script>
+<script>
+H.mount();
+(function () {
+  const { qs, qsa, store, toast } = H;
+  const pending = store.get('pending', { email: 'ada@ledgerline.app' });
+  qs('#to').textContent = pending.email;
+  let left = 45, t;
+  function tick() {
+    const s = `0:${String(left).padStart(2, '0')}`;
+    qsa('[data-left]').forEach(el => el.textContent = s);
+    const r = qs('#resend');
+    if (left <= 0) { clearInterval(t); r.disabled = false; r.style.color = ''; r.textContent = 'Resend email'; qs('#info-body').textContent = 'Check spam or promotions, or resend the link now.'; }
+    left--;
+  }
+  function start() { left = 45; const r = qs('#resend'); r.disabled = true; r.style.color = 'var(--color-text-tertiary)'; r.innerHTML = 'Resend email (<span data-left>0:45</span>)'; qs('#info-body').innerHTML = 'Check spam or promotions. You can request a new link in <span class="mono" data-left>0:45</span>.'; clearInterval(t); tick(); t = setInterval(tick, 1000); }
+  start();
+  qs('#resend').addEventListener('click', () => { toast('Verification email sent'); start(); });
+  qs('#change').addEventListener('click', () => { qs('#change-form').hidden = false; qs('#email').value = pending.email; qs('#email').focus(); });
+  qs('#cancel').addEventListener('click', () => qs('#change-form').hidden = true);
+  qs('#change-form').addEventListener('submit', e => {
+    e.preventDefault(); const v = qs('#email').value.trim().toLowerCase();
+    if (!Auth.emailOk(v)) { qs('#f-email').classList.add('is-error'); return; }
+    const accts = Auth.accounts(); if (accts[pending.email] && pending.email !== v) { accts[v] = accts[pending.email]; delete accts[pending.email]; store.set('accounts', accts); }
+    pending.email = v; store.set('pending', pending); qs('#to').textContent = v; qs('#change-form').hidden = true; toast('Link sent to ' + v); start();
+  });
+  qs('#verify').addEventListener('click', e => { e.preventDefault(); Auth.startSession(pending.email); location.href = '/welcome?verified=1'; });
+})();
+</script>
+</body>
+</html>
