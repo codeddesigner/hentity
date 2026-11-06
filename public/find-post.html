@@ -94,7 +94,7 @@ H.mount({ active: 'find', tab: 'chats' });
       ${editId ? `<button class="btn btn--ghost btn--sm" type="button" id="close" style="align-self:center">${r.status === 'closed' ? 'Reopen role' : 'Close role'}</button>` : ''}
     </aside></div></div>`;
   const hide = F.tagList(root, '#hide', r.hide_from, 'Add company', 'Company name or email domain (e.g. Nexa Bank or nexabank.com)');
-  qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); if (g.dataset.g === 'kind') { r.kind = F.readChips(root, 'kind')[0]; deal(); } preview(); }));
+  qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); if (g.dataset.g === 'kind') { const was = r.kind === 'cofounder', v = read(); r.kind = F.readChips(root, 'kind')[0]; if (was !== (r.kind === 'cofounder')) { r.equity_min = r.kind === 'cofounder' ? 10 : null; r.equity_max = r.kind === 'cofounder' ? 25 : null; } else { r.equity_min = v.equity_min; r.equity_max = v.equity_max; } r.apply_with = v.apply_with; deal(); } preview(); }));
   F.bindRadio(root, 'vis', v => { r.visibility = v; preview(); });
   function questions() { qs('#qs').innerHTML = r.questions.map((q, i) => `<label class="field"><span class="field__label">Question ${i + 1}</span><input class="input" data-q="${i}" maxlength="200" value="${esc(q)}" placeholder="${i === 0 ? 'Why does this problem matter to you?' : 'When could you start full-time?'}"></label>`).join(''); }
   questions();
@@ -109,7 +109,8 @@ H.mount({ active: 'find', tab: 'chats' });
         <div class="f2"><div><label class="flbl" for="vest">Vesting</label><input class="input" id="vest" value="${esc(r.vesting)}"><p class="fhint" style="margin-top:6px">The usual for co-founders</p></div><div><span class="flbl">Pay</span>${F.chips('pay', [['equity', 'Equity only'], ['stipend', 'Stipend'], ['salary', 'Salary']], r.pay)}</div></div>
         <span class="flbl">Commitment</span>${F.chips('commitment', Object.entries(F.COMMIT), r.commitment)}`
       : `<div class="f2"><div><label class="flbl" for="salary">Pay</label><input class="input" id="salary" maxlength="60" value="${esc(r.salary)}" placeholder="₦900k–1.2M / month"></div><div><label class="flbl" for="eqj">Equity (optional, %)</label><input class="input" id="eqj" type="number" min="0" max="50" step="0.1" value="${r.equity_max ?? ''}" placeholder="0.5"></div></div>
-        ${['contract', 'internship'].includes(r.kind) ? `<label class="flbl" for="dur">Length</label><input class="input" id="dur" maxlength="40" value="${esc(r.duration)}" placeholder="6 months">` : ''}`;
+        ${['contract', 'internship'].includes(r.kind) ? `<label class="flbl" for="dur">Length</label><input class="input" id="dur" maxlength="40" value="${esc(r.duration)}" placeholder="6 months">` : ''}
+        <span class="flbl">Applicants send</span>${F.chips('apply_with', [['both', 'CV and LinkedIn'], ['cv', 'CV'], ['linkedin', 'LinkedIn'], ['either', 'Either one']], r.apply_with || 'either')}<p class="fhint" style="margin-top:6px">We only ask for what you choose. Stealth roles get it once you both say yes.</p>`;
     qsa('#deal [data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); preview(); }));
     const mn = qs('#emin'), mx = qs('#emax');
     const sync = () => { if (!mn) return; let a = +mn.value, b = +mx.value; if (a > b) [a, b] = [b, a]; qs('#eq').textContent = `${a}% – ${b}%`; qs('#fill').style.left = (a / 50 * 100) + '%'; qs('#fill').style.width = ((b - a) / 50 * 100) + '%'; preview(); };
@@ -124,7 +125,7 @@ H.mount({ active: 'find', tab: 'chats' });
       skills: qs('#skills').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 8), product_id: qs('#prod').value || null, startup_name: qs('#sname').value.trim(), startup_line: qs('#sline').value.trim(),
       category: qs('#cat').value, stage: qs('#stage').value, traction: qs('#traction').value.trim(),
       equity_min: co ? a : null, equity_max: co ? b : (qs('#eqj') && qs('#eqj').value !== '' ? +qs('#eqj').value : null), vesting: co && qs('#vest') ? qs('#vest').value.trim() : '',
-      pay: co ? (g('pay') || 'equity') : 'salary', salary: !co && qs('#salary') ? qs('#salary').value.trim() : '', duration: qs('#dur') ? qs('#dur').value.trim() : '',
+      pay: co ? (g('pay') || 'equity') : 'salary', apply_with: co ? (r.apply_with || 'either') : (g('apply_with') || 'either'), salary: !co && qs('#salary') ? qs('#salary').value.trim() : '', duration: qs('#dur') ? qs('#dur').value.trim() : '',
       commitment: co ? (g('commitment') || 'fulltime') : 'fulltime', city: qs('#city').value.trim(), country: r.country, working: g('working') || 'hybrid',
       visibility: r.visibility, nda: qs('[name="nda"]').checked, verified_only: qs('[name="vonly"]').checked, hide_from: hide.get(), questions: r.questions.filter(Boolean) };
   }
