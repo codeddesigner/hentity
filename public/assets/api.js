@@ -93,7 +93,7 @@
     }, 0);
   });
 
-  function err(e) { if (e) { const m = e.message || String(e); const x = new Error({ WEEK_FULL: 'WEEK_FULL', DAY_FULL: 'DAY_FULL', DAY_PAST: 'Pick a launch day from tomorrow onwards', DAY_TOO_FAR: 'Launch days open up to 5 weeks ahead' }[m] || m); x.code = e.code; throw x; } }
+  function err(e) { if (e) { const m = e.message || String(e); const x = new Error({ WEEK_FULL: 'WEEK_FULL', DAY_FULL: 'DAY_FULL', DAY_PAST: 'Pick a launch day from tomorrow onwards', DAY_TOO_OLD: 'Launch days go back up to a year', DAY_TOO_FAR: 'Launch days open up to 5 weeks ahead' }[m] || m); x.code = e.code; throw x; } }
   async function q(promise) { const { data, error, count } = await promise; err(error); return count !== undefined && count !== null && data === null ? count : data; }
   const uid = () => session && session.user.id;
   function requireAuth(next) {

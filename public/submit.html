@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=172c5f3c9c">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=c5275385e1"></script>
+<script src="/assets/api.js?v=b1423660d0"></script>
 <script src="/assets/app.js?v=2366c70bf4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -161,7 +161,7 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/launch.js?v=af26018d21"></script>
+<script src="/assets/launch.js?v=e8a1ba21d8"></script>
 <script>
 H.mount({ active: '', tab: 'launch' });
 (async function () {
@@ -298,7 +298,6 @@ H.mount({ active: '', tab: 'launch' });
 
   // ---- Launch date (calendar of days, 6 spots each)
   let dayFull = false;
-  if (s.launch_date && s.launch_date <= L.lagosToday()) s.launch_date = null;   // an old pick that has passed
   const cal = L.calendar(qs('#cal'), { selected: s.launch_date, own: p && p.launch_date, onPick: (day, slot) => { s.launch_date = day; dayFull = false; update(); scheduleSave(); } });
 
   // ---- Persistence
@@ -334,7 +333,7 @@ H.mount({ active: '', tab: 'launch' });
   const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch date'], ['intro', 'Introduction']];
   let current = 'basics';
   function done() {
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date > L.lagosToday() && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date >= L.addDays(L.lagosToday(), -365) && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
   }
   function update() {
     if (!ready) return;

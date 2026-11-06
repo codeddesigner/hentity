@@ -37,8 +37,9 @@
   // Month calendar of launch days. opts: { selected, own (this product's current day, always pickable), onPick(day, slot) }
   function calendar(root, opts) {
     opts = opts || {};
-    const today = lagosToday(), first = addDays(today, 1), last = addDays(today, 35);
-    let month = (opts.selected || first).slice(0, 7), slots = new Map();
+    // Past days can be picked too (up to a year back) for products that already launched
+    const today = lagosToday(), first = addDays(today, -365), last = addDays(today, 35);
+    let month = (opts.selected || today).slice(0, 7), slots = new Map();
     async function load() {
       const m0 = month + '-01', d = new Date(m0 + 'T12:00:00Z'); const lead = (d.getUTCDay() + 6) % 7; const start = addDays(m0, -lead), end = addDays(start, 41);
       const rows = await API.daySlots(start, end).catch(() => []);
@@ -48,7 +49,7 @@
     function state(day) {
       const sl = slots.get(day) || { taken: 0, capacity: DAY_CAP, launches: [] };
       const mine = day === opts.own, left = sl.capacity - sl.taken + (mine ? 1 : 0);
-      if (day < first) return { k: 'past', t: day <= today ? (day === today ? 'Today' : 'Past') : '', sl };
+      if (day < first) return { k: 'past', t: 'Too long ago', sl };
       if (day > last) return { k: 'far', t: 'Not open yet', sl };
       if (left <= 0) return { k: 'full', t: `${sl.taken} launching · Full`, sl };
       return { k: 'open', t: `${left} left`, sl, left };
@@ -58,10 +59,10 @@
       const cells = Array.from({ length: 42 }, (_, i) => addDays(start, i));
       const lastRow = cells.slice(35).every(c => c.slice(0, 7) !== month) ? 35 : 42;
       root.innerHTML = `<div class="cal">
-        <div class="row between" style="margin-bottom:12px"><p class="t-label">${mDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</p><div class="row gap-6"><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="-1" aria-label="Previous month" ${month <= today.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-left', 'ic-14')}</button><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="1" aria-label="Next month" ${month >= last.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-right', 'ic-14')}</button></div></div>
+        <div class="row between" style="margin-bottom:12px"><p class="t-label">${mDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</p><div class="row gap-6"><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="-1" aria-label="Previous month" ${month <= first.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-left', 'ic-14')}</button><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="1" aria-label="Next month" ${month >= last.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-right', 'ic-14')}</button></div></div>
         <div class="cal__grid" role="grid">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<span class="cal__dow">${d}</span>`).join('')}
         ${cells.slice(0, lastRow).map(day => { const st = state(day), on = day === opts.selected, out = day.slice(0, 7) !== month; return `<button type="button" class="cal__d is-${st.k}${on ? ' is-on' : ''}${out ? ' is-out' : ''}" data-day="${day}" ${st.k === 'open' || on ? '' : 'disabled'} aria-pressed="${on}" aria-label="${dayLabel(day)}: ${st.t}"><b>${+day.slice(8)}</b><span>${on ? (st.sl.taken + (day === opts.own ? 0 : 1)) + ' launching' : st.k === 'full' ? `<i class="cal__n">${st.sl.taken} launching · </i>Full` : esc(st.t)}</span></button>`; }).join('')}</div>
-        <p class="row gap-16 wrap t-caption c-3" style="font-weight:400;margin-top:12px"><span class="row gap-6"><i class="cal__key" style="background:var(--color-success)"></i>Spots left (${DAY_CAP} a day)</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-accent-default)"></i>Your pick</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-border-strong)"></i>Full, past or not open yet</span></p>
+        <p class="row gap-16 wrap t-caption c-3" style="font-weight:400;margin-top:12px"><span class="row gap-6"><i class="cal__key" style="background:var(--color-success)"></i>Spots left (${DAY_CAP} a day)</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-accent-default)"></i>Your pick</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-border-strong)"></i>Full, more than a year ago, or not open yet</span></p>
         <div id="cal-info"></div></div>`;
       info();
     }
@@ -70,7 +71,7 @@
       if (!opts.selected) { box.innerHTML = ''; return; }
       const st = state(opts.selected), sl = st.sl, others = sl.launches || [];
       const n = sl.taken + (opts.selected === opts.own ? 0 : 1), left = Math.max(0, sl.capacity - n);
-      box.innerHTML = `<div class="cal__info">${icon('calendar')}<div><p class="t-label">${esc(dayLabel(opts.selected))}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">Live at 06:00 WAT · ${n} startup${n === 1 ? '' : 's'} launching that day · ${left} spot${left === 1 ? '' : 's'} left · on the board until Monday ${esc(shortDay(nextMonday(opts.selected)).replace(/^\w+ /, ''))}</p>${others.length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:8px">${others.slice(0, 4).map(o => H.plogo(o, 20)).join('')}<span>${esc(others.map(o => o.name).slice(0, 3).join(', '))}${others.length > 3 ? ' and ' + (others.length - 3) + ' more' : ''}</span></p>` : ''}</div></div>`;
+      box.innerHTML = `<div class="cal__info">${icon('calendar')}<div><p class="t-label">${esc(dayLabel(opts.selected))}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${opts.selected <= today ? 'Backdated launch · goes live as soon as it’s approved, listed on this day' : 'Live at 06:00 WAT'} · ${n} startup${n === 1 ? '' : 's'} launching that day · ${left} spot${left === 1 ? '' : 's'} left · on the board until Monday ${esc(shortDay(nextMonday(opts.selected)).replace(/^\w+ /, ''))}</p>${others.length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:8px">${others.slice(0, 4).map(o => H.plogo(o, 20)).join('')}<span>${esc(others.map(o => o.name).slice(0, 3).join(', '))}${others.length > 3 ? ' and ' + (others.length - 3) + ' more' : ''}</span></p>` : ''}</div></div>`;
     }
     root.onclick = e => {
       const mv = e.target.closest('[data-mv]'); if (mv) { const d = new Date(month + '-01T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() + (+mv.dataset.mv)); month = d.toISOString().slice(0, 7); load(); return; }
@@ -80,7 +81,7 @@
     load();
     return {
       reload: load, get selected() { return opts.selected; },
-      set(day) { opts.selected = day; month = (day || first).slice(0, 7); return load(); },
+      set(day) { opts.selected = day; month = (day || today).slice(0, 7); return load(); },
       // first open day on or after `from`
       async nextOpen(from) { const rows = await API.daySlots(from, addDays(from, 34)).catch(() => []); const r = (rows || []).find(x => x.day >= first && x.day <= last && x.taken < x.capacity && x.day !== from); return r ? r.day : null; }
     };
