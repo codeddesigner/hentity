@@ -89,7 +89,9 @@ module.exports = async (req, res) => {
   }
   const key = slug ? String(slug).toLowerCase() : '';
   // Short edge cache: repeat visits are served instantly, and nothing is more than ~a minute old
-  const CACHE = 'public, s-maxage=30, stale-while-revalidate=60';
+  // Browsers always re-check (so a new release shows on the next load); Vercel's edge keeps a 30s copy.
+  const CACHE = 'public, max-age=0, must-revalidate';
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=30, stale-while-revalidate=60');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   if (type === 'home' || type === 'news') {
     const data = await PRELOAD[type]().catch(() => null);
@@ -103,7 +105,7 @@ module.exports = async (req, res) => {
   ]);
   if (!meta) {
     // Unknown or unpublished: let the client render its own "not found" state, but keep it out of the index.
-    res.setHeader('Cache-Control', 'public, s-maxage=60');
+    res.setHeader('Cache-Control', CACHE);
     return res.end(page.replace(/<meta name="robots"[^>]*>/g, '').replace('</head>', '<meta name="robots" content="noindex">\n</head>'));
   }
   const url = SITE + meta.path, img = meta.image || SITE + '/og.png?v=' + require('./_cols.json').OG_V;

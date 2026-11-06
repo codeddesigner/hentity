@@ -155,6 +155,7 @@
       <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
       <nav class="sb-nav" aria-label="Primary">
         ${item('products', 'Products', '/', 'package')}
+        ${item('betas', 'Beta tests', '/betas', 'flask')}
         ${item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true)}
         ${item('news', 'News', '/news', 'newspaper')}
       </nav>
