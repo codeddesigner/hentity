@@ -236,6 +236,8 @@
     setPayout: (app, phone, network) => q(sb.rpc('beta_set_payout', { app, phone, network })),
     myPayout: app => q(sb.rpc('my_beta_payout', { app })),
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
+    // Insights
+    insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
     // Badges & embeds
     badgeInfo: slug => q(sb.rpc('badge_info', { s: slug })),
     badgeSummary: pid => q(sb.rpc('badge_summary', { pid })),

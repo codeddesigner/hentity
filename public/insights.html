@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=2" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+<link rel="shortcut icon" href="/favicon.ico?v=2">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=c24b5ba18a">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=8a9c56b023"></script>
+<script src="/assets/app.js?v=dfe5649fac"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>The state of African startups · Insights · Hentity</title>
+<meta name="description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
+<style>
+.ins{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
+.ins-eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--color-accent-default)}
+.ins h1{font-size:44px;line-height:50px;font-weight:600;letter-spacing:-.03em;margin:6px 0 22px}
+.ins-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.ins-tabs{display:flex;gap:2px;background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:12px;padding:3px}
+.ins-tabs button{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:9px;font-size:13px;color:var(--color-text-secondary)}
+.ins-tabs button[aria-selected="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:500}
+.ins-sel{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid var(--color-border-default);border-radius:12px;background:var(--color-bg-subtle);flex:1;min-width:280px}
+.ins-sel select{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;padding-right:16px}
+.ins-sel .sp{flex:1}
+.ins-act{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 10px;font-size:13px;font-weight:500;border-radius:10px}
+.ins-act:hover{background:var(--color-bg-subtle)}
+.ins-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+.ins-sec{padding-bottom:28px;margin-bottom:28px;border-bottom:1px solid var(--color-border-default)}
+.ins-sec:last-child{border-bottom:0}
+.ins-h{font-size:14px;font-weight:500}.ins-s{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.kpis4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:18px}
+.kpis4>div{padding:6px 16px;border-left:1px solid var(--color-border-default)}.kpis4>div:first-child{padding-left:0;border-left:0}
+.kpis4 p.l{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.kpis4 b{display:block;font-size:30px;line-height:38px;font-weight:500;letter-spacing:-.02em;margin:10px 0 8px}
+.delta{font-size:12px;display:inline-flex;align-items:center;gap:4px}.delta.up{color:var(--color-success)}.delta.down{color:var(--color-error)}.delta.flat{color:var(--color-text-tertiary)}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,9px);gap:2px;margin-top:6px}
+.heat i{width:9px;height:9px;border-radius:2px;background:var(--color-bg-muted)}
+.heat i[data-l="1"]{background:#c9c9c9}.heat i[data-l="2"]{background:#8a8a8a}.heat i[data-l="3"]{background:#454545}.heat i[data-l="4"]{background:#0a0a0a}
+.heat i.rec{background:var(--color-accent-default)!important}
+:root[data-theme="dark"] .heat i[data-l="4"]{background:#fafafa}:root[data-theme="dark"] .heat i[data-l="3"]{background:#bdbdbd}
+.heat-m{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin:14px 0 4px 18px}
+.heat-wrap{display:flex;gap:6px}.heat-d{display:grid;grid-template-rows:repeat(7,9px);gap:2px;font-size:7px;color:var(--color-text-tertiary);margin-top:6px}
+.legend{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-tertiary)}.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.clist{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.crow{display:flex;align-items:center;gap:10px}
+.crow .bar{height:22px;border-radius:5px;background:var(--color-bg-muted);display:flex;align-items:center;gap:8px;padding:0 8px;font-size:12px;font-weight:500;min-width:110px;white-space:nowrap}
+.crow b{margin-left:auto;font-weight:500;font-size:14px;font-variant-numeric:tabular-nums}
+.conc b{font-size:44px;line-height:48px;font-weight:500;letter-spacing:-.03em}
+.cbar{display:flex;gap:3px;height:12px;margin:14px 0 10px}.cbar i{border-radius:2px}
+.stg{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:8px}.stg span{flex:1;color:var(--color-text-secondary)}.stg i{height:5px;border-radius:3px;background:var(--color-text-primary)}.stg b{width:40px;text-align:right;font-weight:500}
+.tree{position:relative;height:470px;margin-top:14px}
+.tree a{position:absolute;padding:10px;font-family:var(--font-mono);font-size:12px;color:#0a0a0a;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;transition:filter .15s}
+.tree a:hover{filter:brightness(.95)}
+.tree a b{font-family:var(--font-sans);font-size:15px;font-weight:500;text-align:right}
+.tree a.fast{outline:1.5px solid var(--color-accent-default);outline-offset:-1.5px;color:var(--color-accent-default);background:var(--color-bg-canvas)!important}
+.tree a.zero{color:var(--color-text-tertiary)}
+.citylist .r{display:grid;grid-template-columns:28px 20px 130px minmax(0,1fr) 48px 36px;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--color-border-default);font-size:13px}
+.citylist .r:first-child{border-top:0}
+.citylist .n{font-family:var(--font-mono);color:var(--color-text-tertiary)}
+.citylist .tr{height:6px;border-radius:3px;background:var(--color-bg-muted);overflow:hidden}.citylist .tr i{display:block;height:100%;border-radius:3px}
+.citylist .v{text-align:right;font-weight:500;font-variant-numeric:tabular-nums}.citylist .p{font-size:12px;color:var(--color-success);text-align:right}
+.ins-note{display:flex;gap:8px;font-size:12px;color:var(--color-text-tertiary);margin-top:8px}
+.ins-table{width:100%;border-collapse:collapse;font-size:13px}.ins-table th{text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:12px;padding:8px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td{padding:10px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td.num,.ins-table th.num{text-align:right;font-variant-numeric:tabular-nums}
+.chipsx{display:none}
+body.embed .sidebar,body.embed .tabbar,body.embed .ins-bar .ins-act{display:none!important}
+body.embed .ins{padding:16px}
+@media (max-width:1180px){.ins{padding:24px 32px 80px}}
+@media (max-width:960px){.ins-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:768px){
+  .ins{padding:12px 16px 32px}.ins h1{font-size:28px;line-height:34px;margin:4px 0 14px}
+  .ins-bar{display:none}.chipsx{display:flex;margin:0 -16px 18px;padding:0 16px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .kpis4{grid-template-columns:1fr 1fr;row-gap:18px}.kpis4>div:nth-child(3){padding-left:0;border-left:0}
+  .heat-sec,.concs,.cc-sec{display:none}.tree{height:300px}
+  .citylist .r{grid-template-columns:20px 90px minmax(0,1fr) 40px}.citylist .n,.citylist .p{display:none}
+}
+</style>
+<link rel="canonical" href="https://hentity.com/insights">
+<meta property="og:title" content="The state of African startups · Insights · Hentity">
+<meta property="og:description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
+<meta property="og:url" content="https://hentity.com/insights">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=712e217edc">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The state of African startups · Insights · Hentity">
+<meta name="twitter:description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=712e217edc">
+</head>
+<body>
+<div data-header></div>
+<main class="ins" id="main">
+  <p class="ins-eyebrow">INSIGHTS · UPDATED HOURLY</p>
+  <h1>The state of African startups</h1>
+  <div class="ins-bar">
+    <div class="ins-tabs" role="tablist" id="tabs">
+      <button role="tab" data-t="overview" aria-selected="true"><span data-icon="bar-chart" data-cls="ic-14"></span>Overview</button>
+      <button role="tab" data-t="industries" aria-selected="false"><span data-icon="package" data-cls="ic-14"></span>Industries</button>
+      <button role="tab" data-t="cities" aria-selected="false"><span data-icon="globe" data-cls="ic-14"></span>Cities</button>
+      <button role="tab" data-t="funding" aria-selected="false"><span data-icon="sparkles" data-cls="ic-14"></span>Funding</button>
+    </div>
+    <label class="ins-sel"><span data-icon="globe" data-cls="ic-16"></span><select id="cc" aria-label="Region"><option value="">All of Africa</option></select><span data-icon="chevron-down" data-cls="ic-14" style="margin-left:-20px;pointer-events:none"></span><span class="sp"></span>
+      <select id="days" aria-label="Period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select><span data-icon="chevron-down" data-cls="ic-14" style="margin-left:-20px;pointer-events:none"></span></label>
+    <button class="ins-act" type="button" id="csv"><span data-icon="download" data-cls="ic-16"></span>Download CSV</button>
+    <button class="ins-act" type="button" id="embed"><span data-icon="link" data-cls="ic-16"></span>Embed</button>
+    <button class="btn btn--primary btn--sm" type="button" id="share">Share</button>
+  </div>
+  <div class="chips chipsx" data-single id="ccm"></div>
+  <div id="view"><div class="skel" style="height:520px;border-radius:16px"></div></div>
+  <p class="ins-note"><span data-icon="info" data-cls="ic-14"></span><span>Counts every public product on Hentity, launched or scheduled. Page views are Hentity page loads. Free to reuse under CC BY 4.0 with a link to hentity.com/insights.</span></p>
+</main>
+<div data-tabbar></div>
+<script>
+const EMBED = new URLSearchParams(location.search).get('embed') === '1';
+if (EMBED) document.body.classList.add('embed');
+H.mount({ active: 'insights', tab: 'products' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, flag } = H;
+  const CN = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' };
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const slug = s => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const prm = H.params();
+  let tab = prm.get('tab') || 'overview', cc = (prm.get('country') || '').toUpperCase(), days = +(prm.get('days') || 30), D = null, ALL = null;
+  qs('#cc').innerHTML = '<option value="">All of Africa</option>' + Object.entries(CN).map(([k, v]) => `<option value="${k}"${k === cc ? ' selected' : ''}>${esc(v)}</option>`).join('');
+  qs('#days').value = String(days);
+  qsa('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === tab)));
+  const n = v => (v || 0).toLocaleString('en-US');
+  const pct = (a, b) => b ? Math.round((a - b) / b * 1000) / 10 : null;
+  const delta = (cur, prev, word) => { const p = pct(cur, prev); if (p === null) return cur ? `<span class="delta up">${icon('upvote', 'ic-12')}${n(cur)} new</span>` : `<span class="delta flat">No change</span>`; return `<span class="delta ${p > 0 ? 'up' : p < 0 ? 'down' : 'flat'}">${p ? icon('upvote', 'ic-12').replace('<svg', `<svg style="${p < 0 ? 'transform:rotate(180deg)' : ''}"`) : ''}${Math.abs(p)}%${word ? ' ' + word : ''}</span>`; };
+  const period = () => ({ 7: 'last 7 days', 30: 'last 30 days', 90: 'last 90 days', 365: 'last 12 months' })[days] || `last ${days} days`;
+
+  async function load() {
+    qs('#view').style.opacity = .5;
+    try {
+      [D, ALL] = await Promise.all([API.insights(cc, days), cc ? (ALL || API.insights('', days)) : null]);
+      if (!cc) ALL = D;
+      render(); H.contentShown();
+    } catch (e) { H.fail(e); qs('#view').innerHTML = '<p class="c-2">Couldn’t load insights. Try again in a moment.</p>'; }
+    qs('#view').style.opacity = 1;
+    const u = new URLSearchParams(); if (tab !== 'overview') u.set('tab', tab); if (cc) u.set('country', cc); if (days !== 30) u.set('days', days); if (EMBED) u.set('embed', '1');
+    history.replaceState(null, '', location.pathname + (u.toString() ? '?' + u : ''));
+  }
+  // mobile country chips
+  const mobileCC = () => { qs('#ccm').innerHTML = [['', 'All of Africa'], ...((ALL && ALL.countries) || []).slice(0, 6).map(c => [c.cc, CN[c.cc] || c.cc])].map(([k, l]) => `<button class="chip" type="button" data-chip data-cc="${k}" aria-pressed="${k === cc}">${icon('check')}${esc(l)}</button>`).join(''); };
+
+  // ---------------------------------------------------------------- pieces
+  function kpis() {
+    const where = cc ? CN[cc] : 'Hentity ecosystem';
+    return `<section class="ins-sec"><p class="ins-h">Overview</p><p class="ins-s">${esc(where)} · ${period()}</p>
+      <div class="kpis4">
+        <div><p class="l">${icon('rocket', 'ic-16')}Startups live</p><b data-count-to="${D.live}">0</b><span class="delta ${D.live_week ? 'up' : 'flat'}">${D.live_week ? icon('upvote', 'ic-12') + n(D.live_week) + ' this week' : 'None new this week'}</span></div>
+        <div><p class="l">${icon('calendar', 'ic-16')}Launched</p><b data-count-to="${D.launched}">0</b>${delta(D.launched, D.launched_prev)}</div>
+        <div><p class="l">${icon('eye', 'ic-16')}Page views</p><b data-count-to="${D.views}">0</b>${delta(D.views, D.views_prev)}</div>
+        <div><p class="l">${icon('globe', 'ic-16')}Cities</p><b data-count-to="${D.cities}">0</b><span class="delta ${D.cities_new ? 'up' : 'flat'}">${D.cities_new ? icon('upvote', 'ic-12') + n(D.cities_new) + ' new' : 'No new cities'}</span></div>
+      </div></section>`;
+  }
+  function heat() {
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const start = new Date(today); start.setDate(start.getDate() - 364 - ((start.getDay() + 6) % 7));
+    const cells = [], counts = D.heat || {}, vals = Object.values(counts);
+    const max = Math.max(1, ...vals), rec = new Set(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, v]) => v >= 3).map(([k]) => k));
+    const months = [];
+    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+      const k = d.toISOString().slice(0, 10), v = counts[k] || 0;
+      const l = v ? Math.min(4, Math.ceil(v / max * 4)) : 0;
+      cells.push(`<i data-l="${l}"${rec.has(k) ? ' class="rec"' : ''} title="${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}: ${v} launch${v === 1 ? '' : 'es'}"></i>`);
+      if (d.getDate() === 1) months.push(d.toLocaleDateString('en-GB', { month: 'short' }));
+    }
+    const total = vals.reduce((a, b) => a + b, 0);
+    return `<section class="ins-sec heat-sec"><p class="ins-h">Launches</p><p class="ins-s">New startups going live each day · last 12 months · ${n(total)} total</p>
+      <div class="heat-m">${months.slice(-12).map(m => `<span>${m}</span>`).join('')}</div>
+      <div class="heat-wrap"><div class="heat-d">${['Mo', '', 'We', '', 'Fr', '', 'Su'].map(x => `<span>${x}</span>`).join('')}</div><div class="heat" style="overflow:hidden">${cells.join('')}</div></div>
+      <div class="row between" style="margin-top:10px;align-items:flex-start"><p class="t-caption c-3" style="font-weight:400;max-width:60%">${rec.size ? 'Orange: record launch days.' : 'Each square is a day. Darker means more launches.'}</p><span class="legend">Fewer <i style="background:var(--color-bg-muted)"></i><i style="background:#c9c9c9"></i><i style="background:#8a8a8a"></i><i style="background:#454545"></i><i style="background:#0a0a0a"></i> More</span></div></section>`;
+  }
+  function countries() {
+    const L = (ALL || D).countries || [], top = L.slice(0, 6), rest = L.slice(6).reduce((a, c) => a + c.n, 0), max = Math.max(1, ...L.map(c => c.n));
+    return `<div><p class="ins-h">Countries</p><p class="ins-s">Startups live by country</p><div class="clist">${top.map(c => `<a class="crow" href="/countries/${slug(CN[c.cc] || c.cc)}"><span class="bar" style="width:${Math.max(40, c.n / max * 100)}%">${flag(c.cc)}${esc(CN[c.cc] || c.cc)}</span><b>${n(c.n)}</b></a>`).join('') || '<p class="t-body-sm c-2">No products yet.</p>'}${L.length > 6 ? `<div class="crow"><span class="bar" style="width:40%">${L.length - 6} more</span><b>${n(rest)}</b></div>` : ''}</div></div>`;
+  }
+  function concentration() {
+    const C = D.city_list || [], tot = Math.max(1, C.reduce((a, c) => a + c.n, 0)), top = C.slice(0, 3), share = Math.round(top.reduce((a, c) => a + c.n, 0) / tot * 100);
+    const cols = ['#E5F000', '#A6E1F7', '#D3F0FB'];
+    const S = D.stages || [], st = Math.max(1, S.reduce((a, s) => a + s.n, 0));
+    return `<div class="concs"><p class="ins-h">Concentration</p><p class="ins-s">Share of startups in the top 3 cities</p>
+      <div class="conc row gap-12" style="margin-top:14px;align-items:baseline"><b>${C.length ? share : 0}%</b><span class="t-caption c-2" style="font-weight:400">${esc(top.map(c => c.city).join(', ') || 'No cities yet')}</span></div>
+      <div class="cbar">${top.map((c, i) => `<i style="width:${c.n / tot * 100}%;background:${cols[i]}"></i>`).join('')}<i style="flex:1;background:var(--color-bg-muted)"></i></div>
+      <div class="row gap-12 wrap t-caption c-3" style="font-weight:400">${top.map((c, i) => `<span class="row gap-4"><i style="width:8px;height:8px;border-radius:2px;background:${cols[i]};display:inline-block"></i>${esc(c.city)} ${Math.round(c.n / tot * 100)}%</span>`).join('')}${C.length > 3 ? `<span>Rest ${100 - share}%</span>` : ''}</div>
+      <p class="st-label" style="margin:18px 0 4px">By stage</p>${S.map(s => `<div class="stg"><span>${esc(s.stage)}</span><i style="width:${Math.max(6, s.n / st * 100)}px"></i><b>${Math.round(s.n / st * 100)}%</b></div>`).join('')}</div>`;
+  }
+  function squarify(items, W, Hh) {
+    const out = [], area = W * Hh, total = items.reduce((a, i) => a + i.w, 0) || 1;
+    let rest = items.map(i => Object.assign({}, i, { a: i.w / total * area })), x = 0, y = 0, w = W, h = Hh;
+    const worst = (row, side) => { const s = row.reduce((a, r) => a + r.a, 0), mx = Math.max(...row.map(r => r.a)), mn = Math.min(...row.map(r => r.a)); return Math.max(side * side * mx / (s * s), (s * s) / (side * side * mn)); };
+    while (rest.length) {
+      const side = Math.min(w, h); let row = [rest[0]], i = 1;
+      while (i < rest.length && worst(row.concat(rest[i]), side) <= worst(row, side)) { row.push(rest[i]); i++; }
+      rest = rest.slice(i);
+      const s = row.reduce((a, r) => a + r.a, 0);
+      if (w >= h) { const cw = s / h; let cy = y; row.forEach(r => { const ch = r.a / cw; out.push(Object.assign(r, { x, y: cy, w: cw, h: ch })); cy += ch; }); x += cw; w -= cw; }
+      else { const ch = s / w; let cx = x; row.forEach(r => { const cw = r.a / ch; out.push(Object.assign(r, { x: cx, y, w: cw, h: ch })); cx += cw; }); y += ch; h -= ch; }
+    }
+    return out;
+  }
+  function industries(fullHeight) {
+    const by = new Map((D.industries || []).map(i => [i.name, i]));
+    const L = CATS.map(c => Object.assign({ name: c, n: 0, cur: 0, prev: 0 }, by.get(c) || {})).concat((D.industries || []).filter(i => !CATS.includes(i.name)));
+    L.sort((a, b) => b.n - a.n);
+    const minPos = Math.max(1, Math.min(...L.filter(i => i.n).map(i => i.n), 1));
+    const growth = L.filter(i => i.cur >= 2).map(i => [i, i.prev ? (i.cur - i.prev) / i.prev : i.cur]).sort((a, b) => b[1] - a[1])[0];
+    const fast = growth && growth[1] > 0 ? growth[0].name : null;
+    const max = Math.max(1, L[0] ? L[0].n : 1);
+    return `<section${fullHeight ? '' : ' class="ins-sec"'}><p class="ins-h">Industries</p><p class="ins-s">${L.filter(i => i.n).length} industries · sorted by startups live</p>
+      <div class="tree" id="tree" data-items='${esc(JSON.stringify(L.map(i => ({ name: i.name, n: i.n, w: i.n || minPos * 0.35, cur: i.cur, prev: i.prev }))))}' data-fast="${esc(fast || '')}" data-max="${max}"></div>
+      <div class="row gap-16 t-caption c-3" style="font-weight:400;margin-top:10px"><span class="row gap-6"><i style="width:9px;height:9px;background:#E5F000;display:inline-block"></i>Largest</span>${fast ? `<span class="row gap-6"><i style="width:9px;height:9px;outline:1.5px solid var(--color-accent-default);display:inline-block"></i>Fastest growing</span>` : ''}</div></section>`;
+  }
+  function drawTree() {
+    const el = qs('#tree'); if (!el) return;
+    const items = JSON.parse(el.dataset.items), fast = el.dataset.fast, max = +el.dataset.max;
+    const W = el.clientWidth, Hh = el.clientHeight, G = 4;
+    const cells = squarify(items, W, Hh);
+    el.innerHTML = cells.map((c, i) => {
+      const bg = i === 0 && c.n ? '#E5F000' : c.n === 0 ? 'var(--color-bg-subtle)' : c.n / max > 0.25 ? '#A6E1F7' : '#D3F0FB';
+      const g = c.name === fast && c.prev ? Math.round((c.cur - c.prev) / c.prev * 100) : null;
+      return `<a href="/categories/${slug(c.name)}" class="${c.name === fast ? 'fast' : ''}${c.n === 0 ? ' zero' : ''}" style="left:${c.x}px;top:${c.y}px;width:${Math.max(0, c.w - G)}px;height:${Math.max(0, c.h - G)}px;background:${bg}" title="${esc(c.name)}: ${c.n}"><span>${esc(c.name.toLowerCase())}${c.name === fast ? ` ↑${g !== null ? g + '%' : ''}` : ''}</span>${c.w > 46 && c.h > 46 ? `<b>${n(c.n)}</b>` : ''}</a>`;
+    }).join('');
+  }
+  function cities(limit) {
+    const C = (D.city_list || []).slice(0, limit), max = Math.max(1, ...C.map(c => c.n));
+    return `<section><p class="ins-h">Cities</p><p class="ins-s">${limit < (D.city_list || []).length ? `Top ${limit} of ${D.city_list.length} cities` : `${C.length} cities`} · startups live</p>
+      <div class="citylist" style="margin-top:12px">${C.map((c, i) => `<div class="r"><span class="n">${String(i + 1).padStart(2, '0')}</span>${flag(c.cc)}<span class="truncate">${esc(c.city)}</span><span class="tr"><i style="width:${c.n / max * 100}%;background:${i === 0 ? '#E5F000' : '#A6E1F7'}"></i></span><span class="v">${n(c.n)}</span><span class="p">${c.new ? '+' + c.new : ''}</span></div>`).join('') || '<p class="t-body-sm c-2" style="padding:10px 0">No cities yet.</p>'}</div></section>`;
+  }
+  function funding() {
+    const S = D.stages || [], st = Math.max(1, S.reduce((a, s) => a + s.n, 0)), R = D.raised || [];
+    return `<div class="ins-grid"><section><p class="ins-h">Startups by stage</p><p class="ins-s">${n(D.total)} startups · as set by their makers</p>
+        <table class="ins-table" style="margin-top:12px"><tr><th>Stage</th><th class="num">Startups</th><th class="num">Share</th></tr>${S.map(s => `<tr><td>${esc(s.stage)}</td><td class="num">${n(s.n)}</td><td class="num">${Math.round(s.n / st * 100)}%</td></tr>`).join('')}</table></section>
+      <section><p class="ins-h">Disclosed funding</p><p class="ins-s">From company profiles that list an amount raised</p>
+        ${R.length ? `<table class="ins-table" style="margin-top:12px"><tr><th>Startup</th><th>Stage</th><th class="num">Raised</th></tr>${R.map(r => `<tr><td><a class="link" href="/products/${esc(r.slug)}">${esc(r.name)}</a></td><td>${esc(r.stage || '')}</td><td class="num">${esc(r.raised)}</td></tr>`).join('')}</table>` : `<p class="t-body-sm c-2" style="margin-top:12px">No startups have shared an amount raised yet. Makers can add it to their company profile when they submit.</p>`}</section></div>`;
+  }
+  function industriesTab() {
+    const L = (D.industries || []).slice();
+    return `<div class="ins-grid">${industries(true)}<section><p class="ins-h">All industries</p><p class="ins-s">${period()} compared with the period before</p>
+      <table class="ins-table" style="margin-top:12px"><tr><th>Industry</th><th class="num">Startups</th><th class="num">New</th><th class="num">Before</th></tr>${L.map(i => `<tr><td><a class="link" href="/categories/${slug(i.name)}">${esc(i.name)}</a></td><td class="num">${n(i.n)}</td><td class="num">${n(i.cur)}</td><td class="num">${n(i.prev)}</td></tr>`).join('') || '<tr><td colspan="4" class="c-2">No products yet.</td></tr>'}</table></section></div>`;
+  }
+
+  function render() {
+    mobileCC();
+    let html;
+    if (tab === 'industries') html = industriesTab();
+    else if (tab === 'cities') html = `<div class="ins-grid">${cities(40)}<div>${countries()}</div></div>`;
+    else if (tab === 'funding') html = funding();
+    else html = `<div class="ins-grid"><div>${kpis()}${heat()}<section class="ins-sec cc-sec" style="display:grid;grid-template-columns:1fr 1fr;gap:28px">${countries()}${concentration()}</section></div><div>${industries()}${cities(8)}</div></div>`;
+    qs('#view').innerHTML = html;
+    drawTree(); M.countUp && M.countUp(qs('#view'));
+  }
+
+  qs('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; tab = b.dataset.t; qsa('#tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b))); render(); load(); });
+  qs('#cc').addEventListener('change', e => { cc = e.target.value; load(); });
+  qs('#days').addEventListener('change', e => { days = +e.target.value; ALL = null; load(); });
+  qs('#ccm').addEventListener('click', e => { const b = e.target.closest('[data-cc]'); if (!b) return; cc = b.dataset.cc; qs('#cc').value = cc; load(); });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawTree, 150); });
+  qs('#share').onclick = () => { const u = location.href.replace(/[?&]embed=1/, ''); if (navigator.share) navigator.share({ title: 'The state of African startups · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u).catch(() => {}); toast('Link copied'); } };
+  qs('#embed').onclick = () => { const u = `${location.origin}/insights?embed=1${cc ? '&country=' + cc : ''}`; const code = `<iframe src="${u}" width="100%" height="900" style="border:0" title="The state of African startups · Hentity"></iframe>`; navigator.clipboard && navigator.clipboard.writeText(code).catch(() => {}); toast('Embed code copied'); };
+  qs('#csv').onclick = () => {
+    if (!D) return;
+    const rows = [['section', 'name', 'value', 'new_in_period'], ['overview', 'startups_live', D.live, D.live_week], ['overview', 'launched', D.launched, ''], ['overview', 'page_views', D.views, ''], ['overview', 'cities', D.cities, D.cities_new],
+      ...(D.industries || []).map(i => ['industry', i.name, i.n, i.cur]), ...(D.countries || []).map(c => ['country', CN[c.cc] || c.cc, c.n, '']), ...(D.city_list || []).map(c => ['city', `${c.city} (${c.cc})`, c.n, c.new]), ...(D.stages || []).map(s => ['stage', s.stage, s.n, ''])];
+    const csv = rows.map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = `hentity-insights-${cc || 'africa'}-${days}d.csv`; a.click();
+  };
+  await API.ready; load();
+})();
+</script>
+</body>
+</html>

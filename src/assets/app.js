@@ -165,6 +165,7 @@
         ${item('products', 'Products', '/', 'package')}
         ${item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true)}
         ${item('news', 'News', '/news', 'newspaper')}
+        ${item('insights', 'Insights', '/insights', 'bar-chart')}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
         ${item('my-products', 'My products', '/my-products', 'rocket')}

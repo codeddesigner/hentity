@@ -123,6 +123,10 @@
     beta_set_payout: a => { T.beta_payouts = T.beta_payouts || []; T.beta_payouts.push({ application_id: a.app, phone: a.phone, network: a.network, status: 'pending' }); return null; },
     my_beta_payout: a => { const o = (T.beta_payouts || []).find(x => x.application_id === a.app); return o ? { masked: o.phone.slice(0, 7) + ' ••• ' + o.phone.slice(-4), network: o.network, amount: 1000, status: o.status } : null; },
     beta_nudge: () => 1,
+    insights: a => { const P = T.products.filter(p => ['live','scheduled'].includes(p.status) && (!a.cc || p.country === a.cc)); const cnt = f => { const m = {}; P.forEach(p => [].concat(f(p)).forEach(k => k && (m[k] = (m[k] || 0) + 1))); return m; }; const heat = {}; P.forEach((p, i) => { const d = new Date(Date.now() - (i * 9 % 300) * 864e5).toISOString().slice(0, 10); heat[d] = (heat[d] || 0) + 1 + (i % 4); }); const cities = {}; P.forEach(p => { const k = p.city + '|' + p.country; cities[k] = (cities[k] || 0) + 1; });
+      return { days: a.days, live: P.length, live_week: 3, launched: 9, launched_prev: 6, views: 4120, views_prev: 3300, cities: Object.keys(cities).length, cities_new: 1, heat, total: P.length,
+        industries: Object.entries(cnt(p => p.categories)).map(([name, n], i) => ({ name, n, cur: i === 2 ? 3 : 1, prev: 1 })).sort((x, y) => y.n - x.n), countries: Object.entries(cnt(p => p.country)).map(([cc, n]) => ({ cc, n })).sort((x, y) => y.n - x.n),
+        city_list: Object.entries(cities).map(([k, n]) => ({ city: k.split('|')[0], cc: k.split('|')[1], n, new: n > 1 ? 1 : 0 })).sort((x, y) => y.n - x.n), stages: Object.entries(cnt(p => p.stage || 'Pre-seed')).map(([stage, n]) => ({ stage, n })), raised: [] }; },
     badge_info: a => ({ name: 'X', slug: a.s, upvotes: 212, live: true, week_rank: 1, week_over: true, week_label: '2 Nov', month_rank: 4, month_over: false, month: 'November 2026' }),
     badge_summary: () => ({ views: 18420, clicks: 1204, upvotes: 212 }), badge_hit: () => null,
     beta_track: a => { const b = T.betas.find(x => x.slug === a.s); if (b) b.opens++; return null; },
