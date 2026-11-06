@@ -151,7 +151,7 @@ H.mount({ active: '', tab: 'launch' });
   qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video_url || '';
   qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   qs('#country').value = s.country;
-  const CATS = ['Fintech', 'SaaS', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
   const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Transfer', 'Free'];
   qs('#cats').innerHTML = CATS.map(c => `<button class="chip" type="button" data-chip data-cat="${c}" aria-pressed="${s.categories.includes(c)}">${icon('check')}${c}</button>`).join('');
   qs('#pay').innerHTML = PAY.map(c => `<button class="chip" type="button" data-chip data-pay="${c}" aria-pressed="${s.pay_methods.includes(c)}">${icon('check')}${c}</button>`).join('');

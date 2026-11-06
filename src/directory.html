@@ -68,7 +68,7 @@ H.mount({ active: 'products', tab: 'products' });
   if (term) { Object.keys(state).forEach(k => state[k] = []); scope = 'all'; }
   if (prm.get('sort')) qs('#sort').value = prm.get('sort');
   Object.entries(G).forEach(([g, opts]) => { qs(`[data-group="${g}"]`).innerHTML = opts.map(([v, l]) => `<label class="check"><input type="checkbox" value="${v}" data-f="${g}" ${state[g].includes(v) ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${l || v}</label>`).join(''); });
-  const sectors = ['Fintech', 'Commerce', 'Education', 'Health', 'AI', 'Agriculture', 'Dev Tools', 'Logistics'];
+  const sectors = ['Fintech', 'Apps', 'Commerce', 'Education', 'Health', 'AI', 'Agriculture', 'Dev Tools', 'Logistics'];
   qs('#sector').innerHTML = sectors.map(s => `<button class="chip" type="button" data-chip data-sector="${s}" aria-pressed="${state.sector.includes(s)}">${icon('check')}${s}</button>`).join('');
   H.bindChips(qs('#sector'), () => { state.sector = qsa('#sector [aria-pressed="true"]').map(c => c.dataset.sector); render(); });
   document.addEventListener('change', e => { const f = e.target.dataset && e.target.dataset.f; if (!f) return; state[f] = qsa(`[data-f="${f}"]:checked`).map(i => i.value); render(); });
