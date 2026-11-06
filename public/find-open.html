@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
+<link rel="stylesheet" href="/assets/styles.css?v=88a42d4d6f">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=ff6a430903"></script>
+<script src="/assets/api.js?v=2f228cf5e9"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -43,7 +43,7 @@
 <div data-header></div>
 <main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=9aaffbb9aa"></script>
+<script src="/assets/find.js?v=d10823b698"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -69,6 +69,10 @@ H.mount({ active: 'find', tab: 'chats' });
         <label class="flbl" for="wants">What you want, in a line</label><input class="input" id="wants" maxlength="140" value="${esc(f.wants)}" placeholder="A technical co-founder in fintech or commerce · from February">
         <label class="flbl" for="emp">Current employer <span class="c-3" style="font-weight:400">(only shown to matches, if you allow it)</span></label><input class="input" id="emp" maxlength="80" value="${esc(f.employer)}" placeholder="Nexa Bank">
       </section>
+      <section class="card fsec"><h2>CV and LinkedIn</h2><p class="fhint" style="margin-top:-8px">Filled in for you when you apply to a job. Only sent with an application, and stealth roles only get them once you both say yes.</p>
+        <span class="flbl">CV <span class="c-3" style="font-weight:400">(optional)</span></span><div id="cv"></div>
+        <label class="flbl" for="li">LinkedIn profile <span class="c-3" style="font-weight:400">(optional)</span></label>${F.liField('li', f.linkedin || me.linkedin || '')}
+      </section>
       <section class="card fsec"><h2>Who can see it</h2>
         ${F.radioCards('mode', [['visible', 'globe', 'Visible', 'Founders see your name, photo and current role.'], ['stealth', 'lock', 'Stealth', 'Founders see your skills, role and city only. You choose who to reveal yourself to.'], ['paused', 'clock', 'Paused', 'Hidden from everyone. Your chats stay.']], f.mode)}
         <div style="margin-top:12px">${F.toggle('nda', 'Sign a mutual NDA before reveal', 'Hentity’s NDA template, signed in-app when you both say yes', f.nda)}${F.toggle('vonly', 'Only verified members can respond', 'Phone and ID-checked accounts only', f.reach !== 'anyone')}</div>
@@ -79,18 +83,20 @@ H.mount({ active: 'find', tab: 'chats' });
     <aside class="fside"><p class="t-eyebrow c-3">Preview · what founders see</p><div id="prev"></div>
       <section class="card row gap-10" style="padding:16px">${F.mini(me.name, me.avatar_url)}<div><p class="t-body-sm" style="font-weight:500">${esc(me.name)}</p><p class="t-caption c-3" style="font-weight:400">Only you and people you reveal to see this</p></div></section>
       <button class="btn btn--accent btn--lg btn--block" type="button" id="save">Save profile</button></aside></div></div>`;
+  const cvp = F.cvPicker(qs('#cv'), { cv: f.cv }); F.bindLi(root, 'li');
   const hide = F.tagList(root, '#hide', f.hide_from, 'Add company', 'Company name or email domain (e.g. Nexa Bank or nexabank.com)');
   qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (g.hasAttribute('data-single') && !g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); preview(); }));
   F.bindRadio(root, 'mode', v => { f.mode = v; preview(); });
   const read = () => ({ open_to: F.readChips(root, 'open'), what: qs('#what').value.trim(), experience: qs('#exp').value.trim(), strengths: qs('#str').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 6),
     looking_for: F.readChips(root, 'lf'), spaces: F.readChips(root, 'sp'), available: F.readChips(root, 'av')[0] || 'now', city: qs('#city').value.trim(), country: f.country, wants: qs('#wants').value.trim(), employer: qs('#emp').value.trim(),
-    mode: f.mode, nda: qs('[name="nda"]').checked, reach: qs('[name="vonly"]').checked ? 'verified' : 'anyone', hide_from: hide.get() });
+    mode: f.mode, nda: qs('[name="nda"]').checked, reach: qs('[name="vonly"]').checked ? 'verified' : 'anyone', hide_from: hide.get(), cv: cvp.get(), linkedin: qs('#li').value.trim() });
   function preview() { const v = Object.assign({}, f, read()); qs('#prev').innerHTML = v.mode === 'paused' ? `<section class="card" style="padding:20px"><p class="t-label row gap-6">${icon('clock', 'ic-14')}Paused</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Nobody sees your profile right now.</p></section>` : F.previewMe(v, me, 'stranger'); }
   qs('#f').addEventListener('input', preview); preview();
   qs('#save').onclick = async () => {
     const v = read();
     if (!v.open_to.length) return toast('Pick at least one kind of role', 'error');
     if (v.what.length < 2) return toast('Say what you do', 'error');
+    if (!F.liOk(v.linkedin)) return toast('Use a LinkedIn profile link, like linkedin.com/in/your-name', 'error');
     try { await API.saveFindProfile(v); toast(ex ? 'Profile saved' : 'You’re on Find. Founders can invite you now.'); setTimeout(() => location.href = '/find', 500); } catch (e) { H.fail(e); }
   };
   H.contentShown();

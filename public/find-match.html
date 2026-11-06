@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
+<link rel="stylesheet" href="/assets/styles.css?v=88a42d4d6f">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=ff6a430903"></script>
+<script src="/assets/api.js?v=2f228cf5e9"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -80,7 +80,7 @@ body.has-sidebar main.fm-main{padding:0}
 <div data-header></div>
 <main id="main" class="fm-main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=9aaffbb9aa"></script>
+<script src="/assets/find.js?v=d10823b698"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -109,7 +109,7 @@ H.mount({ active: 'find', tab: 'chats' });
   function drawMsgs() {
     const box = qs('#msgs');
     box.innerHTML = `<p class="fm-sys">${icon('lock', 'ic-12')}You both said yes${m.nda_required ? ' · NDA signed by both' : ''} · names revealed · ${esc(new Date(m.revealed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</p>`
-      + (m.intro ? `<div class="fm-row"${m.intro_from_me ? ' style="justify-content:flex-end"' : ''}><div class="fm-b${m.intro_from_me ? ' mine' : ''}"><b style="font-weight:500">Intro</b>\n${esc(m.intro)}${(m.answers || []).filter(Boolean).length ? '\n\n' + (r.questions || []).map((q, i) => m.answers[i] ? q + '\n' + m.answers[i] : '').filter(Boolean).map(esc).join('\n\n') : ''}</div></div>` : '')
+      + (m.intro || m.cv || m.linkedin ? `<div class="fm-row"${m.intro_from_me ? ' style="justify-content:flex-end"' : ''}><div class="fm-b${m.intro_from_me ? ' mine' : ''}"><b style="font-weight:500">${co ? 'Intro' : 'Application'}</b>${m.intro ? '\n' + esc(m.intro) : ''}${(m.answers || []).filter(Boolean).length ? '\n\n' + (r.questions || []).map((q, i) => m.answers[i] ? q + '\n' + m.answers[i] : '').filter(Boolean).map(esc).join('\n\n') : ''}${m.cv || m.linkedin ? `<span class="row gap-8 wrap" style="margin-top:10px;white-space:normal">${F.cvChip(m.cv)}${F.liChip(m.linkedin)}</span>` : ''}</div></div>` : '')
       + msgs.map(x => { const mine = x.user_id === API.uid; return `<div class="fm-row"${mine ? ' style="justify-content:flex-end"' : ''}>${mine ? '' : F.mini(oName, other.avatar_url)}<div class="fm-b${mine ? ' mine' : ''}">${esc(x.body)}<small>${fmtT(x.created_at)}</small></div></div>`; }).join('')
       + (!m.trial ? `<div class="fm-cta">${icon('sparkles', 'ic-16')}<div class="grow"><p class="t-body-sm" style="font-weight:500">${co ? 'Make the trial official' : 'Plan a trial task'}</p><p class="t-caption c-2" style="font-weight:400">Set scope, dates and who owns the code${co ? '' : ' or work'}. Kept with this match.</p></div><button class="btn btn--secondary btn--sm" type="button" id="trial">Plan trial</button></div>` : '');
     box.scrollTop = box.scrollHeight;

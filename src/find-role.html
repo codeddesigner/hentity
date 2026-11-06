@@ -9,10 +9,21 @@
 .fr{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
 .fr h1{font-size:44px;line-height:50px;font-weight:600;letter-spacing:-.03em;margin:16px 0 14px}
 .fr .blk{padding:24px}.fr .blk h2{font-size:20px;line-height:26px;font-weight:600;margin-bottom:10px}
-.fr .blk p{font-size:15px;line-height:24px;color:var(--color-text-secondary);white-space:pre-line}
+.fr .blk>p{font-size:15px;line-height:24px;color:var(--color-text-secondary);white-space:pre-line}
 .fr-panel{position:sticky;top:20px;padding:24px}
 .fr-sees{padding:14px;border-radius:12px;background:var(--color-bg-subtle);margin-top:16px}
+.fr-panel .t-h3{font-size:20px;line-height:26px}
+.fr-bar,.fr-bg,.fr-grab{display:none}
 @media (max-width:1024px){.fr{grid-template-columns:minmax(0,1fr)}.fr-panel{position:static}}
+@media (max-width:768px){
+  .fr-panel{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:91;max-height:88dvh;overflow:auto;border-radius:20px 20px 0 0;padding:12px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s ease;box-shadow:0 -8px 32px rgba(0,0,0,.12)}
+  .fr-panel.is-open{transform:none}
+  .fr-grab{display:block;width:36px;height:4px;border-radius:2px;background:var(--color-border-strong);margin:0 auto 14px}
+  .fr-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90}
+  .fr-bg.is-open{display:block}
+  .fr-bar{display:flex;position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:60;padding:10px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);gap:10px;align-items:center}
+  .fd{padding-bottom:140px}
+}
 @media (max-width:768px){.fr h1{font-size:30px;line-height:36px}}
 </style>
 </head>
@@ -32,40 +43,76 @@ H.mount({ active: 'find', tab: 'chats' });
   if (!r) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This role isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be closed, invite-only, or the link is wrong.</p><a class="btn btn--secondary" href="/find">Back to Find</a></div>`; H.contentShown(); return; }
   document.title = `${r.title} | Find | Hentity`;
   const s = r.startup || {}, k = F.KIND[r.kind] || F.KIND.cofounder, pName = r.stealth ? 'The founder' : (r.poster.name || '').split(' ')[0];
-  const me = r.me;
+  const me = r.me, job = r.kind !== 'cofounder';
   const tags = [F.catPill(r.category), F.pill(esc(F.pay(r)), 'k-pay'), r.vesting ? F.pill(esc(r.vesting)) : '', F.pill(k[0], k[1]), r.kind === 'cofounder' ? F.pill(F.COMMIT[r.commitment]) : r.duration ? F.pill(esc(r.duration)) : '', r.city ? F.pill(icon('pin', 'ic-12') + esc([r.city, F.WORK[r.working]].join(' · '))) : ''].filter(Boolean).join('');
   const blk = (t, body) => body ? `<section class="card blk">${t ? `<h2>${t}</h2>` : ''}<p>${esc(body)}</p></section>` : '';
-  root.innerHTML = `<div class="fd reveal">
+  root.innerHTML = `<div class="fd">
     <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Open roles</a>
     <div class="fr"><div class="stack gap-16">
       <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div>${s.slug ? `<a class="t-body-sm" style="font-weight:500" href="/products/${esc(s.slug)}">View product</a>` : ''}</div>
         <h1>${esc(r.title)}</h1><div class="fpills">${tags}</div>
         ${(r.skills || []).length ? `<div class="fskills">${r.skills.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</section>
-      ${blk('What you’ll own', r.owns)}
+      ${blk(job ? 'What you’ll do' : 'What you’ll own', r.owns)}
       ${r.traction ? blk('Where we are', r.traction) : r.traction_hidden ? `<section class="card blk"><h2>Where we are</h2><p class="row gap-8">${icon('lock', 'ic-14')}Traction details are shared when you both say yes.</p></section>` : ''}
-      ${blk('Who we’re looking for', r.looking_for)}
+      ${blk(job ? 'You’ll do well if' : 'Who we’re looking for', r.looking_for)}
       ${(r.team || []).length ? `<section class="card blk"><h2>The founders</h2><div class="f2" style="margin-top:8px">${r.team.map(m => `<a class="row gap-12" href="/makers/${esc(m.username)}">${F.mini(m.name, m.avatar_url)}<span><span class="t-body-sm" style="font-weight:500;display:block">${esc(m.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc([m.role, m.headline].filter(Boolean).join(' · '))}</span></span></a>`).join('')}</div></section>` : ''}
     </div>
-    <aside class="card fr-panel" id="panel"></aside></div></div>`;
+    <aside class="card fr-panel" id="panel" aria-label="${job ? 'Apply' : 'Say you’re interested'}"></aside></div></div>`;
+  // Mobile: the panel is a sheet over the role, opened from a bar at the bottom (Figma 26.16)
+  const bg = document.createElement('div'); bg.className = 'fr-bg'; document.body.append(bg);
+  const bar = document.createElement('div'); bar.className = 'fr-bar'; document.body.append(bar);
+  const sheet = open => { qs('#panel').classList.toggle('is-open', open); bg.classList.toggle('is-open', open); document.body.style.overflow = open && matchMedia('(max-width:768px)').matches ? 'hidden' : ''; };
+  bg.onclick = () => sheet(false);
+  bar.addEventListener('click', e => { if (e.target.closest('[data-sheet]')) sheet(true); });
   panel(); H.contentShown();
 
   function panel() {
-    const box = qs('#panel');
-    if (r.mine) { box.innerHTML = `<h2 class="t-h3">Your role</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.interest_count} ${r.kind === 'cofounder' ? 'interested' : 'applied'} so far. Answer them in My matches.</p><div class="stack gap-8"><a class="btn btn--primary btn--block" href="/find/matches">My matches</a><a class="btn btn--secondary btn--block" href="/find/post?edit=${r.id}">Edit role</a></div>`; return; }
-    if (r.my_interest) { box.innerHTML = `<h2 class="t-h3">${r.my_interest.status === 'accepted' ? 'It’s a match' : r.my_interest.mine ? 'Interest sent' : `${esc(pName)} invited you`}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.my_interest.status === 'accepted' ? 'You both said yes.' : r.my_interest.mine ? `${esc(pName)} gets your intro. If they say yes too, you’ll both see each other and a chat opens.` : 'Answer in My matches.'}</p>${r.match_id ? `<a class="btn btn--primary btn--block" href="/find/m/${r.match_id}">Open match</a>` : `<a class="btn btn--secondary btn--block" href="/find/matches">My matches</a>`}`; return; }
-    if (!API.uid) { box.innerHTML = `<h2 class="t-h3">Say you’re interested</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Sign in to send a short intro. Your name stays hidden until you both say yes.</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname)}">Sign in</a>`; return; }
+    const box = qs('#panel'), grab = '<span class="fr-grab" aria-hidden="true"></span>';
+    const verb = job ? 'Apply' : 'Say you’re interested';
+    bar.innerHTML = `<div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${esc(r.title)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc([s.name, k[0], r.city].filter(Boolean).join(' · '))}</p></div><button class="btn btn--accent" type="button" data-sheet>${r.mine ? 'Your role' : r.my_interest ? (r.my_interest.status === 'accepted' ? 'Matched' : 'Sent') : verb}</button>`;
+    if (r.mine) { box.innerHTML = grab + `<h2 class="t-h3">Your role</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.interest_count} ${job ? 'applied' : 'interested'} so far. Answer them in My matches.</p><div class="stack gap-8"><a class="btn btn--primary btn--block" href="/find/matches">My matches</a><a class="btn btn--secondary btn--block" href="/find/post?edit=${r.id}">Edit role</a></div>`; return; }
+    if (r.my_interest) {
+      const mi = r.my_interest, done = mi.status === 'accepted';
+      box.innerHTML = grab + `<h2 class="t-h3">${done ? 'It’s a match' : mi.mine ? (job ? 'Application sent' : 'Interest sent') : `${esc(pName)} invited you`}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${done ? 'You both said yes.' : mi.mine ? `${esc(pName)} ${job ? 'has your application' : 'gets your intro'}. If they say yes too, you’ll both see each other and a chat opens.` : 'Answer in My matches.'}</p>${r.match_id ? `<a class="btn btn--primary btn--block" href="/find/m/${r.match_id}">Open match</a>` : `<div class="stack gap-8"><a class="btn btn--secondary btn--block" href="/find/matches">My matches</a>${mi.mine && mi.status === 'pending' && mi.id ? `<button class="btn btn--ghost btn--block" type="button" id="wd">Withdraw</button>` : ''}</div>`}`;
+      const wd = qs('#wd'); wd && (wd.onclick = async () => { if (!confirm(job ? 'Withdraw your application?' : 'Withdraw your interest?')) return; try { await API.findWithdraw(mi.id); r.my_interest = null; r.interest_count = Math.max(0, r.interest_count - 1); toast('Withdrawn'); panel(); } catch (e) { H.fail(e); } });
+      return;
+    }
+    if (!API.uid) { box.innerHTML = grab + `<h2 class="t-h3">${verb}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Sign in to ${job ? 'apply' : 'send a short intro'}. ${job && r.visibility === 'public' ? 'Your CV and LinkedIn go with your application.' : 'Your name stays hidden until you both say yes.'}</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname)}">Sign in</a>`; return; }
+    const qsHtml = (r.questions || []).map((qq, i) => `<label class="field"><span class="field__label">${esc(qq)}</span><input class="input" name="a${i}" maxlength="400"></label>`).join('');
+    const warn = r.verified_only && !(API.profile && API.profile.is_verified) ? `<p class="alert alert--warning" style="padding:10px 12px">This role only takes replies from verified members.</p>` : '';
+    const foot = `<p class="t-caption c-3" style="font-weight:400;text-align:center">${r.interest_count ? `${r.interest_count} ${r.interest_count === 1 ? 'person' : 'people'} ${job ? 'applied' : 'interested'} · ` : ''}${r.intros_left} of 5 intros left this week</p>`;
+    if (job) {
+      const pre = !!(r.my_cv || r.my_linkedin);
+      const pub = r.visibility === 'public';
+      box.innerHTML = grab + `<div class="row gap-12" style="margin-bottom:16px">${F.startupMark(r, 36)}<div style="min-width:0"><h2 class="t-h3">Apply for ${esc(r.title)}</h2><p class="t-caption c-3" style="font-weight:400">${esc([s.name, k[0], r.city].filter(Boolean).join(' · '))}</p></div></div>
+        <form id="fi" class="stack gap-14">${pre ? `<p class="fprefill">${icon('sparkles', 'ic-14')}Filled from your Find profile. Check and send.</p>` : ''}
+        <div class="field"><span class="field__label">CV</span><div id="cvbox"></div></div>
+        <div class="field"><label class="field__label" for="li">LinkedIn profile</label>${F.liField('li', r.my_linkedin)}</div>
+        <label class="field"><span class="field__label">Short note <span class="c-3" style="font-weight:400">(optional)</span></span><textarea class="input" name="intro" rows="3" maxlength="800" placeholder="What you’ve done that fits this role"></textarea></label>
+        ${qsHtml}
+        <p class="fnote-box">${icon('lock', 'ic-14')}<span>${pub ? `${esc(s.name || 'This startup')} posted this role publicly, so your CV and LinkedIn go with the application.` : 'This role is in stealth, so your CV and LinkedIn are only shared once you both say yes.'} You can withdraw any time.</span></p>
+        ${warn}<button class="btn btn--accent btn--lg btn--block" type="submit">${icon('send')}Send application</button>${foot}</form>`;
+      const cvp = F.cvPicker(qs('#cvbox'), { cv: r.my_cv, profileCv: r.my_cv, sub: 'from your profile', allowOther: true }); F.bindLi(box, 'li');
+      qs('#fi').onsubmit = async e => {
+        e.preventDefault(); const fd = new FormData(e.target), b = e.target.querySelector('[type=submit]'), li = qs('#li').value.trim();
+        if (!F.liOk(li)) return toast('Use a LinkedIn profile link, like linkedin.com/in/your-name', 'error');
+        if (!cvp.get() && !li) return toast('Add your CV or LinkedIn profile', 'error');
+        b.disabled = true;
+        try { const x = await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || '')), cvp.get(), li); r.my_interest = { id: x.id, status: 'pending', mine: true }; r.interest_count++; r.intros_left = x.intros_left; toast('Application sent. We’ll tell you when they answer.'); panel(); }
+        catch (err) { H.fail(err); b.disabled = false; }
+      };
+      return;
+    }
     const sees = me ? `<div class="row gap-10" style="margin-top:8px">${me.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : F.mini(me.name, me.avatar_url)}<div><p class="t-body-sm" style="font-weight:500">${esc(me.stealth ? [me.what, me.experience].filter(Boolean).join(' · ') || 'Your skills' : me.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc([me.city, me.stealth ? 'stealth' : ''].filter(Boolean).join(' · '))}</p></div></div><p class="t-caption c-3" style="font-weight:400;margin-top:8px">${me.stealth ? 'Your name, photo and employer stay hidden until you both say yes.' : 'Your profile is visible. Switch to stealth in Privacy settings.'}</p>`
       : `<p class="t-caption c-2" style="font-weight:400;margin-top:6px">Your name and photo, plus your intro. <a class="link link--accent" href="/find/open">Set up a stealth profile</a> to show only your skills.</p>`;
-    box.innerHTML = `<h2 class="t-h3">${r.kind === 'cofounder' ? 'Say you’re interested' : 'Apply'}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${esc(pName)} gets a short intro. If they say yes too, you’ll both see each other and a chat opens.</p>
+    box.innerHTML = grab + `<h2 class="t-h3">Say you’re interested</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${esc(pName)} gets a short intro. If they say yes too, you’ll both see each other and a chat opens.</p>
       <form id="fi" class="stack gap-14"><label class="field"><span class="field__label">Your intro</span><textarea class="input" name="intro" rows="4" maxlength="800" required placeholder="What you’ve built, why this role, when you could start"></textarea></label>
-      ${(r.questions || []).map((qq, i) => `<label class="field"><span class="field__label">${esc(qq)}</span><input class="input" name="a${i}" maxlength="400"></label>`).join('')}
+      ${qsHtml}
       <div class="fr-sees"><p class="row gap-6 t-body-sm" style="font-weight:500">${icon('eye', 'ic-14')}What ${esc(pName)} sees now</p>${sees}</div>
-      ${r.verified_only && !(API.profile && API.profile.is_verified) ? `<p class="alert alert--warning" style="padding:10px 12px">This role only takes replies from verified members.</p>` : ''}
-      <button class="btn btn--accent btn--lg btn--block" type="submit">${r.kind === 'cofounder' ? 'Send interest' : 'Send application'}</button>
-      <p class="t-caption c-3" style="font-weight:400;text-align:center">You have ${r.intros_left} of 5 intros left this week</p></form>`;
+      ${warn}<button class="btn btn--accent btn--lg btn--block" type="submit">Send interest</button>${foot}</form>`;
     qs('#fi').onsubmit = async e => {
       e.preventDefault(); const fd = new FormData(e.target), b = e.target.querySelector('[type=submit]'); b.disabled = true;
-      try { await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || ''))); r.my_interest = { status: 'pending', mine: true }; r.interest_count++; toast('Sent. We’ll tell you when they answer.'); panel(); }
+      try { const x = await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || ''))); r.my_interest = { id: x.id, status: 'pending', mine: true }; r.interest_count++; r.intros_left = x.intros_left; toast('Sent. We’ll tell you when they answer.'); panel(); }
       catch (err) { H.fail(err); b.disabled = false; }
     };
   }

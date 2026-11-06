@@ -292,7 +292,10 @@
     saveFindRole: (id, row) => { requireAuth(); return id ? q(sb.from('find_roles').update(row).eq('id', id).select('*').single()) : q(sb.from('find_roles').insert(row).select('*').single()); },
     myFindProfile: () => uid() ? q(sb.from('find_profiles').select('*').eq('user_id', uid()).maybeSingle()) : Promise.resolve(null),
     saveFindProfile: row => { requireAuth(); return q(sb.from('find_profiles').upsert(Object.assign({ user_id: uid() }, row)).select('*').single()); },
-    findExpress: (rid, intro, answers) => { requireAuth(); return q(sb.rpc('find_express', { rid, intro, answers: answers || [] })); },
+    findExpress: (rid, intro, answers, cv, linkedin) => { requireAuth(); return q(sb.rpc('find_express', { rid, intro, answers: answers || [], cv: cv || null, linkedin: linkedin || null })); },
+    // CVs go to a private bucket under <user id>/; the poster opens them with a short-lived link
+    uploadCv: async file => { requireAuth(); const ext = (file.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, ''); const path = `${uid()}/cv-${Date.now()}.${ext}`; err((await sb.storage.from('find-cv').upload(path, file, { upsert: false, contentType: file.type || undefined })).error); return { path, name: file.name.slice(0, 120), size: file.size }; },
+    cvUrl: path => sb.storage.from('find-cv').createSignedUrl(path, 600).then(r => { err(r.error); return r.data.signedUrl; }),
     findInvite: (key, rid, intro) => { requireAuth(); return q(sb.rpc('find_invite', { person_key: key, rid, intro })); },
     findView: key => q(sb.rpc('find_view', { person_key: key })).catch(() => {}),
     findDecide: (iid, accept) => q(sb.rpc('find_decide', { iid, accept })),

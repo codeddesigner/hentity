@@ -87,5 +87,43 @@
   }
   // Mobile: Messages | Find switcher under the Chats tab (Figma 172:1444)
   const mobileSwitch = active => `<div class="fswitch m-flex"><a href="/chats"${active === 'chats' ? ' aria-current="page"' : ''}>Messages</a><a href="/find"${active === 'find' ? ' aria-current="page"' : ''}>Find</a></div>`;
-  window.F = { KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
+
+  // ---- CV picker (Figma 26.15 / 26.16): a file card with Replace + remove, or a drop zone
+  const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  const CV_OK = /\.(pdf|docx?)$/i;
+  function cvPicker(box, opts) {
+    // opts: { cv, profileCv, sub, onChange }
+    let cv = opts.cv || null, busy = false;
+    const input = `<input type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="sr-only" data-cv-in>`;
+    const card = c => `<div class="fcv"><span class="fcv__ic">${H.icon('file-text', 'ic-18')}</span><div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${H.esc(c.name)}</p><p class="t-caption c-3" style="font-weight:400">${kb(c.size || 0)}${opts.profileCv && c.path === opts.profileCv.path && opts.sub ? ' · ' + opts.sub : ''}</p></div><label class="btn btn--ghost btn--sm" style="cursor:pointer">Replace${input}</label><button class="nav__icon" type="button" data-cv-rm aria-label="Remove CV">${H.icon('trash', 'ic-16')}</button></div>`;
+    function draw() {
+      box.innerHTML = busy ? `<div class="fcv"><span class="fcv__ic">${H.icon('upload', 'ic-18')}</span><p class="t-body-sm c-2">Uploading…</p></div>`
+        : cv ? card(cv) + (opts.profileCv && cv.path === opts.profileCv.path && opts.allowOther ? `<label class="fcv-other">${H.icon('upload', 'ic-14')}Upload a different CV for this role${input}</label>` : '')
+        : `<label class="fcv-drop">${input}<span class="fcv-drop__ic">${H.icon('upload', 'ic-18')}</span><span class="c-accent" style="font-weight:500">Upload your CV</span><span class="t-caption c-3" style="font-weight:400">PDF or Word, up to 5 MB</span></label>`
+          + (opts.profileCv ? `<p class="fcv-or"><span>or use the one on your profile</span></p>${card(opts.profileCv).replace('data-cv-rm', 'data-cv-use').replace(H.icon('trash', 'ic-16'), H.icon('check', 'ic-16')).replace('aria-label="Remove CV"', 'aria-label="Use this CV"')}` : '');
+    }
+    box.addEventListener('change', async e => {
+      const inp = e.target.closest('[data-cv-in]'); if (!inp) return; const file = inp.files[0]; inp.value = ''; if (!file) return;
+      if (!CV_OK.test(file.name)) return H.toast('Use a PDF or Word file', 'error');
+      if (file.size > 5 * 1024 * 1024) return H.toast('CVs can be up to 5 MB', 'error');
+      busy = true; draw();
+      try { cv = await API.uploadCv(file); opts.onChange && opts.onChange(cv); } catch (err) { H.fail(err); }
+      busy = false; draw();
+    });
+    box.addEventListener('click', e => {
+      if (e.target.closest('[data-cv-rm]')) { cv = null; opts.onChange && opts.onChange(null); draw(); }
+      if (e.target.closest('[data-cv-use]')) { cv = opts.profileCv; opts.onChange && opts.onChange(cv); draw(); }
+    });
+    draw();
+    return { get: () => cv };
+  }
+  const liOk = v => !v || /^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.com\/(in|pub)\/[^\s]{2,}/i.test(v.trim());
+  const liField = (id, val) => `<div class="fli"><span class="fli__in">in</span><input class="input" id="${id}" value="${H.esc(val || '')}" placeholder="linkedin.com/in/your-name" inputmode="url" autocomplete="off" spellcheck="false"><span class="fli__ok badge badge--success"${liOk(val) && val ? '' : ' hidden'}>${H.icon('check', 'ic-12')}Added</span></div>`;
+  function bindLi(root, id) { const i = root.querySelector('#' + id); const ok = i.parentElement.querySelector('.fli__ok'); i.addEventListener('input', () => { const v = i.value.trim(); ok.hidden = !(v && liOk(v)); i.closest('.fli').classList.toggle('is-error', !!v && !liOk(v)); }); }
+  // Open a stored CV in a new tab (signed link)
+  async function openCv(path) { const w = window.open('', '_blank'); try { const u = await API.cvUrl(path); if (w) w.location = u; else location.href = u; } catch (e) { w && w.close(); H.fail(e); } }
+  const cvChip = c => c ? `<button class="fpill" type="button" data-open-cv="${H.esc(c.path)}">${H.icon('file-text', 'ic-12')}${H.esc(c.name || 'CV')}</button>` : '';
+  const liChip = l => l ? `<a class="fpill" href="${H.esc(/^https?:/.test(l) ? l : 'https://' + l)}" target="_blank" rel="noopener nofollow"><b style="color:#0A66C2">in</b>LinkedIn</a>` : '';
+  document.addEventListener('click', e => { const b = e.target.closest('[data-open-cv]'); if (b) { e.preventDefault(); openCv(b.dataset.openCv); } });
+  window.F = { cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
 })();

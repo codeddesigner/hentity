@@ -1187,3 +1187,22 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 @media (max-width:768px){.fd-filters .chips{flex-wrap:nowrap}.fd-head p{display:none}.fd-tabs{margin-top:14px}}
 .fd .m-only{display:none}
 @media (max-width:768px){.fd .d-only{display:none}.fd .m-only{display:inline}}
+
+/* Find · CV + LinkedIn (Figma 26.15) */
+.fcv{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--color-border-default);border-radius:12px;background:var(--color-bg-canvas)}
+.fcv__ic{width:40px;height:40px;border-radius:10px;background:#FFF1EA;color:var(--color-accent-default);display:grid;place-items:center;flex:none}
+.fcv-other{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:500;color:var(--color-accent-default);cursor:pointer}
+.fcv-drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 16px;border:1.5px dashed var(--color-border-strong);border-radius:12px;background:var(--color-bg-subtle);cursor:pointer;text-align:center;font-size:14px}
+.fcv-drop:hover{border-color:var(--color-text-secondary)}
+.fcv-drop__ic{width:36px;height:36px;border-radius:10px;background:var(--color-bg-canvas);display:grid;place-items:center;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.fcv-or{display:flex;align-items:center;gap:10px;margin:14px 0 10px;font-size:12px;color:var(--color-text-tertiary)}
+.fcv-or::before,.fcv-or::after{content:"";flex:1;height:1px;background:var(--color-border-default)}
+.fli{position:relative;display:flex;align-items:center}
+.fli__in{position:absolute;left:12px;width:20px;height:20px;border-radius:4px;background:#0A66C2;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;pointer-events:none}
+.fli .input{padding-left:42px;padding-right:84px;width:100%}
+.fli__ok{position:absolute;right:10px}
+.fli.is-error .input{border-color:var(--color-danger)}
+.fnote-box{display:flex;gap:8px;align-items:flex-start;padding:12px;border-radius:10px;background:var(--color-bg-subtle);font-size:12px;line-height:18px;color:var(--color-text-secondary)}
+.fnote-box .ic{flex:none;margin-top:1px;color:var(--color-text-tertiary)}
+.fprefill{display:flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;background:#FFF1EA;font-size:13px}
+.fprefill .ic{color:var(--color-accent-default)}
