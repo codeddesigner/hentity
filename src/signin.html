@@ -3,7 +3,7 @@
 <head>
 <!--#head-->
 <title>Sign in · Hentity</title>
-<meta name="description" content="Sign in to Hentity with a one-time code sent to your work email.">
+<meta name="description" content="Sign in to Hentity with a one-time code sent to your email.">
 </head>
 <body class="no-tabbar">
 <div class="auth">
@@ -13,14 +13,14 @@
     <form class="auth__form" id="form" novalidate>
       <div class="auth__heading">
         <h1 class="t-h2">Welcome back</h1>
-        <p class="c-2">Enter your work email and we’ll send you a 6-digit sign-in code. No password needed.</p>
+        <p class="c-2">Enter your email and we’ll send you a 6-digit sign-in code. No password needed.</p>
       </div>
       <div class="alert alert--error" id="err" role="alert" hidden>
         <span data-icon="alert-circle"></span>
         <div><p class="alert__title" id="err-title"></p><p class="alert__body" id="err-body"></p></div>
       </div>
       <div class="field" id="f-email">
-        <label class="field__label" for="email">Work email</label>
+        <label class="field__label" for="email">Email</label>
         <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required autofocus>
       </div>
       <button class="btn btn--primary btn--block" type="submit">Email me a code</button>
@@ -48,14 +48,14 @@ H.mount();
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const email = form.email.value.trim().toLowerCase();
-    if (!Auth.emailOk(email)) return fail(['Enter your work email', 'We’ll send a sign-in code to it.']);
+    if (!Auth.emailOk(email)) return fail(['Enter your email', 'We’ll send a sign-in code to it.']);
     const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Sending code';
     try {
       await API.auth.sendCode(email, { next: '/signin?next=' + encodeURIComponent(Auth.next()) });
       Auth.codeStep(form, { email, title: 'Check your email', resend: () => API.auth.sendCode(email, { next: '/signin?next=' + encodeURIComponent(Auth.next()) }), verified: async () => { if (await needsMfa()) showMfa(); else done(); }, back: () => { location.href = '/signin?email=' + encodeURIComponent(email); } });
     } catch (ex) {
       const f = Auth.friendly(ex.message);
-      if (/No account/.test(f[0])) fail(f, 'Check the address, or <a class="link" href="/signup">create an account</a> with your work email.'); else fail(f);
+      if (/No account/.test(f[0])) fail(f, 'Check the address, or <a class="link" href="/signup">create an account</a> with your work email or Gmail.'); else fail(f);
       btn.disabled = false; btn.textContent = 'Email me a code';
     }
   });

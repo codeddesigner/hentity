@@ -53,7 +53,7 @@
     if (/expired|invalid.*(otp|token)|Token has expired/i.test(m)) return ['That code didn’t work', 'Codes expire after an hour and only work once. Use the newest one, or send a new code.'];
     if (/For security purposes|after \d+ seconds/i.test(m)) return ['Wait a moment', 'You can request another code in a minute.'];
     if (/rate limit|too many/i.test(m)) return ['Too many attempts', 'Wait a few minutes, then request a new code.'];
-    if (/WORK_EMAIL_REQUIRED|Database error saving new user|Error updating user/i.test(m)) return ['Use your work email', 'Hentity accounts need a company email address. Personal inboxes like Gmail, Yahoo or Outlook.com aren’t accepted'];
+    if (/WORK_EMAIL_REQUIRED|Database error saving new user|Error updating user/i.test(m)) return ['Use your work email or Gmail', 'Use a company email address or Gmail. Other personal inboxes like Yahoo or Outlook.com aren’t accepted'];
     if (/already registered|already been registered/i.test(m)) return ['This email already has an account', 'Sign in instead — we’ll email you a code.'];
     return ['Something went wrong', m];
   }

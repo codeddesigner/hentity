@@ -43,7 +43,7 @@
     <form class="auth__form" id="form" novalidate>
       <div class="auth__heading">
         <h1 class="t-h2">Create your account</h1>
-        <p class="c-2">Join makers and teams discovering African technology. Sign up with your work email.</p>
+        <p class="c-2">Join makers and teams discovering African technology. Sign up with your work email or Gmail.</p>
       </div>
       <div class="field" id="f-name">
         <label class="field__label" for="name">Full name</label>
@@ -55,9 +55,9 @@
         <p class="field__hint" id="u-hint">Lowercase letters, numbers and underscores.</p>
       </div>
       <div class="field" id="f-email">
-        <label class="field__label" for="email">Work email</label>
+        <label class="field__label" for="email">Email</label>
         <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
-        <p class="field__hint" id="e-hint">Use your company address. Personal inboxes like Gmail, Yahoo or Outlook.com aren’t accepted.</p>
+        <p class="field__hint" id="e-hint">Use your work email or a Gmail address. Other personal inboxes like Yahoo or Outlook.com aren’t accepted.</p>
       </div>
       <label class="check"><input type="checkbox" name="terms" id="terms"><span class="check__box"><span data-icon="check"></span></span><span>I agree to the <a class="link" href="/guidelines" style="font-weight:400">Terms and Community Guidelines</a></span></label>
       <button class="btn btn--primary btn--block" type="submit" id="submit" disabled>Email me a code</button>
@@ -65,14 +65,14 @@
     </form>
   </main>
 </div>
-<script src="/assets/auth.js?v=c3d1f2c9c3"></script>
+<script src="/assets/auth.js?v=5f1e40b4f3"></script>
 <script>
 H.mount();
 (async function () {
   const { qs } = H; const form = qs('#form');
   await API.ready; if (API.uid) { location.replace('/'); return; }
   let userOk = false, timer, emailOk = false, eTimer;
-  const E_HINT = 'Use your company address. Personal inboxes like Gmail, Yahoo or Outlook.com aren’t accepted.';
+  const E_HINT = 'Use your work email or a Gmail address. Other personal inboxes like Yahoo or Outlook.com aren’t accepted.';
   function update() {
     qs('#submit').disabled = !(form.name.value.trim() && userOk && emailOk && qs('#terms').checked);
   }
@@ -100,8 +100,8 @@ H.mount();
       let ok = false; try { ok = await API.workEmailOk(v); } catch (e) { ok = true; /* server still enforces it */ }
       if (form.email.value.trim().toLowerCase() !== v) return;
       emailOk = ok;
-      if (!ok) { h.textContent = '@' + v.split('@')[1] + ' is a personal email provider. Use your work email.'; h.className = 'field__hint is-error'; qs('#f-email').classList.add('is-error'); }
-      else { h.textContent = 'Work email ✓'; h.className = 'field__hint is-success'; }
+      if (!ok) { h.textContent = '@' + v.split('@')[1] + ' isn’t accepted. Use your work email or Gmail.'; h.className = 'field__hint is-error'; qs('#f-email').classList.add('is-error'); }
+      else { h.textContent = 'Looks good ✓'; h.className = 'field__hint is-success'; }
       update();
     }, 300);
   });

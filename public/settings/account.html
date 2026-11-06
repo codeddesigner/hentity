@@ -49,7 +49,7 @@
         <button class="btn btn--secondary btn--sm" type="button" data-edit="email">Change</button>
       </div>
       <form class="stack gap-12" data-editor="email" hidden style="padding:0 0 16px 50px" novalidate>
-        <div class="field"><label class="field__label" for="new-email">New email</label><input class="input" id="new-email" type="email" autocomplete="email"><p class="field__hint" id="ne-hint">Must be a work email. We email you a 6-digit code to confirm. Your current email keeps working until you enter it.</p></div>
+        <div class="field"><label class="field__label" for="new-email">New email</label><input class="input" id="new-email" type="email" autocomplete="email"><p class="field__hint" id="ne-hint">Must be a work email or Gmail. We email you a 6-digit code to confirm. Your current email keeps working until you enter it.</p></div>
         <div class="row gap-8"><button class="btn btn--primary btn--sm">Email me a code</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
       </form>
       <form class="stack gap-12" id="em-codes" hidden style="padding:0 0 16px 50px" novalidate>
@@ -103,7 +103,7 @@ H.mount({ active: '', tab: 'you' });
   const codes = qs('#em-codes'); let pending = user.new_email || '';
   function showCodes(to) { pending = to; qs('#to-new').textContent = to; qs('#to-old').textContent = user.email; codes.hidden = false; qs('[data-editor="email"]').hidden = true; qs('#code-new').value = qs('#code-old').value = ''; qs('#code-new').focus(); }
   if (pending) showCodes(pending);
-  qs('[data-editor="email"]').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#new-email').value.trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#new-email').classList.add('is-error'); return; } if (v === user.email) { toast('That’s already your email', 'error'); return; } try { if (!(await API.workEmailOk(v))) { qs('#new-email').classList.add('is-error'); qs('#ne-hint').className = 'field__hint is-error'; qs('#ne-hint').textContent = '@' + v.split('@')[1] + ' is a personal email provider. Use your work email.'; return; } await API.auth.changeEmail(v); showCodes(v); toast('We emailed you a code'); } catch (err) { H.fail(err); } });
+  qs('[data-editor="email"]').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#new-email').value.trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#new-email').classList.add('is-error'); return; } if (v === user.email) { toast('That’s already your email', 'error'); return; } try { if (!(await API.workEmailOk(v))) { qs('#new-email').classList.add('is-error'); qs('#ne-hint').className = 'field__hint is-error'; qs('#ne-hint').textContent = '@' + v.split('@')[1] + ' isn’t accepted. Use your work email or Gmail.'; return; } await API.auth.changeEmail(v); showCodes(v); toast('We emailed you a code'); } catch (err) { H.fail(err); } });
   qs('#em-resend').addEventListener('click', async () => { try { await API.auth.changeEmail(pending); toast('New codes sent'); } catch (err) { H.fail(err); } });
   qs('#em-x').addEventListener('click', () => { codes.hidden = true; });
   codes.addEventListener('submit', async e => {
