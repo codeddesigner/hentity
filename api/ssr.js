@@ -18,9 +18,18 @@ const S = require('./_seo');
 const PCOLS = 'id,slug,name,tagline,description,website,logo_url,media,categories,country,city,countries,pay_methods,platforms,languages,stage,upvote_count,comment_count,follower_count,effective_status,week_id,launch_date,created_at,updated_at,verified';
 const LIST = 'slug,name,tagline,city,country,categories,logo_url,upvote_count';
 
+// Unclaimed profiles: the public facts Hentity collected, each with its source (hidden facts never reach the view)
+function unclaimedBlock(p) {
+  if (p.effective_status !== 'unclaimed') return '';
+  const f = (p.claim && p.claim.facts) || [], n = (p.claim && p.claim.news) || [];
+  return `<p>This profile was created by Hentity from public sources and hasn't been claimed by the ${esc(p.name)} team yet. <a href="/claim/${esc(p.slug)}">Work there? Claim it.</a></p>`
+    + (f.length ? `<h2>What we know about ${esc(p.name)}</h2><dl>${f.map(x => `<dt>${esc(x.label || x.key)}</dt><dd>${esc(x.value)}${x.source ? ` (source: ${x.url ? `<a href="${esc(x.url)}" rel="nofollow noopener">${esc(x.source)}</a>` : esc(x.source)})` : ''}</dd>`).join('')}</dl>` : '')
+    + (n.length ? `<h2>${esc(p.name)} in the news</h2><ul>${n.map(x => `<li><a href="${esc(x.url)}" rel="nofollow noopener">${esc(x.title)}</a> (${esc(x.source || '')})</li>`).join('')}</ul>` : '');
+}
+
 async function build(type, slug) {
   if (type === 'product') {
-    const [p] = await rest(`product_feed?slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live)&select=${PCOLS},company_id,owner:profiles!products_owner_id_fkey(name,username)`);
+    const [p] = await rest(`product_feed?slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live,unclaimed)&select=${PCOLS},claim,company_id,owner:profiles!products_owner_id_fkey(name,username)`);
     if (!p) return null;
     if (p.company_id) p.company = (await rest(`companies?id=eq.${p.company_id}&select=name,city,country,verified,founded`).catch(() => []))[0] || null;
     const where = [p.city, COUNTRY[p.country] || p.country].filter(Boolean).join(', ');
@@ -52,6 +61,7 @@ async function build(type, slug) {
         <p>${p.upvote_count} upvotes · ${p.comment_count} comments · ${p.follower_count} followers on Hentity</p>
         ${p.website ? `<p><a href="${esc(p.website)}" rel="noopener">Visit ${esc(p.name)}</a></p>` : ''}
         ${p.owner ? `<p>Made by <a href="/makers/${esc(p.owner.username)}">${esc(p.owner.name)}</a>${p.company ? ` at ${esc(p.company.name)}` : ''}</p>` : ''}
+        ${unclaimedBlock(p)}
         ${S.list(alts, `Alternatives to ${p.name}`)}${S.nav()}`
     };
   }
@@ -95,7 +105,7 @@ async function build(type, slug) {
     const cat = type === 'category' ? S.CAT_BY_SLUG[slug] : null, cc = type === 'country' ? S.COUNTRY_BY_SLUG[slug] : null;
     if ((type === 'category' && !cat) || (type === 'country' && !cc)) return null;
     const filter = cat ? `&categories=cs.${encodeURIComponent('{"' + cat + '"}')}` : cc ? `&country=eq.${cc}` : '';
-    const rows = await rest(`product_feed?status=in.(scheduled,live)${filter}&select=${LIST}&order=upvote_count.desc,created_at.desc&limit=500`).catch(() => []);
+    const rows = await rest(`product_feed?status=in.(scheduled,live,unclaimed)${filter}&select=${LIST}&order=upvote_count.desc,created_at.desc&limit=500`).catch(() => []);
     const cname = cc ? COUNTRY[cc] : '';
     const h1 = cat ? `${cat} products and startups from Africa` : cc ? `Startups and products built in ${cname}` : 'Directory of products built across Africa';
     const title = cat ? `Best ${cat} startups and products in Africa (${new Date().getFullYear()}) | Hentity` : cc ? `Best startups and products from ${cname} (${new Date().getFullYear()}) | Hentity` : 'African startup and product directory | Hentity';

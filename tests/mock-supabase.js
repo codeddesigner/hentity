@@ -13,6 +13,30 @@
   T.channels.forEach(c => { if (c.kind !== 'dm') T.channel_members.push({ channel_id: c.id, user_id: ME, last_read_at: new Date(Date.now() - 3 * 36e5).toISOString() }); });
   // launch days for scheduled/live products (local tests only)
   (function () { T.products.forEach((p, i) => { const w = T.weeks.find(x => x.id === p.week_id); if (w && ['scheduled', 'live'].includes(p.status)) { const d = new Date(new Date(w.starts_at).getTime() + 3600e3 + (i % 3) * 864e5); p.launch_date = d.toISOString().slice(0, 10); } }); })();
+  // ---- unclaimed profiles (local tests only)
+  (function seedUnclaimed() {
+    const fact = (key, label, value, source, url, date) => ({ key, label, value, source, url, date });
+    const mk = (id, slug, name, tagline, website, country, city, cat, color, facts, news, extra) => Object.assign({ id, slug, name, tagline, website, country, city, categories: [cat], color, status: 'unclaimed', owner_id: null, week_id: null, media: [], pay_methods: [], countries: [country], stage: '', upvote_count: 0, comment_count: 0, follower_count: 212, click_count: 0, view_count: 1840, verified: false, featured: false, promoted: false, description: '', languages: '', platforms: '', currencies: '', created_at: new Date(Date.now() - 4 * 864e5).toISOString(), updated_at: new Date().toISOString(),
+      claim: { facts, news, spotted_at: new Date(Date.now() - 4 * 864e5).toISOString(), checked_at: new Date(Date.now() - 2 * 864e5).toISOString(), sources: 5, contact_email: 'hello@' + website.replace(/^https?:\/\//, '') } }, extra || {});
+    T.products.push(mk('u0000000-0000-4000-a000-000000000001', 'mazao-hub', 'Mazao Hub', 'Marketplace connecting smallholder farmers to buyers in Nairobi', 'https://mazaohub.co.ke', 'KE', 'Nairobi', 'Agriculture', '#16A34A', [
+      fact('product', 'Product', 'Android app and USSD (*483*12#) for selling produce to Nairobi buyers', 'Google Play', 'https://play.google.com'),
+      fact('funding', 'Funding', '$1.2M seed · October 2026', 'Disrupt Africa', 'https://disrupt-africa.com', '2026-10-14'),
+      fact('investors', 'Investors', 'Savannah Fund, two angels', 'Disrupt Africa', 'https://disrupt-africa.com', '2026-10-14'),
+      fact('company', 'Company', 'Mazao Hub Ltd · registered in Kenya', 'Business Registration Service', 'https://brs.go.ke'),
+      fact('traction', 'Traction', '10,000+ Android installs', 'Google Play', 'https://play.google.com'),
+      fact('hiring', 'Hiring', '3 open roles: Android, field sales, ops', 'mazaohub.co.ke/careers', 'https://mazaohub.co.ke/careers'),
+      fact('founded', 'Founded', '2025', 'Business Registration Service', 'https://brs.go.ke'), fact('team', 'Team size', '11–50', 'mazaohub.co.ke/careers', 'https://mazaohub.co.ke/careers')],
+      [{ title: 'Mazao Hub raises $1.2M to link Kenyan farmers with city buyers', source: 'Disrupt Africa', url: 'https://disrupt-africa.com', date: '2026-10-14' }, { title: 'The USSD apps keeping produce prices fair in Nairobi markets', source: 'TechCabal', url: 'https://techcabal.com', date: '2026-09-02' }]));
+    T.products.push(mk('u0000000-0000-4000-a000-000000000002', 'sabi-logistics', 'Sabi Logistics', 'Same-day delivery for Lagos SMEs, booked on WhatsApp', 'https://sabilogistics.ng', 'NG', 'Lagos', 'Logistics', '#2563EB', [fact('cohort', 'Accelerator', 'Techstars Lagos cohort', 'Techstars Lagos cohort', 'https://techstars.com', '2026-10-01')], [], { follower_count: 41 }));
+    T.products.push(mk('u0000000-0000-4000-a000-000000000003', 'agbe-farms', 'Agbe Farms', 'Cold storage you rent by the crate, in Ibadan markets', 'https://agbefarms.com', 'NG', 'Ibadan', 'Agriculture', '#15803D', [fact('company', 'Company', 'Agbe Farms Ltd', 'Nigeria company registry', 'https://cac.gov.ng', '2026-09-01')], [], { follower_count: 9 }));
+    T.radar = [
+      { id: 'r1', name: 'Duka Credit', website: 'https://dukacredit.co.ke', tagline: 'Kiosk inventory loans', country: 'KE', city: 'Nairobi', categories: ['Fintech'], confidence: 78, found_via: 'Google Play', contact_email: 'hello@dukacredit.co.ke', status: 'review', created_at: new Date(Date.now() - 864e5).toISOString(), checks: { africa: 'HQ Nairobi (Kenya BRS record)', product: 'Live Android app, 5k installs', unique: 'No domain or name match', personal: 'Business details only', logo: 'Generated monogram; real logo not found' },
+        facts: [{ key: 'product', label: 'Product', value: 'Android app for kiosk inventory loans', source: 'Google Play', url: 'https://play.google.com' }, { key: 'traction', label: 'Traction', value: '5,000+ installs', source: 'Google Play', url: 'https://play.google.com' }, { key: 'company', label: 'Company', value: 'Duka Credit Ltd', source: 'Business Registration Service', url: 'https://brs.go.ke' }], news: [] },
+      { id: 'r2', name: 'Kente Health', website: 'https://kentehealth.com', tagline: 'Clinic records for Accra pharmacies', country: 'GH', city: 'Accra', categories: ['Health'], confidence: 74, found_via: 'TechCabal', contact_email: '', status: 'review', created_at: new Date(Date.now() - 2 * 864e5).toISOString(), checks: {}, facts: [{ key: 'funding', label: 'Funding', value: 'Pre-seed', source: 'TechCabal', url: 'https://techcabal.com' }], news: [] },
+      { id: 'r3', name: 'ZipCash', website: '', tagline: 'Transfers', country: 'NG', city: '', categories: ['Fintech'], confidence: 34, found_via: 'Community tip', contact_email: '', status: 'review', created_at: new Date().toISOString(), checks: {}, facts: [], news: [] }];
+    T.claims = [{ id: 'cl9', product_id: 'u0000000-0000-4000-a000-000000000002', user_id: '00000000-0000-4000-a000-000000000006', role: 'founder', method: 'docs', status: 'review', note: 'Director under maiden name', docs: [{ path: 'x/cert.pdf', kind: 'certificate', name: 'CAC-certificate.pdf' }, { path: 'x/id.jpg', kind: 'id', name: 'passport.jpg' }], created_at: new Date(Date.now() - 5 * 36e5).toISOString() }]; T.removal_requests = [{ id: 'rr1', product_id: 'u0000000-0000-4000-a000-000000000003', name: 'Tunde', email: 'tunde@agbefarms.com', relation: 'Founder', reason: 'Not ready yet', status: 'open', created_at: new Date(Date.now() - 17 * 36e5).toISOString(), due_at: new Date(Date.now() + 31 * 36e5).toISOString() }];
+    T.notify_requests = T.notify_requests || [];
+  })();
   // ---- beta tests (local tests only)
   (function seedBetas() {
     const P = T.products, mineP = P.find(p => p.owner_id === ME) || P[0], other = P.filter(p => p.owner_id !== ME);
@@ -127,6 +151,16 @@
       return { days: a.days, live: P.length, live_week: 3, launched: 9, launched_prev: 6, views: 4120, views_prev: 3300, cities: Object.keys(cities).length, cities_new: 1, heat, total: P.length,
         industries: Object.entries(cnt(p => p.categories)).map(([name, n], i) => ({ name, n, cur: i === 2 ? 3 : 1, prev: 1 })).sort((x, y) => y.n - x.n), countries: Object.entries(cnt(p => p.country)).map(([cc, n]) => ({ cc, n })).sort((x, y) => y.n - x.n),
         city_list: Object.entries(cities).map(([k, n]) => ({ city: k.split('|')[0], cc: k.split('|')[1], n, new: n > 1 ? 1 : 0 })).sort((x, y) => y.n - x.n), stages: Object.entries(cnt(p => p.stage || 'Pre-seed')).map(([stage, n]) => ({ stage, n })), raised: [] }; },
+    claim_info: a => { const p = T.products.find(x => x.slug === a.s); if (!p) return null; const c = (T.claims || []).find(x => x.product_id === p.id && x.user_id === ME); return { product: Object.assign({}, p, { domain: (p.website || '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*/, ''), facts: (p.claim || {}).facts || [] }), claim: c || null, taken: false, followers: p.follower_count, asks: 12 }; },
+    claim_start: a => { const p = T.products.find(x => x.slug === a.s); const dom = (p.website || '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*/, ''); if (a.m === 'email' && !(a.em || '').endsWith('@' + dom)) throw new Error('Use an email address ending in @' + dom); let c = T.claims.find(x => x.product_id === p.id && x.user_id === ME); if (!c) { c = { id: 'cl1', product_id: p.id, user_id: ME, status: 'started', created_at: new Date().toISOString() }; T.claims.push(c); } Object.assign(c, { role: a.r, method: a.m, email: a.em, code_sent_at: new Date().toISOString(), dns_token: a.m === 'dns' ? 'hentity-verify=3f9a1c0be27d4e5a8c61f0aa' : c.dns_token }); return c; },
+    claim_verify_code: a => { const c = T.claims.find(x => x.id === a.cid); if (a.code !== '123456') return { status: 'wrong', left: 4 }; c.status = 'verified'; c.verified_at = new Date().toISOString(); return { status: 'verified', via: 'email' }; },
+    claim_check_dns: a => { const c = T.claims.find(x => x.id === a.cid); c.n = (c.n || 0) + 1; if (c.n > 2) { c.status = 'verified'; return { status: 'verified', via: 'dns' }; } return { status: c.n > 1 ? 'not_found' : 'checking' }; },
+    claim_submit_docs: a => { const c = T.claims.find(x => x.id === a.cid); c.status = 'review'; c.docs = a.files; return { status: 'review' }; },
+    claim_publish: a => { const c = T.claims.find(x => x.id === a.cid); const p = T.products.find(x => x.id === c.product_id); p.status = 'live'; p.owner_id = ME; if (a.e.tagline) p.tagline = a.e.tagline; c.status = 'published'; return { slug: p.slug, told: 212, via: c.method }; },
+    request_removal: () => null, claim_decide: a => { const c = T.claims.find(x => x.id === a.cid); if (c) c.status = a.ok ? 'verified' : 'rejected'; return null; },
+    removal_decide: a => { const r = T.removal_requests.find(x => x.id === a.rid); r.status = a.remove ? 'removed' : 'declined'; return null; },
+    radar_dupe: a => a.rid === 'r2' ? null : null,
+    radar_publish: a => { const r = T.radar.find(x => x.id === a.rid); r.status = 'published'; return { slug: r.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), id: 'x' }; },
     badge_info: a => ({ name: 'X', slug: a.s, upvotes: 212, live: true, week_rank: 1, week_over: true, week_label: '2 Nov', month_rank: 4, month_over: false, month: 'November 2026' }),
     badge_summary: () => ({ views: 18420, clicks: 1204, upvotes: 212 }), badge_hit: () => null,
     beta_track: a => { const b = T.betas.find(x => x.slug === a.s); if (b) b.opens++; return null; },
@@ -164,7 +198,7 @@
           signInWithOAuth: async () => ({ error: { message: 'Unsupported provider: provider is not enabled' } }),
           unlinkIdentity: async () => ({ error: null }), linkIdentity: async () => ({ error: null })
         },
-        storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: p => ({ data: { publicUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>' } }) }) },
+        storage: { from: () => ({ upload: async () => ({ error: null }), createSignedUrl: async () => ({ data: { signedUrl: 'data:text/plain,doc' }, error: null }), getPublicUrl: p => ({ data: { publicUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>' } }) }) },
         channel: () => { const c = { on: () => c, subscribe: (cb) => { cb && cb('SUBSCRIBED'); return c; }, track: async () => {}, send: async () => {}, presenceState: () => ({}) }; return c; },
         removeChannel: () => {}
       };

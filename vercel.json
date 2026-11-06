@@ -30,6 +30,10 @@
       "destination": "/api/go?t=:token"
     },
     {
+      "source": "/claim/:slug",
+      "destination": "/claim"
+    },
+    {
       "source": "/studio/:product/:beta",
       "destination": "/studio"
     },

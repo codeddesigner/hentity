@@ -47,7 +47,7 @@ async function home() {
 
 async function product(slug) {
   const out = {};
-  const p = one(await get(`product_feed?${sel(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at')}&slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live)`));
+  const p = one(await get(`product_feed?${sel(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at,claim,claimed_at')}&slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live,unclaimed)`));
   if (!p) return out;
   out['product:' + slug] = p;
   const cats = (p.categories || []).map(c => `"${String(c).replace(/"/g, '')}"`).join(',');

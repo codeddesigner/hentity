@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=00861b64dd">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=6ce7997c04"></script>
+<script src="/assets/app.js?v=29a0ba8130"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Claim your page · Hentity</title>
+<meta name="description" content="Claim the page Hentity built for your startup: verify you work there, check what we found, and publish.">
+<meta name="robots" content="noindex">
+<style>
+.cl-logo{display:flex;align-items:center;gap:8px}.cl-logo svg{width:132px;height:24px;flex:none}
+.cl{max-width:640px;margin:0 auto;padding:40px 16px 96px}
+.cl--wide{max-width:1040px}
+.cl h1{font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em;margin:18px 0 12px;text-wrap:balance}
+.cl-lead{font-size:17px;line-height:28px;color:var(--color-text-secondary)}
+.cl-brand{display:flex;align-items:center;gap:10px}
+.cl-lbl{font-size:13px;font-weight:500;margin:22px 0 10px}
+.cl-opt{display:block;width:100%;text-align:left;padding:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);margin-top:12px;transition:border-color .15s,box-shadow .15s}
+.cl-opt[aria-checked="true"]{border-color:var(--color-accent-default);box-shadow:0 0 0 1px var(--color-accent-default)}
+.cl-opt .hd{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.cl-opt .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong);flex:none;margin-top:2px}
+.cl-opt[aria-checked="true"] .rd{border:5px solid var(--color-accent-default)}
+.cl-opt .body{margin:14px 0 0 0}
+.cl-pill{display:inline-flex;height:20px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;align-items:center;margin-left:8px}
+.cl-pill--ok{background:#e9f8ee;color:#15803d}.cl-pill--warn{background:#fff6e5;color:#b45309}
+:root[data-theme="dark"] .cl-pill--ok{background:#0f2a1a}:root[data-theme="dark"] .cl-pill--warn{background:#2a1f0a}
+.cl-note{display:flex;gap:8px;font-size:12px;line-height:18px;color:var(--color-text-tertiary);margin-top:16px}
+.cl-otp{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:380px;margin:20px 0 12px}
+.cl-otp input{width:100%;min-width:0;height:60px;border:1px solid var(--color-border-strong);border-radius:12px;text-align:center;font-size:28px;font-weight:500;background:var(--color-bg-canvas);color:var(--color-text-primary);outline:none}
+.cl-otp input:focus{border-color:var(--color-text-primary);box-shadow:0 0 0 1px var(--color-text-primary)}
+.cl-otp.is-error input{border-color:var(--color-error)}
+.cl-alt{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--color-bg-subtle);font-size:13px;color:var(--color-text-secondary)}
+.cl-dns{border:1px solid var(--color-border-default);border-radius:12px;overflow:hidden;margin-top:14px}
+.cl-dns>div{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--color-border-default);font-size:13px}
+.cl-dns>div:first-child{border-top:0}
+.cl-dns code{font-family:var(--font-mono);font-size:12.5px;word-break:break-all}
+.cl-files{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cl-file{display:flex;align-items:center;gap:10px;padding:12px;border:1px dashed var(--color-border-strong);border-radius:12px;font-size:13px;cursor:pointer;min-width:0}
+.cl-file.is-set{border-style:solid;border-color:var(--color-success)}
+.cl-file input{display:none}
+/* Review */
+.cl-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.cl-card{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:6px 20px}
+.cl-row{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 0;border-top:1px solid var(--color-border-default)}
+.cl-row:first-child{border-top:0}
+.cl-row .v{font-size:15px;line-height:22px}
+.cl-row.is-hidden .v{text-decoration:line-through;color:var(--color-text-tertiary)}
+.cl-seg{display:inline-flex;background:var(--color-bg-subtle);border-radius:9px;padding:2px}
+.cl-seg button{height:26px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:500;color:var(--color-text-tertiary)}
+.cl-seg button[aria-pressed="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.cl-edited{display:inline-flex;height:22px;padding:0 8px;border-radius:6px;background:var(--color-accent-subtle);color:var(--color-accent-default);font-size:11.5px;font-weight:500;align-items:center}
+.cl-add{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px dashed var(--color-border-strong);border-radius:9px;font-size:13px;font-weight:500}
+.cl-add[aria-pressed="true"]{border:1px solid var(--color-success);color:#15803d}
+.cl-prev{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:20px}
+.cl-tell{display:flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;background:var(--color-accent-subtle);font-size:12.5px;margin-top:12px}
+/* Done */
+.cl-done{background:#0a0a0a;color:#fff;border-radius:18px;padding:28px;display:flex;gap:20px;align-items:center}
+.cl-next{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cl-next>div{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.cl-next>div.hl{border-color:var(--color-accent-default)}
+.cl-next .ib{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--color-bg-subtle);margin-bottom:6px}
+@media (max-width:860px){.cl-grid{grid-template-columns:minmax(0,1fr)}.cl-next{grid-template-columns:1fr}.cl-done{flex-direction:column;align-items:flex-start}}
+@media (max-width:640px){.cl h1{font-size:30px;line-height:36px}.cl{padding:20px 16px 120px}.cl-row{grid-template-columns:minmax(0,1fr);gap:8px}.cl-row>span:first-child{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary)}
+  .cl-files{grid-template-columns:1fr}.cl-otp input{height:52px}.cl-dns>div{grid-template-columns:1fr}
+  .cl-sticky{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);z-index:40}}
+</style>
+<meta property="og:title" content="Claim your page · Hentity">
+<meta property="og:description" content="Claim the page Hentity built for your startup: verify you work there, check what we found, and publish.">
+<meta property="og:url" content="https://hentity.com/claim">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=712e217edc">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claim your page · Hentity">
+<meta name="twitter:description" content="Claim the page Hentity built for your startup: verify you work there, check what we found, and publish.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=712e217edc">
+</head>
+<body class="no-tabbar" style="background:var(--color-bg-subtle)">
+<header class="tp-top"><div class="tp-top__in"><a href="/" aria-label="Hentity home" class="cl-logo" data-logo></a><a class="t-body-sm" href="/" id="exit" style="font-weight:500">Save and exit</a></div></header>
+<main id="cl"><div class="cl"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<script>
+H.mount({});
+(async function () {
+  const { qs, qsa, esc, icon, toast, plogo, verified, flag } = H;
+  const slug = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || H.params().get('p') || '');
+  const root = qs('#cl');
+  const show = (html, wide) => { root.innerHTML = `<div class="cl${wide ? ' cl--wide' : ''} reveal">${html}</div>`; H.mount(); window.scrollTo(0, 0); H.contentShown(); };
+  await API.ready;
+  let info = slug ? await API.claimInfo(slug).catch(() => null) : null;
+  if (!info) { show(`<div style="text-align:center;padding-top:60px"><h1>This page can’t be claimed</h1><p class="cl-lead">It may already belong to its team, or the link is wrong.</p><a class="btn btn--secondary" style="margin-top:20px" href="/products/${esc(slug)}">See the page</a></div>`); return; }
+  const P = info.product, dom = P.domain;
+  document.title = `Claim ${P.name} · Hentity`;
+  qs('#exit').href = '/products/' + P.slug;
+  const CC = { KE: ['Kenya', 'Business Registration Service (BRS) certificate'], NG: ['Nigeria', 'CAC certificate'], GH: ['Ghana', 'Office of the Registrar of Companies (ORC) certificate'], ZA: ['South Africa', 'CIPC registration certificate'], RW: ['Rwanda', 'RDB registration certificate'] };
+  const cert = (CC[P.country] || ['', 'company registration certificate'])[1];
+  const brand = () => `<div class="cl-brand">${plogo(P, 32)}<div><p class="t-label">${esc(P.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc([dom, P.city].filter(Boolean).join(' · '))}</p></div></div>`;
+  const steps = n => `<div class="tp-steps" style="margin-top:20px">${['Verify', 'Review details', 'Go live'].map((t, i) => `<span class="${i + 1 < n ? 'done' : i + 1 === n ? 'on' : ''}"><b>${i + 1 < n ? icon('check', 'ic-12') : i + 1}</b>${t}</span>`).join('<i></i>')}</div>`;
+  const C = () => info.claim || {};
+  const st = { role: C().role || 'founder', method: C().method || (dom ? 'email' : 'docs'), email: C().email || '', files: {} };
+
+  route();
+  function route() {
+    const c = C();
+    if (P.status !== 'unclaimed') return done();
+    if (!API.uid) return verify();
+    if (c.status === 'verified') return review();
+    if (c.status === 'review') return waiting();
+    if (c.status === 'started' && c.method === 'email' && c.code_sent_at && Date.now() - new Date(c.code_sent_at) < 30 * 60e3) return code();
+    if (c.status === 'started' && c.method === 'dns' && c.dns_token) return dns();
+    return verify(c.status === 'rejected' ? c.note : null);
+  }
+
+  // ------------------------------------------------------------ 1. Verify
+  function verify(rejected) {
+    show(`${brand()}${steps(1)}
+      <h1>Show us you work at ${esc(P.name)}</h1>
+      <p class="cl-lead">Claiming changes nothing publicly until you review the details and publish. You can invite co-founders after.</p>
+      ${rejected ? `<div class="alert alert--error" style="margin-top:18px"><span>${icon('alert-circle')}</span><div><p class="alert__title">Your last claim wasn’t approved</p><p class="alert__body">${esc(rejected)}</p></div></div>` : ''}
+      ${info.taken ? `<div class="alert alert--warning" style="margin-top:18px"><span>${icon('info')}</span><div><p class="alert__title">Someone from ${esc(P.name)} already claimed this page</p><p class="alert__body">If that’s wrong, contest it with the same proof below. We freeze the page while we check.</p></div></div>` : ''}
+      <p class="cl-lbl">Your role</p>
+      <div class="chips" data-single id="role">${[['founder', 'Founder or co-founder'], ['employee', 'Employee'], ['agency', 'Agency or advisor']].map(([k, l]) => `<button class="chip" type="button" data-chip data-r="${k}" aria-pressed="${st.role === k}">${icon('check')}${l}</button>`).join('')}</div>
+      <p class="cl-lbl">How to verify</p>
+      <div id="opts"></div>
+      <button class="btn btn--accent btn--block btn--lg" type="button" id="go" style="margin-top:20px"></button>
+      <p class="cl-note">${icon('info', 'ic-14')}<span>If someone has already claimed ${esc(P.name)}, you can contest it with the same proof. We freeze the page while we check, and both sides hear from us.</span></p>`);
+    const opts = () => {
+      const o = (k, ic, title, pill, sub, body) => `<div class="cl-opt" role="radio" aria-checked="${st.method === k}" data-m="${k}"><div class="hd"><span class="rd"></span><span class="c-2">${icon(ic, 'ic-18')}</span><div><p class="t-label">${title}${pill || ''}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${sub}</p></div></div>${st.method === k && body ? `<div class="body">${body}</div>` : ''}</div>`;
+      qs('#opts').innerHTML = (dom ? o('email', 'mail', `Work email at ${esc(dom)}`, '<span class="cl-pill cl-pill--ok">Fastest</span>', 'We send a 6-digit code. Verified instantly.', `<label class="field"><span class="field__label">Work email</span><input class="input" id="email" type="email" autocomplete="email" placeholder="you@${esc(dom)}" value="${esc(st.email)}"></label>`)
+        + o('dns', 'globe', `Add a DNS record to ${esc(dom)}`, '', 'For teams without email on the domain. Add one TXT record; we check it every few minutes.', '') : '')
+        + o('docs', 'file-text', 'Company documents', '<span class="cl-pill cl-pill--warn">Manual review</span>', `Upload your ${esc(cert)} and an ID that matches a director. Reviewed by Hentity in 1–2 working days.`,
+          `<div class="cl-files">${[['cert', 'Company certificate', cert], ['id', 'Director’s ID', 'Passport, national ID or driver’s licence']].map(([k, t, d]) => `<label class="cl-file${st.files[k] ? ' is-set' : ''}"><input type="file" data-file="${k}" accept=".pdf,image/*"><span class="c-2">${icon(st.files[k] ? 'check' : 'upload', 'ic-18')}</span><span style="min-width:0"><b class="t-label" style="display:block">${t}</b><span class="t-caption c-3 truncate" style="font-weight:400;display:block">${esc(st.files[k] ? st.files[k].name : d)}</span></span></label>`).join('')}</div>
+          <label class="field" style="margin-top:12px"><span class="field__label">Anything we should know? (optional)</span><input class="input" id="docnote" maxlength="300" placeholder="e.g. I’m listed as a director under my maiden name"></label>`);
+      qs('#go').innerHTML = !API.uid ? 'Sign in to continue' : st.method === 'email' ? icon('mail', 'ic-16') + 'Send code' : st.method === 'dns' ? icon('globe', 'ic-16') + 'Get my DNS record' : icon('file-text', 'ic-16') + 'Send for review';
+      const em = qs('#email'); if (em) em.addEventListener('input', () => st.email = em.value.trim());
+      qsa('[data-file]').forEach(i => i.addEventListener('change', () => { const f = i.files[0]; if (!f) return; if (f.size > 10e6) { toast('Files must be under 10 MB', 'error'); return; } st.files[i.dataset.file] = f; opts(); }));
+    };
+    opts();
+    H.bindChips(qs('#role'), () => { const s = qs('#role [aria-pressed="true"]'); st.role = s ? s.dataset.r : 'founder'; });
+    qs('#opts').addEventListener('click', e => { const o = e.target.closest('.cl-opt'); if (!o || e.target.closest('input,label.cl-file,.field')) return; if (st.method !== o.dataset.m) { st.method = o.dataset.m; opts(); const em = qs('#email'); em && em.focus(); } });
+    qs('#go').onclick = async () => {
+      if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+      const b = qs('#go'); const label = b.innerHTML; b.disabled = true; b.innerHTML = icon('clock', 'spin') + 'One moment';
+      try {
+        if (st.method === 'email') { if (!/@/.test(st.email)) throw new Error('Enter your work email'); info.claim = await API.claimStart(P.slug, st.role, 'email', st.email); code(); }
+        else if (st.method === 'dns') { info.claim = await API.claimStart(P.slug, st.role, 'dns'); dns(); }
+        else {
+          if (!st.files.cert || !st.files.id) throw new Error('Add your company certificate and an ID');
+          info.claim = await API.claimStart(P.slug, st.role, 'docs');
+          const files = [await API.claimUpload(info.claim.id, st.files.cert, 'certificate'), await API.claimUpload(info.claim.id, st.files.id, 'id')];
+          await API.claimSubmitDocs(info.claim.id, files, (qs('#docnote') || {}).value);
+          info.claim.status = 'review'; waiting();
+        }
+      } catch (e) { H.fail(e); b.disabled = false; b.innerHTML = label; }
+    };
+  }
+
+  // ------------------------------------------------------------ 1b. Code
+  function code() {
+    show(`${brand()}${steps(1)}
+      <h1>Check your email</h1>
+      <p class="cl-lead">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${esc(C().email)}</b></p>
+      <div class="cl-otp" id="otp">${Array.from({ length: 6 }, (_, i) => `<input inputmode="numeric" aria-label="Digit ${i + 1}" ${i === 0 ? 'autocomplete="one-time-code"' : ''}>`).join('')}</div>
+      <p class="t-caption c-3" style="font-weight:400" id="otp-msg">Didn’t get it? <button class="link" type="button" id="resend" style="font-weight:500"></button></p>
+      <div class="cl-alt" style="margin-top:22px">${icon('globe', 'ic-16')}<span>No email on ${esc(dom)}? <button class="link link--accent" type="button" id="other" style="text-align:left">Verify with a DNS record or company documents instead.</button></span></div>
+      <div class="cl-sticky"><button class="btn btn--accent btn--block btn--lg" type="button" id="verify" style="margin-top:24px" disabled>Verify</button></div>`);
+    const ins = qsa('#otp input'), val = () => ins.map(i => i.value).join('');
+    ins[0].focus();
+    ins.forEach((inp, i) => {
+      inp.addEventListener('input', () => { const d = inp.value.replace(/\D/g, ''); if (d.length > 1) { d.split('').slice(0, 6 - i).forEach((x, k) => ins[i + k].value = x); } else inp.value = d; const nx = ins.find(x => !x.value); (nx || ins[5]).focus(); qs('#otp').classList.remove('is-error'); qs('#verify').disabled = val().length < 6; if (val().length === 6) submit(); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && i) ins[i - 1].focus(); });
+    });
+    let n = 45; const rs = qs('#resend'); const tick = () => { rs.textContent = n > 0 ? `Resend in 0:${String(n).padStart(2, '0')}` : 'Resend code'; rs.disabled = n > 0; n--; };
+    tick(); const t = setInterval(() => { tick(); if (n < -1) clearInterval(t); }, 1000);
+    rs.onclick = async () => { try { info.claim = await API.claimStart(P.slug, C().role, 'email', C().email); toast('New code sent'); n = 45; } catch (e) { H.fail(e); } };
+    qs('#other').onclick = () => { clearInterval(t); st.method = dom ? 'dns' : 'docs'; verify(); };
+    let busy = false;
+    async function submit() {
+      if (busy || val().length < 6) return; busy = true; const b = qs('#verify'); b.disabled = true; b.innerHTML = icon('clock', 'spin') + 'Checking';
+      try {
+        const r = await API.claimVerifyCode(C().id, val());
+        if (r.status === 'verified') { clearInterval(t); info.claim.status = 'verified'; info.claim.method = 'email'; review(); return; }
+        qs('#otp').classList.add('is-error'); qs('#otp-msg').innerHTML = `<span style="color:var(--color-error)">That code doesn’t match.${r.left ? ` ${r.left} tr${r.left === 1 ? 'y' : 'ies'} left.` : ' Send a new one.'}</span>`; ins.forEach(i => i.value = ''); ins[0].focus();
+      } catch (e) { H.fail(e); }
+      busy = false; b.innerHTML = 'Verify';
+    }
+    qs('#verify').onclick = submit;
+  }
+
+  // ------------------------------------------------------------ 1c. DNS
+  function dns() {
+    const tok = C().dns_token;
+    show(`${brand()}${steps(1)}
+      <h1>Add a DNS record</h1>
+      <p class="cl-lead">Add this TXT record where you manage ${esc(dom)} (Cloudflare, GoDaddy, Namecheap, your host). It doesn’t change your site or email.</p>
+      <div class="cl-dns"><div><span class="c-3">Type</span><code>TXT</code><span></span></div><div><span class="c-3">Name</span><code>@</code><span class="t-caption c-3" style="font-weight:400">or ${esc(dom)}</span></div>
+        <div><span class="c-3">Value</span><code id="tok">${esc(tok)}</code><button class="btn btn--secondary btn--sm" type="button" id="copy">${icon('copy', 'ic-14')}Copy</button></div></div>
+      <div class="cl-alt" style="margin-top:16px" id="dns-msg">${icon('clock', 'ic-16')}<span>Records can take a few minutes to show up. We’ll keep checking while this page is open.</span></div>
+      <div class="row gap-10" style="margin-top:20px"><button class="btn btn--ghost" type="button" id="other">Use another way</button><button class="btn btn--accent grow" type="button" id="check">${icon('globe', 'ic-16')}Check now</button></div>`);
+    qs('#copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(tok); toast('Copied'); };
+    qs('#other').onclick = () => { clearInterval(poll); st.method = 'email'; verify(); };
+    let poll, tries = 0;
+    async function check(manual) {
+      try {
+        const r = await API.claimCheckDns(C().id);
+        if (r.status === 'verified') { clearInterval(poll); info.claim.status = 'verified'; info.claim.method = 'dns'; toast('Record found'); review(); return; }
+        const m = qs('#dns-msg'); if (!m) return;
+        m.innerHTML = r.status === 'not_found' ? `${icon('alert-circle', 'ic-16')}<span>We can’t see the record yet. Check it’s a TXT record on ${esc(dom)} with the exact value, then give it a few minutes.</span>` : `${icon('clock', 'ic-16 spin')}<span>Checking ${esc(dom)}…</span>`;
+        if (r.status === 'checking' && manual) setTimeout(() => check(), 3000);
+      } catch (e) { if (manual) H.fail(e); }
+    }
+    qs('#check').onclick = () => check(true);
+    poll = setInterval(() => { if (++tries > 60 || !qs('#dns-msg')) { clearInterval(poll); return; } check(); }, 15000);
+  }
+
+  // ------------------------------------------------------------ 1d. Documents under review
+  function waiting() {
+    show(`${brand()}${steps(1)}
+      <h1>We’re checking your documents</h1>
+      <p class="cl-lead">A person at Hentity compares your ${esc(cert)} and ID with public records. It usually takes 1–2 working days. We’ll notify you, then you can review the details and publish.</p>
+      <div class="cl-alt" style="margin-top:20px">${icon('shield', 'ic-16')}<span>Your documents are stored privately and only used to check this claim. Nothing on the public page changes until you publish.</span></div>
+      <div class="row gap-10" style="margin-top:22px"><a class="btn btn--secondary" href="/products/${esc(P.slug)}">Back to the page</a>${dom ? `<button class="btn btn--ghost" type="button" id="faster">Verify faster with a work email</button>` : ''}</div>`);
+    qs('#faster') && (qs('#faster').onclick = () => { st.method = 'email'; verify(); });
+  }
+
+  // ------------------------------------------------------------ 2. Review what we found
+  function review() {
+    const facts = (P.facts || []).filter(f => f.value);
+    const E = { name: { a: 'keep', v: P.name }, tagline: { a: 'keep', v: P.tagline } }; facts.forEach(f => E[f.key] = { a: 'keep', v: f.value });
+    const adds = { logo: false, makers: false, screens: false, pay: false, pitch: false };
+    try { Object.assign(adds, JSON.parse(sessionStorage.getItem('cl-adds:' + P.slug) || '{}')); } catch (e) {}
+    const via = { email: 'work email', dns: 'DNS record', docs: 'company documents' }[C().method] || 'work email';
+    const rows = [{ key: 'name', label: 'Name', value: P.name, source: dom, fixed: true }, { key: 'tagline', label: 'Tagline', value: P.tagline, source: dom, fixed: true }, ...facts];
+    const srcChip = f => f.source ? `<span class="src">${icon('link', 'ic-12')}${esc([f.source, f.date ? new Date(f.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : ''].filter(Boolean).join(' · '))}</span>` : '';
+    show(`${brand()}${steps(2)}
+      <h1 class="row gap-12 wrap">Check what we found <span class="cl-pill cl-pill--ok" style="font-size:12.5px;height:24px;letter-spacing:0">${icon('check', 'ic-12')}Verified via ${via}</span></h1>
+      <p class="cl-lead">Keep what’s right, fix what isn’t, add what we missed. Nothing goes live until you publish.</p>
+      <div class="cl-grid" style="margin-top:22px">
+        <div class="stack gap-16">
+          <div class="cl-card" id="rows"></div>
+          <div class="cl-card" style="padding:18px 20px"><p class="t-label" style="margin-bottom:12px">Add what we missed</p><div class="row gap-8 wrap" id="adds"></div><p class="t-caption c-3" style="font-weight:400;margin-top:10px">Tick what you have ready. You’ll add them right after publishing.</p></div>
+          <div class="row gap-12 cl-sticky" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" id="back">Back</button><button class="btn btn--accent btn--lg" type="button" id="publish">${icon('check', 'ic-16')}Publish claimed profile</button></div>
+        </div>
+        <aside><p class="t-eyebrow c-3" style="margin-bottom:10px">How it will look</p><div class="cl-prev" id="prev"></div>
+          ${info.followers + info.asks ? `<div class="cl-tell">${icon('bell', 'ic-14')}<span>${Math.max(info.followers, info.asks)} ${Math.max(info.followers, info.asks) === 1 ? 'person' : 'followers'} will be told you’ve joined</span></div>` : ''}</aside>
+      </div>`, true);
+    const paint = () => {
+      qs('#rows').innerHTML = rows.map(f => { const e = E[f.key]; const seg = ['keep', 'edit', 'hide'].filter(a => !(f.fixed && a === 'hide'));
+        return `<div class="cl-row${e.a === 'hide' ? ' is-hidden' : ''}" data-k="${esc(f.key)}"><span class="t-body-sm c-2">${esc(f.label || f.key)}</span>
+          <div class="stack gap-6" style="min-width:0;align-items:flex-start">${e.a === 'edit' ? `<input class="input" data-v="${esc(f.key)}" value="${esc(e.v)}" maxlength="${f.key === 'tagline' ? 140 : f.key === 'name' ? 80 : 300}">` : `<span class="v">${esc(e.v)}</span>`}
+            <span class="row gap-6 wrap">${srcChip(f)}${e.a === 'edit' || e.v !== f.value ? '<span class="cl-edited">Edited by you</span>' : ''}${e.a === 'hide' ? `<span class="src">${icon('eye', 'ic-12')}Hidden</span>` : ''}</span></div>
+          <span class="cl-seg" role="group" aria-label="${esc(f.label)}">${seg.map(a => `<button type="button" data-a="${a}" aria-pressed="${e.a === a || (a === 'keep' && e.a === 'keep')}">${a[0].toUpperCase() + a.slice(1)}</button>`).join('')}</span></div>`; }).join('');
+      qs('#adds').innerHTML = [['logo', 'image', 'Logo'], ['makers', 'users', 'Makers'], ['screens', 'image', 'Screenshots'], ['pay', 'globe', 'Countries & payments'], ['pitch', 'type', 'Pitch line']].map(([k, ic, l]) => `<button class="cl-add" type="button" data-add="${k}" aria-pressed="${adds[k]}">${icon(adds[k] ? 'check' : ic, 'ic-14')}${l}</button>`).join('');
+      prev();
+    };
+    const prev = () => { qs('#prev').innerHTML = `<div class="row gap-12">${plogo(P, 48)}<div style="min-width:0"><p class="t-h4 row gap-6">${esc(E.name.v)}${verified('verified--sm')}</p><p class="t-caption c-success" style="font-weight:400">Claimed${P.city ? ' · ' + esc(P.city) : ''}</p></div></div><p class="t-body-sm c-2" style="margin-top:14px">${esc(E.tagline.v)}</p>`; };
+    paint();
+    qs('#rows').addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (!b) return; const k = b.closest('[data-k]').dataset.k; E[k].a = b.dataset.a; if (b.dataset.a === 'keep') E[k].v = rows.find(r => r.key === k).value; paint(); if (b.dataset.a === 'edit') { const i = qs(`[data-v="${CSS.escape(k)}"]`); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } });
+    qs('#rows').addEventListener('input', e => { const i = e.target.closest('[data-v]'); if (!i) return; E[i.dataset.v].v = i.value; prev(); });
+    qs('#adds').addEventListener('click', e => { const b = e.target.closest('[data-add]'); if (!b) return; adds[b.dataset.add] = !adds[b.dataset.add]; try { sessionStorage.setItem('cl-adds:' + P.slug, JSON.stringify(adds)); } catch (x) {} paint(); });
+    qs('#back').onclick = () => location.href = '/products/' + P.slug;
+    qs('#publish').onclick = async () => {
+      const b = qs('#publish'); b.disabled = true; b.innerHTML = icon('clock', 'spin') + 'Publishing';
+      const payload = { name: E.name.a === 'edit' ? E.name.v : null, tagline: E.tagline.a === 'edit' ? E.tagline.v : null, facts: {} };
+      facts.forEach(f => { const e = E[f.key]; payload.facts[f.key] = e.a === 'hide' ? { action: 'hide' } : e.a === 'edit' && e.v !== f.value ? { action: 'edit', value: e.v } : { action: 'keep' }; });
+      try { const r = await API.claimPublish(C().id, payload); try { sessionStorage.setItem('cl-done:' + P.slug, JSON.stringify({ told: r.told, via: r.via })); } catch (x) {} P.status = 'live'; P.name = E.name.v; done(r); }
+      catch (e) { H.fail(e); b.disabled = false; b.innerHTML = icon('check', 'ic-16') + 'Publish claimed profile'; }
+    };
+  }
+
+  // ------------------------------------------------------------ 3. Claimed
+  function done(r) {
+    let saved = {}; try { saved = JSON.parse(sessionStorage.getItem('cl-done:' + P.slug) || '{}'); } catch (e) {}
+    r = r || saved; const told = r.told || 0, via = { email: 'work email', dns: 'DNS record', docs: 'company documents' }[r.via || (C().method)] || '';
+    let adds = {}; try { adds = JSON.parse(sessionStorage.getItem('cl-adds:' + P.slug) || '{}'); } catch (e) {}
+    const todo = [['logo', 'logo'], ['screens', 'screenshots'], ['pay', 'countries and payments'], ['pitch', 'a pitch line'], ['makers', 'makers']].filter(([k]) => adds[k]).map(x => x[1]);
+    document.body.classList.remove('no-tabbar'); document.body.style.background = '';
+    qs('.tp-top').remove();
+    root.insertAdjacentHTML('beforebegin', '<div data-header></div>'); root.insertAdjacentHTML('afterend', '<div data-tabbar></div>');
+    H.mount({ active: 'my-products', tab: 'you' });
+    root.innerHTML = `<div class="cl cl--wide reveal" style="padding-top:48px">
+      <div class="cl-done">${plogo(P, 64)}<div class="grow" style="min-width:0"><p class="t-eyebrow" style="color:var(--color-accent-default)">Claimed${via ? ' · verified via ' + via : ''}</p><h1 style="color:#fff;margin:6px 0 6px;font-size:32px;line-height:38px">${esc(P.name)} is yours</h1><p style="color:#bdbdbd;font-size:14px">The Unclaimed tag is gone, your edits are live${told ? ` and ${told} ${told === 1 ? 'person has' : 'followers have'} been told you’re here` : ''}.</p></div><a class="btn btn--secondary" href="/products/${esc(P.slug)}" style="background:#fff;color:#0a0a0a">${icon('arrow-up-right', 'ic-16')}View public page</a></div>
+      <h2 class="t-h3" style="margin:32px 0 16px">What to do next</h2>
+      <div class="cl-next">
+        <div class="hl"><span class="ib" style="background:var(--color-accent-subtle);color:var(--color-accent-default)">${icon('calendar', 'ic-18')}</span><p class="t-label">Pick a launch date</p><p class="t-body-sm c-2">Go on the leaderboard.${told ? ` ${told} followers get a reminder on the day.` : ''} Upvotes open on your launch day.</p><a class="btn btn--accent btn--sm" href="/submit?id=${esc(P.id)}">Choose date</a></div>
+        <div><span class="ib">${icon('users', 'ic-18')}</span><p class="t-label">Invite your co-founders</p><p class="t-body-sm c-2">They join as makers and can reply to comments and reviews.</p><a class="btn btn--secondary btn--sm" href="/submit?id=${esc(P.id)}#makers">Invite</a></div>
+        <div><span class="ib">${icon('image', 'ic-18')}</span><p class="t-label">Finish your page</p><p class="t-body-sm c-2">${todo.length ? 'You said you have ' + esc(todo.join(', ')) + ' ready. Add them to make the page yours.' : 'Add your logo, screenshots, payments and makers. Pages with screenshots get more follows.'}</p><a class="btn btn--secondary btn--sm" href="/submit?id=${esc(P.id)}">Edit page</a></div>
+        <div><span class="ib">${icon('star', 'ic-18')}</span><p class="t-label">Put a badge on your site</p><p class="t-body-sm c-2">“Featured on Hentity” is ready now, and updates itself when you win.</p><a class="btn btn--secondary btn--sm" href="/studio/${esc(P.slug)}/badges">Get badge</a></div>
+      </div>
+      <p class="cl-note" style="margin-top:20px">${icon('info', 'ic-14')}<span>From now on Hentity stops updating ${esc(P.name)} from public sources. If we spot something new (a funding round, a big app milestone), we’ll suggest it to you instead.</span></p>
+    </div>`;
+    H.contentShown();
+  }
+})();
+</script>
+</body>
+</html>

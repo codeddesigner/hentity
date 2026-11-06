@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=d2f9038ac8">
+<link rel="stylesheet" href="/assets/styles.css?v=00861b64dd">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=8a9c56b023"></script>
-<script src="/assets/app.js?v=dd02e827f1"></script>
+<script src="/assets/api.js?v=6ce7997c04"></script>
+<script src="/assets/app.js?v=29a0ba8130"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -175,7 +175,9 @@ H.mount({ active: '', tab: 'launch' });
   if (prm.get('id')) p = (await API.myProducts()).find(x => x.id === prm.get('id')) || null;
   else if (!prm.get('new')) { const all = await API.myProducts(); p = all.find(x => x.status === 'changes') || all.find(x => x.status === 'draft') || null; }
   if (p && ['review'].includes(p.status)) { location.replace('/under-review?p=' + p.slug); return; }
-  if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
+  // A claimed page that never launched is edited here like a draft, then sent for a launch day
+  const listing = x => x && x.status === 'live' && x.claimed_at && !x.week_id && !x.launch_date;
+  if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !listing(p) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
   const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, launch_date: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
   if (p) history.replaceState(null, '', '/submit?id=' + p.id + (prm.get('step') ? '&step=' + prm.get('step') : ''));
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
@@ -318,7 +320,7 @@ H.mount({ active: '', tab: 'launch' });
     clearTimeout(saveT);
     saveT = setTimeout(async () => {
       const pl = payload(); if (!p && !pl.tagline && pl.name === 'Untitled product') return;
-      try { await ensureDraft(); if (!['draft', 'changes'].includes(p.status)) return; p = Object.assign(p, await API.saveProduct(p.id, pl)); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + new Date().toTimeString().slice(0, 5); }
+      try { await ensureDraft(); if (!['draft', 'changes'].includes(p.status) && !listing(p)) return; p = Object.assign(p, await API.saveProduct(p.id, pl)); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + new Date().toTimeString().slice(0, 5); }
       catch (e) { qs('#saved').innerHTML = icon('alert-circle', 'ic-12') + 'Not saved · ' + H.esc(e.message).slice(0, 60); }
     }, 700);
   }

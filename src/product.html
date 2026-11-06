@@ -54,6 +54,7 @@ H.mount({ active: 'products', tab: 'products' });
   try { p = await API.product(slug); } catch (e) { H.fail(e); }
   if (!p) { document.title = 'Product not found · Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
   document.title = `${p.name} · ${p.tagline} · Hentity`;
+  if (p.status === 'unclaimed') return unclaimed(p);
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own
   // state (votes, follows) is a second parallel batch instead of a chain of round trips.
@@ -132,6 +133,96 @@ H.mount({ active: 'products', tab: 'products' });
     if (sessionStorage.getItem('rb:' + p.id)) document.addEventListener('hentity:vote', e => { if (e.detail && e.detail.id === p.id && e.detail.on && !sessionStorage.getItem('rbv:' + p.id)) { sessionStorage.setItem('rbv:' + p.id, '1'); API.badgeHit(p.slug, 'upvote'); } });
   } catch (e) {}
   if (p.testers_wanted || (API.uid && p.owner_id === API.uid)) API.openBetaOf(p.id).then(betaBits).catch(() => {});
+  // ---------------------------------------------------------------- Unclaimed profile (Figma: Claims · Product · Unclaimed)
+  // Built by Hentity from public business sources. Every fact shows its source; no people are named until the team
+  // claims the page. Visitors can follow and ask the team to join; votes, comments and launches open after claiming.
+  async function unclaimed(p) {
+    const C = p.claim || {}, facts = C.facts || [], news = C.news || [];
+    const fact = k => facts.find(f => f.key === k);
+    const dom = (p.website || '').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/.*$/, '');
+    const mon = d => d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
+    const day = d => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+    const src = f => { const t = [f.source, f.date ? mon(f.date) : f.checked ? 'checked ' + day(f.checked) : ''].filter(Boolean).join(' · '); return t ? (f.url ? `<a class="src" href="${esc(f.url)}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-12')}${esc(t)}</a>` : `<span class="src">${icon('link', 'ic-12')}${esc(t)}</span>`) : ''; };
+    const ago = d => { if (!d) return ''; const n = Math.round((Date.now() - new Date(d)) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago'; };
+    const cat = (p.categories || [])[0], catSlug = c => c.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const meta = [p.city || H.COUNTRY[p.country] ? `<span class="row gap-6">${flag(p.country)}${esc([p.city, H.COUNTRY[p.country] || p.country].filter(Boolean).join(', '))}</span>` : '', cat ? esc(cat) : '', fact('founded') ? 'Founded ' + esc(fact('founded').value) : '', fact('team') ? 'Team ' + esc(fact('team').value) : ''].filter(Boolean);
+    const list = facts.filter(f => !['founded', 'team'].includes(f.key));
+    const [followingProduct, asked, asks] = await Promise.all([API.following('product', [p.id]), API.notifyRequests(), API.asks(p.id)]);
+    let fol = followingProduct.has(p.id), ask = asked.has(p.id), followers = p.follower_count || 0, nAsk = asks;
+    const want = () => Math.max(followers, nAsk);
+    qs('#pp').innerHTML = `
+    <nav class="crumbs reveal" aria-label="Breadcrumb"><a href="/directory">Directory</a><span>/</span>${cat ? `<a href="/categories/${catSlug(cat)}">${esc(cat)}</a><span>/</span>` : ''}<span aria-current="page">${esc(p.name)}</span></nav>
+    <div class="uc-banner reveal">${icon('info', 'ic-20')}<div class="grow" style="min-width:0"><p class="t-body-sm" style="font-weight:500"><span class="d-only">Hentity created this profile from public sources. It hasn’t been claimed by the team yet.</span><span class="m-only">Created by Hentity from public sources. Not yet claimed by the team.</span></p><p class="t-caption c-3 d-only" style="font-weight:400;margin-top:2px">Details may be incomplete.${C.checked_at ? ' Last checked ' + ago(C.checked_at) + '.' : ''}</p></div>
+      <button class="btn btn--ghost btn--sm d-only" type="button" id="uc-report">Report an error</button><a class="btn btn--accent btn--sm d-only" href="/claim/${esc(p.slug)}">${icon('shield', 'ic-14')}Claim this profile</a></div>
+    <div class="uc-head reveal" style="--i:1">
+      ${plogo(p, 64)}
+      <div class="grow" style="min-width:0">
+        <h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}<span class="uc-tag uc-tag--lg" style="letter-spacing:0">Unclaimed</span></h1>
+        <p class="t-body-lg c-2 row gap-8 wrap" style="margin-top:6px">${esc(p.tagline)}${dom ? `<span class="src d-only">${icon('link', 'ic-12')}${esc(dom)}</span>` : ''}</p>
+        <p class="row gap-8 wrap t-body-sm c-2 uc-meta" style="margin-top:8px">${meta.join('<span class="c-3">·</span>')}</p>
+      </div>
+      <div class="row gap-8 uc-cta">${p.website ? `<a class="btn btn--secondary" href="${esc(p.website)}" target="_blank" rel="noopener nofollow" id="getit">${icon('arrow-up-right')}<span class="d-only">Visit website</span><span class="m-only">Website</span></a>` : ''}<button class="btn btn--primary" type="button" id="uc-follow"></button></div>
+    </div>
+    <div class="pp-body" style="margin-top:28px">
+      <div class="stack gap-20">
+        ${list.length ? `<section class="card uc-know" data-scroll-reveal><div class="row between gap-12" style="padding:20px 20px 4px"><h2 class="t-h4">What we know</h2><span class="t-caption c-3 d-only" style="font-weight:400">Every fact links to its source</span></div>
+          ${list.map(f => `<div class="uc-row"><span class="t-body-sm c-2">${esc(f.label || f.key)}</span><div class="stack gap-6" style="align-items:flex-start;min-width:0"><span>${esc(f.value)}</span>${src(f)}</div></div>`).join('')}</section>` : ''}
+        ${news.length ? `<section class="card card--pad d-only" data-scroll-reveal><h2 class="t-h4" style="margin-bottom:14px">In the news</h2><div class="stack gap-12">${news.map(n => `<a class="row gap-12 uc-news" href="${esc(n.url)}" target="_blank" rel="noopener nofollow"><span class="uc-thumb" style="background:linear-gradient(135deg,${esc(p.color || '#111')},#0a0a0a)"></span><span class="grow" style="min-width:0"><span class="t-body-sm" style="font-weight:500;display:block">${esc(n.title)}</span><span class="t-caption c-3" style="font-weight:400">${esc([n.source, n.date ? new Date(n.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''].filter(Boolean).join(' · '))}</span></span>${icon('arrow-up-right', 'ic-16')}</a>`).join('')}</div></section>` : ''}
+        <section class="card card--pad row gap-16 wrap" data-scroll-reveal id="uc-ask-card"><div class="grow" style="min-width:220px"><p class="t-body-sm" style="font-weight:500" id="uc-want"></p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">We tell the team every time someone asks. Upvotes and comments open once it’s claimed.</p></div><button class="btn btn--secondary btn--sm" type="button" id="uc-ask"></button></section>
+      </div>
+      <aside class="stack gap-20 d-only-b">
+        <section class="uc-dark" data-scroll-reveal><p class="t-eyebrow">Work at ${esc(p.name)}?</p><h2 class="t-h3" style="margin:6px 0 14px;color:#fff">Claim this profile</h2>
+          <ul class="stack gap-10" style="list-style:none;margin:0 0 18px;padding:0">${['Fix anything we got wrong', 'Pick a launch date and go on the leaderboard', 'Reply to reviews and run beta programs', 'Start your Data room with what we found'].map(t => `<li><span class="ic">${icon('check', 'ic-14')}</span>${t}</li>`).join('')}</ul>
+          <a class="btn btn--accent btn--block btn--lg" href="/claim/${esc(p.slug)}">${icon('shield', 'ic-16')}Claim ${esc(p.name)}</a>
+          <p class="t-caption" style="font-weight:400;color:#a3a3a3;margin-top:12px;text-align:center">${dom ? `Fastest with a @${esc(dom)} email. About 2 minutes.` : 'Verify with company documents. Reviewed in 1–2 working days.'}</p></section>
+        <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:10px">Signals</h2>
+          ${C.spotted_at ? `<div class="kv"><span>Spotted</span><span>${new Date(C.spotted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>` : ''}
+          <div class="kv"><span>Sources</span><span>${C.sources || new Set(facts.map(f => f.source).filter(Boolean)).size} public source${(C.sources || 0) === 1 ? '' : 's'}</span></div>
+          <div class="kv"><span>Followers on Hentity</span><span id="uc-followers">${D.fmt(followers)}</span></div>
+          <div class="kv"><span>Profile views</span><span>${D.fmt(p.view_count || 0)}</span></div></section>
+        <p class="row gap-8 t-caption c-3" style="font-weight:400;align-items:flex-start">${icon('shield', 'ic-14')}<span>Hentity lists only public business information, never personal contact details. Team members can ask us to remove this page.</span></p>
+        <button class="link t-body-sm" type="button" id="uc-remove" style="align-self:flex-start">Request removal</button>
+      </aside>
+    </div>
+    <div class="uc-bar m-only-f"><span class="t-body-sm" style="font-weight:500">Work at ${esc(p.name)}?</span><a class="btn btn--accent btn--sm" href="/claim/${esc(p.slug)}">${icon('shield', 'ic-14')}Claim profile</a></div>`;
+    const st = document.createElement('style');
+    st.textContent = `.uc-head{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:20px;align-items:center;margin-top:32px}
+      .uc-row{display:grid;grid-template-columns:126px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--color-border-default)}
+      .uc-row:first-of-type{border-top:0}.uc-know .uc-row:nth-child(2){border-top:0}
+      .uc-know{padding-bottom:6px}.uc-news:hover{color:var(--color-accent-default)}
+      .uc-thumb{width:72px;height:48px;border-radius:8px;flex:none}
+      .m-only,.m-only-f{display:none}
+      @media (max-width:768px){.uc-head{grid-template-columns:56px minmax(0,1fr);margin-top:18px;gap:12px 14px}.uc-head>.grow{display:contents}.uc-head>.grow>p{grid-column:1/-1;margin-top:0!important}.uc-head h1{align-self:center}.uc-head .plogo{width:56px;height:56px}.uc-cta{grid-column:1/-1}.uc-cta>*{flex:1}
+        .uc-head h1{font-size:30px!important;line-height:36px!important}.d-only{display:none!important}.d-only-b{display:none!important}.m-only{display:inline}
+        .uc-row{grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px}.uc-row>span:first-child{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary)}
+        .uc-banner{padding:12px 14px}.m-only-f{display:flex}
+        .uc-bar{position:fixed;left:0;right:0;bottom:84px;z-index:49;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:#0a0a0a;color:#fff}
+        .pp{padding-bottom:110px!important}}`;
+    document.head.appendChild(st);
+    const setF = () => { qs('#uc-follow').innerHTML = fol ? icon('check') + 'Following' : icon('plus') + 'Follow'; qs('#uc-follow').className = 'btn ' + (fol ? 'btn--secondary' : 'btn--primary'); const f = qs('#uc-followers'); if (f) f.textContent = D.fmt(followers); };
+    const setA = () => { qs('#uc-ask').innerHTML = ask ? icon('check', 'ic-14') + 'You asked' : icon('bell', 'ic-14') + 'Ask them to join'; qs('#uc-want').textContent = want() ? `${D.fmt(want())} ${want() === 1 ? 'person wants' : 'people want'} ${p.name} on Hentity` : `Want ${p.name} on Hentity?`; };
+    setF(); setA();
+    qs('#uc-follow').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } fol = !fol; followers += fol ? 1 : -1; setF(); setA(); try { await API.follow('product', p.id, fol); } catch (e) { fol = !fol; followers += fol ? 1 : -1; setF(); setA(); H.fail(e); } };
+    qs('#uc-ask').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } ask = !ask; nAsk += ask ? 1 : -1; setA(); try { await API.notifyMe(p.id, ask); toast(ask ? `We’ll tell the ${p.name} team you asked` : 'Request removed'); } catch (e) { ask = !ask; nAsk += ask ? 1 : -1; setA(); H.fail(e); } };
+    qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+    qs('#uc-report') && (qs('#uc-report').onclick = async () => { const why = prompt('What did we get wrong? Tell us the fact and the correct value.'); if (!why) return; try { await API.report('product', p.id, why); toast('Thanks. We’ll check it against the sources.'); } catch (e) { H.fail(e); } });
+    const removal = () => {
+      const el = document.createElement('div'); el.className = 'scrim';
+      el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Request removal"><h2 class="t-h3">Remove ${esc(p.name)} from Hentity</h2>
+        <p class="t-body-sm c-2">If you work at ${esc(p.name)} and don’t want this page, tell us. We remove it within 48 hours and won’t add it again. Prefer to keep it and fix it instead? <a class="link link--accent" href="/claim/${esc(p.slug)}">Claim it</a>.</p>
+        <label class="field"><span class="field__label">Your name</span><input class="input" name="nm" required maxlength="120"></label>
+        <label class="field"><span class="field__label">Work email</span><input class="input" name="em" type="email" required placeholder="${dom ? 'you@' + esc(dom) : 'you@company.com'}"></label>
+        <label class="field"><span class="field__label">Your role</span><input class="input" name="rel" maxlength="60" placeholder="Founder, CEO, legal…"></label>
+        <label class="field"><span class="field__label">Anything else? (optional)</span><textarea class="input" name="why" rows="3" maxlength="1000"></textarea></label>
+        <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Send request</button></div></form>`;
+      document.body.appendChild(el);
+      el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); });
+      el.querySelector('form').onsubmit = async e => { e.preventDefault(); const f = new FormData(e.target); try { await API.requestRemoval(p.slug, f.get('nm'), f.get('em'), f.get('rel'), f.get('why')); el.remove(); toast('Request sent. We’ll reply within 48 hours.'); } catch (err) { H.fail(err); } };
+    };
+    qs('#uc-remove').onclick = removal;
+    if (H.params().get('remove') === '1') removal();
+    M.scroll(); H.contentShown(); API.trackView(p.id);
+  }
   // Beta program (Figma: Product · with beta): callout by the buttons, card under "About this launch"
   function betaBits(b) {
     if (!b || (b.settings && b.settings.show_on_product === false && p.owner_id !== API.uid)) return;

@@ -141,7 +141,9 @@ H.mount({ active: '', tab: 'launch' });
   if (prm.get('id')) p = (await API.myProducts()).find(x => x.id === prm.get('id')) || null;
   else if (!prm.get('new')) { const all = await API.myProducts(); p = all.find(x => x.status === 'changes') || all.find(x => x.status === 'draft') || null; }
   if (p && ['review'].includes(p.status)) { location.replace('/under-review?p=' + p.slug); return; }
-  if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
+  // A claimed page that never launched is edited here like a draft, then sent for a launch day
+  const listing = x => x && x.status === 'live' && x.claimed_at && !x.week_id && !x.launch_date;
+  if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !listing(p) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
   const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, launch_date: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
   if (p) history.replaceState(null, '', '/submit?id=' + p.id + (prm.get('step') ? '&step=' + prm.get('step') : ''));
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
@@ -284,7 +286,7 @@ H.mount({ active: '', tab: 'launch' });
     clearTimeout(saveT);
     saveT = setTimeout(async () => {
       const pl = payload(); if (!p && !pl.tagline && pl.name === 'Untitled product') return;
-      try { await ensureDraft(); if (!['draft', 'changes'].includes(p.status)) return; p = Object.assign(p, await API.saveProduct(p.id, pl)); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + new Date().toTimeString().slice(0, 5); }
+      try { await ensureDraft(); if (!['draft', 'changes'].includes(p.status) && !listing(p)) return; p = Object.assign(p, await API.saveProduct(p.id, pl)); qs('#saved').innerHTML = icon('check', 'ic-12') + 'Draft saved · ' + new Date().toTimeString().slice(0, 5); }
       catch (e) { qs('#saved').innerHTML = icon('alert-circle', 'ic-12') + 'Not saved · ' + H.esc(e.message).slice(0, 60); }
     }, 700);
   }

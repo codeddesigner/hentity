@@ -128,12 +128,15 @@
     daySlots: (d1, d2) => q(sb.rpc('day_slots', { d1, d2 })),
     launchingToday: () => pre('today', () => q(sb.from('product_feed').select('id', { count: 'exact', head: true }).eq('launch_date', new Date(Date.now() + 3600e3).toISOString().slice(0, 10)).in('status', ['scheduled', 'live']))),
     wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
-    product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle())),
+    product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at,claim,claimed_at').eq('slug', slug).maybeSingle())),
     productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
     company: id => id ? pre('company:' + id, () => q(sb.from('companies').select('*').eq('id', id).maybeSingle())) : Promise.resolve(null),
     makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid))),
-    async directory({ countries, pay, stages, sectors, langs, term, sort, scope }) {
-      let s = sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']);
+    async directory({ countries, pay, stages, sectors, langs, term, sort, scope, profile }) {
+      // profile: which pages to include: ['claimed','unclaimed'] (default both)
+      const prof = profile && profile.length ? profile : ['claimed', 'unclaimed'];
+      const st = [...(prof.includes('claimed') ? ['scheduled', 'live'] : []), ...(prof.includes('unclaimed') ? ['unclaimed'] : [])];
+      let s = sb.from('product_feed').select(PRODUCT_COLS + ',claim').in('status', st.length ? st : ['none']);
       if (scope === 'local') s = s.eq('country', 'NG'); else if (countries && countries.length) s = s.in('country', countries);
       if (pay && pay.length) s = s.overlaps('pay_methods', pay);
       if (stages && stages.length) s = s.in('stage', stages);
@@ -181,7 +184,7 @@
     markAllRead: () => q(sb.rpc('mark_all_read')),
 
     // ---------------- my products & submissions
-    myProducts: () => q(sb.from('product_feed').select(PRODUCT_COLS + ',review_note,review_items,intro').or(`owner_id.eq.${uid()}`).neq('status', 'archived').order('created_at', { ascending: false })),
+    myProducts: () => q(sb.from('product_feed').select(PRODUCT_COLS + ',review_note,review_items,intro,claimed_at').or(`owner_id.eq.${uid()}`).neq('status', 'archived').order('created_at', { ascending: false })),
     async createDraft(fields) { requireAuth(); return q(sb.from('products').insert(Object.assign({ owner_id: uid() }, fields)).select().single()); },
     saveProduct: (id, patch) => q(sb.from('products').update(patch).eq('id', id).select().single()),
     deleteProduct: id => q(sb.from('products').delete().eq('id', id)),
@@ -238,6 +241,30 @@
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
     // Insights
     insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
+    // Unclaimed profiles + claim flow (Figma: Claims)
+    radarFeed: ({ cc, limit } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',claim').eq('status', 'unclaimed'); if (cc) s = s.eq('country', cc); return q(s.order('created_at', { ascending: false }).limit(limit || 60)); },
+    unclaimedCount: cc => { let s = sb.from('products').select('id', { count: 'exact', head: true }).eq('status', 'unclaimed'); if (cc) s = s.eq('country', cc); return (async () => (await s).count || 0)(); },
+    asks: async pid => (await sb.from('notify_requests').select('user_id', { count: 'exact', head: true }).eq('product_id', pid)).count || 0,
+    claimInfo: s => q(sb.rpc('claim_info', { s })),
+    claimStart: (s, r, m, em) => q(sb.rpc('claim_start', { s, r, m, em: em || null })),
+    claimVerifyCode: (cid, code) => q(sb.rpc('claim_verify_code', { cid, code })),
+    claimCheckDns: cid => q(sb.rpc('claim_check_dns', { cid })),
+    async claimUpload(cid, file, kind) { requireAuth(); const ext = (file.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, ''); const path = `${uid()}/${cid}/${kind}-${Date.now()}.${ext}`; err((await sb.storage.from('claims').upload(path, file, { upsert: false, contentType: file.type || undefined })).error); return { path, kind, name: file.name, size: file.size }; },
+    claimSubmitDocs: (cid, files, note) => q(sb.rpc('claim_submit_docs', { cid, files, note_text: note || null })),
+    claimPublish: (cid, e) => q(sb.rpc('claim_publish', { cid, e })),
+    requestRemoval: (s, nm, em, rel, why) => q(sb.rpc('request_removal', { s, nm, em, rel, why })),
+    // Ops
+    radar: status => q(sb.from('radar').select('*').eq('status', status || 'review').order('confidence', { ascending: false }).order('created_at', { ascending: false }).limit(200)),
+    radarCounts: async () => { const r = await q(sb.from('radar').select('status')); const c = {}; r.forEach(x => c[x.status] = (c[x.status] || 0) + 1); return c; },
+    radarAdd: row => q(sb.from('radar').insert(Object.assign({ created_by: uid() }, row)).select('*').single()),
+    radarUpdate: (id, row) => q(sb.from('radar').update(row).eq('id', id)),
+    radarDupe: rid => q(sb.rpc('radar_dupe', { rid })),
+    radarPublish: (rid, invite) => q(sb.rpc('radar_publish', { rid, invite: !!invite })),
+    claimsQueue: () => q(sb.from('claims').select('*,product:products(slug,name,website,color,logo_url,country,city),user:profiles!claims_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('status', ['review', 'verified', 'started']).order('created_at', { ascending: false }).limit(100)),
+    claimDecide: (cid, ok, why) => q(sb.rpc('claim_decide', { cid, ok, why: why || null })),
+    claimDocUrl: path => sb.storage.from('claims').createSignedUrl(path, 600).then(r => { err(r.error); return r.data.signedUrl; }),
+    removals: () => q(sb.from('removal_requests').select('*,product:products(slug,name,status)').order('created_at', { ascending: false }).limit(100)),
+    removalDecide: (rid, remove) => q(sb.rpc('removal_decide', { rid, remove })),
     // Badges & embeds
     badgeInfo: slug => q(sb.rpc('badge_info', { s: slug })),
     badgeSummary: pid => q(sb.rpc('badge_summary', { pid })),

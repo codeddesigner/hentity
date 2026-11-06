@@ -10,7 +10,7 @@ const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>
 
 module.exports = async (req, res) => {
   const [products, articles, makers] = await Promise.all([
-    get('product_feed?status=in.(scheduled,live)&select=slug,name,updated_at,effective_status,categories,country,owner_id,logo_url,media&order=updated_at.desc&limit=5000'),
+    get('product_feed?status=in.(scheduled,live,unclaimed)&select=slug,name,updated_at,effective_status,categories,country,owner_id,logo_url,media&order=updated_at.desc&limit=5000'),
     get('articles?status=eq.published&select=slug,published_at&order=published_at.desc&limit=5000'),
     get('profiles?banned=eq.false&settings->>indexable=neq.false&select=id,username,created_at,bio,headline&limit=5000')
   ]);

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=00861b64dd">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=6ce7997c04"></script>
+<script src="/assets/app.js?v=29a0ba8130"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>On the radar: new African startups · Hentity</title>
+<meta name="description" content="New startups across Africa that Hentity found this week in news, app stores and company registries. Follow them, or ask the team to join.">
+<style>
+.rd{max-width:760px;margin:0 auto;padding:32px 24px 96px}
+.rd h1{font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em;margin:6px 0 8px}
+.rd-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas)}
+.rd-card + .rd-card{margin-top:12px}
+.rd-add{width:36px;height:36px;border-radius:10px;border:1px solid var(--color-border-default);display:grid;place-items:center;flex:none}
+.rd-add[aria-pressed="true"]{background:var(--color-text-primary);color:var(--color-bg-canvas);border-color:var(--color-text-primary)}
+@media (max-width:768px){.rd{padding:16px 16px 32px}.rd h1{font-size:28px;line-height:34px}}
+</style>
+<link rel="canonical" href="https://hentity.com/radar">
+<meta property="og:title" content="On the radar: new African startups · Hentity">
+<meta property="og:description" content="New startups across Africa that Hentity found this week in news, app stores and company registries. Follow them, or ask the team to join.">
+<meta property="og:url" content="https://hentity.com/radar">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=712e217edc">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="On the radar: new African startups · Hentity">
+<meta name="twitter:description" content="New startups across Africa that Hentity found this week in news, app stores and company registries. Follow them, or ask the team to join.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=712e217edc">
+</head>
+<body>
+<div data-header></div>
+<main class="rd" id="main">
+  <p class="t-eyebrow" style="color:var(--color-accent-default)">On the radar</p>
+  <h1>New startups this week</h1>
+  <p class="t-body-sm c-2" style="max-width:52ch">Found by Hentity in news, app stores and company registries. Follow them, or ask the team to join.</p>
+  <div class="chips" data-single id="cc" style="margin:18px 0 18px;flex-wrap:nowrap;overflow-x:auto"></div>
+  <div id="list"><div class="skel" style="height:300px;border-radius:14px"></div></div>
+  <p class="row gap-8 t-caption c-3" style="font-weight:400;margin-top:20px;align-items:flex-start"><span data-icon="shield" data-cls="ic-14"></span><span>Hentity lists only public business information. Work at one of these? Open its page to claim it or ask us to remove it.</span></p>
+</main>
+<div data-tabbar></div>
+<script>
+H.mount({ active: 'products', tab: 'products' });
+(async function () {
+  const { qs, qsa, esc, icon, flag, plogo } = H;
+  await API.ready;
+  let cc = H.params().get('country') || '', all = [], fol = new Set();
+  async function load() {
+    all = await API.radarFeed({ limit: 80 });
+    fol = await API.following('product', all.map(p => p.id));
+    const by = {}; all.forEach(p => by[p.country] = (by[p.country] || 0) + 1);
+    qs('#cc').innerHTML = [['', `All ${all.length}`], ...Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k]) => [k, H.COUNTRY[k] || k])].map(([k, l]) => `<button class="chip" type="button" data-chip data-cc="${k}" aria-pressed="${k === cc}">${icon('check')}${esc(l)}</button>`).join('');
+    render(); H.contentShown();
+  }
+  function render() {
+    const L = all.filter(p => !cc || p.country === cc);
+    const mon = d => d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
+    qs('#list').innerHTML = L.length ? L.map(p => { const f = ((p.claim || {}).facts || []).find(x => x.source) || {};
+      return `<article class="rd-card lift stretch">${plogo(p, 40)}<div class="grow stack gap-4" style="min-width:0"><p class="t-label row gap-6"><a class="stretch-link" href="/products/${esc(p.slug)}">${esc(p.name)}</a>${flag(p.country)}</p><p class="t-body-sm c-2 truncate">${esc(p.tagline)}</p>${f.source ? `<span class="src" style="align-self:flex-start">${icon('link', 'ic-12')}${esc([f.source, f.date ? mon(f.date) : f.label === 'Traction' ? f.value : ''].filter(Boolean).join(' · '))}</span>` : ''}</div><button class="rd-add" type="button" data-f="${p.id}" aria-pressed="${fol.has(p.id)}" aria-label="${fol.has(p.id) ? 'Following' : 'Follow'} ${esc(p.name)}">${icon(fol.has(p.id) ? 'check' : 'plus', 'ic-16')}</button></article>`; }).join('')
+      : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">Nothing new on the radar${cc ? ' here' : ''} yet</p><p class="t-body-sm c-2" style="margin-top:6px">Check back soon, or browse the <a class="link link--accent" href="/directory">directory</a>.</p></div>`;
+  }
+  H.bindChips(qs('#cc'), () => { const s = qs('#cc [aria-pressed="true"]'); cc = s ? s.dataset.cc : ''; if (!s) qs('[data-cc=""]').setAttribute('aria-pressed', 'true'); render(); });
+  qs('#list').addEventListener('click', async e => { const b = e.target.closest('[data-f]'); if (!b) return; if (!API.uid) { location.href = '/signin?next=/radar'; return; } const id = b.dataset.f, on = !fol.has(id); try { await API.follow('product', id, on); on ? fol.add(id) : fol.delete(id); render(); } catch (err) { H.fail(err); } });
+  load();
+})();
+</script>
+</body>
+</html>

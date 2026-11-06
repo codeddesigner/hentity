@@ -9,7 +9,7 @@ const get = p => fetch(`${SB}/rest/v1/${p}`, { headers: { apikey: KEY } }).then(
 module.exports = async (req, res) => {
   const since = new Date(Date.now() - 2 * 864e5).toISOString();
   const [products, articles] = await Promise.all([
-    get(`product_feed?status=in.(scheduled,live)&updated_at=gte.${since}&select=slug,categories,country&limit=1000`),
+    get(`product_feed?status=in.(scheduled,live,unclaimed)&updated_at=gte.${since}&select=slug,categories,country&limit=1000`),
     get(`articles?status=eq.published&published_at=gte.${since}&select=slug&limit=500`)
   ]);
   const urls = new Set();

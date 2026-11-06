@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=d2f9038ac8">
+<link rel="stylesheet" href="/assets/styles.css?v=00861b64dd">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=8a9c56b023"></script>
-<script src="/assets/app.js?v=dd02e827f1"></script>
+<script src="/assets/api.js?v=6ce7997c04"></script>
+<script src="/assets/app.js?v=29a0ba8130"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -72,10 +72,12 @@
   <div class="dir-grid">
     <div>
       <div class="row between" style="margin-bottom:14px;gap:12px"><p class="t-label" style="font-size:14px" id="count" aria-live="polite"></p><label class="row" style="position:relative"><span data-icon="chevron-down" data-cls="ic-14"></span><span class="sr-only">Sort</span><select class="sortsel" id="sort" style="margin-left:-18px"><option value="followed">Sort: Most followed</option><option value="votes">Sort: Most upvoted</option><option value="new">Sort: Newest</option><option value="az">Sort: A–Z</option></select></label></div>
+      <div id="radar-note"></div>
       <div id="list"></div>
     </div>
     <aside class="fpanel" aria-label="Filters">
       <div class="row between"><h2 class="t-h4" style="font-size:16px">Filters</h2><button class="link c-2" type="button" id="clear" style="font-weight:400">Clear all</button></div>
+      <h3 class="t-eyebrow c-3">Profile</h3><div data-group="profile"></div>
       <h3 class="t-eyebrow c-3">Country</h3><div data-group="country"></div>
       <h3 class="t-eyebrow c-3">Pays with</h3><div data-group="pay"></div>
       <h3 class="t-eyebrow c-3">Stage</h3><div data-group="stage"></div>
@@ -97,8 +99,9 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();
   API.publicStats().then(st => { if (st && st.products) qs('#dir-count').textContent = `Directory · ${st.products.toLocaleString('en-US')} product${st.products === 1 ? '' : 's'}`; }).catch(() => {});
-  const G = { country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
+  const G = { profile: [['claimed', 'Claimed by the team'], ['unclaimed', 'Unclaimed (on the radar)']], country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
   const state = Object.assign({ country: [], pay: [], stage: [], lang: [], sector: [] }, store.get('dirFilters2', {}));
+  if (!Array.isArray(state.profile) || !state.profile.length) state.profile = ['claimed', 'unclaimed'];
   let scope = prm.get('scope') || store.get('dirScope', 'all');
   const term = (prm.get('q') || '').replace(/[%,()]/g, '');
   if (prm.get('pay')) Object.assign(state, { pay: [prm.get('pay')], stage: [], sector: [], country: [] });
@@ -120,22 +123,36 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   H.bindChips(qs('#sector'), () => { state.sector = qsa('#sector [aria-pressed="true"]').map(c => c.dataset.sector); render(); });
   document.addEventListener('change', e => { const f = e.target.dataset && e.target.dataset.f; if (!f) return; state[f] = qsa(`[data-f="${f}"]:checked`).map(i => i.value); render(); });
   qs('#sort').addEventListener('change', render);
-  qs('#clear').addEventListener('click', () => { Object.keys(state).forEach(k => state[k] = []); qsa('[data-f]').forEach(i => i.checked = false); qsa('#sector [data-chip]').forEach(c => c.setAttribute('aria-pressed', 'false')); render(); });
+  qs('#clear').addEventListener('click', () => { Object.keys(state).forEach(k => state[k] = []); state.profile = ['claimed', 'unclaimed']; qsa('[data-f]').forEach(i => i.checked = i.dataset.f === 'profile'); qsa('#sector [data-chip]').forEach(c => c.setAttribute('aria-pressed', 'false')); render(); });
   qsa('[data-scope]').forEach(t => { t.setAttribute('aria-selected', String(t.dataset.scope === scope)); t.addEventListener('click', () => { scope = t.dataset.scope; store.set('dirScope', scope); qsa('[data-scope]').forEach(o => o.setAttribute('aria-selected', String(o === t))); render(); }); });
   let fol = new Set();
   async function render() {
     if (!landing) store.set('dirFilters2', state);
     qs('#list').innerHTML = Array.from({ length: 4 }, () => '<div class="drow"><span class="skel" style="width:48px;height:48px;border-radius:10px"></span><span class="grow stack gap-8"><span class="skel" style="width:30%;height:14px"></span><span class="skel" style="width:60%;height:12px"></span></span></div>').join('');
     try {
-      const L = await API.directory({ countries: state.country, pay: state.pay, stages: state.stage, sectors: state.sector, langs: state.lang, term, sort: qs('#sort').value, scope });
+      const [L, nUc] = await Promise.all([API.directory({ profile: state.profile, countries: state.country, pay: state.pay, stages: state.stage, sectors: state.sector, langs: state.lang, term, sort: qs('#sort').value, scope }), API.unclaimedCount(scope === 'local' ? 'NG' : (state.country.length === 1 ? state.country[0] : null)).catch(() => 0)]);
+      radarNote(nUc);
       fol = await API.following('product', L.map(p => p.id)); H.contentShown();
       qs('#title').firstChild.textContent = term ? `Results for “${term}” ` : landing ? landing.h + ' ' : scope === 'local' ? 'Built near you ' : 'Built across Africa ';
       qs('#title-flag').innerHTML = scope === 'local' && !term ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
       qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;
-      qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
+      qs('#list').innerHTML = L.length ? L.map(p => p.status === 'unclaimed' ? ucCard(p) : `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
         : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">No products match these filters</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Remove a filter or switch to Pan-African.</p><button class="btn btn--secondary btn--sm" type="button" onclick="document.getElementById('clear').click()">Clear all filters</button></div>`;
       M.stagger(qs('#list'));
     } catch (e) { H.fail(e); }
+  }
+  // Unclaimed startups (Figma: Directory · with unclaimed): dashed tag + one source chip instead of stage/payment tags
+  function ucCard(p) {
+    const f = ((p.claim || {}).facts || []).find(x => x.source) || {};
+    const mon = d => d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
+    const chip = f.source ? `<span class="src">${icon('link', 'ic-12')}${esc([f.source, mon(f.date)].filter(Boolean).join(' · '))}</span>` : '';
+    return `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a><span class="uc-tag">Unclaimed</span></p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap" style="margin-top:2px">${chip}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`;
+  }
+  function radarNote(n) {
+    const box = qs('#radar-note'); if (!n) { box.innerHTML = ''; return; }
+    const on = state.profile.includes('unclaimed'), where = scope === 'local' ? ' in Nigeria' : state.country.length === 1 ? ' in ' + (H.COUNTRY[state.country[0]] || state.country[0]) : '';
+    box.innerHTML = `<div class="uc-banner" style="margin-bottom:12px;padding:12px 16px">${icon('compass', 'ic-20')}<div class="grow" style="min-width:0"><p class="t-body-sm" style="font-weight:500">${on ? 'Includes' : 'Hiding'} ${n} startup${n === 1 ? '' : 's'} on Hentity’s radar${where}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Profiles we created from public sources, marked Unclaimed until their team takes over.</p></div><label class="row t-body-sm" style="font-weight:500;white-space:nowrap;gap:10px"><a class="link hide-sm c-2" href="/radar" style="font-weight:400;margin-right:6px">New this week</a><span class="hide-sm">Show unclaimed</span><span class="toggle"><input type="checkbox" id="show-uc" ${on ? 'checked' : ''} aria-label="Show unclaimed"><span class="toggle__track"></span></span></label></div>`;
+    qs('#show-uc').onchange = e => { const v = e.target.checked; state.profile = v ? [...new Set([...state.profile, 'unclaimed'])] : state.profile.filter(x => x !== 'unclaimed'); if (!state.profile.length) state.profile = ['claimed']; qsa('[data-f="profile"]').forEach(i => i.checked = state.profile.includes(i.value)); render(); };
   }
   qs('#list').addEventListener('click', async e => { const b = e.target.closest('[data-pf]'); if (!b) return; const id = b.dataset.pf; const on = !fol.has(id); try { await API.follow('product', id, on); on ? fol.add(id) : fol.delete(id); b.textContent = on ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (on ? 'btn--ghost' : 'btn--secondary'); } catch (err) { H.fail(err); } });
   await API.ready; render();
