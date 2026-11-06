@@ -240,7 +240,7 @@
           signInWithOAuth: async () => ({ error: { message: 'Unsupported provider: provider is not enabled' } }),
           unlinkIdentity: async () => ({ error: null }), linkIdentity: async () => ({ error: null })
         },
-        storage: { from: () => ({ upload: async () => ({ error: null }), createSignedUrl: async () => ({ data: { signedUrl: 'data:text/plain,doc' }, error: null }), getPublicUrl: p => ({ data: { publicUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>' } }) }) },
+        storage: { from: () => ({ upload: async () => ({ error: null }), list: async () => ({ data: [], error: null }), remove: async () => ({ data: [], error: null }), createSignedUrl: async () => ({ data: { signedUrl: 'data:text/plain,doc' }, error: null }), getPublicUrl: p => ({ data: { publicUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>' } }) }) },
         channel: () => { const c = { on: () => c, subscribe: (cb) => { cb && cb('SUBSCRIBED'); return c; }, track: async () => {}, send: async () => {}, presenceState: () => ({}) }; return c; },
         removeChannel: () => {}
       };

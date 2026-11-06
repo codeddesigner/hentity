@@ -57,7 +57,7 @@ H.mount({ active: 'find', tab: 'chats' });
         <div class="pv-row"><span class="pv-ic">${icon('eye', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Profile views</p><p class="t-caption c-3" style="font-weight:400">${stats.views} founder${stats.views === 1 ? '' : 's'} looked at you this month. Names are never shown.</p></div><span></span></div>
         <div class="pv-row"><span class="pv-ic">${icon('lock', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Chats are private</p><p class="t-caption c-3" style="font-weight:400">Hentity staff only read a chat if one of you reports it.</p></div><span></span></div>
         <div class="pv-row"><span class="pv-ic">${icon('download', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Download your Find data</p><p class="t-caption c-3" style="font-weight:400">Profile, roles, intros, chats and NDA signatures as a file</p></div><button class="btn btn--secondary btn--sm" id="dl">Download</button></div>
-        <div class="pv-row"><span class="pv-ic" style="color:var(--color-danger)">${icon('trash', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500;color:var(--color-danger)">Delete Find history</p><p class="t-caption c-3" style="font-weight:400">Removes your profile, intros and chats. Signed NDAs stay with the other party.</p></div><button class="btn btn--secondary btn--sm" id="del">Delete</button></div></section>
+        <div class="pv-row"><span class="pv-ic" style="color:var(--color-danger)">${icon('trash', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500;color:var(--color-danger)">Delete Find history</p><p class="t-caption c-3" style="font-weight:400">Removes your profile, applications, CV files and chats. Signed NDAs stay with the other party.</p></div><button class="btn btn--secondary btn--sm" id="del">Delete</button></div></section>
     </div>
     <aside class="fside"><p class="t-eyebrow c-3">Preview as</p><div class="pv-seg" id="as">${[['stranger', 'Stranger'], ['match', 'Match'], ['employer', 'Employer']].map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${v === as}">${l}</button>`).join('')}</div><div id="prev"></div><div id="emp"></div>
       <button class="btn btn--accent btn--block" id="save">Save privacy settings</button></aside></div></div>`;
@@ -81,7 +81,7 @@ H.mount({ active: 'find', tab: 'chats' });
     try { await API.saveFindProfile(row); toast('Privacy settings saved'); } catch (e) { H.fail(e); }
   };
   qs('#dl').onclick = async () => { try { const d = await API.findExport(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'hentity-find-data.json'; a.click(); } catch (e) { H.fail(e); } };
-  qs('#del').onclick = async () => { if (!confirm('Delete your Find profile, intros and chats? Signed NDAs stay with the other party. This can’t be undone.')) return; try { await API.findDeleteHistory(); toast('Find history deleted'); setTimeout(() => location.href = '/find', 600); } catch (e) { H.fail(e); } };
+  qs('#del').onclick = async () => { if (!confirm('Delete your Find profile, applications, CV files and chats? Signed NDAs stay with the other party. This can’t be undone.')) return; try { const n = await API.findDeleteHistory(); toast(n ? `Find history and ${n} CV file${n === 1 ? '' : 's'} deleted` : 'Find history deleted'); setTimeout(() => location.href = '/find', 600); } catch (e) { H.fail(e); } };
   H.contentShown();
 })();
 </script>

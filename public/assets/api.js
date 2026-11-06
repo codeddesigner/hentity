@@ -309,7 +309,19 @@
     findSetTrial: (id, trial) => q(sb.rpc('find_set_trial', { mid: id, trial })),
     findStats: () => q(sb.rpc('find_my_stats')),
     findExport: () => q(sb.rpc('find_export')),
-    findDeleteHistory: () => q(sb.rpc('find_delete_history')),
+    // Removes Find data, then every CV file this member uploaded (the bucket folder is <user id>/)
+    findDeleteHistory: async () => {
+      requireAuth(); await q(sb.rpc('find_delete_history'));
+      const b = sb.storage.from('find-cv'); let n = 0;
+      for (;;) {
+        const { data, error } = await b.list(uid(), { limit: 100 }); err(error);
+        const paths = (data || []).filter(f => f.name && f.id !== null).map(f => uid() + '/' + f.name);
+        if (!paths.length) break;
+        err((await b.remove(paths)).error); n += paths.length;
+        if (paths.length < 100 || n > 2000) break;
+      }
+      return n;
+    },
     validateIdea: a => q(sb.rpc('validate_idea', { idea: a.idea, who: a.who || null, cc: a.cc || null, city: a.city || null, money: a.money || null, stage: a.stage || null, cats: a.cats || [] })),
     ideaCheck: id => q(sb.from('idea_checks').select('*').eq('id', id).maybeSingle()),
     myIdeaChecks: () => uid() ? q(sb.from('idea_checks').select('id,idea,score,created_at').eq('user_id', uid()).order('created_at', { ascending: false }).limit(6)) : Promise.resolve([]),
