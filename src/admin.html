@@ -132,7 +132,6 @@ H.mount();
         <dt class="c-3">Stage</dt><dd style="margin:0">${esc(p.stage || '—')}</dd>
         <dt class="c-3">Company reg.</dt><dd style="margin:0">${reg ? `<span class="mono">${esc(reg)}</span>` : '<span class="c-3">Not provided (optional) · can’t be verified</span>'}</dd>
         <dt class="c-3">Founder link</dt><dd style="margin:0">${p.verify && p.verify.founder ? `<a class="link" href="${esc(/^https?:/.test(p.verify.founder) ? p.verify.founder : 'https://' + p.verify.founder)}" target="_blank" rel="noopener">${esc(p.verify.founder)}</a>` : '<span class="c-3">—</span>'}</dd>
-        <dt class="c-3">Domain</dt><dd style="margin:0">${p.verify && p.verify.domain ? esc(p.verify.domain) : '<span class="c-3">—</span>'}</dd>
         <dt class="c-3">Notify list</dt><dd style="margin:0">${notifyN || 0} people</dd>
       </dl>
       <p class="t-eyebrow c-3">Description</p><p class="t-body-sm" style="white-space:pre-wrap;margin:6px 0 16px">${esc(p.description || '—')}</p>

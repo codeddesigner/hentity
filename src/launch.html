@@ -62,7 +62,7 @@ M.stagger(H.qs('.steps')); M.stagger(H.qs('.need'));
   if (!API.uid) { card.hidden = true; return; }
   const all = (await API.myProducts()).filter(p => ['draft', 'changes'].includes(p.status));
   if (!all.length) { card.hidden = true; return; }
-  const done = p => [p.name && p.tagline && p.website && (p.categories || []).length, (p.media || []).length, true, p.week_id, (p.intro || '').length >= 40, Object.values(p.verify || {}).some(Boolean)].filter(Boolean).length;
+  const done = p => [p.name && p.tagline && p.website && (p.categories || []).length, (p.media || []).length, true, p.week_id, (p.intro || '').trim().length >= 50, !!(p.verify && p.verify.founder)].filter(Boolean).length;
   H.qs('#resume').innerHTML = all.slice(0, 4).map(p => `<a class="resume" href="/submit?id=${p.id}">${H.plogo(p, 32)}<div class="grow stack gap-6"><p class="t-label">${H.esc(p.name || 'Untitled product')}</p><p class="t-caption c-3" style="font-weight:400">${done(p)} of 6 sections done${p.status === 'changes' ? ' · changes requested' : ''}</p><div class="progress" style="height:3px"><i style="width:${done(p) / 6 * 100}%"></i></div></div>${H.icon('arrow-right')}</a>`).join('');
 })();
 </script>
