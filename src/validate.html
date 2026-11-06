@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Validate an idea · Hentity</title>
+<meta name="description" content="Is anyone already building your idea? Check it against every African startup on Hentity and see how new it is, who's closest and where it's crowded.">
+<style>
+.va{max-width:1064px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+.va h1{font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em;margin:8px 0 10px}
+.va-lead{font-size:17px;line-height:28px;color:var(--color-text-secondary);max-width:62ch}
+.va-card{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:20px}
+.va-lbl{font-size:13px;font-weight:500;margin:18px 0 8px;display:block}
+.va-lbl:first-child{margin-top:0}
+.va textarea.input{min-height:120px;font-size:15px;line-height:22px}
+.va-hint{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--color-text-tertiary);margin-top:6px}
+.va-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.va-rail li{display:flex;gap:12px;align-items:flex-start}
+.va-rail .ib{width:28px;height:28px;border-radius:8px;background:var(--color-bg-subtle);display:grid;place-items:center;flex:none;color:var(--color-text-secondary)}
+.va-recent a{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0}
+.va-score{display:inline-grid;place-items:center;min-width:32px;height:24px;padding:0 6px;border-radius:6px;background:var(--color-bg-subtle);font-size:13px;font-weight:600}
+.va-steps li{display:flex;gap:14px;align-items:flex-start;padding:10px 0}
+.va-steps .dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--color-border-strong);flex:none;display:grid;place-items:center}
+.va-steps .done .dot{background:var(--color-success);border-color:var(--color-success);color:#fff}
+.va-steps .now .dot{border:2px dashed var(--color-accent-default);animation:spin 2s linear infinite}
+.va-steps .todo{opacity:.55}
+@keyframes spin{to{transform:rotate(360deg)}}
+.voice{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 4px;border-radius:999px;border:1px solid var(--color-border-default);background:var(--color-bg-subtle);font-size:13px;font-weight:500;margin-top:12px}
+.voice i{width:32px;height:32px;border-radius:50%;background:var(--color-accent-default);color:#fff;display:grid;place-items:center}
+.voice.on i{animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,91,20,.5)}70%{box-shadow:0 0 0 8px rgba(255,91,20,0)}100%{box-shadow:0 0 0 0 rgba(255,91,20,0)}}
+/* report */
+.vr{max-width:1064px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
+.vr-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.vr-hero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.vr-hero h1{font-size:36px;line-height:42px;font-weight:600;letter-spacing:-.03em;margin:8px 0 14px;text-wrap:balance}
+.vr-quote{border-left:2px solid var(--color-border-strong);padding-left:12px;font-size:13px;line-height:20px;color:var(--color-text-secondary)}
+.vr-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.vr-tags span{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;background:var(--color-bg-subtle);font-size:12px;font-weight:500}
+.vr-nov{background:var(--color-bg-subtle);border-radius:14px;padding:18px}
+.vr-nov b{font-size:56px;line-height:60px;font-weight:600;letter-spacing:-.03em}
+.vr-bar{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:12px 0 8px}
+.vr-bar i{height:6px;border-radius:3px}
+.vr-bar em{position:absolute;top:-4px;width:3px;height:14px;border-radius:2px;background:var(--color-text-primary);transform:translateX(-50%)}
+.vr-ang{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;border-top:1px solid var(--color-border-default);margin-top:22px;padding-top:18px}
+.lv{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;margin:6px 0 2px}
+.lv::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--lv)}
+.vr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:28px 0}
+.vr-stats b{display:block;font-size:28px;line-height:34px;font-weight:600;margin:8px 0 4px}
+.vr-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+.vr-two{grid-template-columns:1fr 1fr}
+.vm{display:grid;grid-template-columns:40px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--color-border-default)}
+.vm:first-of-type{border-top:0}
+.vm .sb{height:5px;border-radius:3px;background:var(--color-bg-muted);margin-top:6px;overflow:hidden}.vm .sb i{display:block;height:100%;background:var(--color-text-primary);border-radius:3px}
+.vtag{display:inline-flex;height:20px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;align-items:center}
+.vc{display:grid;grid-template-columns:110px minmax(0,1fr) 30px;gap:10px;align-items:center;font-size:13px;padding:6px 0}
+.vc .tr{height:8px;border-radius:4px;background:var(--color-bg-muted);overflow:hidden}.vc .tr i{display:block;height:100%;border-radius:4px}
+.vopen{margin-top:14px;padding:12px 14px;border-radius:10px;background:#e9f8ee;color:#166534;font-size:13px;line-height:19px}
+:root[data-theme="dark"] .vopen{background:#0f2a1a;color:#86efac}
+.vt{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.vt th{text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:400;padding:8px 10px 8px 0;border-bottom:1px solid var(--color-border-default)}
+.vt td{padding:11px 10px 11px 0;border-bottom:1px solid var(--color-border-default);vertical-align:top}
+.vt tr:last-child td{border-bottom:0}
+.hc{display:inline-flex;height:18px;padding:0 6px;border-radius:4px;font-size:11.5px;font-weight:500;align-items:center;white-space:nowrap}
+.vtests label{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:14px;cursor:pointer}
+.vnext a{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--color-border-default)}
+.vnext a:first-of-type{border-top:0}
+.vnext .ib{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--color-bg-subtle);flex:none}
+@media (max-width:1180px){.va,.vr{padding-left:32px;padding-right:32px}}
+@media (max-width:960px){.va{grid-template-columns:minmax(0,1fr)}.vr-hero,.vr-grid,.vr-two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:768px){.va{padding:16px 16px 120px;gap:20px}.va h1{font-size:28px;line-height:34px}.va-lead{font-size:15px;line-height:23px}.va-2{grid-template-columns:1fr}.va-rail-wrap{display:none}
+  .va-sticky{position:fixed;left:0;right:0;bottom:84px;padding:12px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);z-index:40}
+  .vr{padding:12px 16px 120px}.vr-hero h1{font-size:26px;line-height:32px}.vr-ang,.vr-stats{grid-template-columns:1fr 1fr}.vr-stats b{font-size:24px}
+  .vt th:nth-child(3),.vt td:nth-child(3){display:none}.vm{grid-template-columns:40px minmax(0,1fr) 76px}
+  .vr-sticky{position:fixed;left:0;right:0;bottom:84px;padding:12px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);z-index:40;display:flex;gap:8px}.vr-sticky>*{flex:1}}
+@media (min-width:769px){.vr-sticky{display:none}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="va"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/data.js"></script>
+<script>
+H.mount({ active: 'validate', tab: 'launch' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, flag, plogo } = H;
+  const root = qs('#main');
+  const id = location.pathname.split('/').filter(Boolean)[1];
+  const CN = { NG: 'Nigeria', GH: 'Ghana', KE: 'Kenya', ZA: 'South Africa', EG: 'Egypt', RW: 'Rwanda', UG: 'Uganda', TZ: 'Tanzania', MA: 'Morocco', SN: 'Senegal', CI: 'Côte d’Ivoire', ET: 'Ethiopia' };
+  // Industry from the idea's words (same 13 industries as the rest of Hentity)
+  const KW = [['Fintech', /\b(pay|payment|bank|loan|credit|saving|invest|wallet|money|fintech|bookkeep|ledger|account|invoice|remit|insur|pos|transfer|lend|salary|tax)/i],
+    ['Agriculture', /\b(farm|crop|agri|harvest|livestock|produce|poultry|fish|seed|fertili)/i], ['Health', /\b(health|clinic|doctor|hospital|pharma|medic|patient|nurse|therap|fitness)/i],
+    ['Education', /\b(school|student|learn|teach|tutor|course|education|exam|class|lesson)/i], ['Logistics', /\b(deliver|logistic|shipping|courier|truck|dispatch|ride|transport|fleet|parcel)/i],
+    ['Energy & Climate', /\b(solar|energy|power|electric|climate|waste|recycl|carbon|battery|clean)/i], ['Commerce', /\b(shop|store|marketplace|sell|buy|ecommerce|e-commerce|retail|grocer|vendor|merchant)/i],
+    ['AI', /\b(ai|machine learning|chatbot|gpt|llm|model)\b/i], ['Dev Tools', /\b(api|developer|sdk|code|devops|deploy)/i], ['Infrastructure', /\b(identity|kyc|cloud|hosting|infrastructure|data centre)/i],
+    ['Productivity', /\b(notes|calendar|task|productiv|workflow|document)/i], ['SaaS', /\b(software|dashboard|crm|hr|payroll|saas|b2b|erp)/i]];
+  const inferCats = t => { const out = KW.filter(([, r]) => r.test(t)).map(([c]) => c); return out.length ? out.slice(0, 2) : ['Apps']; };
+  await API.ready;
+  if (id) return report(id);
+  form();
+
+  // ------------------------------------------------------------------ Describe your idea
+  async function form(prefill) {
+    const f = Object.assign({ idea: '', who: '', cc: (API.profile && API.profile.country) || 'NG', city: (API.profile && API.profile.city) || '', money: 'Subscription', stage: 'idea' }, prefill || {});
+    try { if (!prefill) Object.assign(f, JSON.parse(sessionStorage.getItem('va-draft') || '{}')); } catch (e) {}
+    const recent = await API.myIdeaChecks().catch(() => []);
+    const chips = (name, opts, cur) => `<div class="chips" data-single data-g="${name}">${opts.map(([v, l]) => `<button class="chip" type="button" data-chip data-v="${v}" aria-pressed="${v === cur}">${icon('check')}${l}</button>`).join('')}</div>`;
+    const canTalk = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    root.innerHTML = `<div class="va reveal">
+      <div>
+        <p class="t-eyebrow" style="color:var(--color-accent-default)">Validate an idea</p>
+        <h1>Is anyone already building this?</h1>
+        <p class="va-lead">Describe your idea. We check it against every African startup on Hentity, launched or on the radar, then tell you how new it is, who’s closest, where it’s crowded and what to test first.</p>
+        <form class="va-card" id="f" style="margin-top:24px" novalidate>
+          <label class="va-lbl" for="idea">Your idea</label>
+          <textarea class="input" id="idea" maxlength="600" placeholder="e.g. Bookkeeping for market traders who send voice notes on WhatsApp. They say “I sold 3 bags of rice for 45k” and we turn it into a ledger and weekly profit report.">${esc(f.idea)}</textarea>
+          <div class="va-hint"><span>Say who it’s for, the problem, and how it works. Plain words are best.</span><span class="mono" id="n" style="white-space:nowrap">0 / 600</span></div>
+          ${canTalk ? `<button class="voice" type="button" id="talk"><i>${icon('mic', 'ic-16')}</i><span>Or explain it out loud</span></button>` : ''}
+          <label class="va-lbl" for="who">Who is it for?</label>
+          <input class="input" id="who" maxlength="120" placeholder="Market traders and small shop owners" value="${esc(f.who)}">
+          <span class="va-lbl">Where?</span>
+          ${chips('cc', [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['EG', 'Egypt'], ['', 'All of Africa']], f.cc)}
+          <label class="va-lbl" for="city">City (optional)</label>
+          <input class="input" id="city" maxlength="80" placeholder="Lagos" value="${esc(f.city)}">
+          <div class="va-2"><div><span class="va-lbl">How will it make money?</span>${chips('money', [['Subscription', 'Subscription'], ['Commission', 'Commission'], ['One-off', 'One-off sale'], ['Not sure', 'Not sure yet']], f.money)}</div>
+            <div><span class="va-lbl">Where are you?</span>${chips('stage', [['idea', 'Just an idea'], ['building', 'Building'], ['users', 'Have users']], f.stage)}</div></div>
+          <div class="row between gap-12 wrap" style="margin-top:22px"><p class="row gap-6 t-caption c-3" style="font-weight:400">${icon('lock', 'ic-14')}Private to you. Never shown to makers or used for anything public.</p>
+            <div class="va-sticky"><button class="btn btn--accent btn--lg btn--block" type="submit" id="go">${icon('sparkles', 'ic-16')}Validate idea</button></div></div>
+        </form>
+      </div>
+      <aside class="stack gap-16">
+        <section class="va-card va-rail va-rail-wrap"><p class="t-label" style="margin-bottom:14px">Your report covers</p><ul class="stack" style="list-style:none;margin:0;padding:0;gap:14px">
+          ${[['sparkles', 'Novelty', 'How new it is on Hentity, in your city, country and across Africa'], ['package', 'Closest matches', 'Similar startups, launched or unclaimed, and what you share'], ['globe', 'Where it’s crowded', 'Cities with the most similar startups, and where nobody is'], ['users', 'What people use today', 'The usual alternatives in your industry'], ['list', 'What to test first', 'Your riskiest assumptions, as a checklist']].map(([i, t, d]) => `<li><span class="ib">${icon(i, 'ic-14')}</span><div><p class="t-body-sm" style="font-weight:500">${t}</p><p class="t-caption c-3" style="font-weight:400">${d}</p></div></li>`).join('')}</ul></section>
+        ${recent.length ? `<section class="va-card va-recent"><p class="t-label" style="margin-bottom:6px">Your recent checks</p>${recent.map(r => `<a href="/validate/${r.id}"><span style="min-width:0"><span class="t-body-sm truncate" style="display:block">${esc(r.idea)}</span><span class="t-caption c-3" style="font-weight:400">${esc(H.ago(r.created_at))}</span></span><span class="va-score">${r.score}</span></a>`).join('')}</section>` : ''}
+      </aside></div>`;
+    H.contentShown();
+    const idea = qs('#idea'), n = () => qs('#n').textContent = `${idea.value.length} / 600`; n();
+    const keep = () => { try { sessionStorage.setItem('va-draft', JSON.stringify(read())); } catch (e) {} };
+    idea.addEventListener('input', () => { n(); keep(); }); qs('#who').addEventListener('input', keep); qs('#city').addEventListener('input', keep);
+    qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); keep(); }));
+    function read() { const g = k => { const b = qs(`[data-g="${k}"] [aria-pressed="true"]`); return b ? b.dataset.v : ''; }; return { idea: idea.value.trim(), who: qs('#who').value.trim(), cc: g('cc'), city: qs('#city').value.trim(), money: g('money'), stage: g('stage') }; }
+    // Dictation: the browser turns speech into text; nothing is recorded or sent to Hentity
+    const talk = qs('#talk');
+    if (talk) { let rec = null; talk.onclick = () => {
+      if (rec) { rec.stop(); return; }
+      const R = window.SpeechRecognition || window.webkitSpeechRecognition; rec = new R(); rec.lang = 'en-NG'; rec.interimResults = true; rec.continuous = true;
+      const base = idea.value ? idea.value.replace(/\s*$/, ' ') : '';
+      rec.onresult = e => { let t = ''; for (const r of e.results) t += r[0].transcript; idea.value = (base + t).slice(0, 600); n(); };
+      rec.onend = () => { rec = null; talk.classList.remove('on'); talk.querySelector('span').textContent = 'Or explain it out loud'; keep(); };
+      rec.onerror = () => toast('Couldn’t hear you. Check microphone access.', 'error');
+      rec.start(); talk.classList.add('on'); talk.querySelector('span').textContent = 'Listening… tap to stop';
+    }; }
+    qs('#f').onsubmit = async e => {
+      e.preventDefault();
+      if (!API.uid) { keep(); location.href = '/signin?next=/validate'; return; }
+      const v = read();
+      if (v.idea.length < 20) { toast('Describe your idea in a sentence or two', 'error'); idea.focus(); return; }
+      checking(v);
+    };
+  }
+
+  // ------------------------------------------------------------------ Checking (steps tick as each part finishes)
+  async function checking(v) {
+    const cats = inferCats(v.idea + ' ' + v.who);
+    const where = [v.city, CN[v.cc] || (v.cc ? v.cc : 'Africa')].filter(Boolean).join(', ');
+    root.innerHTML = `<div class="va reveal"><div class="stack gap-16">
+      <section class="va-card row gap-12" style="align-items:flex-start"><span style="color:var(--color-accent-default)">${icon('sparkles', 'ic-20')}</span><div><h1 style="font-size:22px;line-height:28px;margin:0 0 4px">Checking your idea</h1><p class="t-body-sm c-2">${esc(v.idea)}</p></div></section>
+      <section class="va-card"><ul class="va-steps" style="list-style:none;margin:0;padding:0" id="steps"></ul></section></div><aside></aside></div>`;
+    const steps = [['Understood your idea', `${cats.join(' · ')}${v.who ? ' · ' + v.who : ''} · ${where}`], ['Searched Hentity', 'Every launched and unclaimed startup'], ['Compared your angle', 'Problem, customer, approach and market'], ['Writing your report', '']];
+    const draw = (i, sub) => { qs('#steps').innerHTML = steps.map(([t, d], k) => `<li class="${k < i ? 'done' : k === i ? 'now' : 'todo'}"><span class="dot">${k < i ? icon('check', 'ic-12') : ''}</span><div><p class="t-body-sm" style="font-weight:500">${t}</p>${(k === 1 && sub) || d ? `<p class="t-caption c-3" style="font-weight:400">${esc(k === 1 && sub ? sub : d)}</p>` : ''}</div></li>`).join(''); };
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    draw(0); await wait(600); draw(1);
+    let out;
+    try { out = await API.validateIdea(Object.assign({ cats }, v)); }
+    catch (e) { H.fail(e); form(v); return; }
+    try { sessionStorage.removeItem('va-draft'); } catch (e) {}
+    const check = await API.ideaCheck(out.id); const c = check.result.counts;
+    steps[1][1] = `${c.checked} startups checked · ${c.similar} similar`; draw(2); await wait(700); draw(3); await wait(500);
+    history.pushState(null, '', '/validate/' + out.id); report(out.id, check);
+  }
+
+  // ------------------------------------------------------------------ Report
+  async function report(rid, check) {
+    check = check || await API.ideaCheck(rid).catch(() => null);
+    if (!check) { root.innerHTML = `<div class="vr" style="text-align:center;padding-top:96px"><h1 class="t-h2">This report isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be private, or the link is wrong.</p><a class="btn btn--accent" href="/validate">${icon('sparkles', 'ic-16')}Validate an idea</a></div>`; H.contentShown(); return; }
+    const R = check.result, C = R.counts, L = R.levels, mine = API.uid && check.user_id === API.uid;
+    const cat = (check.categories || [])[0] || 'Apps', where = check.city || CN[check.country] || 'Africa', whereFull = [check.city, CN[check.country]].filter(Boolean).join(', ') || 'Africa';
+    document.title = 'Validation report · Hentity';
+    const LV = { crowded: ['Crowded', '#E34948'], some: ['Some room', '#EDA100'], open: ['Wide open', '#1BAF7A'] };
+    const lv = (k, label) => `<span class="lv" style="--lv:${LV[k][1]}">${label || LV[k][0]}</span>`;
+    const topic = `${cat === 'Apps' ? 'Apps' : cat}${check.who ? ' for ' + check.who.toLowerCase().replace(/\s+and\s+.*/, '') : ''}`;
+    const headline = L.problem === 'open' ? `Nothing like this is on Hentity yet.` : L.approach === 'crowded' ? `${topic} is crowded, and close matches already exist.` : L.problem === 'crowded' ? `${topic} is crowded. Your angle isn’t.` : `${topic} has room on Hentity.`;
+    const sub = L.problem === 'open' ? `None of the ${C.checked} startups on Hentity solve this. That’s a good sign, but check outside Hentity too.` : L.approach === 'open' ? 'A known problem with a new way in. Your edge is the approach, not the problem.' : L.approach === 'some' ? 'Others solve this in a similar way. Find the customers they miss.' : 'Very close matches exist. Talk to their users before you build.';
+    const stemsIn = (stems) => { const words = check.idea.match(/[A-Za-z][A-Za-z'-]{2,}/g) || []; const out = []; (stems || []).forEach(s => { const w = words.find(x => x.toLowerCase().startsWith(s.slice(0, Math.max(4, s.length - 1)))); if (w && !out.includes(w.toLowerCase())) out.push(w.toLowerCase()); }); return out; };
+    const M = R.matches || [];
+    const statusTag = s => s === 'unclaimed' ? '<span class="vtag" style="background:#fff6e5;color:#b45309">Unclaimed</span>' : '<span class="vtag" style="background:#e9f8ee;color:#15803d">Live</span>';
+    const cities = R.cities || [], cmax = Math.max(1, ...cities.map(c => c.n)), mineCity = check.city && cities.find(c => c.city.toLowerCase() === check.city.toLowerCase());
+    const opening = !M.length ? `No similar startups on Hentity, in ${esc(where)} or anywhere else.` : check.city && !mineCity ? `Nobody on Hentity is building this in ${esc(check.city)} yet${cities[0] ? `; the closest cluster is ${esc(cities[0].city)}` : ''}.` : mineCity && mineCity.n === cmax && cities.length > 1 ? `${esc(mineCity.city)} is where most of them are. ${esc(cities.find(c => c !== mineCity).city)} has fewer.` : '';
+    const ALT = {
+      Fintech: [['Cash and a notebook', 'Very common', 'Free, private, works offline.', 'Make it as fast as writing it down.'], ['Mobile money and bank apps', 'Very common', 'Already on every phone, trusted.', 'Work alongside them, not instead of them.'], ['Agents and POS operators', 'Common', 'Human help, cash in and out nearby.', 'Give agents a reason to recommend you.'], ['Family, friends and savings groups', 'Common', 'Trust, no paperwork, flexible.', 'Keep the social part; add the record-keeping.']],
+      Commerce: [['WhatsApp and Instagram selling', 'Very common', 'Free, customers are already there.', 'Plug into WhatsApp rather than replacing it.'], ['The open market', 'Very common', 'Haggling, trust, cash on the spot.', 'Win on price, reliability or delivery.'], ['Jumia, Konga and big marketplaces', 'Common', 'Reach and buyer protection.', 'Serve the sellers or items they ignore.'], ['A relative who buys for them', 'Some', 'Someone they trust does it.', 'Make it easy to order on someone’s behalf.']],
+      Logistics: [['Okada, keke and dispatch riders', 'Very common', 'Fast, cheap, found by phone.', 'Organise and track the riders people already use.'], ['Bus parks and motor parks', 'Common', 'Cheap for long distance.', 'Make drop-off and tracking reliable.'], ['Big courier companies', 'Some', 'Trusted for valuable parcels.', 'Beat them on price and same-day speed.'], ['Doing it themselves', 'Common', 'No cost, full control.', 'Save them a whole trip.']],
+      Health: [['Pharmacy or chemist counter', 'Very common', 'Nearby, no appointment, cheap.', 'Work with pharmacies instead of around them.'], ['Public hospitals', 'Common', 'Affordable, covered by schemes.', 'Shorten the queue or the follow-up.'], ['Self-medication and family advice', 'Very common', 'Free, fast, private.', 'Give trusted answers quickly.'], ['Private clinics', 'Some', 'Better service for those who can pay.', 'Bring that service to a lower price.']],
+      Education: [['Lesson teachers and after-school classes', 'Very common', 'A real person, parents trust it.', 'Help the teachers rather than replace them.'], ['YouTube and WhatsApp groups', 'Very common', 'Free and on every phone.', 'Add structure, practice and progress.'], ['Past questions and textbooks', 'Common', 'Exam-focused, cheap.', 'Make exam prep measurable.'], ['Nothing', 'Common', 'No time or money.', 'Make it short, cheap and offline-friendly.']],
+      Agriculture: [['Middlemen and off-takers', 'Very common', 'Cash on the spot, they show up.', 'Pay as fast as they do, at a fairer price.'], ['Extension officers and other farmers', 'Common', 'Trusted local advice.', 'Reach farmers through the people they trust.'], ['Input dealers on credit', 'Common', 'Seeds and fertiliser now, pay later.', 'Bundle inputs with finance and buyers.'], ['Cooperatives', 'Some', 'Shared buying and selling power.', 'Sell to the cooperative, not each farmer.']],
+      'Energy & Climate': [['Generators and fuel', 'Very common', 'Works now, easy to buy.', 'Beat the monthly fuel bill.'], ['The grid, when it’s on', 'Very common', 'Cheapest when available.', 'Fill the hours the grid is off.'], ['Charcoal and firewood', 'Common', 'Cheap and familiar.', 'Match the price per meal.'], ['Pay-as-you-go solar', 'Some', 'Small daily payments.', 'Offer a clear upgrade path.']]
+    };
+    const alts = ALT[cat] || [['Doing it by hand', 'Very common', 'Free and familiar.', 'Be faster than the manual way.'], ['WhatsApp groups and calls', 'Very common', 'Everyone is already there.', 'Work inside WhatsApp first.'], ['Spreadsheets', 'Common', 'Flexible, already paid for.', 'Do the one job a spreadsheet does badly.'], ['Asking someone they trust', 'Common', 'Trust beats features.', 'Make it easy to share and recommend.']];
+    const HC = { 'Very common': 'background:#fdecec;color:#b91c1c', Common: 'background:#fff6e5;color:#b45309', Some: 'background:var(--color-bg-muted);color:var(--color-text-secondary)' };
+    const who = check.who || 'your customers', money = check.money || 'Not sure';
+    const tests = [`Will ${who.toLowerCase()} use this every week without being reminded?`,
+      money === 'Subscription' ? `Would ${who.toLowerCase()} pay a monthly fee for it?` : money === 'Commission' ? 'Will both sides accept a fee on every transaction?' : money === 'One-off' ? 'Will people pay up front before they’ve seen results?' : `Who pays: ${who.toLowerCase()}, or someone else who benefits?`,
+      `Can you reach your first 20 ${who.toLowerCase()} in ${where} without paying for ads?`,
+      M[0] && M[0].sim >= 55 ? `Why would someone pick you over ${M[0].name}?` : `Is the problem painful enough that ${who.toLowerCase()} look for a fix today?`];
+    const done = Object.assign({}, check.tests || {});
+    const angDetail = { problem: `${C.similar} similar startup${C.similar === 1 ? '' : 's'}`, customer: C.customer ? `${C.customer} already serve ${esc(who.toLowerCase())}` : `None aimed at ${esc(who.toLowerCase())}`, approach: M[0] ? `Closest is ${M[0].sim}% similar` : 'No close match', market: `${C.market} in ${esc(CN[check.country] || 'Africa')}${check.city ? ', ' + (C.city || 'none') + ' in ' + esc(check.city) : ''}` };
+    const ago = new Date(check.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+    let showAll = false;
+    root.innerHTML = `<div class="vr reveal">
+      <div class="vr-top"><a class="row gap-6 t-body-sm" href="/validate" style="font-weight:500">${icon('arrow-left', 'ic-14')}New check</a>${mine ? `<div class="row gap-8 hide-sm"><button class="btn btn--secondary btn--sm" id="edit">Edit idea</button><button class="btn btn--primary btn--sm" id="share">${icon('share', 'ic-14')}${check.shared ? 'Copy link' : 'Share'}</button></div>` : ''}</div>
+      <section class="va-card" style="padding:24px">
+        <div class="vr-hero"><div>
+          <p class="t-eyebrow" style="color:var(--color-accent-default)">Validation report · ${ago}</p>
+          <h1>${esc(headline)}</h1>
+          <p class="vr-quote">${esc(check.idea)}</p>
+          <div class="vr-tags"><span><i style="width:8px;height:8px;border-radius:50%;background:${H.catColor(cat)}"></i>${esc(cat === 'Energy & Climate' ? 'Climate' : cat)}</span>${check.who ? `<span>${esc(check.who)}</span>` : ''}<span>${esc(whereFull)}</span><span>${{ idea: 'Just an idea', building: 'Building', users: 'Has users' }[check.stage] || 'Just an idea'}</span></div>
+        </div>
+        <div class="vr-nov"><p class="t-label">Novelty on Hentity</p><p style="margin-top:4px"><b>${R.score}</b><span class="c-3 mono" style="margin-left:8px">/ 100</span></p>
+          <div class="vr-bar"><i style="background:#E34948"></i><i style="background:#EDA100"></i><i style="background:#1BAF7A"></i><em style="left:${R.score}%"></em></div>
+          <div class="row between t-caption c-3" style="font-weight:400"><span>Crowded</span><span>Some room</span><span>Wide open</span></div>
+          <p class="t-body-sm c-2" style="margin-top:12px">${esc(sub)}</p></div></div>
+        <div class="vr-ang">${[['problem', 'Problem'], ['customer', 'Customer'], ['approach', 'Approach'], ['market', 'Market']].map(([k, t]) => `<div><p class="t-eyebrow c-3">${t}</p>${lv(L[k], k === 'approach' && L[k] === 'open' ? 'New' : k === 'customer' && L[k] === 'crowded' ? 'Common' : null)}<p class="t-caption c-3" style="font-weight:400">${angDetail[k]}</p></div>`).join('')}</div>
+      </section>
+      <div class="vr-stats">${[['users', 'Similar startups', C.similar, `${C.live} launched · ${C.unclaimed} unclaimed`], ['globe', `Active in ${esc(where)}`, check.city ? C.city : C.market, check.city ? `${C.market} across ${esc(CN[check.country] || 'Africa')}` : 'similar startups'], ['bell', 'People following them', C.followers, 'Hentity members watching this space'], ['package', 'Startups checked', C.checked, 'Everything public on Hentity']].map(([i, t, v, d]) => `<div><p class="row gap-8 t-body-sm" style="font-weight:500">${icon(i, 'ic-16')}${t}</p><b>${D.fmt(v || 0)}</b><p class="t-caption c-3" style="font-weight:400">${d}</p></div>`).join('')}</div>
+      <div class="vr-grid">
+        <section class="va-card"><div class="row between"><div><h2 class="t-h3">Closest matches</h2><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Ranked by how much of your idea they share</p></div>${M.length > 4 ? `<button class="link t-body-sm" id="all" style="font-weight:500">See all ${M.length}</button>` : ''}</div>
+          <div id="matches" style="margin-top:8px"></div></section>
+        <section class="va-card"><h2 class="t-h3">Where it’s crowded</h2><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Similar startups by city</p>
+          <div style="margin-top:12px">${cities.length ? cities.map((c, i) => `<div class="vc"><span class="row gap-6 truncate">${flag(c.cc)}${esc(c.city)}</span><span class="tr"><i style="width:${c.n / cmax * 100}%;background:${i < 2 ? '#F28C5B' : '#7CB8F2'}"></i></span><b style="text-align:right;font-weight:500">${c.n}</b></div>`).join('') : '<p class="t-body-sm c-2">No similar startups anywhere on Hentity.</p>'}
+          ${check.city && !mineCity ? `<div class="vc"><span class="truncate">${esc(check.city)}</span><span class="tr" style="background:none;border:1px dashed var(--color-border-strong)"></span><b style="text-align:right;font-weight:500;color:var(--color-success)">Open</b></div>` : ''}</div>
+          ${opening ? `<div class="vopen"><b style="display:block;font-weight:500">Your opening</b>${opening}</div>` : ''}</section>
+      </div>
+      <section class="va-card" style="margin-top:20px"><h2 class="t-h3">What people use today</h2><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Your real competition in ${esc(cat === 'Apps' ? 'most markets' : cat.toLowerCase())} is usually not a startup at all.</p>
+        <table class="vt"><thead><tr><th>Alternative</th><th>How common</th><th>Why they stick with it</th><th>Your opening</th></tr></thead><tbody>${alts.map(([a, h, w, o]) => `<tr><td style="font-weight:500">${esc(a)}</td><td><span class="hc" style="${HC[h]}">${h}</span></td><td class="c-2">${esc(w)}</td><td><span class="row gap-6" style="align-items:flex-start"><span style="color:var(--color-accent-default)">${icon('arrow-right', 'ic-14')}</span>${esc(o)}</span></td></tr>`).join('')}</tbody></table>
+        <p class="t-caption c-3" style="font-weight:400;margin-top:8px">Typical for ${esc(cat === 'Apps' ? 'consumer products' : cat.toLowerCase())} products in African markets, from Hentity’s editors. Check them with your own customers.</p></section>
+      <div class="vr-grid vr-two" style="margin-top:20px">
+        <section class="va-card vtests"><h2 class="t-h3">Test these first</h2><p class="t-caption c-3" style="font-weight:400;margin:2px 0 8px">Your riskiest assumptions, most risky on top</p>
+          ${tests.map((t, i) => `<label class="check"><input type="checkbox" data-t="${i}" ${done[i] ? 'checked' : ''} ${mine ? '' : 'disabled'}><span class="check__box">${icon('check')}</span><span>${esc(t)}</span></label>`).join('')}</section>
+        <section class="va-card vnext"><h2 class="t-h3">Next steps</h2><p class="t-caption c-3" style="font-weight:400;margin:2px 0 6px">Keep going on Hentity</p>
+          ${[['flask', 'Run a beta with 20 testers', 'Studio · a form link you can share on WhatsApp', '/studio', true], ['chats', 'Talk to founders in this space', 'Ask in the Hentity community chats', '/chats'], ['rocket', 'Put your product on Hentity', 'Get a page, pick a launch day', '/submit?new=1'], ['bell', M[0] ? `Follow ${M[0].name}` : 'Browse the directory', M[0] ? 'See what your closest match ships' : 'See what’s already being built', M[0] ? '/products/' + M[0].slug : '/directory']].map(([i, t, d, h, hl]) => `<a href="${esc(h)}"><span class="ib"${hl ? ' style="background:var(--color-accent-default);color:#fff"' : ''}>${icon(i, 'ic-18')}</span><span class="grow"><span class="t-body-sm" style="font-weight:500;display:block">${esc(t)}</span><span class="t-caption c-3" style="font-weight:400">${esc(d)}</span></span>${icon('arrow-right', 'ic-14')}</a>`).join('')}</section>
+      </div>
+      <p class="row gap-6 t-caption c-3" style="font-weight:400;margin-top:20px;align-items:flex-start">${icon('info', 'ic-14')}<span>Built from the ${C.checked} startups on Hentity, launched and unclaimed. A startup that isn’t on Hentity won’t show up here, so search outside Hentity before you rely on this. ${check.shared ? 'Anyone with the link can see this report.' : 'Your idea stays private.'}</span></p>
+      ${mine ? `<div class="vr-sticky"><a class="btn btn--secondary" href="/validate">New check</a><a class="btn btn--accent" href="/studio">${icon('flask', 'ic-16')}Run a beta</a></div>` : ''}
+    </div>`;
+    const drawM = () => { const L2 = showAll ? M : M.slice(0, 4); qs('#matches').innerHTML = L2.length ? L2.map(m => { const w = stemsIn(m.shared); return `<div class="vm">${plogo(m, 40)}<div style="min-width:0"><p class="row gap-8 t-body-sm" style="font-weight:500"><a href="/products/${esc(m.slug)}">${esc(m.name)}</a>${statusTag(m.status)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(m.tagline)}${m.city ? ' · ' + esc(m.city) : ''}</p>${w.length ? `<p class="row gap-6 t-caption" style="font-weight:400;margin-top:3px"><span style="color:var(--color-accent-default)">${icon('arrow-right', 'ic-12')}</span>Also about ${esc(w.slice(0, 3).join(', '))}</p>` : ''}</div><div style="text-align:right"><span class="mono t-body-sm">${m.sim}%<span class="hide-sm"> similar</span></span><div class="sb"><i style="width:${m.sim}%"></i></div></div></div>`; }).join('') : `<p class="t-body-sm c-2" style="padding:16px 0">No startup on Hentity shares your idea’s key words. You may be early, or it may be described differently. Try other words for the same thing.</p>`; };
+    drawM();
+    qs('#all') && (qs('#all').onclick = () => { showAll = !showAll; qs('#all').textContent = showAll ? 'Show fewer' : `See all ${M.length}`; drawM(); });
+    qsa('[data-t]').forEach(c => c.addEventListener('change', async () => { done[c.dataset.t] = c.checked; try { await API.updateIdeaCheck(check.id, { tests: done }); } catch (e) { H.fail(e); } }));
+    qs('#edit') && (qs('#edit').onclick = () => { history.pushState(null, '', '/validate'); form({ idea: check.idea, who: check.who || '', cc: check.country || '', city: check.city || '', money: check.money || 'Subscription', stage: check.stage || 'idea' }); });
+    qs('#share') && (qs('#share').onclick = async () => {
+      const u = location.origin + '/validate/' + check.id;
+      if (!check.shared) { if (!confirm('Anyone with the link will be able to see this report and your idea. Share it?')) return; try { await API.updateIdeaCheck(check.id, { shared: true }); check.shared = true; } catch (e) { H.fail(e); return; } }
+      if (navigator.share && innerWidth < 769) navigator.share({ title: 'My idea validation · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Link copied. Anyone with it can see this report.'); }
+      qs('#share').innerHTML = icon('share', 'ic-14') + 'Copy link';
+    });
+    H.contentShown(); M.scroll && M.scroll();
+  }
+  addEventListener('popstate', () => location.reload());
+})();
+</script>
+</body>
+</html>

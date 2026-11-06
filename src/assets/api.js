@@ -243,6 +243,11 @@
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
     // Insights
     insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
+    // Validate an idea (Figma: Validate)
+    validateIdea: a => q(sb.rpc('validate_idea', { idea: a.idea, who: a.who || null, cc: a.cc || null, city: a.city || null, money: a.money || null, stage: a.stage || null, cats: a.cats || [] })),
+    ideaCheck: id => q(sb.from('idea_checks').select('*').eq('id', id).maybeSingle()),
+    myIdeaChecks: () => uid() ? q(sb.from('idea_checks').select('id,idea,score,created_at').eq('user_id', uid()).order('created_at', { ascending: false }).limit(6)) : Promise.resolve([]),
+    updateIdeaCheck: (id, patch) => q(sb.from('idea_checks').update(patch).eq('id', id)),
     // Unclaimed profiles + claim flow (Figma: Claims)
     radarFeed: ({ cc, limit } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',claim').eq('status', 'unclaimed'); if (cc) s = s.eq('country', cc); return q(s.order('created_at', { ascending: false }).limit(limit || 60)); },
     unclaimedCount: cc => { let s = sb.from('products').select('id', { count: 'exact', head: true }).eq('status', 'unclaimed'); if (cc) s = s.eq('country', cc); return (async () => (await s).count || 0)(); },

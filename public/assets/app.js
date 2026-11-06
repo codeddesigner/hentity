@@ -171,6 +171,7 @@
         ${item('insights', 'Insights', '/insights', 'bar-chart')}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
+        ${item('validate', 'Validate an idea', '/validate', 'sparkles')}
         ${item('my-products', 'My products', '/my-products', 'rocket')}
         ${item('notifications', 'Notifications', '/notifications', 'bell', counts.notifs)}
         ${item('saved', 'Saved', '/saved', 'bookmark')}
@@ -281,6 +282,17 @@
     if (p.logo_url) return `<span class="plogo${sz}" style="background:#fff url('${esc(p.logo_url)}') center/cover"></span>`;
     return `<span class="plogo${sz}" style="background:${esc(p.color || '#000')}">${esc((p.name || '?')[0].toUpperCase())}</span>`;
   }
+
+  // Mobile Launch button (Figma: Launch sheet): validate an idea, submit a product, or find beta testers
+  function launchSheet() {
+    if (document.querySelector('.lsheet')) return;
+    const bg = document.createElement('div'); bg.className = 'scrim'; bg.style.alignItems = 'end'; bg.style.padding = '0';
+    bg.innerHTML = `<div class="lsheet" role="dialog" aria-modal="true" aria-label="What do you want to do?"><div class="grab"></div><h2>What do you want to do?</h2>
+      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta']].map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
+    document.body.appendChild(bg);
+    bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
+  }
+  document.addEventListener('click', e => { const l = e.target.closest('.tabbar__launch'); if (l && window.innerWidth <= 768) { e.preventDefault(); launchSheet(); } }, true);
 
   // global delegated handlers
   document.addEventListener('click', e => {
