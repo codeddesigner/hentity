@@ -377,12 +377,12 @@ begin
   while exists (select 1 from products where slug = sl || case when n = 0 then '' else '-' || n end) loop n := n + 1; end loop;
   if n > 0 then sl := sl || '-' || n; end if;
   select count(distinct coalesce(f->>'source', '')) into src from jsonb_array_elements(r.facts) f;
-  insert into products (slug, name, tagline, description, website, color, categories, country, city, status, owner_id, claim)
+  insert into products (slug, name, tagline, description, website, color, categories, country, city, status, owner_id, claim, stage, languages, platforms)
   values (sl, r.name, left(coalesce(r.tagline, ''), 140), coalesce(r.description, ''), coalesce(r.website, ''),
     (array['#16A34A','#2563EB','#9333EA','#EA580C','#0891B2','#B45309','#DB2777','#111111'])[1 + abs(hashtext(r.name)) % 8],
     r.categories, coalesce(r.country, 'NG'), coalesce(r.city, ''), 'unclaimed', null,
     jsonb_build_object('facts', r.facts, 'news', r.news, 'spotted_at', r.created_at, 'checked_at', now(), 'contact_email', r.contact_email,
-      'sources', greatest(src, jsonb_array_length(r.news)), 'found_via', r.found_via))
+      'sources', greatest(src, jsonb_array_length(r.news)), 'found_via', r.found_via), '', '', '')
   returning id into pid;
   update radar set status = 'published', product_id = pid, decided_at = now() where id = rid;
   if invite and r.contact_email ~ '@' then
