@@ -69,7 +69,6 @@
   await API.ready;
   if (!API.uid) { location.replace('/signin?next=/welcome'); return; }
   H.mount();
-  if (H.params().get('via') === 'google') { qs('#verified-alert .alert__title').textContent = 'Signed in with Google'; }
   const cats = ['Fintech', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Hardware'];
   const sel = new Set((API.profile.interests || []).length ? API.profile.interests : []);
   qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');

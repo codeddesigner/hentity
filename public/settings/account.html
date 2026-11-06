@@ -44,28 +44,13 @@
       <h2 class="card__title" id="m-t" style="margin-bottom:16px">Sign-in methods</h2>
       <div class="list-row">
         <span class="icon-tile"><span data-icon="mail"></span></span>
-        <div class="grow"><p class="list-row__title">Email <span class="badge badge--success" id="em-badge">Verified</span></p><p class="list-row__desc"><span id="em"></span> · used for sign-in links and receipts</p></div>
+        <div class="grow"><p class="list-row__title">Email <span class="badge badge--success" id="em-badge">Verified</span></p><p class="list-row__desc"><span id="em"></span> · we send your sign-in codes here</p></div>
         <button class="btn btn--secondary btn--sm" type="button" data-edit="email">Change</button>
       </div>
       <form class="stack gap-12" data-editor="email" hidden style="padding:0 0 16px 50px" novalidate>
-        <div class="field"><label class="field__label" for="new-email">New email</label><input class="input" id="new-email" type="email" autocomplete="email"><p class="field__hint">We send a link to both addresses. Your current email keeps working until you confirm.</p></div>
+        <div class="field"><label class="field__label" for="new-email">New email</label><input class="input" id="new-email" type="email" autocomplete="email"><p class="field__hint" id="ne-hint">Must be a work email. We send a confirmation link to both addresses; your current email keeps working until you confirm.</p></div>
         <div class="row gap-8"><button class="btn btn--primary btn--sm">Send confirmation</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
       </form>
-      <div class="list-row">
-        <span class="icon-tile"><span data-icon="lock"></span></span>
-        <div class="grow"><p class="list-row__title">Password</p><p class="list-row__desc" id="pw-desc">Use at least 10 characters</p></div>
-        <button class="btn btn--secondary btn--sm" type="button" data-edit="password">Change password</button>
-      </div>
-      <form class="stack gap-12" data-editor="password" hidden style="padding:0 0 16px 50px" novalidate>
-        <div class="field" id="f-cur"><label class="field__label" for="cur-pw">Current password</label><input class="input" id="cur-pw" type="password" autocomplete="current-password"><p class="field__hint">Signed up with Google? Leave this empty.</p></div>
-        <div class="field"><label class="field__label" for="new-pw">New password</label><input class="input" id="new-pw" type="password" autocomplete="new-password"><p class="field__hint" id="pw-hint">At least 10 characters. Other sessions will be signed out.</p></div>
-        <div class="row gap-8"><button class="btn btn--primary btn--sm">Update password</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div>
-      </form>
-      <div class="list-row">
-        <span class="icon-tile"><span data-icon="google"></span></span>
-        <div class="grow"><p class="list-row__title">Google</p><p class="list-row__desc" id="g-desc">Not connected</p></div>
-        <button class="btn btn--ghost btn--sm" type="button" id="g-btn">Connect</button>
-      </div>
       <div class="list-row">
         <span class="icon-tile"><span data-icon="bell"></span></span>
         <div class="grow"><p class="list-row__title">WhatsApp number</p><p class="list-row__desc"><span id="wa">Not added</span> · launch-day reminders only, never marketing</p></div>
@@ -104,25 +89,12 @@ H.mount({ active: '', tab: 'you' });
   // Session list: Supabase only exposes the current device to the browser
   const ua = navigator.userAgent; const b = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
   const os = /iPhone|iPad/.test(ua) ? 'iOS' : /Android/.test(ua) ? 'Android' : /Mac OS/.test(ua) ? 'macOS' : /Windows/.test(ua) ? 'Windows' : 'Linux';
-  qs('#sessions').innerHTML = `<div class="list-row"><span class="icon-tile">${icon('globe')}</span><div class="grow"><p class="list-row__title">${b} on ${os} <span class="badge badge--accent">This device</span></p><p class="list-row__desc">Signed in ${H.ago(user.last_sign_in_at || Date.now())} · active now</p></div></div><p class="t-caption c-3" style="font-weight:400;margin-top:12px">Signed in somewhere you don’t recognise? Sign out everywhere else, then change your password.</p>`;
+  qs('#sessions').innerHTML = `<div class="list-row"><span class="icon-tile">${icon('globe')}</span><div class="grow"><p class="list-row__title">${b} on ${os} <span class="badge badge--accent">This device</span></p><p class="list-row__desc">Signed in ${H.ago(user.last_sign_in_at || Date.now())} · active now</p></div></div><p class="t-caption c-3" style="font-weight:400;margin-top:12px">Signed in somewhere you don’t recognise? Sign out everywhere else and turn on two-step verification.</p>`;
   qs('#out-all').addEventListener('click', async () => { try { await API.auth.signOut('others'); toast('Signed out of all other sessions'); } catch (e) { H.fail(e); } });
   qsa('[data-edit]').forEach(btn => btn.addEventListener('click', () => { const f = qs(`[data-editor="${btn.dataset.edit}"]`); f.hidden = !f.hidden; if (!f.hidden) f.querySelector('input').focus(); }));
   qsa('[data-cancel]').forEach(btn => btn.addEventListener('click', () => btn.closest('form').hidden = true));
-  qs('[data-editor="email"]').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#new-email').value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#new-email').classList.add('is-error'); return; } try { await API.auth.changeEmail(v); e.target.hidden = true; toast('Check both inboxes to confirm the change'); } catch (err) { H.fail(err); } });
-  qs('[data-editor="password"]').addEventListener('submit', async e => {
-    e.preventDefault(); const h = qs('#pw-hint'); const np = qs('#new-pw').value, cp = qs('#cur-pw').value;
-    if (np.length < 10) { h.textContent = 'Use at least 10 characters.'; h.className = 'field__hint is-error'; return; }
-    try {
-      if (cp) await API.auth.signIn(user.email, cp).catch(() => { throw new Error('Your current password is incorrect'); });
-      await API.auth.setPassword(np); await API.auth.signOut('others');
-      e.target.hidden = true; qs('#pw-desc').textContent = 'Changed just now'; e.target.reset(); toast('Password updated');
-    } catch (err) { H.fail(err); }
-  });
+  qs('[data-editor="email"]').addEventListener('submit', async e => { e.preventDefault(); const v = qs('#new-email').value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { qs('#new-email').classList.add('is-error'); return; } try { if (!(await API.workEmailOk(v))) { qs('#new-email').classList.add('is-error'); qs('#ne-hint').className = 'field__hint is-error'; qs('#ne-hint').textContent = '@' + v.split('@')[1] + ' is a personal email provider. Use your work email.'; return; } await API.auth.changeEmail(v); e.target.hidden = true; toast('Check both inboxes to confirm the change'); } catch (err) { H.fail(err); } });
   qs('[data-editor="wa"]').addEventListener('submit', async e => { e.preventDefault(); const raw = qs('#wa-in').value.replace(/[^\d+]/g, ''); if (raw.length < 8) { qs('#wa-in').classList.add('is-error'); return; } const m = raw.replace(/^(\+\d{3})(\d{3})\d+(\d{4})$/, '$1 $2 ••• $3'); try { await API.updateProfile({ whatsapp: m }); qs('#wa').textContent = m; e.target.hidden = true; toast('WhatsApp number saved'); } catch (err) { H.fail(err); } });
-  // Google identity
-  function gRender() { const g = API.auth.identities().find(i => i.provider === 'google'); qs('#g-desc').textContent = g ? 'Connected as ' + ((g.identity_data && g.identity_data.email) || 'your Google account') : 'Not connected'; qs('#g-btn').textContent = g ? 'Disconnect' : 'Connect'; qs('#g-btn').className = 'btn btn--sm ' + (g ? 'btn--ghost' : 'btn--secondary'); return g; }
-  gRender();
-  qs('#g-btn').addEventListener('click', async () => { try { if (gRender()) { if (API.auth.identities().length < 2) { toast('Add a password first so you can still sign in', 'error'); return; } await API.auth.unlinkGoogle(); await API.sb.auth.refreshSession(); gRender(); toast('Google disconnected'); } else await API.auth.linkGoogle(); } catch (e) { H.fail(e); } });
   // Two-step verification (TOTP via Supabase MFA)
   const mfa = API.sb.auth.mfa;
   async function mfaState() { const { data } = await mfa.listFactors(); const f = (data && data.totp || []).find(x => x.status === 'verified'); qs('#mfa').checked = !!f; qs('#mfa-badge').hidden = !f; return f; }

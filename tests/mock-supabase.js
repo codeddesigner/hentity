@@ -84,7 +84,7 @@
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_stats: () => ({ users: 42, users_week: 9, products: T.products.length, live: 13, review: T.products.filter(p => p.status === 'review').length, scheduled: 3, upvotes_week: 5210, comments_week: 230, messages_week: 410, reports_open: 2, subscribers: 312, suggestions: 3, signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 2 + (i * 7) % 9 })), votes_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 200 + (i * 53) % 400 })) }),
-    my_profile: () => localStorage.getItem('mock.signedIn') ? T.profiles.filter(p => p.id === ME) : [], admin_users: (a) => T.profiles.filter(p => !a.ids || a.ids.includes(p.id)).filter(p => !a.term || (p.name + p.username).toLowerCase().includes(a.term.toLowerCase())), open_dm: () => T.channels[0].id, export_my_data: () => ({ profile: {} }), admin_broadcast: () => 42
+    work_email_ok: (a) => !/@(gmail|yahoo|outlook|hotmail)\./.test(a.e) || a.e === 'encircode@gmail.com', my_profile: () => localStorage.getItem('mock.signedIn') ? T.profiles.filter(p => p.id === ME) : [], admin_users: (a) => T.profiles.filter(p => !a.ids || a.ids.includes(p.id)).filter(p => !a.term || (p.name + p.username).toLowerCase().includes(a.term.toLowerCase())), open_dm: () => T.channels[0].id, export_my_data: () => ({ profile: {} }), admin_broadcast: () => 42
   };
   window.supabase = {
     createClient() {
@@ -96,6 +96,9 @@
           onAuthStateChange: fn => { authListeners.push(fn); return { data: { subscription: { unsubscribe() {} } } }; },
           signInWithPassword: async ({ password }) => { if (password !== 'hentity2026') return { error: { message: 'Invalid login credentials' } }; localStorage.setItem('mock.signedIn', '1'); return { error: null }; },
           signUp: async () => ({ data: { user: { id: ME } }, error: null }),
+          // Passwordless mock: any code works except 000000; unknown sign-in emails are rejected like Supabase does
+          signInWithOtp: async ({ email, options }) => (!options.shouldCreateUser && !/ledgerline|hentity|encircode/.test(email) ? { error: { message: 'Signups not allowed for otp' } } : { error: null }),
+          verifyOtp: async ({ token }) => { if (token === '000000') return { error: { message: 'Token has expired or is invalid' } }; localStorage.setItem('mock.signedIn', '1'); authListeners.forEach(f => f('SIGNED_IN', sess())); return { error: null }; },
           mfa: { listFactors: async () => ({ data: { totp: [] } }), getAuthenticatorAssuranceLevel: async () => ({ data: { currentLevel: 'aal1', nextLevel: 'aal1' } }), enroll: async () => ({ data: null, error: { message: 'mock' } }) },
           signOut: async () => { localStorage.removeItem('mock.signedIn'); return { error: null }; },
           resend: async () => ({ error: null }), resetPasswordForEmail: async () => ({ error: null }), updateUser: async () => ({ error: null }),

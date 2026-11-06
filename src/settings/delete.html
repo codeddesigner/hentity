@@ -34,7 +34,6 @@
         </div>
       </fieldset>
       <div class="field"><label class="field__label" for="confirm">Type DELETE to confirm</label><input class="input" id="confirm" autocomplete="off" spellcheck="false"><p class="field__hint">Case-sensitive.</p></div>
-      <div class="field" id="f-pw"><label class="field__label" for="pw">Password</label><input class="input" id="pw" type="password" autocomplete="current-password"><p class="field__hint is-error" id="pw-err" hidden>That password doesn’t match. Try again.</p></div>
       <div class="row gap-8" style="justify-content:flex-end"><a class="btn btn--ghost" href="/settings/profile">Keep my account</a><button class="btn btn--danger" type="submit" id="go" disabled><span data-icon="trash"></span>Delete account</button></div>
     </form>
   </main>
@@ -57,10 +56,9 @@ H.mount({ active: '', tab: 'you' });
     qs('#cancel-del').onclick = async () => { await API.cancelDeletion(); await API.refreshProfile(); H.toast('Deletion cancelled'); location.reload(); };
   }
   H.bindChips(qs('#why'));
-  form.addEventListener('input', () => { qs('#go').disabled = !(qs('#confirm').value === 'DELETE' && qs('#pw').value.length > 0); qs('#f-pw').classList.remove('is-error'); qs('#pw-err').hidden = true; });
+  form.addEventListener('input', () => { qs('#go').disabled = qs('#confirm').value !== 'DELETE'; });
   form.addEventListener('submit', async e => {
     e.preventDefault(); if (qs('#go').disabled) return;
-    try { await API.auth.signIn(API.session.user.email, qs('#pw').value); } catch (err) { qs('#f-pw').classList.add('is-error'); qs('#pw-err').hidden = false; return; }
     try {
       const reason = (qs('#why [aria-pressed="true"]') || {}).textContent;
       await API.updateProfile({ settings: Object.assign({}, API.profile.settings, { delete_reason: reason || null }) });

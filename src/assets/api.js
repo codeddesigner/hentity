@@ -54,25 +54,21 @@
 
     // ---------------- auth
     auth: {
-      async signIn(email, password) { const { error } = await sb.auth.signInWithPassword({ email, password }); err(error); await loadProfile(); },
-      async signUp({ email, password, name, username }) {
-        const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name, username }, emailRedirectTo: location.origin + '/welcome?verified=1' } });
-        err(error); return data;
+      // Passwordless: a 6-digit code (and a link) is emailed; create=true also registers the account.
+      async sendCode(email, opts) {
+        opts = opts || {};
+        const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: !!opts.create, data: opts.create ? { name: opts.name, username: opts.username } : undefined, emailRedirectTo: location.origin + (opts.next || '/') } });
+        err(error);
       },
-      async google(next) { const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + (next || '/welcome?via=google') } }); err(error); },
-      async resend(email, type) { const { error } = await sb.auth.resend({ type: type || 'signup', email, options: { emailRedirectTo: location.origin + '/welcome?verified=1' } }); err(error); },
-      async forgot(email) { const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/reset-password' }); err(error); },
-      async setPassword(password) { const { error } = await sb.auth.updateUser({ password }); err(error); },
+      async verifyCode(email, token) { const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' }); err(error); await loadProfile(); },
       async changeEmail(email) { const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + '/settings/account' }); err(error); },
       async signOut(scope) { await sb.auth.signOut(scope ? { scope } : undefined); profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} },
-      identities() { return (session && session.user.identities) || []; },
-      async unlinkGoogle() { const g = API.auth.identities().find(i => i.provider === 'google'); if (!g) return; const { error } = await sb.auth.unlinkIdentity(g); err(error); },
-      async linkGoogle() { const { error } = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: location.origin + '/settings/account' } }); err(error); }
     },
 
     // ---------------- profiles
     async updateProfile(patch) { err((await sb.from('profiles').update(patch).eq('id', uid())).error); const r = await loadProfile(); try { localStorage.setItem(PROFILE_KEY, JSON.stringify(r)); } catch (e) {} return r; },
     async usernameAvailable(u) { const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle(); return !data || data.id === uid(); },
+    workEmailOk: async e => { const { data, error } = await sb.rpc('work_email_ok', { e }); err(error); return !!data; },
     profileByUsername: u => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle()),
     profilesByIds: ids => ids.length ? q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,is_verified').in('id', ids)) : Promise.resolve([]),
     searchProfiles: (term) => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country').or(`username.ilike.%${term}%,name.ilike.%${term}%`).limit(8)),

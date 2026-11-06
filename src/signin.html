@@ -3,6 +3,7 @@
 <head>
 <!--#head-->
 <title>Sign in · Hentity</title>
+<meta name="description" content="Sign in to Hentity with a one-time code sent to your work email.">
 </head>
 <body class="no-tabbar">
 <div class="auth">
@@ -12,74 +13,66 @@
     <form class="auth__form" id="form" novalidate>
       <div class="auth__heading">
         <h1 class="t-h2">Welcome back</h1>
-        <p class="c-2">Sign in to upvote, comment and launch your products.</p>
+        <p class="c-2">Enter your work email and we’ll send you a 6-digit sign-in code. No password needed.</p>
       </div>
       <div class="alert alert--error" id="err" role="alert" hidden>
         <span data-icon="alert-circle"></span>
-        <div><p class="alert__title" id="err-title">Email or password is incorrect</p><p class="alert__body" id="err-body">Check both and try again. After 8 attempts sign-in pauses for 15 minutes.</p></div>
+        <div><p class="alert__title" id="err-title"></p><p class="alert__body" id="err-body"></p></div>
       </div>
-      <a class="btn btn--secondary btn--block" href="#" id="google"><span data-icon="google"></span>Continue with Google</a>
-      <div class="divider-label">or</div>
       <div class="field" id="f-email">
-        <label class="field__label" for="email">Email</label>
-        <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+        <label class="field__label" for="email">Work email</label>
+        <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required autofocus>
       </div>
-      <div class="field" id="f-password">
-        <label class="field__label" for="password">Password</label>
-        <div class="input-group">
-          <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required>
-          <button class="input-group__btn" type="button" data-reveal aria-label="Show password"></button>
-        </div>
-      </div>
-      <div class="auth__row">
-        <label class="check"><input type="checkbox" checked name="remember" id="remember"><span class="check__box"><span data-icon="check"></span></span>Keep me signed in</label>
-        <a class="link" href="/forgot-password"><span class="hide-sm">Forgot password?</span><span class="show-sm">Forgot?</span></a>
-      </div>
-      <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+      <button class="btn btn--primary btn--block" type="submit">Email me a code</button>
       <p class="auth__switch">New to Hentity? <a href="/signup">Create an account</a></p>
     </form>
   </main>
 </div>
 <script src="/assets/auth.js"></script>
-<template id="mfa-tpl"><form class="auth__form" id="mfa-form" novalidate><div class="icon-badge"><span data-icon="shield"></span></div><div class="auth__heading"><h1 class="t-h2">Enter your code</h1><p class="c-2">Open your authenticator app and type the 6-digit code for Hentity.</p></div><div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.3em;font-size:20px"></div><button class="btn btn--primary btn--block" type="submit">Verify</button><button class="link" type="button" id="mfa-back" style="align-self:center">Use a different account</button></form></template>
+<template id="mfa-tpl"><form class="auth__form reveal" id="mfa-form" novalidate><div class="icon-badge"><span data-icon="shield"></span></div><div class="auth__heading"><h1 class="t-h2">One more step</h1><p class="c-2">Two-step verification is on. Open your authenticator app and type the 6-digit code for Hentity.</p></div><div class="field" id="f-mcode"><label class="field__label" for="mcode">Authenticator code</label><input class="input mono" id="mcode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:22px;text-align:center"></div><button class="btn btn--primary btn--block" type="submit">Verify</button><button class="link" type="button" id="mfa-back" style="align-self:center">Use a different account</button></form></template>
 <script>
 H.mount();
 (async function () {
   const { qs, toast } = H;
-  const form = qs('#form'), err = qs('#err');
+  let form = qs('#form');
+  const err = qs('#err');
+  // A sign-in link from the email that has expired or been used lands here with an error in the URL
+  const h = new URLSearchParams(location.hash.slice(1));
   await API.ready;
-  if (API.uid && !H.params().get('force')) { const { data } = await API.sb.auth.mfa.getAuthenticatorAssuranceLevel(); if (!(data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2')) { location.replace(Auth.next()); return; } else showMfa(); }
-  function fail([title, body]) { qs('#err-title').textContent = title; qs('#err-body').textContent = body; err.hidden = false; err.classList.remove('reveal'); void err.offsetWidth; err.classList.add('reveal'); qs('#f-email').classList.add('is-error'); qs('#f-password').classList.add('is-error'); }
-  form.addEventListener('input', () => { err.hidden = true; qs('#f-email').classList.remove('is-error'); qs('#f-password').classList.remove('is-error'); });
+  if (API.uid && !H.params().get('force')) { if (await needsMfa()) showMfa(); else { location.replace(Auth.next()); return; } }
+  const pre = H.params().get('email'); if (pre) form.email.value = pre;
+  if (h.get('error') || H.params().get('expired')) fail(['That sign-in link has expired', 'Links and codes work once, for one hour. Send yourself a new code below.']);
+
+  function fail([title, body], html) { qs('#err-title').textContent = title; qs('#err-body').innerHTML = html || H.esc(body); err.hidden = false; err.classList.remove('reveal'); void err.offsetWidth; err.classList.add('reveal'); qs('#f-email').classList.add('is-error'); }
+  form.addEventListener('input', () => { err.hidden = true; qs('#f-email').classList.remove('is-error'); });
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const email = form.email.value.trim().toLowerCase(), pw = form.password.value;
-    if (!Auth.emailOk(email) || !pw) return fail(['Enter your email and password', 'Both fields are needed to sign in.']);
-    const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Signing in';
+    const email = form.email.value.trim().toLowerCase();
+    if (!Auth.emailOk(email)) return fail(['Enter your work email', 'We’ll send a sign-in code to it.']);
+    const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Sending code';
     try {
-      await API.auth.signIn(email, pw);
-      const { data } = await API.sb.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2') { showMfa(); return; }
-      done();
+      await API.auth.sendCode(email, { next: '/signin?next=' + encodeURIComponent(Auth.next()) });
+      Auth.codeStep(form, { email, title: 'Check your email', resend: () => API.auth.sendCode(email, { next: '/signin?next=' + encodeURIComponent(Auth.next()) }), verified: async () => { if (await needsMfa()) showMfa(); else done(); }, back: () => { location.href = '/signin?email=' + encodeURIComponent(email); } });
     } catch (ex) {
-      if (/Email not confirmed/i.test(ex.message)) { sessionStorage.setItem('hentity.pending', JSON.stringify({ email })); location.href = '/check-email?unconfirmed=1'; return; }
-      fail(Auth.friendly(ex.message));
-    } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+      const f = Auth.friendly(ex.message);
+      if (/No account/.test(f[0])) fail(f, 'Check the address, or <a class="link" href="/signup">create an account</a> with your work email.'); else fail(f);
+      btn.disabled = false; btn.textContent = 'Email me a code';
+    }
   });
+  async function needsMfa() { const { data } = await API.sb.auth.mfa.getAuthenticatorAssuranceLevel(); return !!(data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'); }
   function done() { const p = API.profile; toast('Signed in as ' + (p ? p.name : 'you')); setTimeout(() => location.href = Auth.next(), 350); }
   function showMfa() {
-    form.replaceWith(qs('#mfa-tpl').content.cloneNode(true)); H.mount();
-    const mf = qs('#mfa-form'); qs('#code').focus();
-    qs('#mfa-back').onclick = async () => { await API.auth.signOut(); location.reload(); };
+    const cur = qs('#code-form') || qs('#form'); cur.replaceWith(qs('#mfa-tpl').content.cloneNode(true)); H.mount();
+    const mf = qs('#mfa-form'); qs('#mcode').focus();
+    qs('#mfa-back').onclick = async () => { await API.auth.signOut(); location.href = '/signin'; };
     mf.addEventListener('submit', async e => {
       e.preventDefault();
       const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = (f.totp || []).find(x => x.status === 'verified');
-      const { error } = await API.sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: qs('#code').value.trim() });
-      if (error) { qs('#f-code').classList.add('is-error'); toast('That code didn’t match. Use the newest one.', 'error'); return; }
+      const { error } = await API.sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: qs('#mcode').value.trim() });
+      if (error) { qs('#f-mcode').classList.add('is-error'); toast('That code didn’t match. Use the newest one.', 'error'); return; }
       await API.refreshProfile(); done();
     });
   }
-  qs('#google').addEventListener('click', async e => { e.preventDefault(); try { await API.auth.google(Auth.next()); } catch (ex) { fail(Auth.friendly(ex.message)); } });
 })();
 </script>
 </body>

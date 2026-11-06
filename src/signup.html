@@ -12,10 +12,8 @@
     <form class="auth__form" id="form" novalidate>
       <div class="auth__heading">
         <h1 class="t-h2">Create your account</h1>
-        <p class="c-2">Join makers and early adopters discovering African technology.</p>
+        <p class="c-2">Join makers and teams discovering African technology. Sign up with your work email.</p>
       </div>
-      <a class="btn btn--secondary btn--block" href="/welcome?via=google" id="google"><span data-icon="google"></span>Continue with Google</a>
-      <div class="divider-label">or</div>
       <div class="field" id="f-name">
         <label class="field__label" for="name">Full name</label>
         <input class="input" id="name" name="name" autocomplete="name" placeholder="Ada Okafor" required>
@@ -26,17 +24,12 @@
         <p class="field__hint" id="u-hint">Lowercase letters, numbers and underscores.</p>
       </div>
       <div class="field" id="f-email">
-        <label class="field__label" for="email">Email</label>
+        <label class="field__label" for="email">Work email</label>
         <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
-        <p class="field__hint is-error" id="e-hint" hidden></p>
-      </div>
-      <div class="field" id="f-password">
-        <label class="field__label" for="password">Password</label>
-        <div class="input-group"><input class="input" id="password" name="password" type="password" autocomplete="new-password" required><button class="input-group__btn" type="button" data-reveal aria-label="Show password"></button></div>
-        <p class="field__hint" id="p-hint">At least 10 characters.</p>
+        <p class="field__hint" id="e-hint">Use your company address. Personal inboxes like Gmail, Yahoo or Outlook.com aren’t accepted.</p>
       </div>
       <label class="check"><input type="checkbox" name="terms" id="terms"><span class="check__box"><span data-icon="check"></span></span><span>I agree to the <a class="link" href="/guidelines" style="font-weight:400">Terms and Community Guidelines</a></span></label>
-      <button class="btn btn--primary btn--block" type="submit" id="submit" disabled>Create account</button>
+      <button class="btn btn--primary btn--block" type="submit" id="submit" disabled>Email me a code</button>
       <p class="auth__switch">Already on Hentity? <a href="/signin">Sign in</a></p>
     </form>
   </main>
@@ -47,15 +40,10 @@ H.mount();
 (async function () {
   const { qs } = H; const form = qs('#form');
   await API.ready; if (API.uid) { location.replace('/'); return; }
-  let userOk = false, timer;
-  function strength(p) { let s = 0; if (p.length >= 10) s++; if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++; if (/\d/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++; return s; }
+  let userOk = false, timer, emailOk = false, eTimer;
+  const E_HINT = 'Use your company address. Personal inboxes like Gmail, Yahoo or Outlook.com aren’t accepted.';
   function update() {
-    const pw = form.password.value, ph = qs('#p-hint');
-    ph.className = 'field__hint';
-    if (!pw) ph.textContent = 'At least 10 characters.';
-    else if (pw.length < 10) ph.textContent = `At least 10 characters. ${10 - pw.length} to go`;
-    else { const s = strength(pw); ph.textContent = 'At least 10 characters. ' + (s >= 3 ? 'Strong ✓' : s === 2 ? 'Good' : 'Fair — add numbers or symbols'); if (s >= 3) ph.className = 'field__hint is-success'; }
-    qs('#submit').disabled = !(form.name.value.trim() && userOk && Auth.emailOk(form.email.value.trim()) && pw.length >= 10 && qs('#terms').checked);
+    qs('#submit').disabled = !(form.name.value.trim() && userOk && emailOk && qs('#terms').checked);
   }
   form.username.addEventListener('input', () => {
     const el = form.username; el.value = el.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -73,18 +61,30 @@ H.mount();
     }, 350);
   });
   form.name.addEventListener('blur', () => { if (!form.username.value && form.name.value.trim()) { form.username.value = form.name.value.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30); form.username.dispatchEvent(new Event('input')); } });
+  form.email.addEventListener('input', () => {
+    const v = form.email.value.trim().toLowerCase(), h = qs('#e-hint'); emailOk = false; clearTimeout(eTimer);
+    qs('#f-email').classList.remove('is-error'); h.className = 'field__hint'; h.textContent = E_HINT; update();
+    if (!Auth.emailOk(v)) return;
+    eTimer = setTimeout(async () => {
+      let ok = false; try { ok = await API.workEmailOk(v); } catch (e) { ok = true; /* server still enforces it */ }
+      if (form.email.value.trim().toLowerCase() !== v) return;
+      emailOk = ok;
+      if (!ok) { h.textContent = '@' + v.split('@')[1] + ' is a personal email provider. Use your work email.'; h.className = 'field__hint is-error'; qs('#f-email').classList.add('is-error'); }
+      else { h.textContent = 'Work email ✓'; h.className = 'field__hint is-success'; }
+      update();
+    }, 300);
+  });
   form.addEventListener('input', update); form.addEventListener('change', update);
   form.addEventListener('submit', async e => {
     e.preventDefault(); if (qs('#submit').disabled) return;
-    const email = form.email.value.trim().toLowerCase(); const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Creating account';
+    const email = form.email.value.trim().toLowerCase(), name = form.name.value.trim(), username = form.username.value;
+    const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = H.icon('clock', 'spin') + 'Sending code';
+    const send = () => API.auth.sendCode(email, { create: true, name, username, next: '/welcome?verified=1' });
     try {
-      const r = await API.auth.signUp({ email, password: form.password.value, name: form.name.value.trim(), username: form.username.value });
-      if (r.user && r.user.identities && r.user.identities.length === 0) throw new Error('already registered');
-      sessionStorage.setItem('hentity.pending', JSON.stringify({ email, name: form.name.value.trim() }));
-      location.href = r.session ? '/welcome' : '/check-email';
-    } catch (ex) { const [t, b] = Auth.friendly(ex.message); qs('#f-email').classList.add('is-error'); const eh = qs('#e-hint'); eh.hidden = false; eh.innerHTML = H.esc(t) + (/already/.test(t) ? ' <a class="link" href="/signin">Sign in</a>' : '. ' + H.esc(b)); btn.disabled = false; btn.textContent = 'Create account'; }
+      await send();
+      Auth.codeStep(form, { email, title: 'Confirm your email', resend: send, verified: async () => { location.href = '/welcome?verified=1'; }, back: () => location.reload() });
+    } catch (ex) { const [t, b] = Auth.friendly(ex.message); qs('#f-email').classList.add('is-error'); const eh = qs('#e-hint'); eh.className = 'field__hint is-error'; eh.textContent = t + '. ' + b; btn.disabled = false; btn.textContent = 'Email me a code'; }
   });
-  qs('#google').addEventListener('click', async e => { e.preventDefault(); try { await API.auth.google('/welcome?via=google'); } catch (ex) { H.toast(Auth.friendly(ex.message)[0], 'error'); } });
 })();
 </script>
 </body>

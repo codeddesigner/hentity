@@ -340,6 +340,25 @@ H.mount();
     save('s-board', 'board', f => ({ capacity: +f.capacity.value || 30, booking_weeks_ahead: +f.booking_weeks_ahead.value || 4, reset: f.reset.value }));
     save('s-brief', 'morning_brief', f => ({ items: f.items.value.split('\n').map(s => s.trim()).filter(Boolean), length: f.length.value, languages: f.languages.value }));
     save('s-stats', 'stats', f => ({ products: +f.products.value, countries: +f.countries.value, makers: +f.makers.value }));
+    // Sign-up rules: work emails only. Blocked domains live in their own table; exceptions in site_settings.signup
+    const signup = get('signup'); const { data: blocked } = await API.sb.from('blocked_email_domains').select('domain').order('domain');
+    qs('#main').insertAdjacentHTML('beforeend', card('s-signup', 'Sign-up rules', 'Accounts need a work email, and sign-in is by a one-time email code. Personal and disposable inbox domains below are rejected at sign-up and on email change. Use <span class="mono">name.*</span> to block every ending (yahoo.com, yahoo.co.uk…).',
+      fld('exceptions', 'Allowed anyway (exact addresses, one per line)', (signup.exceptions || []).join('\n'), 'ta') + fld('blocked', `Blocked domains · ${(blocked || []).length}`, (blocked || []).map(b => b.domain).join('\n'), 'ta') + `<div class="row gap-8" style="margin-bottom:12px"><input class="input" id="try-email" placeholder="Test an address: someone@company.com" style="max-width:340px"><button class="btn btn--secondary btn--sm" type="button" id="try-go">Test</button><span class="t-body-sm" id="try-out"></span></div>`));
+    qs('#s-signup [name=blocked]').rows = 10;
+    qs('#try-go').onclick = async () => { const v = qs('#try-email').value.trim(); if (!v) return; const ok = await API.workEmailOk(v); qs('#try-out').innerHTML = ok ? '<span class="c-success">Allowed</span>' : '<span class="c-danger" style="color:var(--color-danger)">Blocked</span>'; };
+    qs('#s-signup').addEventListener('submit', async e => {
+      e.preventDefault(); const f = e.target;
+      const ex = f.exceptions.value.split('\n').map(x => x.trim().toLowerCase()).filter(Boolean);
+      const want = [...new Set(f.blocked.value.split('\n').map(x => x.trim().toLowerCase().replace(/^@/, '')).filter(x => /^[a-z0-9.-]+(\.\*)?$/.test(x)))];
+      const have = (blocked || []).map(b => b.domain);
+      try {
+        await A.saveSetting('signup', Object.assign({}, signup, { exceptions: ex }));
+        const add = want.filter(d => !have.includes(d)), del = have.filter(d => !want.includes(d));
+        if (add.length) { const { error } = await API.sb.from('blocked_email_domains').insert(add.map(domain => ({ domain }))); if (error) throw error; }
+        if (del.length) { const { error } = await API.sb.from('blocked_email_domains').delete().in('domain', del); if (error) throw error; }
+        toast(`Saved · ${add.length} added, ${del.length} removed`); V.settings();
+      } catch (err) { H.fail(err); }
+    });
   };
 
   // ---- audit
