@@ -28,6 +28,17 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "hentity.vercel.app"
+        }
+      ],
+      "destination": "https://hentity.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/settings",
       "destination": "/settings/profile",
       "permanent": false
