@@ -34,10 +34,10 @@
 .sidx a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:var(--radius-md);font-size:13px;font-weight:500;color:var(--color-text-secondary)}
 .sidx a:hover{color:var(--color-text-primary)}
 .sidx a[aria-current="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary)}
-.sidx .st{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong);display:grid;place-items:center;flex:none}
-.sidx .is-done .st{background:var(--color-success);border-color:var(--color-success);color:#fff}
-.sidx .is-done .st .ic{width:12px;height:12px}
-.sidx a[aria-current="true"] .st{border-color:var(--color-accent-default);border-width:2px}
+.sidx .sx{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong);display:grid;place-items:center;flex:none}
+.sidx .is-done .sx{background:var(--color-success);border-color:var(--color-success);color:#fff}
+.sidx .is-done .sx .ic{width:12px;height:12px}
+.sidx a[aria-current="true"] .sx{border-color:var(--color-accent-default);border-width:2px}
 .sidx .opt{margin-left:auto;font-size:12px;color:var(--color-text-tertiary);font-weight:400}
 .sec{padding:24px;scroll-margin-top:96px}
 .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:20px}
@@ -340,7 +340,7 @@ H.mount({ active: '', tab: 'launch' });
     qsa('#form [data-count]').forEach(c => { const f = qs('#' + c.dataset.count); if (!f) return; c.textContent = f.value.length + ' / ' + f.maxLength; });
     qs('#cat-count').textContent = s.categories.length + ' / 3';
     const d = done(); const req = ['basics', 'media', 'makers', 'week', 'intro']; const n = req.filter(k => d[k]).length;
-    qs('#idx').innerHTML = SECS.map(([k, l, opt]) => `<li><a href="#${k}" class="${d[k] ? 'is-done' : ''}"${k === current ? ' aria-current="true"' : ''}><span class="st">${d[k] ? icon('check') : ''}</span>${l.replace('&', '&amp;')}${opt ? '<span class="opt">Optional</span>' : ''}</a></li>`).join('');
+    qs('#idx').innerHTML = SECS.map(([k, l, opt]) => `<li><a href="#${k}" class="${d[k] ? 'is-done' : ''}"${k === current ? ' aria-current="true"' : ''}><span class="sx">${d[k] ? icon('check') : ''}</span>${l.replace('&', '&amp;')}${opt ? '<span class="opt">Optional</span>' : ''}</a></li>`).join('');
     qs('#idx-name').textContent = form.name.value || 'Untitled product';
     qs('#ready-n').textContent = n + ' / 5'; qs('#ready-bar').style.width = (n / 5 * 100) + '%';
     const missing = req.filter(k => !d[k]).map(k => SECS.find(x => x[0] === k)[1]);
