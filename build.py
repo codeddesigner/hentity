@@ -83,3 +83,9 @@ cols = re.search(r"const PRODUCT_COLS = '([^']+)'", (SRC / 'assets' / 'api.js').
 (ROOT / 'api' / '_cols.json').write_text(json.dumps({'PRODUCT_COLS': cols}))
 if (SRC / 'assets' / 'supabase.js').exists() and not SB_LOCAL.exists(): (SRC / 'assets' / 'supabase.js').unlink()
 print('built', sum(1 for _ in OUT.rglob('*.html')), 'pages ·', len(public_paths), 'indexable')
+
+# Guard: a redirect whose source pattern also matches its own destination loops forever (this once broke /admin)
+def _pattern(src): return re.compile('^' + re.sub(r'/:\w+\*', r'(?:/.*)?', re.sub(r':\w+(?!\*)', '[^/]+', src)) + '$')
+for r in json.loads((ROOT / 'vercel.json').read_text()).get('redirects', []):
+    if 'has' not in r and _pattern(r['source']).match(r['destination'].split('?')[0]):
+        raise SystemExit(f"vercel.json: redirect {r['source']} -> {r['destination']} loops onto itself")

@@ -72,11 +72,6 @@
       "permanent": false
     },
     {
-      "source": "/admin/:path*",
-      "destination": "/admin",
-      "permanent": false
-    },
-    {
       "source": "/forgot-password",
       "destination": "/signin",
       "permanent": true
