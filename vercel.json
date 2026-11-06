@@ -6,6 +6,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/badges/:slug/:file",
+      "destination": "/api/badge?slug=:slug&file=:file"
+    },
+    {
       "source": "/directory",
       "destination": "/api/ssr?type=directory&slug=all"
     },

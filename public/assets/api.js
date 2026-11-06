@@ -236,6 +236,10 @@
     setPayout: (app, phone, network) => q(sb.rpc('beta_set_payout', { app, phone, network })),
     myPayout: app => q(sb.rpc('my_beta_payout', { app })),
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
+    // Badges & embeds
+    badgeInfo: slug => q(sb.rpc('badge_info', { s: slug })),
+    badgeSummary: pid => q(sb.rpc('badge_summary', { pid })),
+    badgeHit: (s, ev) => sb.rpc('badge_hit', { s, ev }).then(() => {}, () => {}),
     // Beta Studio
     betaBySlug: slug => q(sb.from('betas').select(BETA_COLS).eq('slug', slug).maybeSingle()),
     productBetas: pid => q(sb.from('betas').select(BETA_COLS).eq('product_id', pid).order('created_at', { ascending: false })),

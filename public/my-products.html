@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=d425a8aed2">
+<link rel="stylesheet" href="/assets/styles.css?v=c24b5ba18a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/api.js?v=735b95d2c7"></script>
 <script src="/assets/app.js?v=bf8b459fb4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -98,8 +98,8 @@ H.mount({ active: 'my-products', tab: 'you' });
   let rows = [];
   const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft', rejected: 'Not approved' };
   const A = {
-    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}">Page</a>`,
-    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a>`,
+    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
     changes: r => `<a class="btn btn--accent btn--sm" href="/changes-requested?p=${r.slug}">Fix &amp; resubmit</a>`,
     review: r => `<a class="btn btn--secondary btn--sm" href="/under-review?p=${r.slug}">View status</a>`,
     draft: r => `<a class="btn btn--secondary btn--sm" href="/submit?id=${r.id}">Continue</a><button class="btn btn--ghost btn--sm" type="button" data-del="${r.id}">Delete</button>`,

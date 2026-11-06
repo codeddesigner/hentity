@@ -126,6 +126,11 @@ H.mount({ active: 'products', tab: 'products' });
   </div>`;
   M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
+  // Visitors from a maker's Hentity badge (?ref=badge): count the click, and their upvote if they give one
+  try {
+    if (H.params().get('ref') === 'badge' && !sessionStorage.getItem('rb:' + p.id)) { sessionStorage.setItem('rb:' + p.id, '1'); API.badgeHit(p.slug, 'click'); }
+    if (sessionStorage.getItem('rb:' + p.id)) document.addEventListener('hentity:vote', e => { if (e.detail && e.detail.id === p.id && e.detail.on && !sessionStorage.getItem('rbv:' + p.id)) { sessionStorage.setItem('rbv:' + p.id, '1'); API.badgeHit(p.slug, 'upvote'); } });
+  } catch (e) {}
   if (p.testers_wanted || (API.uid && p.owner_id === API.uid)) API.openBetaOf(p.id).then(betaBits).catch(() => {});
   // Beta program (Figma: Product · with beta): callout by the buttons, card under "About this launch"
   function betaBits(b) {

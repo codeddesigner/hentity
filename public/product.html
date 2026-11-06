@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=d425a8aed2">
+<link rel="stylesheet" href="/assets/styles.css?v=c24b5ba18a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/api.js?v=735b95d2c7"></script>
 <script src="/assets/app.js?v=bf8b459fb4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -160,6 +160,11 @@ H.mount({ active: 'products', tab: 'products' });
   </div>`;
   M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
+  // Visitors from a maker's Hentity badge (?ref=badge): count the click, and their upvote if they give one
+  try {
+    if (H.params().get('ref') === 'badge' && !sessionStorage.getItem('rb:' + p.id)) { sessionStorage.setItem('rb:' + p.id, '1'); API.badgeHit(p.slug, 'click'); }
+    if (sessionStorage.getItem('rb:' + p.id)) document.addEventListener('hentity:vote', e => { if (e.detail && e.detail.id === p.id && e.detail.on && !sessionStorage.getItem('rbv:' + p.id)) { sessionStorage.setItem('rbv:' + p.id, '1'); API.badgeHit(p.slug, 'upvote'); } });
+  } catch (e) {}
   if (p.testers_wanted || (API.uid && p.owner_id === API.uid)) API.openBetaOf(p.id).then(betaBits).catch(() => {});
   // Beta program (Figma: Product · with beta): callout by the buttons, card under "About this launch"
   function betaBits(b) {

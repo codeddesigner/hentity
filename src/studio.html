@@ -32,11 +32,14 @@ H.mount({ active: 'my-products', tab: 'me' });
   if (!p) return fail('We couldn’t find that product', 'Check the link, or open it from My products.');
   if (p.owner_id !== API.uid && !isAdmin) return fail('This isn’t your product', 'Only the makers of a product can run its beta programs.');
   document.title = `${p.name} · Beta programs · Hentity`;
-  const header = cur => `<div class="st-head"><div class="st-head__in">
-      <nav class="st-crumbs" aria-label="Breadcrumb"><a href="/my-products">My products</a><span>/</span><a href="/studio/${esc(p.slug)}">${esc(p.name)}</a><span>/</span><b>Beta programs</b></nav>
+  const header = (cur, tab) => `<div class="st-head"><div class="st-head__in">
+      <nav class="st-crumbs" aria-label="Breadcrumb"><a href="/my-products">My products</a><span>/</span><a href="/studio/${esc(p.slug)}">${esc(p.name)}</a><span>/</span><b>${tab === 'badges' ? 'Badges &amp; embeds' : 'Beta programs'}</b></nav>
       <div class="row between gap-12"><div class="st-prod">${plogo(p, 32)}${esc(p.name)}${p.verified ? verified() : ''}</div><a class="row gap-6 t-body-sm" style="white-space:nowrap" href="/products/${esc(p.slug)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-14')}View public page</a></div>
-      <nav class="st-tabs" aria-label="Product"><a href="/products/${esc(p.slug)}">Overview</a><a href="/my-products">Launches</a><a href="/studio/${esc(p.slug)}" aria-current="page">Beta programs</a>${cur && cur.status !== 'draft' ? `<a href="/betas/${cur.id}/manage?tab=feedback">Feedback</a>` : ''}</nav>
+      <nav class="st-tabs" aria-label="Product"><a href="/products/${esc(p.slug)}">Overview</a><a href="/my-products">Launches</a><a href="/studio/${esc(p.slug)}"${tab === 'badges' ? '' : ' aria-current="page"'}>Beta programs</a>${cur && cur.status !== 'draft' ? `<a href="/betas/${cur.id}/manage?tab=feedback">Feedback</a>` : ''}<a href="/studio/${esc(p.slug)}/badges"${tab === 'badges' ? ' aria-current="page"' : ''}>Badges &amp; embeds</a></nav>
     </div></div>`;
+
+  // /studio/<product>/badges → Badges & embeds (Figma: Studio · Badges & embeds)
+  if (parts[2] === 'badges') return badgesView();
 
   // /studio/<product> → the product's beta programs
   if (!parts[2]) {
@@ -323,6 +326,58 @@ H.mount({ active: 'my-products', tab: 'me' });
   }
 
   frame();
+  async function badgesView() {
+    document.title = `${p.name} · Badges & embeds · Hentity`;
+    const [info, sum] = await Promise.all([API.badgeInfo(p.slug).catch(() => null), API.badgeSummary(p.id).catch(() => null)]);
+    const live = p.status === 'live' || p.effective_status === 'live' || p.status === 'scheduled';
+    const n = v => (v || 0).toLocaleString('en-US');
+    const wk = info && info.week_rank && info.week_rank <= 3, mo = info && info.month_rank && info.month_rank <= 3;
+    const B_LIST = [
+      ['potw', 'Product of the Week', wk && info.week_over ? `Earned · week of ${info.week_label} · #${info.week_rank}` : wk ? `#${info.week_rank} this week so far` : 'Finish top 3 in your launch week to unlock', !(wk)],
+      ['featured', 'Featured on Hentity', 'Every launched product', false],
+      ['upvotes', 'Live upvote count', 'Updates in real time', false],
+      ['rating', 'Rating', 'Arrives with product reviews', true],
+      ['potm', 'Top 3 of the Month', mo && info.month_over ? `Earned · ${info.month} · #${info.month_rank}` : 'Rank top 3 in a month to unlock', !(mo && info.month_over)]
+    ];
+    const W_LIST = [['wall', 'Reviews wall', 'Arrives with product reviews'], ['button', '“Review us on Hentity” button', 'Arrives with product reviews']];
+    let kind = (B_LIST.find(b => !b[3]) || B_LIST[1])[0], theme = 'dark', size = 'medium', fw = 'html';
+    const SZ = { small: 0.8, medium: 1, large: 1.2 };
+    const url = `${location.origin}/products/${p.slug}?ref=badge`;
+    const src = (k, t) => `${location.origin}/badges/${p.slug}/${k}.svg?theme=${t}${size !== 'medium' ? '&size=' + size : ''}`;
+    const dims = k => { const w = (['featured'].includes(k) || (k === 'potw' && !wk) || (k === 'potm' && !mo) ? 206 : 250); return [Math.round(w * SZ[size]), Math.round(54 * SZ[size])]; };
+    const alt = () => `${p.name} · ${{ potw: wk ? `#${info.week_rank} Product of the Week` : 'Featured', potm: `#${(info || {}).month_rank} Product of the Month`, featured: 'Featured', upvotes: 'Upvote' }[kind]} on Hentity`;
+    const code = () => {
+      const [w, h] = dims(kind), s = src(kind, theme);
+      if (fw === 'react') return `export function HentityBadge() {\n  return (\n    <a href="${url}" target="_blank" rel="noopener">\n      <img src="${s}"\n           alt="${alt()}" width={${w}} height={${h}} />\n    </a>\n  );\n}`;
+      if (fw === 'wordpress') return `<!-- WordPress: add a "Custom HTML" block and paste this -->\n<a href="${url}" target="_blank" rel="noopener">\n  <img src="${s}"\n       alt="${alt()}" width="${w}" height="${h}" />\n</a>`;
+      if (fw === 'webflow') return `<!-- Webflow: drag in an "Embed" element and paste this -->\n<a href="${url}" target="_blank" rel="noopener">\n  <img src="${s}"\n       alt="${alt()}" width="${w}" height="${h}" />\n</a>`;
+      if (fw === 'framer') return `<!-- Framer: Insert → Embed → HTML, then paste this -->\n<a href="${url}" target="_blank" rel="noopener">\n  <img src="${s}"\n       alt="${alt()}" width="${w}" height="${h}" />\n</a>`;
+      return `<a href="${url}" target="_blank" rel="noopener">\n  <img src="${s}"\n       alt="${alt()}" width="${w}" height="${h}" />\n</a>`;
+    };
+    const hl = c => esc(c).replace(/(&quot;[^&]*?&quot;|"[^"]*")/g, '<span style="color:#ff7a3d">$1</span>');
+    root.innerHTML = header(null, 'badges') + `<div class="st"><div class="st-title"><div><h1>Badges &amp; embeds</h1><p class="t-body-sm c-2" style="margin-top:4px;max-width:70ch">Show your Hentity wins on your own website. Badges update on their own, and every click brings people back to your Hentity page.</p></div></div>
+      <div class="st-kpi" style="grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 24px">${[['Badge views', n(sum && sum.views), 'last 30 days'], ['Clicks to Hentity', n(sum && sum.clicks), sum && sum.views ? ((sum.clicks / sum.views) * 100).toFixed(1) + '% click rate' : 'last 30 days'], ['Upvotes from badges', n(sum && sum.upvotes), 'people who clicked a badge'], ['Reviews via widget', '–', 'arrives with reviews']].map(([l, v, s]) => `<div class="st-box" style="margin:0"><p class="t-caption c-3" style="font-weight:400">${l}</p><p style="font-size:22px;font-weight:600;margin-top:6px">${v}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${s}</p></div>`).join('')}</div>
+      ${live ? '' : `<div class="alert alert--accent" style="margin-bottom:16px"><span>${icon('info')}</span><div><p class="alert__title">Badges go live with your launch</p><p class="alert__body">You can add the code now. It shows “Launching on Hentity” until your launch day.</p></div></div>`}
+      <div class="bdg-grid"><div><p class="st-label" style="margin-bottom:10px">Badges</p><div id="blist" class="stack gap-8"></div><p class="st-label" style="margin:22px 0 10px">Widgets</p><div class="stack gap-8">${W_LIST.map(([k, t, s]) => `<div class="bdg-opt is-locked"><span class="bdg-radio"></span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s}</p></div>${icon('lock', 'ic-14')}</div>`).join('')}</div></div>
+        <div><div class="st-box bdg-prev"><div class="row gap-16 wrap" style="justify-content:center" id="prev"></div><p class="t-caption c-3" style="font-weight:400;margin-top:14px;text-align:center">Live preview · links to hentity.com/products/${esc(p.slug)}</p></div>
+          <div class="row gap-24 wrap" style="margin:16px 0 12px"><div><p class="t-label" style="margin-bottom:8px">Theme</p><div class="chips" data-single id="theme">${[['dark', 'Dark'], ['light', 'Light'], ['auto', 'Match site']].map(([v, l]) => `<button class="chip" type="button" data-chip data-v="${v}" aria-pressed="${v === theme}">${icon('check')}${l}</button>`).join('')}</div></div>
+            <div><p class="t-label" style="margin-bottom:8px">Size</p><div class="chips" data-single id="size">${['small', 'medium', 'large'].map(v => `<button class="chip" type="button" data-chip data-v="${v}" aria-pressed="${v === size}">${icon('check')}${v[0].toUpperCase() + v.slice(1)}</button>`).join('')}</div></div></div>
+          <div class="bdg-code"><div class="row between gap-8" style="padding:8px 8px 8px 10px"><div class="row gap-4 bdg-tabs" id="fw">${[['html', 'HTML'], ['react', 'React'], ['wordpress', 'WordPress'], ['webflow', 'Webflow'], ['framer', 'Framer']].map(([v, l]) => `<button type="button" data-v="${v}" aria-selected="${v === fw}">${l}</button>`).join('')}</div><button class="btn btn--accent btn--sm" type="button" id="copy">${icon('copy', 'ic-14')}Copy</button></div><pre id="code"></pre></div>
+          <p class="row gap-8 t-caption c-3" style="font-weight:400;margin-top:12px;align-items:flex-start">${icon('info', 'ic-14')}<span>Badges are images served by Hentity, so a new medal or count shows up on your site without touching the code. Clicks are tagged ?ref=badge, and counted here.</span></p></div></div></div>`;
+    const draw = () => {
+      qs('#blist').innerHTML = B_LIST.map(([k, t, s, locked]) => `<button type="button" class="bdg-opt${k === kind ? ' is-on' : ''}${locked ? ' is-locked' : ''}" data-k="${k}"${locked ? ' disabled' : ''}><span class="bdg-radio"></span><span class="grow" style="text-align:left"><span class="t-label" style="display:block">${t}</span><span class="t-caption c-3" style="font-weight:400">${esc(s)}</span></span>${locked ? icon('lock', 'ic-14') : ''}</button>`).join('');
+      const pv = (k, t) => `${location.origin}/badges/${p.slug}/${k}.svg?theme=${t}&preview=1${size !== 'medium' ? '&size=' + size : ''}`;
+      const [w, h] = dims(kind);
+      qs('#prev').innerHTML = (theme === 'auto' ? ['dark', 'light'] : [theme, theme === 'dark' ? 'light' : 'dark']).map(t => `<img src="${pv(kind, t)}" width="${w}" height="${h}" alt="${esc(alt())}">`).join('');
+      qs('#code').innerHTML = hl(code());
+    };
+    draw(); H.mount(); H.contentShown();
+    qs('#blist').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b || b.disabled) return; kind = b.dataset.k; draw(); });
+    H.bindChips(qs('#theme'), () => { theme = (qs('#theme [aria-pressed="true"]') || {}).dataset.v || 'dark'; draw(); });
+    H.bindChips(qs('#size'), () => { size = (qs('#size [aria-pressed="true"]') || {}).dataset.v || 'medium'; draw(); });
+    qs('#fw').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; fw = b.dataset.v; qsa('#fw button').forEach(x => x.setAttribute('aria-selected', String(x === b))); draw(); });
+    qs('#copy').onclick = () => { B.copy(code()); toast('Code copied. Paste it into your site'); };
+  }
 })();
 </script>
 </body>

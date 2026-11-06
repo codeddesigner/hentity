@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=d425a8aed2">
+<link rel="stylesheet" href="/assets/styles.css?v=c24b5ba18a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/api.js?v=735b95d2c7"></script>
 <script src="/assets/app.js?v=bf8b459fb4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -101,7 +101,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   M.countUp();
   qs('#view').href = '/products/' + p.slug;
   const base = location.origin;
-  const code = `<a href="${base}/products/${p.slug}">\n  <img src="${base}/api/badge?slug=${p.slug}"\n       alt="${p.name} · #${rank} on Hentity, week ${p.week_id}" width="250" height="54" />\n</a>`;
+  const code = `<a href="${base}/products/${p.slug}?ref=badge">\n  <img src="${base}/badges/${p.slug}/potw.svg?theme=dark"\n       alt="${p.name} · #${rank} on Hentity, week ${p.week_id}" width="250" height="54" />\n</a>`;
   qs('#code').textContent = code;
   qs('#badge-img').innerHTML = `<img src="/api/badge?slug=${encodeURIComponent(p.slug)}" alt="Your Hentity badge" width="250" height="54" onerror="this.replaceWith(document.createTextNode(''))">`;
   qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(code); toast('Badge code copied'); });
