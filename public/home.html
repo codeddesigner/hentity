@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="/assets/styles.css?v=172c5f3c9c">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=a95841aeaa"></script>
-<script src="/assets/app.js?v=2cd15d9afa"></script>
+<script src="/assets/app.js?v=2366c70bf4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -173,7 +173,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     if (!INS || !INS.live || !H.on('insights') || H.soon('insights')) return '';
     const L = (INS.industries || []).slice().sort((a, b) => b.n - a.n), tot = L.reduce((a, i) => a + i.n, 0) || 1;
     const keyed = L.filter(i => H.CAT_COLOR[i.name]), other = L.filter(i => !H.CAT_COLOR[i.name]).reduce((a, i) => a + i.n, 0);
-    const segs = keyed.map(i => [i.n, H.catColor(i.name)]).concat(other ? [[other, '#A3A3A3']] : []);
+    const segs = keyed.map(i => [i.n, H.catColor(i.name)]).concat(other ? [[other, H.CAT_OTHER]] : []);
     const g = L.filter(i => i.cur >= 2 && i.prev).map(i => [i, Math.round((i.cur - i.prev) / i.prev * 100)]).sort((a, b) => b[1] - a[1])[0];
     const nm = c => c === 'Energy & Climate' ? 'climate' : c;
     const line = L[0] ? `${nm(L[0].name)} leads at ${Math.round(L[0].n / tot * 100)}%${g && g[1] > 0 && g[0] !== L[0] ? ` · ${nm(g[0].name).toLowerCase()} is growing fastest (+${g[1]}%)` : ''}` : '';

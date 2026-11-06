@@ -7,7 +7,7 @@
     light: { bg: '#ffffff', fg: '#0a0a0a', mute: '#9b9b9b', sub: '#6b6b6b', line: '#e8e8e8', chip: '#fafafa', track: '#f0f0f0', other: '#d4d4d4' },
     dark: { bg: '#0a0a0a', fg: '#ffffff', mute: '#8c8c8c', sub: '#a3a3a3', line: '#2a2a2a', chip: '#141414', track: '#262626', other: '#525252' }
   };
-  const ACCENT = '#FF5B14', LIME = '#E5F000', SKY = '#A6E1F7';
+  const ACCENT = '#FF5B14', LIME = '#E2F200', SKY = '#AEE6FB';
   const SANS = '"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
   const MONO = '"Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
   const fmt = v => (v || 0).toLocaleString('en-US');
@@ -111,8 +111,8 @@
     L.forEach(i => { i.color = H.catColor(i.name); i.ink = H.catInk(i.name); });
     const growth = L.filter(i => i.cur >= 2).map(i => [i, i.prev ? (i.cur - i.prev) / i.prev : i.cur]).sort((a, b) => b[1] - a[1])[0];
     const fast = growth && growth[1] > 0 ? growth : null;
-    const key = L.filter(i => H.CAT_COLOR[i.name] && i.n).map(i => ({ name: i.name === 'Energy & Climate' ? 'Climate' : i.name, color: i.color }));
-    if (L.some(i => !H.CAT_COLOR[i.name])) key.push({ name: 'Other', color: '#A3A3A3' });
+    const key = L.filter(i => H.CAT_COLOR[i.name] && i.n).map(i => ({ name: H.catShort(i.name), color: i.color }));
+    if (L.some(i => !H.CAT_COLOR[i.name])) key.push({ name: 'Other', color: H.CAT_OTHER });
     const C = D.city_list || [], tot = C.reduce((a, c) => a + c.n, 0), top3 = C.slice(0, 3), t3 = top3.reduce((a, c) => a + c.n, 0);
     const lead = L[0] && L[0].n ? L[0].name : null;
     return {

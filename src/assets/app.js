@@ -390,9 +390,12 @@
     return `<nav class="tabs ptabs" aria-label="Products">${t.map(([k, l, h]) => `<a class="tab" href="${h}" aria-selected="${k === active}"${k === active ? ' aria-current="page"' : ''}>${k === 'insights' ? icon('bar-chart', 'ic-14') : ''}${k === 'week' ? '<span class="d-only">This week</span><span class="m-only">Launches</span>' : l}${k === 'betas' ? '<span class="n" data-beta-n hidden></span>' : ''}</a>`).join('')}</nav>`;
   }
   // Industry colours (Figma: Category tag / Insights). Colour follows the industry, never its rank.
-  const CAT_COLOR = { Fintech: '#2A78D6', Commerce: '#EB6834', Agriculture: '#008300', Health: '#E34948', Logistics: '#6250D6', Education: '#EDA100', AI: '#E87BA4', 'Energy & Climate': '#1BAF7A' };
-  const CAT_DARK_TEXT = { Commerce: 1, Education: 1, AI: 1, 'Energy & Climate': 1 };
-  const catColor = c => CAT_COLOR[c] || '#A3A3A3';
-  const catInk = c => CAT_COLOR[c] && !CAT_DARK_TEXT[c] ? '#fff' : '#0a0a0a';
-  window.H = { on, soon, CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  // Figma category/* tokens (Insights): light fills with dark text, colour-blind checked
+  const CAT_COLOR = { Fintech: '#5CB2FF', Commerce: '#FF8F57', Agriculture: '#92E04A', Health: '#FF6F6F', Logistics: '#A393FF', Education: '#FFD43B', AI: '#FF85C0', 'Energy & Climate': '#2FE0A5' };
+  const CAT_OTHER = '#DCDCDC';
+  const catColor = c => CAT_COLOR[c] || CAT_OTHER;
+  const catInk = () => '#0a0a0a';
+  // Short industry names used on charts (Figma: agritech, edtech, climate)
+  const catShort = c => ({ Agriculture: 'Agritech', Education: 'Edtech', 'Energy & Climate': 'Climate' })[c] || c;
+  window.H = { on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
