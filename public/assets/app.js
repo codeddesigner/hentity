@@ -313,7 +313,7 @@
       } catch (e) {}
     }
     API.ready.then(() => { renderShell(); refreshCounts(); if (API.session) stopN = API.live('notif', 'notifications', 'user_id=eq.' + API.uid, () => refreshCounts()); });
-    API.onAuth((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT' || ev === 'USER_UPDATED') renderShell(); });
+    API.onAuth((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT' || ev === 'USER_UPDATED' || ev === 'PROFILE_REFRESHED') renderShell(); });
   }
 
   // Simple form helpers

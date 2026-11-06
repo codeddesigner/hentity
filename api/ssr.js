@@ -56,16 +56,23 @@ async function build(type, slug) {
 }
 function crumbs(items) { return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Hentity', '/'], ...items].map(([n, p], i) => ({ '@type': 'ListItem', position: i + 1, name: n, item: SITE + p })) }; }
 
+// Templates ship with the function (vercel.json includeFiles) and stay in memory between requests.
+const fs = require('fs'), path = require('path');
+const TPL = {};
+function template(p) { return TPL[p] || (TPL[p] = fs.readFileSync(path.join(process.cwd(), 'public', p.replace(/^\//, '') + '.html'), 'utf8')); }
+
 module.exports = async (req, res) => {
   const { type, slug } = req.query;
   const tpl = { product: '/product', maker: '/maker', article: '/article' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
-  try {
-    const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } });
-    page = await r.text();
-  } catch (e) { res.statusCode = 502; return res.end('Template unavailable'); }
+  try { page = template(tpl || '/404'); }
+  catch (e) {
+    // Fallback: fetch the static template from this deployment
+    try { const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } }); page = await r.text(); }
+    catch (e2) { res.statusCode = 502; return res.end('Template unavailable'); }
+  }
   let meta = null;
   try { meta = slug && tpl ? await build(type, String(slug).toLowerCase()) : null; } catch (e) { /* fall through: the client renders it */ }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -124,8 +124,8 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
-      await D.loadVotes(rows);
       render(true);
+      if (API.uid) { await D.loadVotes(rows); render(false); }
     } catch (e) { qs('#feed').innerHTML = `<div class="empty"><p>Couldn’t load the board. <button class="link link--accent" onclick="location.reload()">Try again</button></p></div>`; H.fail(e); }
   }
   function render(animate) {
@@ -150,16 +150,18 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   document.addEventListener('hentity:vote', () => setTimeout(rerank, 350));
   D.liveCounts(() => rerank());
 
+  API.ready.then(load);  // the board is the first thing people look at, so it starts before the side panels
+
   // Header meta
   (async () => {
+    await API.ready;
     cur = cur || await API.currentWeek();
     if (cur) {
       const s = new Date(cur.starts_at), e = new Date(new Date(cur.ends_at) - 864e5);
       qs('#week-label').textContent = `Week ${cur.id} · ${s.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}–${e.getMonth() === s.getMonth() ? e.getDate() : e.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}, ${s.getFullYear()}`;
-      const slots = await API.weekSlots(); const nx = slots.find(w => w.id === cur.id + 1);
+      const [slots, up, notif] = await Promise.all([API.weekSlots(), API.upcoming(cur.id + 1), API.uid ? API.notifyRequests() : new Set()]); const nx = slots.find(w => w.id === cur.id + 1);
       if (nx) qs('#spots span:last-child').textContent = `${nx.taken} of ${nx.capacity} spots taken for week ${nx.id} · resets Mon 06:00 WAT`;
-      const up = await API.upcoming(cur.id + 1); D.remember(up);
-      const notif = await API.notifyRequests();
+      D.remember(up);
       qs('#upcoming').innerHTML = up.slice(0, 3).map(p => `<div class="card card--pad lift stack gap-12"><div class="row between">${plogo(p, 32)}<span class="row gap-4 mono t-body-sm c-2">${icon('calendar', 'ic-14')}${new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase()}</span></div><div><p class="row gap-6 t-h4"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? verified('verified--sm') : ''}</p><p class="t-body-sm c-2" style="margin-top:4px">${esc(p.tagline)}</p></div><button class="btn btn--secondary btn--sm btn--block" data-notify="${p.id}">${icon('bell')}Notify me</button></div>`).join('') || '<p class="t-body-sm c-2">Nothing booked yet. <a class="link link--accent" href="/launch">Book your week</a></p>';
       notifySet = notif; bindNotify();
     }
@@ -181,14 +183,14 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     li.innerHTML = `${who.u ? avatar(who.u, 24) : `<span class="avatar avatar--24">${H.initials(who.n)}</span>`}<div><p class="t-body-sm">${esc(text)}</p><p class="t-caption c-3" style="font-weight:400">${esc(meta)}</p></div>`;
     const ul = qs('#live'); fresh ? ul.prepend(li) : ul.append(li); while (ul.children.length > 5) ul.lastElementChild.remove();
   }
-  try {
+  (async () => {
     const { data: recent } = await API.sb.from('comments').select('created_at,product:products(name),article:articles(title),user:profiles(name,city,username,avatar_url,avatar_color)').eq('deleted', false).order('created_at', { ascending: false }).limit(5);
     (recent || []).forEach(c => c.user && liveItem({ n: c.user.name.split(' ')[0], u: c.user }, `${c.user.name.split(' ')[0]} commented on ${c.product ? c.product.name : c.article ? 'a story' : 'a launch'}`, `${H.ago(c.created_at)}${c.user.city ? ' · ' + c.user.city : ''}`));
     if (!(recent || []).length) qs('#live').innerHTML = '<li class="t-body-sm c-3">Quiet right now. Upvotes and comments show up here live.</li>';
-  } catch (e) {}
+  })().catch(() => {});
   API.live('live-votes', 'upvotes', null, async ({ eventType, new: n }) => { if (eventType !== 'INSERT') return; const who = await nameOf(n.user_id); const p = D.byId.get(n.product_id); liveItem(who, `${who.n} upvoted ${p ? p.name : 'a launch'}`, `just now${who.c ? ' · ' + who.c : ''}`, true); });
 
-  await API.ready; load(); M.scroll();
+  M.scroll();
 })();
 </script>
 </body>

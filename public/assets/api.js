@@ -20,10 +20,15 @@
     try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
     return profile;
   }
+  // Pages render as soon as the session is known. If this browser already has the signed-in member's
+  // profile cached, use it straight away and refresh it in the background instead of waiting on the network.
   const ready = (async () => {
     const { data } = await sb.auth.getSession();
     session = data.session;
     if (!session) { profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} }
+    else if (profile && profile.id === session.user.id) {
+      loadProfile().then(p => listeners.forEach(fn => fn('PROFILE_REFRESHED', session, p))).catch(() => {});
+    }
     else await loadProfile();
     return { session, profile };
   })();
@@ -75,7 +80,13 @@
 
     // ---------------- weeks & board
     weekSlots: () => q(sb.rpc('week_slots')),
-    async currentWeek() { const now = new Date().toISOString(); const r = await q(sb.from('weeks').select('*').lte('starts_at', now).gt('ends_at', now).maybeSingle()); return r; },
+    // The live week only changes on Monday 06:00 WAT, so keep it until it ends instead of asking on every page.
+    async currentWeek() {
+      try { const c = JSON.parse(localStorage.getItem('hentity.week') || 'null'); if (c && new Date(c.starts_at) <= new Date() && new Date(c.ends_at) > new Date()) return c; } catch (e) {}
+      const now = new Date().toISOString(); const r = await q(sb.from('weeks').select('*').lte('starts_at', now).gt('ends_at', now).maybeSingle());
+      try { if (r) localStorage.setItem('hentity.week', JSON.stringify(r)); } catch (e) {}
+      return r;
+    },
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     async board({ week, country, pay, limit } = {}) {
       let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).in('status', ['scheduled', 'live']);

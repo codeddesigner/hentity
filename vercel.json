@@ -120,5 +120,20 @@
         }
       ]
     }
-  ]
+  ],
+  "regions": [
+    "lhr1"
+  ],
+  "functions": {
+    "api/ssr.js": {
+      "includeFiles": "public/{product,maker,article,404}.html",
+      "maxDuration": 10
+    },
+    "api/sitemap.js": {
+      "maxDuration": 10
+    },
+    "api/badge.js": {
+      "maxDuration": 10
+    }
+  }
 }
