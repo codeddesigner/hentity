@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=c24b5ba18a">
+<link rel="stylesheet" href="/assets/styles.css?v=d2f9038ac8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=8a9c56b023"></script>
-<script src="/assets/app.js?v=f37219ba45"></script>
+<script src="/assets/app.js?v=dd02e827f1"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -164,11 +164,25 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       if (API.uid) { await D.loadVotes(rows); render(false); }
     } catch (e) { qs('#feed').innerHTML = `<div class="empty"><p>Couldn’t load the board. <button class="link link--accent" onclick="location.reload()">Try again</button></p></div>`; H.fail(e); }
   }
+  // Insights teaser (Figma: Home mobile): live count, industry mix in category colours, one line of news
+  let INS = null;
+  API.ready.then(() => API.insights('', 30)).then(d => { INS = d; if (rows.length > 1) render(); }).catch(() => {});
+  function teaser() {
+    if (!INS || !INS.live) return '';
+    const L = (INS.industries || []).slice().sort((a, b) => b.n - a.n), tot = L.reduce((a, i) => a + i.n, 0) || 1;
+    const keyed = L.filter(i => H.CAT_COLOR[i.name]), other = L.filter(i => !H.CAT_COLOR[i.name]).reduce((a, i) => a + i.n, 0);
+    const segs = keyed.map(i => [i.n, H.catColor(i.name)]).concat(other ? [[other, '#A3A3A3']] : []);
+    const g = L.filter(i => i.cur >= 2 && i.prev).map(i => [i, Math.round((i.cur - i.prev) / i.prev * 100)]).sort((a, b) => b[1] - a[1])[0];
+    const nm = c => c === 'Energy & Climate' ? 'climate' : c;
+    const line = L[0] ? `${nm(L[0].name)} leads at ${Math.round(L[0].n / tot * 100)}%${g && g[1] > 0 && g[0] !== L[0] ? ` · ${nm(g[0].name).toLowerCase()} is growing fastest (+${g[1]}%)` : ''}` : '';
+    return `<a class="ins-teaser" href="/insights"><span class="hd">${icon('bar-chart', 'ic-16')}${INS.live.toLocaleString('en-US')} startup${INS.live === 1 ? '' : 's'} live in ${INS.cities} cit${INS.cities === 1 ? 'y' : 'ies'}<span class="go">Insights${icon('arrow-right', 'ic-14')}</span></span>
+      <span class="mix">${segs.map(([v, c]) => `<i style="flex:${v};background:${c}"></i>`).join('')}</span><p>${esc(line[0] ? line[0].toUpperCase() + line.slice(1) : '')}</p></a>`;
+  }
   function render(animate) {
     let rank = 0; const shown = expanded ? rows : rows.slice(0, 7);
-    qs('#feed').innerHTML = shown.length ? shown.map(p => {
+    qs('#feed').innerHTML = shown.length ? shown.map((p, i) => {
       if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
-      return D.row(p, p.promoted ? 0 : ++rank);
+      return D.row(p, p.promoted ? 0 : ++rank) + (i === 1 && board === 'this' ? teaser() : '');
     }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
     const more = qs('#more'); more.hidden = rows.length <= 7; more.textContent = expanded ? 'Show fewer' : `Show all ${rows.length} launches`;

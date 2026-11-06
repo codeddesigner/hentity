@@ -4,6 +4,7 @@
 <!--#head-->
 <title>The state of African startups · Insights · Hentity</title>
 <meta name="description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
+<script src="/assets/share-image.js" defer></script>
 <style>
 .ins{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
 .ins-eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--color-accent-default)}
@@ -54,6 +55,43 @@
 .citylist .n{font-family:var(--font-mono);color:var(--color-text-tertiary)}
 .citylist .tr{height:6px;border-radius:3px;background:var(--color-bg-muted);overflow:hidden}.citylist .tr i{display:block;height:100%;border-radius:3px}
 .citylist .v{text-align:right;font-weight:500;font-variant-numeric:tabular-nums}.citylist .p{font-size:12px;color:var(--color-success);text-align:right}
+.ins-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ins-pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:1px solid var(--color-border-default);border-radius:9px;font-size:12px;font-weight:500;background:var(--color-bg-canvas);white-space:nowrap;flex:none}
+.ins-pill:hover{background:var(--color-bg-subtle)}
+.si{width:100%;max-width:920px;display:grid;grid-template-columns:minmax(0,1fr) 396px;padding:0;overflow:hidden}
+.si-hd{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--color-border-default)}
+.si-hd h2{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.si-pv{background:var(--color-bg-subtle);padding:28px 40px;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+.si-pv canvas{width:100%;height:auto;max-height:440px;object-fit:contain;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.si-pv canvas.story{width:auto;height:440px}
+.si-cap{font-size:12px;color:var(--color-text-tertiary)}
+.si-side{padding:22px 24px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:calc(100vh - 140px)}
+.si-lbl{font-size:13px;font-weight:500;margin-top:4px}
+.si-opt{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--color-border-default);border-radius:12px;text-align:left;width:100%}
+.si-opt[aria-checked="true"]{border-color:var(--color-accent-default);box-shadow:0 0 0 1px var(--color-accent-default)}
+.si-opt .rd{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--color-border-strong,#c4c4c4);flex:none}
+.si-opt[aria-checked="true"] .rd{border:5px solid var(--color-accent-default)}
+.si-opt b{display:block;font-size:13px;font-weight:500}.si-opt small{font-size:12px;color:var(--color-text-tertiary)}
+.si-sizes{display:flex;gap:14px;align-items:flex-end}
+.si-size{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--color-text-tertiary)}
+.si-size canvas{display:block;height:80px;width:auto;border-radius:5px;border:1px solid var(--color-border-default)}
+.si-size[aria-checked="true"] canvas{outline:2px solid var(--color-accent-default);outline-offset:1px}
+.si-row{display:flex;gap:8px;align-items:center}.si-row>*{flex:1}
+.si-row .btn{height:40px}
+.si-note{font-size:12px;color:var(--color-text-tertiary);line-height:18px}
+.ss{position:fixed;inset:auto 0 0 0;z-index:81;background:var(--color-bg-canvas);border-radius:20px 20px 0 0;padding:10px 0 calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.2);animation:sheetUp .22s ease-out}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+.ss .grab{width:36px;height:4px;border-radius:2px;background:var(--color-border-default);margin:0 auto 12px}
+.ss h2{font-size:20px;font-weight:600;padding:0 18px 12px}
+.ss .chips{padding:0 18px 14px;flex-wrap:nowrap;overflow-x:auto}
+.ss-pv{display:flex;gap:12px;padding:0 18px 16px;overflow-x:auto;align-items:center;scroll-snap-type:x mandatory}
+.ss-pv button{flex:none;scroll-snap-align:center;border-radius:8px;padding:0}
+.ss-pv canvas{display:block;height:200px;width:auto;border-radius:8px;border:1px solid var(--color-border-default)}
+.ss-pv button[aria-checked="true"] canvas{outline:2px solid var(--color-accent-default);outline-offset:2px}
+.ss-act{display:flex;justify-content:space-around;padding:4px 10px 0}
+.ss-act button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.ss-act i{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff}
+@media (max-width:860px){.si{grid-template-columns:1fr}.si-pv{padding:20px}}
 .ins-note{display:flex;gap:8px;font-size:12px;color:var(--color-text-tertiary);margin-top:8px}
 .ins-table{width:100%;border-collapse:collapse;font-size:13px}.ins-table th{text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:12px;padding:8px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td{padding:10px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td.num,.ins-table th.num{text-align:right;font-variant-numeric:tabular-nums}
 .chipsx{display:none}
@@ -191,8 +229,9 @@ H.mount({ active: 'insights', tab: 'products' });
     }
     return out;
   }
-  // Figma: top 8 industries get their own colour; the rest are grey "Other"
-  const PAL = ['#2A78D6', '#EB6834', '#008300', '#E34948', '#6250D6', '#EDA100', '#E87BA4', '#1BAF7A'], OTHER = '#A3A3A3';
+  // Colour follows the industry (H.CAT_COLOR), never its rank; everything else is "Other" grey
+  const OTHER = '#A3A3A3', short = c => c === 'Energy & Climate' ? 'Climate' : c;
+  const pill = k => `<button class="ins-pill d-only" type="button" data-shareimg="${k}">${icon('image', 'ic-14')}Share as image</button>`;
   function industries(fullHeight) {
     const by = new Map((D.industries || []).map(i => [i.name, i]));
     const L = CATS.map(c => Object.assign({ name: c, n: 0, cur: 0, prev: 0 }, by.get(c) || {})).concat((D.industries || []).filter(i => !CATS.includes(i.name)));
@@ -200,27 +239,25 @@ H.mount({ active: 'insights', tab: 'products' });
     const minPos = Math.max(1, Math.min(...L.filter(i => i.n).map(i => i.n), 1));
     const growth = L.filter(i => i.cur >= 2).map(i => [i, i.prev ? (i.cur - i.prev) / i.prev : i.cur]).sort((a, b) => b[1] - a[1])[0];
     const fast = growth && growth[1] > 0 ? growth[0].name : null;
-    const live = L.filter(i => i.n).length, top = L.filter(i => i.n).slice(0, PAL.length);
-    L.forEach(i => { const k = top.indexOf(i); i.c = k >= 0 ? PAL[k] : OTHER; });
-    const rest = L.length > top.length;
-    return `<section${fullHeight ? '' : ' class="ins-sec"'}><p class="ins-h">Industries</p><p class="ins-s d-only">${live} industr${live === 1 ? 'y' : 'ies'}${rest ? ` · top ${top.length} have their own colour, the rest are grouped as Other` : ' · sorted by startups live'}</p>
-      <div class="tree" id="tree" data-items='${esc(JSON.stringify(L.map(i => ({ name: i.name, n: i.n, w: i.n || minPos * 0.35, cur: i.cur, prev: i.prev, c: i.c }))))}' data-fast="${esc(fast || '')}"></div>
-      <div class="tlegend">${top.map((i, k) => `<a href="/categories/${slug(i.name)}"${k >= 7 ? ' class="dm"' : ''}><i style="background:${i.c}"></i>${esc(i.name)}</a>`).join('')}${rest ? `<span class="dm"><i style="background:${OTHER}"></i>Other</span>` : ''}</div></section>`;
+    const live = L.filter(i => i.n).length, keyed = L.filter(i => H.CAT_COLOR[i.name] && i.n), rest = L.some(i => !H.CAT_COLOR[i.name]);
+    return `<section${fullHeight ? '' : ' class="ins-sec"'}><div class="ins-hd"><div><p class="ins-h">Industries</p><p class="ins-s d-only">${live} industr${live === 1 ? 'y' : 'ies'} · the main 8 have their own colour, the rest are Other</p></div>${pill('industries')}</div>
+      <div class="tree" id="tree" data-items='${esc(JSON.stringify(L.map(i => ({ name: i.name, n: i.n, w: i.n || minPos * 0.35, cur: i.cur, prev: i.prev }))))}' data-fast="${esc(fast || '')}"></div>
+      <div class="tlegend">${keyed.map((i, k) => `<a href="/categories/${slug(i.name)}"${k >= 7 ? ' class="dm"' : ''}><i style="background:${H.catColor(i.name)}"></i>${esc(short(i.name))}</a>`).join('')}${rest ? `<span class="dm"><i style="background:${OTHER}"></i>Other</span>` : ''}</div></section>`;
   }
   function drawTree() {
     const el = qs('#tree'); if (!el) return;
     let items = JSON.parse(el.dataset.items); const fast = el.dataset.fast;
-    if (innerWidth <= 768) items = items.filter(i => i.n && i.c !== OTHER).slice(0, 7);   // phone: just the big coloured ones
+    if (innerWidth <= 768) items = items.filter(i => i.n && H.CAT_COLOR[i.name]).slice(0, 7);   // phone: just the big coloured ones
     const W = el.clientWidth, Hh = el.clientHeight, G = 4;
     const cells = squarify(items, W, Hh);
     el.innerHTML = cells.map(c => {
       const g = c.name === fast && c.prev ? Math.round((c.cur - c.prev) / c.prev * 100) : null;
-      return `<a href="/categories/${slug(c.name)}" style="left:${c.x}px;top:${c.y}px;width:${Math.max(0, c.w - G)}px;height:${Math.max(0, c.h - G)}px;background:${c.c}" title="${esc(c.name)}: ${c.n}"><span class="truncate">${esc(c.name.toLowerCase())}${c.name === fast ? ` ↑${g !== null ? g + '%' : ''}` : ''}</span>${c.w > 46 && c.h > 46 ? `<b>${n(c.n)}</b>` : ''}</a>`;
+      return `<a href="/categories/${slug(c.name)}" style="left:${c.x}px;top:${c.y}px;width:${Math.max(0, c.w - G)}px;height:${Math.max(0, c.h - G)}px;background:${H.catColor(c.name)};color:${H.catInk(c.name)}" title="${esc(c.name)}: ${c.n}"><span class="truncate">${esc(short(c.name).toLowerCase())}${c.name === fast ? ` ↑${g !== null ? g + '%' : ''}` : ''}</span>${c.w > 46 && c.h > 46 ? `<b>${n(c.n)}</b>` : ''}</a>`;
     }).join('');
   }
   function cities(limit) {
     const C = (D.city_list || []).slice(0, limit), max = Math.max(1, ...C.map(c => c.n));
-    return `<section><p class="ins-h"><span class="m-only">Top c</span><span class="d-only">C</span>ities</p><p class="ins-s">${limit < (D.city_list || []).length ? `Top ${limit} of ${D.city_list.length} cities` : `${C.length} cities`} · startups live</p>
+    return `<section><div class="ins-hd"><div><p class="ins-h"><span class="m-only">Top c</span><span class="d-only">C</span>ities</p><p class="ins-s">${limit < (D.city_list || []).length ? `Top ${limit} of ${D.city_list.length} cities` : `${C.length} cities`} · startups live</p></div>${pill('cities')}</div>
       <div class="citylist" style="margin-top:12px">${C.map((c, i) => `<div class="r"><span class="n">${String(i + 1).padStart(2, '0')}</span>${flag(c.cc)}<span class="truncate">${esc(c.city)}</span><span class="tr"><i style="width:${c.n / max * 100}%;background:${i === 0 ? '#E5F000' : '#A6E1F7'}"></i></span><span class="v">${n(c.n)}</span><span class="p">${c.new ? '+' + c.new : ''}</span></div>`).join('') || '<p class="t-body-sm c-2" style="padding:10px 0">No cities yet.</p>'}</div></section>`;
   }
   function funding() {
@@ -234,6 +271,105 @@ H.mount({ active: 'insights', tab: 'products' });
     const L = (D.industries || []).slice();
     return `<div class="ins-grid">${industries(true)}<section><p class="ins-h">All industries</p><p class="ins-s">${period()} compared with the period before</p>
       <table class="ins-table" style="margin-top:12px"><tr><th>Industry</th><th class="num">Startups</th><th class="num">New</th><th class="num">Before</th></tr>${L.map(i => `<tr><td><a class="link" href="/categories/${slug(i.name)}">${esc(i.name)}</a></td><td class="num">${n(i.n)}</td><td class="num">${n(i.cur)}</td><td class="num">${n(i.prev)}</td></tr>`).join('') || '<tr><td colspan="4" class="c-2">No products yet.</td></tr>'}</table></section></div>`;
+  }
+
+  // ---------------------------------------------------------------- Share as image
+  const shareUrl = () => location.origin + '/insights' + (cc ? '?country=' + cc : '');
+  const imgOpts = (kind, size, theme) => ({ kind, size, theme, cats: CATS, where: cc ? CN[cc] : '', periodLabel: ({ 7: 'this week', 30: 'in 30 days', 90: 'in 90 days', 365: 'this year' })[days] || `in ${days} days` });
+  const fileName = (kind, size) => `hentity-insights-${kind}-${cc ? cc.toLowerCase() + '-' : ''}${size}.png`;
+  async function makeFile(kind, size, theme) { const c = document.createElement('canvas'); await ShareImage.render(c, D, imgOpts(kind, size, theme)); const blob = await ShareImage.toBlob(c); return { blob, file: new File([blob], fileName(kind, size), { type: 'image/png' }) }; }
+  function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+  const caption = () => `${cc ? 'Startups in ' + CN[cc] : 'The state of African startups'}, live on Hentity`;
+  async function sendTo(app, kind, size, theme) {
+    const { blob, file } = await makeFile(kind, size, theme);
+    // Phones (and some desktops) can hand the PNG straight to WhatsApp, X or LinkedIn through the system share sheet
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text: caption() + ' ' + shareUrl() }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    download(blob, file.name);
+    const u = encodeURIComponent(shareUrl()), t = encodeURIComponent(caption());
+    const links = { whatsapp: `https://wa.me/?text=${t}%20${u}`, x: `https://x.com/intent/post?text=${t}&url=${u}`, linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` };
+    if (links[app]) { window.open(links[app], '_blank', 'noopener'); toast('Image downloaded. Attach it to your post.'); } else toast('Image saved');
+  }
+  async function copyImage(kind, size, theme) {
+    try { const { blob } = await makeFile(kind, size, theme); await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); toast('Image copied'); }
+    catch (e) { toast('Your browser can’t copy images. Use Download instead.', 'error'); }
+  }
+  function openShare(kind) {
+    if (!D || !window.ShareImage) return;
+    (innerWidth <= 768 ? openSheet : openModal)(kind || 'industries');
+  }
+  function openModal(kind) {
+    const st = { kind, size: 'square', theme: 'light' };
+    const el = document.createElement('div'); el.className = 'scrim';
+    el.innerHTML = `<div class="modal si" role="dialog" aria-modal="true" aria-label="Share as image">
+      <div class="si-hd"><h2>Share as image</h2><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x', 'ic-20')}</button></div>
+      <div class="si-pv"><canvas id="si-main"></canvas><p class="si-cap" id="si-cap"></p></div>
+      <div class="si-side">
+        <p class="si-lbl">What to share</p>
+        ${[['industries', 'Industries', 'Treemap with category colours'], ['cities', 'Top cities', 'Ranked bars'], ['numbers', 'Headline numbers', 'Startups live, cities, visitors'], ['full', 'Full snapshot', 'Everything on this page']].map(([k, t, d]) => `<button class="si-opt" type="button" role="radio" data-k="${k}"><span class="rd"></span><span><b>${t}</b><small>${d}</small></span></button>`).join('')}
+        <p class="si-lbl" style="margin-top:8px">Size</p>
+        <div class="si-sizes">${[['square', 'Square · feed'], ['story', 'Story · status'], ['wide', 'Wide · X, LinkedIn']].map(([k, t]) => `<button class="si-size" type="button" role="radio" data-s="${k}"><canvas></canvas>${t}</button>`).join('')}</div>
+        <div class="si-row" style="margin-top:6px"><span class="si-lbl" style="flex:none;margin:0 6px 0 0">Theme</span><div class="chips" data-single style="flex:none">${['light', 'dark'].map(t => `<button class="chip" type="button" data-chip data-t="${t}" aria-pressed="${t === 'light'}">${icon('check')}${t === 'light' ? 'Light' : 'Dark'}</button>`).join('')}</div></div>
+        <div class="si-row" style="margin-top:6px"><button class="btn btn--secondary btn--sm" data-app="whatsapp">${icon('chats', 'ic-16')}WhatsApp</button><button class="btn btn--secondary btn--sm" data-app="x">${icon('share', 'ic-16')}X</button><button class="btn btn--secondary btn--sm" data-app="linkedin">${icon('link', 'ic-16')}LinkedIn</button></div>
+        <div class="si-row"><button class="btn btn--secondary" data-copy>${icon('copy', 'ic-16')}Copy image</button><button class="btn btn--primary" data-dl>${icon('download', 'ic-16')}Download PNG</button></div>
+        <p class="si-note">Every image carries hentity.com/insights, the date and the CC BY 4.0 credit, so it can be reposted anywhere.</p>
+      </div></div>`;
+    document.body.appendChild(el);
+    const close = () => { el.remove(); removeEventListener('keydown', esc); }, esc = e => { if (e.key === 'Escape') close(); };
+    addEventListener('keydown', esc);
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) close(); });
+    const main = el.querySelector('#si-main');
+    let seq = 0;
+    async function paint() {
+      const my = ++seq;
+      el.querySelectorAll('[data-k]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.k === st.kind)));
+      el.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.s === st.size)));
+      el.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === st.theme)));
+      await ShareImage.render(main, D, imgOpts(st.kind, st.size, st.theme)); if (my !== seq) return;
+      main.className = st.size;
+      for (const b of el.querySelectorAll('[data-s]')) await ShareImage.render(b.querySelector('canvas'), D, imgOpts(st.kind, b.dataset.s, st.theme));
+      const blob = await ShareImage.toBlob(main); if (my !== seq) return;
+      const [w, h] = ShareImage.SIZES[st.size]; qs('#si-cap').textContent = `${w} × ${h} PNG · about ${Math.max(1, Math.round(blob.size / 1024))} KB`;
+    }
+    el.addEventListener('click', e => {
+      const k = e.target.closest('[data-k]'), sz = e.target.closest('[data-s]'), t = e.target.closest('[data-t]'), app = e.target.closest('[data-app]');
+      if (k) { st.kind = k.dataset.k; paint(); } else if (sz) { st.size = sz.dataset.s; paint(); } else if (t) { st.theme = t.dataset.t; paint(); }
+      else if (app) sendTo(app.dataset.app, st.kind, st.size, st.theme);
+      else if (e.target.closest('[data-copy]')) copyImage(st.kind, st.size, st.theme);
+      else if (e.target.closest('[data-dl]')) makeFile(st.kind, st.size, st.theme).then(({ blob, file }) => download(blob, file.name));
+    });
+    paint();
+  }
+  function openSheet(kind) {
+    const st = { kind, size: 'story' }, themeFor = s => s === 'story' ? 'dark' : 'light';
+    const scrim = document.createElement('div'); scrim.className = 'scrim'; scrim.style.alignItems = 'end';
+    const el = document.createElement('div'); el.className = 'ss'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Share as image');
+    el.innerHTML = `<div class="grab"></div><h2>Share as image</h2>
+      <div class="chips" data-single>${[['industries', 'Industries'], ['cities', 'Cities'], ['numbers', 'Numbers'], ['full', 'All']].map(([k, l]) => `<button class="chip" type="button" data-chip data-k="${k}">${icon('check')}${l}</button>`).join('')}</div>
+      <div class="ss-pv">${['story', 'square', 'wide'].map(s => `<button type="button" data-s="${s}" aria-label="${s}"><canvas></canvas></button>`).join('')}</div>
+      <div class="ss-act">
+        <button type="button" data-app="whatsapp"><i style="background:#25D366">${icon('chats', 'ic-20')}</i>WhatsApp</button>
+        <button type="button" data-app="status"><i style="background:#0a0a0a">${icon('image', 'ic-20')}</i>Status</button>
+        <button type="button" data-app="x"><i style="background:#0a0a0a">${icon('share', 'ic-20')}</i>X</button>
+        <button type="button" data-app="linkedin"><i style="background:#0A66C2">${icon('link', 'ic-20')}</i>LinkedIn</button>
+        <button type="button" data-dl><i style="background:var(--color-bg-muted);color:var(--color-text-primary)">${icon('download', 'ic-20')}</i>Save</button>
+      </div>`;
+    document.body.append(scrim, el);
+    const close = () => { el.remove(); scrim.remove(); };
+    scrim.addEventListener('click', close);
+    let seq = 0;
+    async function paint() {
+      const my = ++seq;
+      el.querySelectorAll('[data-k]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === st.kind)));
+      el.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.s === st.size)));
+      for (const b of el.querySelectorAll('[data-s]')) { if (my !== seq) return; await ShareImage.render(b.querySelector('canvas'), D, imgOpts(st.kind, b.dataset.s, themeFor(b.dataset.s))); }
+    }
+    el.addEventListener('click', e => {
+      const k = e.target.closest('[data-k]'), sz = e.target.closest('[data-s]'), app = e.target.closest('[data-app]');
+      if (k) { st.kind = k.dataset.k; paint(); } else if (sz) { st.size = sz.dataset.s; el.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-checked', String(b === sz))); }
+      else if (app) sendTo(app.dataset.app, st.kind, st.size, themeFor(st.size));
+      else if (e.target.closest('[data-dl]')) makeFile(st.kind, st.size, themeFor(st.size)).then(({ blob, file }) => download(blob, file.name));
+    });
+    paint();
   }
 
   function render() {
@@ -252,7 +388,8 @@ H.mount({ active: 'insights', tab: 'products' });
   qs('#days').addEventListener('change', e => { days = +e.target.value; ALL = null; load(); });
   qs('#ccm').addEventListener('click', e => { const b = e.target.closest('[data-cc]'); if (!b) return; cc = b.dataset.cc; qs('#cc').value = cc; load(); });
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawTree, 150); });
-  qsa('[data-share]').forEach(b => b.onclick = () => { const u = location.href.replace(/[?&]embed=1/, ''); if (navigator.share) navigator.share({ title: 'The state of African startups · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u).catch(() => {}); toast('Link copied'); } });
+  qsa('[data-share]').forEach(b => b.onclick = () => openShare(innerWidth <= 768 ? 'numbers' : 'industries'));
+  qs('#view').addEventListener('click', e => { const b = e.target.closest('[data-shareimg]'); if (b) openShare(b.dataset.shareimg); });
   qs('#embed').onclick = () => { const u = `${location.origin}/insights?embed=1${cc ? '&country=' + cc : ''}`; const code = `<iframe src="${u}" width="100%" height="900" style="border:0" title="The state of African startups · Hentity"></iframe>`; navigator.clipboard && navigator.clipboard.writeText(code).catch(() => {}); toast('Embed code copied'); };
   qs('#csv').onclick = () => {
     if (!D) return;

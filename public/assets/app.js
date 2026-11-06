@@ -363,9 +363,14 @@
   // Header gets a soft shadow once the page scrolls
   addEventListener('scroll', () => document.body.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
   function productTabs(active) {
-    const t = [['week', 'This week', '/'], ['directory', 'Directory', '/directory']];
+    const t = [['week', 'This week', '/'], ['directory', 'Directory', '/directory'], ['insights', 'Insights', '/insights']];
     setTimeout(() => { if (window.API && API.betaStats) API.betaStats().then(s => qsa('[data-beta-n]').forEach(e => { if (s && s.open) { e.textContent = s.open; e.hidden = false; } })).catch(() => {}); }, 0);
-    return `<nav class="tabs ptabs" aria-label="Products">${t.map(([k, l, h]) => `<a class="tab" href="${h}" aria-selected="${k === active}"${k === active ? ' aria-current="page"' : ''}>${l}${k === 'betas' ? '<span class="n" data-beta-n hidden></span>' : ''}</a>`).join('')}</nav>`;
+    return `<nav class="tabs ptabs" aria-label="Products">${t.map(([k, l, h]) => `<a class="tab" href="${h}" aria-selected="${k === active}"${k === active ? ' aria-current="page"' : ''}>${k === 'insights' ? icon('bar-chart', 'ic-14') : ''}${k === 'week' ? '<span class="d-only">This week</span><span class="m-only">Launches</span>' : l}${k === 'betas' ? '<span class="n" data-beta-n hidden></span>' : ''}</a>`).join('')}</nav>`;
   }
-  window.H = { productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  // Industry colours (Figma: Category tag / Insights). Colour follows the industry, never its rank.
+  const CAT_COLOR = { Fintech: '#2A78D6', Commerce: '#EB6834', Agriculture: '#008300', Health: '#E34948', Logistics: '#6250D6', Education: '#EDA100', AI: '#E87BA4', 'Energy & Climate': '#1BAF7A' };
+  const CAT_DARK_TEXT = { Commerce: 1, Education: 1, AI: 1, 'Energy & Climate': 1 };
+  const catColor = c => CAT_COLOR[c] || '#A3A3A3';
+  const catInk = c => CAT_COLOR[c] && !CAT_DARK_TEXT[c] ? '#fff' : '#0a0a0a';
+  window.H = { CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
