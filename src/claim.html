@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Claim your page · Hentity</title>
+<title>Claim your page | Hentity</title>
 <meta name="description" content="Claim the page Hentity built for your startup: verify you work there, check what we found, and publish.">
 <meta name="robots" content="noindex">
 <style>
@@ -77,7 +77,7 @@ H.mount({});
   let info = slug ? await API.claimInfo(slug).catch(() => null) : null;
   if (!info) { show(`<div style="text-align:center;padding-top:60px"><h1>This page can’t be claimed</h1><p class="cl-lead">It may already belong to its team, or the link is wrong.</p><a class="btn btn--secondary" style="margin-top:20px" href="/products/${esc(slug)}">See the page</a></div>`); return; }
   const P = info.product, dom = P.domain;
-  document.title = `Claim ${P.name} · Hentity`;
+  document.title = `Claim ${P.name} | Hentity`;
   qs('#exit').href = '/products/' + P.slug;
   const CC = { KE: ['Kenya', 'Business Registration Service (BRS) certificate'], NG: ['Nigeria', 'CAC certificate'], GH: ['Ghana', 'Office of the Registrar of Companies (ORC) certificate'], ZA: ['South Africa', 'CIPC registration certificate'], RW: ['Rwanda', 'RDB registration certificate'] };
   const cert = (CC[P.country] || ['', 'company registration certificate'])[1];

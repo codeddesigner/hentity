@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Launch week · Hentity</title>
+<title>Launch week | Hentity</title>
 <style>
 .lw-grid{display:grid;grid-template-columns:minmax(0,796px) 380px;gap:24px;justify-content:space-between;margin-top:24px}
 .chart{display:grid;grid-template-columns:repeat(7,1fr);gap:16px;align-items:end;height:160px;margin-top:20px}
@@ -58,7 +58,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   const { qs, icon, esc, toast, avatar, plogo } = H;
   let p; try { ({ p } = await L.mine(['live'])); } catch (e) { return; }
   if (!p) { L.none('You don’t have a live launch right now'); return; }
-  document.title = `${p.name} is live · Hentity`;
+  document.title = `${p.name} is live | Hentity`;
   qs('#hd-logo').outerHTML = plogo(p, 64); qs('#hd-name').textContent = `${p.name} is live`;
   const ws = new Date(p.week_starts_at), we = new Date(p.week_ends_at); const day = Math.min(7, Math.floor((Date.now() - ws) / 864e5) + 1); const left = Math.max(0, we - Date.now());
   qs('#hd-status').textContent = `LIVE · Day ${day} of 7 · ${Math.floor(left / 864e5)}d ${Math.floor(left % 864e5 / 36e5)}h left`;

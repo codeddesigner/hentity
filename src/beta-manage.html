@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Beta dashboard · Hentity</title>
+<title>Beta dashboard | Hentity</title>
 <meta name="description" content="Pick testers and read feedback for your beta on Hentity.">
 <style>
 .bm{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
@@ -44,7 +44,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   const isAdmin = API.profile && ['admin', 'moderator'].includes(API.profile.role);
   if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/betas">Beta tests</a></div>`; return; }
   const p = b.product || {};
-  document.title = `${b.title} · Beta dashboard · Hentity`;
+  document.title = `${b.title} | Beta dashboard | Hentity`;
   let apps = [], fbs = [], tab = H.params().get('tab') || 'applicants', room = null;
   const load = async () => { [apps, fbs] = await Promise.all([API.betaApplicants(b.id).catch(e => (H.fail(e), [])), API.betaFeedback(b.id).catch(() => [])]); };
   await load();

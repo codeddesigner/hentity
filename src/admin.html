@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Admin · Hentity</title>
+<title>Admin | Hentity</title>
 <meta name="robots" content="noindex, nofollow">
 </head>
 <body class="no-tabbar">
@@ -550,7 +550,7 @@ H.mount();
     qsa('.drawer,.drawer-bg').forEach(x => x.remove());
     qs('#main').innerHTML = '<div class="skel" style="height:40px;width:240px;margin-bottom:24px"></div><div class="skel" style="height:320px"></div>';
     try { await V[k](arg); qs('#main').classList.remove('reveal'); void qs('#main').offsetWidth; qs('#main').classList.add('reveal'); } catch (e) { H.fail(e); qs('#main').innerHTML = `<div class="alert alert--error">${icon('alert-circle')}<div><p class="alert__title">Couldn’t load ${esc(k)}</p><p class="alert__body">${esc(e.message)}</p></div></div>`; }
-    document.title = (SECTIONS.flatMap(s => s[1]).find(s => s[0] === k) || [, 'Admin'])[1] + ' · Admin · Hentity';
+    document.title = (SECTIONS.flatMap(s => s[1]).find(s => s[0] === k) || [, 'Admin'])[1] + ' | Admin | Hentity';
   }
   window.addEventListener('hashchange', route);
   try { stats = await A.stats(); } catch (e) {}

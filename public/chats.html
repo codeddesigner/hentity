@@ -25,17 +25,17 @@
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<title>Chats · Hentity</title>
+<title>Chats | Hentity</title>
 <meta name="description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
 <link rel="canonical" href="https://hentity.com/chats">
-<meta property="og:title" content="Chats · Hentity">
+<meta property="og:title" content="Chats | Hentity">
 <meta property="og:description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
 <meta property="og:url" content="https://hentity.com/chats">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Chats · Hentity">
+<meta name="twitter:title" content="Chats | Hentity">
 <meta name="twitter:description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
 <meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
 </head>
@@ -194,7 +194,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (!c) return;
     cur = c; thread = null; qs('#thread').hidden = true;
     qs('#chat').classList.add('in-conv'); renderList();
-    document.title = (c.kind === 'dm' ? (c.other ? c.other.name : 'Direct message') : c.kind === 'product' ? c.name + ' room' : '#' + c.name) + ' · Chats · Hentity';
+    document.title = (c.kind === 'dm' ? (c.other ? c.other.name : 'Direct message') : c.kind === 'product' ? c.name + ' room' : '#' + c.name) + ' | Chats | Hentity';
     qs('#cscroll').innerHTML = Array.from({ length: 4 }, () => `<div class="msg"><span class="skel" style="width:36px;height:36px;border-radius:50%"></span><div class="grow stack gap-8"><span class="skel" style="width:30%;height:12px"></span><span class="skel" style="width:70%;height:14px"></span></div></div>`).join('');
     members = (await API.channelMembers(c.id).catch(() => [])).map(m => m.user).filter(Boolean);
     renderHead();

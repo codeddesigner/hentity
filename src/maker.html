@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Maker · Hentity</title>
+<title>Maker | Hentity</title>
 <style>
 .cover{height:180px;background:#000;position:relative;overflow:hidden}
 .cover::after{content:"";position:absolute;width:760px;height:760px;border-radius:50%;background:var(--orb,#e8560f);right:-260px;top:-20px;animation:orb 1.2s cubic-bezier(.2,.8,.2,1) both}
@@ -36,9 +36,9 @@ H.mount({ active: '', tab: 'you' });
   const handle = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || '');
   await API.ready;
   const person = await API.profileByUsername(handle).catch(() => null);
-  if (!person) { document.title = 'Maker not found · Hentity'; qs('.cover').remove(); qs('#mk').innerHTML = '<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">No maker called @' + esc(handle) + '</h1><p class="c-2" style="margin:8px 0 20px">They may have changed their username.</p><a class="btn btn--primary" href="/directory">Search the directory</a></div>'; return; }
+  if (!person) { document.title = 'Maker not found | Hentity'; qs('.cover').remove(); qs('#mk').innerHTML = '<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">No maker called @' + esc(handle) + '</h1><p class="c-2" style="margin:8px 0 20px">They may have changed their username.</p><a class="btn btn--primary" href="/directory">Search the directory</a></div>'; return; }
   const isMe = person.id === API.uid;
-  document.title = `${person.name} (@${person.username}) · Hentity`;
+  document.title = `${person.name} (@${person.username}) | Hentity`;
   if (person.avatar_color) qs('.cover').style.setProperty('--orb', person.avatar_color);
   const [{ data: owned }, { data: made }, counts, fol] = await Promise.all([
     API.sb.from('product_feed').select('*').eq('owner_id', person.id).in('status', ['scheduled', 'live']).order('upvote_count', { ascending: false }),

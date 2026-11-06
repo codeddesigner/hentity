@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>News · Hentity</title>
+<title>News | Hentity</title>
 <meta name="description" content="African tech news for makers on Hentity.">
 </head>
 <body>
@@ -23,7 +23,7 @@ H.mount({ active: 'news', tab: 'news' });
   const slug = location.pathname.split('/').filter(Boolean)[1];
   const a = slug && await API.article(slug).catch(() => null);
   if (!a) { qs('#art').innerHTML = `<div class="empty"><p class="t-h3">Story not found</p><p class="t-body-sm c-2">It may have been unpublished.</p><a class="btn btn--secondary btn--sm" href="/news">All news</a></div>`; return; }
-  document.title = a.title + ' · Hentity News';
+  document.title = a.title + ' | Hentity News';
   const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', a.dek);
   const [products, related, comments, saved] = await Promise.all([
     a.product_ids && a.product_ids.length ? API.productsByIds(a.product_ids) : [],

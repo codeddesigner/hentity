@@ -25,19 +25,19 @@
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<title>Beta program · Hentity</title>
+<title>Beta program | Hentity</title>
 <meta name="description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
 <script src="/assets/auth.js?v=80a34f24cb"></script>
 <script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <meta name="robots" content="noindex, follow">
-<meta property="og:title" content="Beta program · Hentity">
+<meta property="og:title" content="Beta program | Hentity">
 <meta property="og:description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
 <meta property="og:url" content="https://hentity.com/beta-apply">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Beta program · Hentity">
+<meta name="twitter:title" content="Beta program | Hentity">
 <meta name="twitter:description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
 <meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
 </head>
@@ -56,7 +56,7 @@ H.mount({});
   const root = qs('#tp');
   if (!b) { root.innerHTML = `<div class="tp" style="text-align:center;padding-top:96px"><h1>We couldn’t find that beta</h1><p class="tp-lead">The link may be wrong, or the beta was removed.</p><a class="btn btn--secondary" style="margin-top:20px" href="/">Go to Hentity</a></div>`; H.contentShown(); return; }
   const p = b.product || {}, pn = p.name || 'This product';
-  document.title = `${b.title} · ${pn} beta · Hentity`;
+  document.title = `${b.title} | ${pn} beta | Hentity`;
   const mine = API.uid && b.owner_id === API.uid, staff = API.uid && API.profile && API.profile.role === 'admin';
   const preview = (mine && !H.params().has('as-tester')) || (staff && (view === 'preview' || b.status === 'draft'));
   try { if (!preview && !sessionStorage.getItem('bt:' + b.id)) { sessionStorage.setItem('bt:' + b.id, '1'); API.betaTrack(b.slug, src); } } catch (e) {}

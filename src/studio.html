@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Studio · Hentity</title>
+<title>Studio | Hentity</title>
 <meta name="description" content="Run beta programs for your product: application form, tester agreement, access and results.">
 <script src="/assets/beta.js"></script>
 </head>
@@ -31,7 +31,7 @@ H.mount({ active: 'my-products', tab: 'me' });
   const p = await API.product(parts[1]).catch(() => null);
   if (!p) return fail('We couldn’t find that product', 'Check the link, or open it from My products.');
   if (p.owner_id !== API.uid && !isAdmin) return fail('This isn’t your product', 'Only the makers of a product can run its beta programs.');
-  document.title = `${p.name} · Beta programs · Hentity`;
+  document.title = `${p.name} | Beta programs | Hentity`;
   const header = (cur, tab) => `<div class="st-head"><div class="st-head__in">
       <nav class="st-crumbs" aria-label="Breadcrumb"><a href="/my-products">My products</a><span>/</span><a href="/studio/${esc(p.slug)}">${esc(p.name)}</a><span>/</span><b>${tab === 'badges' ? 'Badges &amp; embeds' : 'Beta programs'}</b></nav>
       <div class="row between gap-12"><div class="st-prod">${plogo(p, 32)}${esc(p.name)}${p.verified ? verified() : ''}</div><a class="row gap-6 t-body-sm" style="white-space:nowrap" href="/products/${esc(p.slug)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-14')}View public page</a></div>
@@ -327,7 +327,7 @@ H.mount({ active: 'my-products', tab: 'me' });
 
   frame();
   async function badgesView() {
-    document.title = `${p.name} · Badges & embeds · Hentity`;
+    document.title = `${p.name} | Badges & embeds | Hentity`;
     const [info, sum] = await Promise.all([API.badgeInfo(p.slug).catch(() => null), API.badgeSummary(p.id).catch(() => null)]);
     const live = p.status === 'live' || p.effective_status === 'live' || p.status === 'scheduled';
     const n = v => (v || 0).toLocaleString('en-US');

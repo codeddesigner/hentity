@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Beta test · Hentity</title>
+<title>Beta test | Hentity</title>
 <meta name="description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
 <style>
 .bd{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
@@ -50,7 +50,7 @@ H.mount({ active: 'products', tab: 'products' });
   const b = id && await API.beta(id).catch(() => null);
   if (!b) { qs('#bd').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that beta</h1><p class="c-2" style="margin:8px 0 20px">It may have closed or been removed.</p><a class="btn btn--secondary btn--sm" href="/betas">All beta tests</a></div>`; return; }
   const p = b.product || {}, owner = b.owner || {};
-  document.title = `${b.title} · ${p.name} beta · Hentity`;
+  document.title = `${b.title} | ${p.name} beta | Hentity`;
   const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', (b.why || b.title).slice(0, 155));
   const mine = API.uid && b.owner_id === API.uid;
   const staff = API.uid && !mine && API.profile && ['admin', 'moderator'].includes(API.profile.role);

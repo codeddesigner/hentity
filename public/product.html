@@ -25,7 +25,7 @@
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<title>Product · Hentity</title>
+<title>Product | Hentity</title>
 <meta name="description" content="A product launched on Hentity, the weekly board for what’s being built across Africa.">
 <style>
 .pp{max-width:1136px;margin:0 auto;padding:24px 56px 96px;box-sizing:content-box}
@@ -60,14 +60,14 @@
 @media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
 </style>
 <meta name="robots" content="noindex, follow">
-<meta property="og:title" content="Product · Hentity">
+<meta property="og:title" content="Product | Hentity">
 <meta property="og:description" content="A product launched on Hentity, the weekly board for what’s being built across Africa.">
 <meta property="og:url" content="https://hentity.com/product">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Product · Hentity">
+<meta name="twitter:title" content="Product | Hentity">
 <meta name="twitter:description" content="A product launched on Hentity, the weekly board for what’s being built across Africa.">
 <meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
 </head>
@@ -87,8 +87,8 @@ H.mount({ active: 'products', tab: 'products' });
   await API.ready;
   let p;
   try { p = await API.product(slug); } catch (e) { H.fail(e); }
-  if (!p) { document.title = 'Product not found · Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
-  document.title = `${p.name} · ${p.tagline} · Hentity`;
+  if (!p) { document.title = 'Product not found | Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
+  document.title = `${p.name} | ${p.tagline} | Hentity`;
   if (p.status === 'unclaimed') return unclaimed(p);
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own

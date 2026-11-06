@@ -9,7 +9,7 @@ async function openInvite(t, dev, checkOnly) {
   if (!r.ok) throw new Error('supabase ' + r.status);
   return r.json();
 }
-const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title} · Hentity</title><style>body{font-family:Geist,system-ui,sans-serif;background:#fafafa;color:#0a0a0a;display:grid;place-items:center;min-height:100vh;margin:0;padding:16px;box-sizing:border-box}main{max-width:420px;text-align:center}h1{font-size:24px;letter-spacing:-.02em;margin:0 0 8px}p{color:#555;line-height:1.5}a{color:#ff5a1f}</style></head><body><main><h1>${title}</h1><p>${body}</p><p><a href="https://hentity.com">Hentity</a></p></main></body></html>`;
+const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title} | Hentity</title><style>body{font-family:Geist,system-ui,sans-serif;background:#fafafa;color:#0a0a0a;display:grid;place-items:center;min-height:100vh;margin:0;padding:16px;box-sizing:border-box}main{max-width:420px;text-align:center}h1{font-size:24px;letter-spacing:-.02em;margin:0 0 8px}p{color:#555;line-height:1.5}a{color:#ff5a1f}</style></head><body><main><h1>${title}</h1><p>${body}</p><p><a href="https://hentity.com">Hentity</a></p></main></body></html>`;
 
 module.exports = async (req, res) => {
   const t = String((req.query && req.query.t) || '').replace(/[^a-f0-9]/g, '').slice(0, 64);

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Product · Hentity</title>
+<title>Product | Hentity</title>
 <meta name="description" content="A product launched on Hentity, the weekly board for what’s being built across Africa.">
 <style>
 .pp{max-width:1136px;margin:0 auto;padding:24px 56px 96px;box-sizing:content-box}
@@ -53,8 +53,8 @@ H.mount({ active: 'products', tab: 'products' });
   await API.ready;
   let p;
   try { p = await API.product(slug); } catch (e) { H.fail(e); }
-  if (!p) { document.title = 'Product not found · Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
-  document.title = `${p.name} · ${p.tagline} · Hentity`;
+  if (!p) { document.title = 'Product not found | Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
+  document.title = `${p.name} | ${p.tagline} | Hentity`;
   if (p.status === 'unclaimed') return unclaimed(p);
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own

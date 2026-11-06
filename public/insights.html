@@ -25,7 +25,7 @@
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<title>The state of African startups · Insights · Hentity</title>
+<title>The state of African startups | Insights | Hentity</title>
 <meta name="description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
 <script src="/assets/share-image.js?v=e92ee730bf" defer></script>
 <style>
@@ -137,14 +137,14 @@ body.embed .ins{padding:16px}
 }
 </style>
 <link rel="canonical" href="https://hentity.com/insights">
-<meta property="og:title" content="The state of African startups · Insights · Hentity">
+<meta property="og:title" content="The state of African startups | Insights | Hentity">
 <meta property="og:description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
 <meta property="og:url" content="https://hentity.com/insights">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The state of African startups · Insights · Hentity">
+<meta name="twitter:title" content="The state of African startups | Insights | Hentity">
 <meta name="twitter:description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
 <meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
 </head>
@@ -442,7 +442,7 @@ H.mount({ active: 'insights', tab: 'products' });
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawTree, 150); });
   qsa('[data-share]').forEach(b => b.onclick = () => openShare(innerWidth <= 768 ? 'numbers' : 'industries'));
   qs('#view').addEventListener('click', e => { const b = e.target.closest('[data-shareimg]'); if (b) openShare(b.dataset.shareimg); });
-  qs('#embed').onclick = () => { const u = `${location.origin}/insights?embed=1${cc ? '&country=' + cc : ''}`; const code = `<iframe src="${u}" width="100%" height="900" style="border:0" title="The state of African startups · Hentity"></iframe>`; navigator.clipboard && navigator.clipboard.writeText(code).catch(() => {}); toast('Embed code copied'); };
+  qs('#embed').onclick = () => { const u = `${location.origin}/insights?embed=1${cc ? '&country=' + cc : ''}`; const code = `<iframe src="${u}" width="100%" height="900" style="border:0" title="The state of African startups | Hentity"></iframe>`; navigator.clipboard && navigator.clipboard.writeText(code).catch(() => {}); toast('Embed code copied'); };
   qs('#csv').onclick = () => {
     if (!D) return;
     const rows = [['section', 'name', 'value', 'new_in_period'], ['overview', 'startups_live', D.live, D.live_week], ['overview', 'launched', D.launched, ''], ['overview', 'page_views', D.views, ''], ['overview', 'cities', D.cities, D.cities_new],

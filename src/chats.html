@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Chats · Hentity</title>
+<title>Chats | Hentity</title>
 <meta name="description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
 </head>
 <body class="chat-page">
@@ -160,7 +160,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (!c) return;
     cur = c; thread = null; qs('#thread').hidden = true;
     qs('#chat').classList.add('in-conv'); renderList();
-    document.title = (c.kind === 'dm' ? (c.other ? c.other.name : 'Direct message') : c.kind === 'product' ? c.name + ' room' : '#' + c.name) + ' · Chats · Hentity';
+    document.title = (c.kind === 'dm' ? (c.other ? c.other.name : 'Direct message') : c.kind === 'product' ? c.name + ' room' : '#' + c.name) + ' | Chats | Hentity';
     qs('#cscroll').innerHTML = Array.from({ length: 4 }, () => `<div class="msg"><span class="skel" style="width:36px;height:36px;border-radius:50%"></span><div class="grow stack gap-8"><span class="skel" style="width:30%;height:12px"></span><span class="skel" style="width:70%;height:14px"></span></div></div>`).join('');
     members = (await API.channelMembers(c.id).catch(() => [])).map(m => m.user).filter(Boolean);
     renderHead();

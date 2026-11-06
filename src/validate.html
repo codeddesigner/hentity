@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Validate an idea · Hentity</title>
+<title>Validate an idea | Hentity</title>
 <meta name="description" content="Is anyone already building your idea? Check it against every African startup on Hentity and see how new it is, who's closest and where it's crowded.">
 <style>
 .va{max-width:1064px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
@@ -185,7 +185,7 @@ H.mount({ active: 'validate', tab: 'launch' });
     if (!check) { root.innerHTML = `<div class="vr" style="text-align:center;padding-top:96px"><h1 class="t-h2">This report isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be private, or the link is wrong.</p><a class="btn btn--accent" href="/validate">${icon('sparkles', 'ic-16')}Validate an idea</a></div>`; H.contentShown(); return; }
     const R = check.result, C = R.counts, L = R.levels, mine = API.uid && check.user_id === API.uid;
     const cat = (check.categories || [])[0] || 'Apps', where = check.city || CN[check.country] || 'Africa', whereFull = [check.city, CN[check.country]].filter(Boolean).join(', ') || 'Africa';
-    document.title = 'Validation report · Hentity';
+    document.title = 'Validation report | Hentity';
     const LV = { crowded: ['Crowded', '#E34948'], some: ['Some room', '#EDA100'], open: ['Wide open', '#1BAF7A'] };
     const lv = (k, label) => `<span class="lv" style="--lv:${LV[k][1]}">${label || LV[k][0]}</span>`;
     const topic = `${cat === 'Apps' ? 'Apps' : cat}${check.who ? ' for ' + check.who.toLowerCase().replace(/\s+and\s+.*/, '') : ''}`;
@@ -260,7 +260,7 @@ H.mount({ active: 'validate', tab: 'launch' });
     qs('#share') && (qs('#share').onclick = async () => {
       const u = location.origin + '/validate/' + check.id;
       if (!check.shared) { if (!confirm('Anyone with the link will be able to see this report and your idea. Share it?')) return; try { await API.updateIdeaCheck(check.id, { shared: true }); check.shared = true; } catch (e) { H.fail(e); return; } }
-      if (navigator.share && innerWidth < 769) navigator.share({ title: 'My idea validation · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Link copied. Anyone with it can see this report.'); }
+      if (navigator.share && innerWidth < 769) navigator.share({ title: 'My idea validation | Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Link copied. Anyone with it can see this report.'); }
       qs('#share').innerHTML = icon('share', 'ic-14') + 'Copy link';
     });
     H.contentShown(); M.scroll && M.scroll();

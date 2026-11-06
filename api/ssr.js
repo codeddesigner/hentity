@@ -105,7 +105,7 @@ async function build(type, slug) {
     const perk = [b.perk, b.airtime_amount > 0 ? '₦' + Number(b.airtime_amount).toLocaleString('en-US') + ' airtime' : ''].filter(Boolean).join(' + ');
     const left = Math.max(0, b.spots - b.accepted_count);
     return {
-      title: `${p.name} beta · Testers wanted | Hentity`, desc: clip(`${b.title}. ${left} spots left${perk ? ' · perk: ' + perk : ''}. ${b.why || ''}`, 200),
+      title: `${p.name} beta | Testers wanted | Hentity`, desc: clip(`${b.title}. ${left} spots left${perk ? ' · perk: ' + perk : ''}. ${b.why || ''}`, 200),
       path: `/b/${b.slug}`, image: p.logo_url, type: 'website', noindex: true, ld: [],
       main: `<h1>${esc(b.title)}</h1><p>${esc(p.name)} · ${esc(b.why || '')}</p>`
     };
