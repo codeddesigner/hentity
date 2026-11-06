@@ -171,7 +171,7 @@
     async report(type, id, reason) { requireAuth(); err((await sb.from('reports').insert({ reporter_id: uid(), target_type: type, target_id: id, reason })).error); },
 
     // ---------------- notifications
-    notifications: (limit) => q(sb.from('notifications').select('*,actor:profiles!notifications_actor_id_fkey(name,username,avatar_url,avatar_color),product:products(name,slug,color)').eq('user_id', uid()).order('created_at', { ascending: false }).limit(limit || 50)),
+    notifications: (limit) => q(sb.from('notifications').select('*,actor:profiles!notifications_actor_id_fkey(name,username,avatar_url,avatar_color),product:products(name,slug,color,logo_url)').eq('user_id', uid()).order('created_at', { ascending: false }).limit(limit || 50)),
     async unreadCount() { if (!uid()) return 0; return q(sb.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', uid()).is('read_at', null)); },
     markRead: id => q(sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id)),
     markAllRead: () => q(sb.rpc('mark_all_read')),
