@@ -18,7 +18,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=9a57985f97"></script>
+<script src="/assets/api.js?v=d268323bc3"></script>
 <script src="/assets/app.js?v=d32b850796"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -72,7 +72,7 @@
   <div class="bgrid" id="grid" aria-live="polite"></div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/beta.js?v=22e15ba0c4"></script>
+<script src="/assets/beta.js?v=7c2e49ae4a"></script>
 <script>
 H.mount({ active: 'betas', tab: 'products' });
 (async function () {
@@ -82,7 +82,7 @@ H.mount({ active: 'betas', tab: 'products' });
   const st = document.createElement('style'); st.textContent = '.short-l{display:none}@media(max-width:768px){.short-l{display:inline}}'; document.head.append(st);
   M.words(qs('.words'));
   qs('#grid').innerHTML = '<div class="skel" style="height:320px;border-radius:14px"></div>'.repeat(3);
-  const filters = ['All', 'Android', 'iOS', 'Web', 'USSD / SMS', 'WhatsApp', 'API'];
+  const filters = ['All', 'Android', 'iOS', 'Web', 'USSD / SMS', 'WhatsApp', 'API', 'Paid perks'];
   const want = H.params().get('platform') || 'All';
   qs('#plat').innerHTML = filters.map(f => `<button class="chip" type="button" data-chip data-p="${esc(f)}" aria-pressed="${f === want}">${icon('check')}${esc(f)}</button>`).join('');
   await API.ready;
@@ -92,7 +92,7 @@ H.mount({ active: 'betas', tab: 'products' });
   if (API.uid) qs('#match-wrap').hidden = false;
   const n = (v, l) => `<span><b data-count-to="${v || 0}">0</b>${l}</span>`;
   if (stats) {
-    qs('#stats').innerHTML = n(stats.open, 'open betas') + (API.uid ? n(stats.match, 'you match') : '') + n(stats.testers_month, 'testers this month') + n(stats.perks, 'perks unlocked');
+    qs('#stats').innerHTML = n(stats.open, 'open betas') + (API.uid ? n(stats.match, 'you match') : '') + n(stats.testers_month, 'testers this month') + (stats.paid > 0 ? `<span><b data-count-to="${stats.paid}" data-prefix="₦">₦0</b>in perks paid out</span>` : n(stats.perks, 'perks unlocked'));
     qs('#sub-m').textContent = `${stats.open} open${API.uid ? ' · you match ' + stats.match : ''}`;
     M.countUp(qs('#stats'));
   }
@@ -100,7 +100,7 @@ H.mount({ active: 'betas', tab: 'products' });
   function render() {
     const p = (qs('#plat [aria-pressed="true"]') || {}).dataset; const plat = p && p.p && p.p !== 'All' ? p.p : null;
     const only = qs('#only-match').checked;
-    let L = betas.filter(b => !plat || (b.platforms || []).includes(plat));
+    let L = betas.filter(b => !plat || (plat === 'Paid perks' ? b.airtime_amount > 0 : (b.platforms || []).includes(plat)));
     if (only) L = L.filter(b => { const m = B.match(b, prof); return m.rows.slice(0, 2).every(r => r.ok || r.unknown); });
     L.sort((a, b) => (order[B.phase(a).k] - order[B.phase(b).k]) || new Date(a.closes_at) - new Date(b.closes_at));
     qs('#grid').innerHTML = L.length ? L.map(b => B.card(b, { app: appOf.get(b.id) }).replace('class="bcard card', `class="bcard card${B.phase(b).k === 'closed' ? ' is-closed' : ''}`)).join('')

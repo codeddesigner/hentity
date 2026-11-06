@@ -18,7 +18,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=9a57985f97"></script>
+<script src="/assets/api.js?v=d268323bc3"></script>
 <script src="/assets/app.js?v=d32b850796"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -72,7 +72,7 @@
 <div data-header></div>
 <main class="bd" id="bd"><div class="skel" style="height:420px;border-radius:20px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/beta.js?v=22e15ba0c4"></script>
+<script src="/assets/beta.js?v=7c2e49ae4a"></script>
 <script>
 H.mount({ active: 'betas', tab: 'products' });
 (async function () {
@@ -106,7 +106,7 @@ H.mount({ active: 'betas', tab: 'products' });
       [d(b.closes_at), closeDay, 'Applications close'],
       [d(b.test_start), b.test_start ? B.fmtDay(b.test_start) : 'After closing', 'Testers picked'],
       [d(b.test_start), b.test_start ? `${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}` : 'Soon after', 'Testing'],
-      [d(b.test_end ? addDays(b.test_end, 2) : null), b.test_end ? B.fmtDay(addDays(b.test_end, 2)) : 'When you’re done', b.perk ? 'Feedback due · perks unlocked' : 'Feedback due']
+      [d(b.test_end ? addDays(b.test_end, 2) : null), b.test_end ? B.fmtDay(addDays(b.test_end, 2)) : 'When you’re done', B.perkText(b) ? 'Feedback due · perks unlocked' : 'Feedback due']
     ];
     let nowSet = false;
     const tlHTML = tl.map(([dt, when, what]) => { let cls = ''; if (dt && today >= dt) cls = 'is-done'; else if (!nowSet) { cls = 'is-now'; nowSet = true; } return `<div class="${cls}"><p class="t-label">${esc(when)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(what)}</p></div>`; }).join('');
@@ -116,7 +116,7 @@ H.mount({ active: 'betas', tab: 'products' });
           <a class="link row gap-6 t-body-sm reveal" href="/betas" style="width:max-content">${icon('arrow-left', 'ic-14')}Beta tests</a>
           ${staff ? `<p class="t-caption c-3 reveal" style="font-weight:400">Admin: <a class="link link--accent" href="/betas/${b.id}/manage">open this beta’s dashboard</a></p>` : ''}
           ${mine ? `<div class="alert alert--accent reveal"><span>${icon('flask')}</span><div><p class="alert__title">This is your beta call</p><p class="alert__body">${b.applied_count} applied · ${b.accepted_count} of ${b.spots} accepted</p></div><a class="link alert__action" href="/betas/${b.id}/manage">Open dashboard</a></div>` : ''}
-          <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}">${icon('arrow-up-right', 'ic-14')}View product</a></div>
+          <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}" id="prod-room">${icon('arrow-up-right', 'ic-14')}View product</a></div>
           <h1 class="words">${esc(b.title)}</h1>
           <div class="bd-by reveal" style="--i:2"><span class="row gap-10 t-body-sm c-2">${avatar(owner, 28)}<span>Posted by <a class="link" href="/makers/${esc(owner.username || '')}">${esc(owner.name || p.name)}</a> · ${H.ago(b.created_at)}</span></span><span class="row gap-6 wrap">${tags}</span></div>
           ${b.why ? `<section class="card bsec" data-scroll-reveal><h2>Why we need you</h2><p class="body c-2" style="white-space:pre-wrap">${esc(b.why)}</p></section>` : ''}
@@ -136,6 +136,7 @@ H.mount({ active: 'betas', tab: 'products' });
       <div class="mbar" id="mbar"></div>`;
     M.words(qs('#bd .words')); M.scroll(qs('#bd')); H.contentShown();
     renderApply();
+    API.productRoom(p.id).then(r => { const el = qs('#prod-room'); if (r && r.slug && el) { el.href = '/chats/' + r.slug; el.innerHTML = icon('chats', 'ic-14') + 'Product room'; } }).catch(() => {});
     if (location.hash === '#apply' && innerWidth > 1024) setTimeout(() => qs('#apply').scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     if (location.hash === '#apply' && innerWidth <= 1024 && B.canApply(b) && !app && !mine) setTimeout(openSheet, 400);
   }
@@ -147,7 +148,7 @@ H.mount({ active: 'betas', tab: 'products' });
     return m;
   }
 
-  function perkBox() { return b.perk ? `<div class="bperk">${icon('sparkles')}<div><p class="t-caption" style="color:var(--color-accent-default)">Your perk</p><p class="t-label" style="margin-top:2px">${esc(b.perk)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Unlocked when your feedback is in</p></div></div>` : ''; }
+  function perkBox() { return B.perkText(b) ? `<div class="bperk">${icon('sparkles')}<div><p class="t-caption" style="color:var(--color-accent-default)">Your perk</p><p class="t-label" style="margin-top:2px">${esc(B.perkText(b))}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${b.airtime_amount > 0 ? 'Airtime is held by Hentity and sent when your feedback is in' : 'Unlocked when your feedback is in'}</p></div></div>` : ''; }
   function spotsBar() { const right = ph.k === 'open' ? B.closesIn(b) : ph.label; return `<div style="margin-top:16px"><div class="bcard__bar${ph.k === 'full' ? ' is-full' : ''}"><i style="width:${B.filled(b)}%"></i></div><div class="row between t-caption c-3" style="font-weight:400;margin-top:8px"><span>${b.accepted_count} of ${b.spots} spots filled</span><span>${esc(right)}</span></div></div>`; }
 
   function renderApply() {
@@ -167,7 +168,7 @@ H.mount({ active: 'betas', tab: 'products' });
     if (qs('#apply-form')) bindForm(qs('#apply-form'));
     // mobile bar
     const mb = qs('#mbar');
-    if (mb) mb.innerHTML = !mine && B.canApply(b) && !app ? `<div class="grow" style="min-width:0"><p class="t-label truncate">${b.perk ? esc(b.perk) : esc(p.name)}</p><p class="t-caption c-3" style="font-weight:400">${b.accepted_count} of ${b.spots} spots · ${esc(B.closesIn(b))}</p></div><button class="btn btn--accent" type="button" id="m-apply">${icon('flask', 'ic-14')}${ph.k === 'full' ? 'Join waitlist' : 'Apply to test'}</button>` : '';
+    if (mb) mb.innerHTML = !mine && B.canApply(b) && !app ? `<div class="grow" style="min-width:0"><p class="t-label truncate">${B.perkText(b) ? esc(B.perkText(b)) : esc(p.name)}</p><p class="t-caption c-3" style="font-weight:400">${b.accepted_count} of ${b.spots} spots · ${esc(B.closesIn(b))}</p></div><button class="btn btn--accent" type="button" id="m-apply">${icon('flask', 'ic-14')}${ph.k === 'full' ? 'Join waitlist' : 'Apply to test'}</button>` : '';
     if (mb && !mb.innerHTML) mb.remove();
     if (qs('#m-apply')) qs('#m-apply').onclick = () => API.uid ? openSheet() : (location.href = '/signin?next=' + encodeURIComponent(location.pathname + '#apply'));
   }
@@ -181,6 +182,7 @@ H.mount({ active: 'betas', tab: 'products' });
       <div class="dev apply-field" id="dev-row" ${devKnown ? '' : 'hidden'}>${icon('check', 'ic-14')}<div class="grow"><p class="t-label">Testing on ${esc(prof.device || 'your device')}</p><p class="t-caption c-3" style="font-weight:400">${esc(prof.device_os || '')} · from your profile</p></div><button class="link link--accent t-body-sm" type="button" id="dev-change">Change</button></div>
       <div id="dev-edit" class="apply-field" ${devKnown ? 'hidden' : ''}><p class="field__label">What will you test on?</p><div class="grid-2" style="gap:8px"><input class="input" id="dev" placeholder="e.g. Tecno Spark 20" value="${esc(prof.device || '')}" maxlength="60" aria-label="Device"><select class="input" id="dev-os" aria-label="Operating system"><option value="">System…</option>${OSES.map(o => `<option${o === prof.device_os ? ' selected' : ''}>${o}</option>`).join('')}</select></div><p class="field__hint">Saved to your profile so you don’t type it again.</p></div>
       ${b.nda ? `<label class="check" style="display:flex;margin-bottom:10px"><input type="checkbox" id="nda"><span class="check__box">${icon('check')}</span>Keep this beta private until launch (NDA)</label>` : ''}
+      ${b.airtime_amount > 0 ? `<div class="apply-field"><p class="field__label">Where should Hentity send your ${B.naira(b.airtime_amount)} airtime?</p><div class="grid-2" style="gap:8px;grid-template-columns:1.4fr 1fr"><input class="input" id="pay-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+234 803 000 0000" aria-label="Phone number for airtime"><select class="input" id="pay-net" aria-label="Network"><option value="">Network…</option>${B.NETWORKS.map(n => `<option>${n}</option>`).join('')}</select></div><p class="field__hint">${icon('lock', 'ic-12')} Only Hentity sees this. ${esc(p.name)} never sees your number.</p></div>` : ''}
       <label class="check" style="display:flex;margin-bottom:16px"><input type="checkbox" id="share" checked><span class="check__box">${icon('check')}</span>Share my email with ${esc(p.name)} if I’m picked</label>
       <button class="btn btn--accent btn--block">${icon('flask', 'ic-14')}${ph.k === 'full' ? 'Join the waitlist' : 'Send application'}</button>
       <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${esc(makerFirst)} picks testers by ${esc(closeDay)}. You’ll hear back in your Hentity notifications either way.</p>
@@ -200,10 +202,13 @@ H.mount({ active: 'betas', tab: 'products' });
       const device = qs('#dev', f).value.trim(), device_os = qs('#dev-os', f).value;
       if (!device || !device_os) { qs('#dev-row', f).hidden = true; qs('#dev-edit', f).hidden = false; (device ? qs('#dev-os', f) : qs('#dev', f)).classList.add('is-error'); toast('Tell us what you’ll test on', 'error'); return; }
       if (b.nda && !qs('#nda', f).checked) { toast('Please agree to keep this beta private', 'error'); return; }
+      const payPhone = b.airtime_amount > 0 ? qs('#pay-phone', f).value.trim() : '', payNet = b.airtime_amount > 0 ? qs('#pay-net', f).value : '';
+      if (b.airtime_amount > 0 && (!/^\+?[0-9 ()-]{8,18}$/.test(payPhone) || !payNet)) { (payNet ? qs('#pay-phone', f) : qs('#pay-net', f)).classList.add('is-error'); toast('Add the number and network for your airtime', 'error'); return; }
       const btn = f.querySelector('.btn--accent'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Sending';
       try {
         if (device !== (API.profile || {}).device || device_os !== (API.profile || {}).device_os) await API.updateProfile({ device, device_os }).catch(() => {});
         app = await API.applyBeta({ beta_id: b.id, answers, confirmed: confirmed(), device, device_os, nda_ok: !!(qs('#nda', f) && qs('#nda', f).checked), share_email: qs('#share', f).checked });
+        if (payPhone) await API.setPayout(app.id, payPhone, payNet).catch(err => toast('Saved your application, but not your airtime number: ' + err.message, 'error'));
         closeSheet(); toast(app.status === 'waitlist' ? 'You’re on the waitlist' : 'Application sent to ' + makerFirst);
         b.applied_count++; renderApply(); M.burst(qs('#apply .t-h4'));
       } catch (err) { btn.disabled = false; btn.innerHTML = icon('flask', 'ic-14') + 'Send application'; H.fail(err); }
@@ -233,7 +238,7 @@ H.mount({ active: 'betas', tab: 'products' });
 
   // ------------------------------------------------------------------ tester: you're in
   async function testerView() {
-    const [access, fb, room] = await Promise.all([API.betaAccess(b.id).catch(() => null), API.myFeedback(app.id).catch(() => null), b.room_id ? API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data) : null]);
+    const [access, fb, room, payout] = await Promise.all([API.betaAccess(b.id).catch(() => null), API.myFeedback(app.id).catch(() => null), b.room_id ? API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data) : null, b.airtime_amount > 0 ? API.myPayout(app.id).catch(() => null) : null]);
     const links = (access && access.links) || [];
     const ts = b.test_start && new Date(b.test_start + 'T00:00:00'), te = b.test_end && new Date(b.test_end + 'T23:59:59');
     const dayN = ts && Date.now() >= ts ? Math.floor((Date.now() - ts) / 864e5) + 1 : 0;
@@ -248,12 +253,13 @@ H.mount({ active: 'betas', tab: 'products' });
           <section class="card bsec reveal" style="--i:3" id="fb"></section>
         </div>
         <aside class="bd-side">
-          ${b.perk ? `<div class="card bsec"><p class="row gap-8 t-label">${icon('sparkles', 'ic-16')}Your perk</p><div class="row gap-10" style="margin-top:12px;align-items:flex-start"><span class="bcheck__i ${fb ? '' : 'is-info'}">${icon(fb ? 'check' : 'clock', 'ic-12')}</span><div><p class="t-label">${esc(b.perk)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${fb ? 'Unlocked. ' + esc(p.name) + ' will get it to you.' : 'Unlocked when your feedback is in'}</p></div></div></div>` : ''}
+          ${B.perkText(b) ? `<div class="card bsec"><p class="row gap-8 t-label">${icon('sparkles', 'ic-16')}Your perk</p>${b.perk ? `<div class="row gap-10" style="margin-top:12px;align-items:flex-start"><span class="bcheck__i ${fb ? '' : 'is-info'}">${icon(fb ? 'check' : 'clock', 'ic-12')}</span><div><p class="t-label">${esc(b.perk)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${fb ? 'Unlocked. ' + esc(p.name) + ' will get it to you.' : 'Unlocked when your feedback is in'}</p></div></div>` : ''}${b.airtime_amount > 0 ? `<div class="row gap-10" style="margin-top:12px;align-items:flex-start" id="air-line"><span class="bcheck__i ${payout && payout.status === 'sent' ? '' : 'is-info'}">${icon(payout && payout.status === 'sent' ? 'check' : 'clock', 'ic-12')}</span><div><p class="t-label">${B.naira(b.airtime_amount)} ${esc((payout && payout.network) || '')} airtime</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${!payout ? 'Add your number below so Hentity can send it' : payout.status === 'sent' ? 'Sent to ' + esc(payout.masked) : 'Sent to ' + esc(payout.masked) + (fb ? ' soon · your feedback is in' : ' after feedback')}</p>${!payout ? `<div class="row gap-6" style="margin-top:8px"><input class="input" id="tp-phone" type="tel" placeholder="+234 803 000 0000" style="height:32px;font-size:13px"><select class="input" id="tp-net" style="height:32px;font-size:13px;width:110px"><option value="">Network</option>${B.NETWORKS.map(n => `<option>${n}</option>`).join('')}</select><button class="btn btn--secondary btn--sm" id="tp-save">Save</button></div>` : ''}</div></div>` : ''}</div>` : ''}
           ${room ? `<div class="card bsec"><p class="row gap-8 t-label">${icon('chats', 'ic-16')}Testers’ room</p><p class="t-caption c-2" style="font-weight:400;margin:8px 0 12px">A private room with the makers and the other ${Math.max(0, b.accepted_count - 1)} testers. Ask questions, compare notes.</p><a class="btn btn--secondary btn--sm btn--block" href="/chats/${esc(room.slug)}">Open the room</a></div>` : ''}
           ${fb ? '' : `<p class="t-caption c-3" style="font-weight:400">Can’t continue? <button class="link" type="button" id="leave" style="color:var(--color-text-primary)">Leave this beta</button></p>`}
         </aside>
       </div>`;
     H.contentShown();
+    if (qs('#tp-save')) qs('#tp-save').onclick = async () => { try { await API.setPayout(app.id, qs('#tp-phone').value.trim(), qs('#tp-net').value); toast('Saved. Hentity will send your airtime there.'); testerView(); } catch (e) { H.fail(e); } };
     const renderTasks = () => {
       const done = new Set(app.tasks_done || []);
       const rows = steps.map((s, i) => ({ t: s, on: done.has(i + 1), i: i + 1 })).concat([{ t: 'Send feedback', on: !!fb, i: 0, d: fb ? 'Sent. Thank you!' : 'Below. Takes about 5 minutes.' }]);
@@ -309,7 +315,7 @@ H.mount({ active: 'betas', tab: 'products' });
       if (!verdict) { toast('Tell us if it worked as expected', 'error'); return; }
       if (details.length < 10 && verdict !== 'yes') { qs('#fb-d', f).classList.add('is-error'); toast('Tell ' + makerFirst + ' what didn’t work', 'error'); return; }
       const btn = f.querySelector('.btn--accent'); btn.disabled = true;
-      try { await API.sendFeedback({ application_id: app.id, ease, verdict, details, extra: qs('#fb-x', f).value.trim(), media, voice_url: voice, quote_ok: qs('#fb-q', f).checked }); toast(b.perk ? 'Thanks! Your perk is unlocked' : 'Thanks for your feedback'); testerView(); }
+      try { await API.sendFeedback({ application_id: app.id, ease, verdict, details, extra: qs('#fb-x', f).value.trim(), media, voice_url: voice, quote_ok: qs('#fb-q', f).checked }); toast(B.perkText(b) ? 'Thanks! Your perk is unlocked' : 'Thanks for your feedback'); testerView(); }
       catch (err) { btn.disabled = false; H.fail(err); }
     });
   }

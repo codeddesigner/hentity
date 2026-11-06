@@ -7,6 +7,12 @@
   const TIMES = ['10 min', '20 min', '1 hour', 'A few days', '1 week+'];
   const ACCESS = ['Play internal testing', 'TestFlight', 'APK download', 'Web link', 'Promo code'];
   const DAY = 864e5;
+  const NETWORKS = ['MTN', 'Airtel', 'Glo', '9mobile', 'Safaricom', 'Vodacom', 'Telecel', 'AirtelTigo', 'Orange', 'Other'];
+  const FEE = 0.05;
+  const naira = n => '₦' + Math.round(n || 0).toLocaleString('en-US');
+  // Combined perk line: "3 months of Pro + ₦5,000 airtime"
+  const perkText = b => [b.perk, b.airtime_amount > 0 ? naira(b.airtime_amount) + ' airtime' : ''].filter(Boolean).join(' + ');
+  const budget = b => { const base = (b.airtime_amount || 0) * (b.spots || 0); const fee = Math.ceil(base * FEE); return { base, fee, total: base + fee }; };
 
   const day0 = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
   const fmtDay = d => d ? new Date(typeof d === 'string' && d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
@@ -21,6 +27,7 @@
     const now = Date.now();
     if (b.status === 'cancelled') return { k: 'closed', label: 'Cancelled' };
     if (b.status === 'draft') return { k: 'draft', label: 'Draft' };
+    if (b.status === 'awaiting_payment') return { k: 'draft', label: 'Awaiting payment' };
     const te = b.test_end && new Date(b.test_end + 'T23:59:59'), ts = b.test_start && new Date(b.test_start + 'T00:00:00');
     if (b.status === 'closed' || (te && now > te)) return { k: 'closed', label: 'Closed' };
     if (ts && now >= ts) { const n = te ? Math.round((te - ts) / DAY) : 0, d = Math.floor((now - ts) / DAY) + 1; return { k: 'testing', label: n ? `Testing · day ${Math.min(d, n)} of ${n}` : 'Testing' }; }
@@ -78,12 +85,12 @@
       <h3 class="bcard__title">${opts.preview ? esc(b.title || 'Your headline') : `<a class="stretch-link" href="${href}">${esc(b.title)}</a>`}</h3>
       ${tags ? `<div class="row gap-6 wrap">${tags}</div>` : ''}
       <p class="bcard__line c-2">${icon('users', 'ic-14')}<span>${esc(who(b))}</span></p>
-      ${b.perk ? `<p class="bcard__line bcard__perk">${icon('sparkles', 'ic-14')}<span>${esc(b.perk)}</span></p>` : ''}
+      ${perkText(b) ? `<p class="bcard__line bcard__perk">${icon('sparkles', 'ic-14')}<span>${esc(perkText(b))}</span></p>` : ''}
       <div class="bcard__bar${ph.k === 'full' || ph.k === 'closed' ? ' is-full' : ''}"><i style="width:${filled(b)}%"></i></div>
       <div class="row between t-caption c-3" style="font-weight:400"><span>${b.accepted_count || 0} of ${b.spots} spots filled</span><span>${esc(right)}</span></div>
       <div class="bcard__foot">${opts.preview ? '<span class="btn btn--ghost btn--sm">Details</span>' : `<a class="btn btn--ghost btn--sm" href="${href}">Details</a>`}${cta}</div>
     </article>`;
   }
 
-  window.B = { COUNTRIES, PLATFORMS, TIMES, ACCESS, phase, canApply, pill, card, closesIn, who, countryText, filled, match, platformOf, fmtDay };
+  window.B = { NETWORKS, FEE, naira, perkText, budget, COUNTRIES, PLATFORMS, TIMES, ACCESS, phase, canApply, pill, card, closesIn, who, countryText, filled, match, platformOf, fmtDay };
 })();

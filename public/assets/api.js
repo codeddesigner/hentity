@@ -67,7 +67,7 @@
   }
 
   const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
-  const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,status,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
+  const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,airtime_amount,funding,nudged_at,status,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
   const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date';
 
   const API = {
@@ -233,6 +233,10 @@
     async sendFeedback(row) { requireAuth(); touched(); return q(sb.from('beta_feedback').insert(row).select().single()); },
     myFeedback: appId => q(sb.from('beta_feedback').select('*').eq('application_id', appId).maybeSingle()),
     updateFeedback: (id, patch) => q(sb.from('beta_feedback').update(patch).eq('id', id)),
+    setPayout: (app, phone, network) => q(sb.rpc('beta_set_payout', { app, phone, network })),
+    myPayout: app => q(sb.rpc('my_beta_payout', { app })),
+    nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
+    productRoom: pid => q(sb.from('channels').select('slug').eq('product_id', pid).eq('kind', 'product').limit(1).maybeSingle()),
 
     // ---------------- chats
     channels: () => q(sb.from('channels').select('id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)').eq('archived', false).order('position').order('name')),
@@ -304,6 +308,9 @@
     deleteUser: id => q(sb.from('profiles').delete().eq('id', id)),
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     upsertWeek: w => q(sb.from('weeks').upsert(w)),
+    betaPayouts: () => q(sb.rpc('admin_beta_payouts')),
+    markPayout: (app, st) => q(sb.rpc('admin_mark_payout', { app, st })),
+    betaFunded: (b, paid) => q(sb.rpc('admin_beta_funded', { b, paid })),
     weekCounts: () => q(sb.from('products').select('week_id,status').in('status', ['review', 'scheduled', 'live'])),
     comments: (term) => { let s = sb.from('comments').select('*,user:profiles!comments_user_id_fkey(name,username),product:products(name,slug),article:articles(title,slug)'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
     updateComment: (id, patch) => q(sb.from('comments').update(patch).eq('id', id)),

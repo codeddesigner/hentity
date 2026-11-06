@@ -70,14 +70,18 @@
       </section>
       <section class="card blk">
         <div class="blk__h"><span class="blk__n">5</span><div><h2 class="t-h4">Perk for testers</h2><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Betas with a perk fill much faster.</p></div></div>
-        <div class="chips" id="perk-type" data-single style="margin-bottom:14px">
-          <button class="chip" type="button" data-chip data-perk="none" aria-pressed="false">No perk</button>
-          <button class="chip" type="button" data-chip data-perk="product" aria-pressed="true">Product perk</button>
-          <button class="chip" type="button" disabled title="Coming soon">Airtime · soon</button>
+        <div class="chips" id="perk-type" style="margin-bottom:14px">
+          <button class="chip" type="button" data-perk="none" aria-pressed="false">No perk</button>
+          <button class="chip" type="button" data-perk="product" aria-pressed="true">Product perk</button>
+          <button class="chip" type="button" data-perk="airtime" aria-pressed="false">Airtime</button>
           <button class="chip" type="button" disabled title="Coming soon">Mobile money · soon</button>
-          <button class="chip" type="button" disabled title="Coming soon">Cash · soon</button>
+          <button class="chip" type="button" disabled title="Coming soon">Cash (USD) · soon</button>
         </div>
-        <div class="field" id="perk-f" style="margin:0"><label class="field__label" for="perk">Product perk</label><input class="input" id="perk" maxlength="120" placeholder="3 months of Pro, free"><p class="field__hint">Testers unlock it when they send feedback. You deliver it yourself.</p></div>
+        <div class="grid-2" style="gap:14px">
+          <div class="field" id="perk-f" style="margin:0"><label class="field__label" for="perk">Product perk</label><input class="input" id="perk" maxlength="120" placeholder="3 months of Pro, free"><p class="field__hint">Unlocked when they send feedback. You deliver it.</p></div>
+          <div class="field" id="air-f" style="margin:0" hidden><label class="field__label" for="air">Airtime per tester</label><div class="input-group" style="position:relative"><span class="c-3" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)">₦</span><input class="input" id="air" type="number" min="100" max="100000" step="100" placeholder="5,000" style="padding-left:26px"></div><p class="field__hint">MTN, Airtel, Glo or 9mobile. Hentity sends it.</p></div>
+        </div>
+        <div id="cost" class="card" style="margin-top:16px;padding:14px 16px;background:var(--color-bg-subtle)" hidden></div>
       </section>
       <div class="bn-foot"><button class="btn btn--ghost" type="button" id="draft">Save draft</button><button class="btn btn--accent" id="post"></button></div>
     </form>
@@ -110,13 +114,14 @@ H.mount({ active: 'my-products', tab: 'you' });
   // fill
   qs('#product').innerHTML = (existing ? [existing.product] : usable).map(p => `<option value="${p.id}">${esc(p.name)} · ${esc(p.effective_status || p.status || '')}</option>`).join('');
   qs('#product').value = s.product_id; qs('#product').disabled = !!existing;
-  qs('#title').value = s.title; qs('#why').value = s.why; qs('#spots').value = s.spots; qs('#closes').value = s.closes_at; qs('#start').value = s.test_start || ''; qs('#end').value = s.test_end || ''; qs('#nda').checked = s.nda; qs('#perk').value = s.perk;
+  qs('#title').value = s.title; qs('#why').value = s.why; qs('#spots').value = s.spots; qs('#closes').value = s.closes_at; qs('#start').value = s.test_start || ''; qs('#end').value = s.test_end || ''; qs('#nda').checked = s.nda; qs('#perk').value = s.perk; qs('#air').value = s.airtime_amount || '';
   qs('#closes').min = plus(0);
   qs('#countries').innerHTML = Object.entries(B.COUNTRIES).slice(0, 6).map(([c, n]) => `<button class="chip" type="button" data-chip data-c="${c}" aria-pressed="${s.countries.includes(c)}">${icon('check')}${esc(n)}</button>`).join('') + `<button class="chip" type="button" data-chip data-c="" aria-pressed="${!s.countries.length}">${icon('check')}Anywhere in Africa</button>`;
   qs('#platforms').innerHTML = B.PLATFORMS.map(x => `<button class="chip" type="button" data-chip data-pl="${esc(x)}" aria-pressed="${s.platforms.includes(x)}">${icon('check')}${esc(x)}</button>`).join('');
   qs('#time').innerHTML = B.TIMES.map(x => `<button class="chip" type="button" data-chip data-t="${esc(x)}" aria-pressed="${s.time_needed === x}">${icon('check')}${esc(x)}</button>`).join('');
   qs('#access').innerHTML = B.ACCESS.map(x => `<button class="chip" type="button" data-chip data-a="${esc(x)}" aria-pressed="${s.access_methods.includes(x)}">${icon('check')}${esc(x)}</button>`).join('');
-  qsa('#perk-type [data-perk]').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.perk === s.perk_type)));
+  const perkOn = { product: s.perk_type === 'product' || !!s.perk, airtime: (s.airtime_amount || 0) > 0 };
+  qsa('#perk-type [data-perk]').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.perk === 'none' ? !perkOn.product && !perkOn.airtime : !!perkOn[c.dataset.perk])));
   qs('#post').innerHTML = `${icon('flask', 'ic-14')}${existing && existing.status === 'open' ? 'Save changes' : 'Post beta call'}`;
 
   // editable lists (steps, requirements, questions)
@@ -135,7 +140,15 @@ H.mount({ active: 'my-products', tab: 'you' });
   });
   H.bindChips(qs('#countries'), () => {});
   qs('#countries').addEventListener('click', e => { const c = e.target.closest('[data-chip]'); if (!c) return; if (c.dataset.c === '') qsa('#countries [data-c]:not([data-c=""])').forEach(o => o.setAttribute('aria-pressed', 'false')); else qs('#countries [data-c=""]').setAttribute('aria-pressed', 'false'); if (!qs('#countries [aria-pressed="true"]')) qs('#countries [data-c=""]').setAttribute('aria-pressed', 'true'); sync(); reach(); });
-  H.bindChips(qs('#platforms'), sync); H.bindChips(qs('#time'), sync); H.bindChips(qs('#access'), () => { drawLinks(); sync(); }); H.bindChips(qs('#perk-type'), sync);
+  H.bindChips(qs('#platforms'), sync); H.bindChips(qs('#time'), sync); H.bindChips(qs('#access'), () => { drawLinks(); sync(); }); qs('#perk-type').addEventListener('click', e => {
+    const c = e.target.closest('[data-perk]'); if (!c) return;
+    const on = c.getAttribute('aria-pressed') !== 'true';
+    if (c.dataset.perk === 'none') qsa('#perk-type [data-perk]').forEach(o => o.setAttribute('aria-pressed', String(o === c)));
+    else { c.setAttribute('aria-pressed', String(on)); qs('#perk-type [data-perk="none"]').setAttribute('aria-pressed', String(!qs('#perk-type [data-perk="product"][aria-pressed="true"], #perk-type [data-perk="airtime"][aria-pressed="true"]'))); }
+    if (c.dataset.perk === 'airtime' && on) setTimeout(() => qs('#air').focus(), 50);
+    sync();
+  });
+  qs('#air').addEventListener('input', sync);
   qs('#nda').addEventListener('change', sync);
 
   const LINK_PH = { 'Play internal testing': 'https://play.google.com/apps/internaltest/…', TestFlight: 'https://testflight.apple.com/join/…', 'APK download': 'https://… .apk', 'Web link': 'https://beta.yourproduct.com', 'Promo code': 'The code testers enter' };
@@ -148,8 +161,9 @@ H.mount({ active: 'my-products', tab: 'you' });
 
   function collect(status) {
     const cs = qsa('#countries [aria-pressed="true"]').map(c => c.dataset.c).filter(Boolean);
-    const t = qs('#time [aria-pressed="true"]'), pt = qs('#perk-type [aria-pressed="true"]');
-    const perkType = pt ? pt.dataset.perk : 'none';
+    const t = qs('#time [aria-pressed="true"]');
+    const hasProduct = !!qs('#perk-type [data-perk="product"][aria-pressed="true"]'), hasAir = !!qs('#perk-type [data-perk="airtime"][aria-pressed="true"]');
+    const perkType = hasProduct ? 'product' : 'none';
     return {
       product_id: qs('#product').value, title: qs('#title').value.trim(), why: qs('#why').value.trim(),
       steps: s.steps.map(x => x.trim()).filter(Boolean), countries: cs, platforms: qsa('#platforms [aria-pressed="true"]').map(c => c.dataset.pl),
@@ -157,12 +171,17 @@ H.mount({ active: 'my-products', tab: 'you' });
       spots: Math.max(1, Math.min(2000, +qs('#spots').value || 1)), closes_at: qs('#closes').value ? new Date(qs('#closes').value + 'T23:59:00').toISOString() : null,
       test_start: qs('#start').value || null, test_end: qs('#end').value || null, time_needed: t ? t.dataset.t : '20 min',
       access_methods: qsa('#access [aria-pressed="true"]').map(c => c.dataset.a), nda: qs('#nda').checked,
-      perk_type: perkType, perk: perkType === 'product' ? qs('#perk').value.trim() : '', status
+      perk_type: perkType, perk: hasProduct ? qs('#perk').value.trim() : '', airtime_amount: hasAir ? Math.round(+qs('#air').value || 0) : 0, status
     };
   }
   function sync() {
     qsa('[data-cnt]').forEach(c => { const i = qs('#' + c.dataset.cnt); c.textContent = i.value.length + ' / ' + i.maxLength; });
-    qs('#perk-f').hidden = ((qs('#perk-type [aria-pressed="true"]') || {}).dataset || {}).perk !== 'product';
+    qs('#perk-f').hidden = !qs('#perk-type [data-perk="product"][aria-pressed="true"]');
+    qs('#air-f').hidden = !qs('#perk-type [data-perk="airtime"][aria-pressed="true"]');
+    { const r0 = collect('open'), bg = B.budget(r0), paid = existing && existing.funding === 'held';
+      qs('#cost').hidden = !(r0.airtime_amount > 0);
+      if (r0.airtime_amount > 0) qs('#cost').innerHTML = `<div class="row between t-body-sm c-2"><span>Airtime · ${r0.spots} testers × ${B.naira(r0.airtime_amount)}</span><span class="mono">${B.naira(bg.base)}</span></div><div class="row between t-body-sm c-2" style="margin-top:6px"><span>Hentity fee (5%)</span><span class="mono">${B.naira(bg.fee)}</span></div><div class="row between t-label" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--color-border-default)"><span>${paid ? 'Paid' : 'You pay'}</span><span class="mono" style="font-size:16px">${B.naira(bg.total)}</span></div><p class="row gap-6 t-caption c-3" style="font-weight:400;margin-top:8px">${icon('lock', 'ic-12')}Held by Hentity and sent to each tester when their feedback is in; unused spots are refunded. After you post, Hentity emails you how to pay, and your call goes live once the money is in.</p>`;
+      if (!existing || existing.status !== 'open') qs('#post').innerHTML = `${icon('flask', 'ic-14')}${r0.airtime_amount > 0 && !paid ? 'Post and pay ' + B.naira(bg.total) : 'Post beta call'}`; }
     const r = collect('open'); const prod = (existing && existing.product) || usable.find(p => p.id === r.product_id) || {};
     const prev = Object.assign({}, r, { id: 'preview', product: prod, accepted_count: Math.round(r.spots * .64), applied_count: 0, closes_at: r.closes_at || new Date(Date.now() + 4 * 864e5).toISOString() });
     qs('#preview').innerHTML = B.card(prev, { preview: true });
@@ -187,7 +206,8 @@ H.mount({ active: 'my-products', tab: 'you' });
       if (new Date(r.closes_at) <= new Date()) { qs('#closes').classList.add('is-error'); toast('Pick a closing date in the future', 'error'); return; }
       if (r.test_start && r.test_end && r.test_end < r.test_start) { qs('#end').classList.add('is-error'); toast('Testing has to end after it starts', 'error'); return; }
       if (!r.steps.length) { toast('Add at least one step for testers', 'error'); return; }
-      if (r.perk_type === 'product' && !r.perk) { qs('#perk').classList.add('is-error'); toast('Describe the perk, or choose “No perk”', 'error'); return; }
+      if (qs('#perk-type [data-perk="product"][aria-pressed="true"]') && !r.perk) { qs('#perk').classList.add('is-error'); toast('Describe the product perk, or turn it off', 'error'); return; }
+      if (qs('#perk-type [data-perk="airtime"][aria-pressed="true"]') && (r.airtime_amount < 100 || r.airtime_amount > 100000)) { qs('#air').classList.add('is-error'); toast('Airtime per tester must be between ₦100 and ₦100,000', 'error'); return; }
     }
     if (!r.closes_at) r.closes_at = new Date(Date.now() + 4 * 864e5).toISOString();
     drawLinks();
@@ -195,7 +215,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     const bad = ls.find(l => l.label !== 'Promo code' && !/^https?:\/\/\S+\.\S+/.test(l.url)); if (bad) { toast(bad.label + ': paste a full link starting with https://', 'error'); return; }
     if (existing) delete r.product_id;
     const btn = status === 'open' ? qs('#post') : qs('#draft'); btn.disabled = true;
-    try { const out = await API.saveBeta(existing && existing.id, r, ls); toast(status === 'open' ? (existing ? 'Beta call updated' : 'Your beta call is live') : 'Draft saved'); location.href = status === 'open' ? `/betas/${out.id}/manage` : `/betas/new?id=${out.id}`; }
+    try { const out = await API.saveBeta(existing && existing.id, r, ls); toast(status === 'open' ? (r.airtime_amount > 0 && !(existing && existing.funding === 'held') ? 'Posted · Hentity will email you how to pay' : existing ? 'Beta call updated' : 'Your beta call is live') : 'Draft saved'); location.href = status === 'open' ? `/betas/${out.id}/manage` : `/betas/new?id=${out.id}`; }
     catch (e) { btn.disabled = false; H.fail(e); }
   }
   qs('#f').addEventListener('submit', e => { e.preventDefault(); save('open'); });
