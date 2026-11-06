@@ -94,6 +94,10 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/products/:slug/edit",
+      "destination": "/product-edit"
+    },
+    {
       "source": "/products/:slug",
       "destination": "/api/ssr?type=product&slug=:slug"
     },

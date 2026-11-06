@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Edit your product | Hentity</title>
+<meta name="robots" content="noindex">
+<style>
+.pe{max-width:1080px;margin:0 auto;padding:32px 24px 120px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.pe h1{font-size:36px;line-height:42px;font-weight:600;letter-spacing:-.03em}
+.pe .sec{padding:24px}
+.pe .sec h2{font-size:18px;line-height:24px;font-weight:600;margin-bottom:18px}
+.pe-side{position:sticky;top:96px}
+.pe-gal{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.pe-tile{position:relative;aspect-ratio:108/94;border-radius:var(--radius-md);overflow:hidden;background:var(--color-bg-muted) center/cover}
+.pe-tile .rm{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center}
+.pe-tile .cover{position:absolute;left:8px;bottom:8px;font-family:var(--font-mono);font-size:11px;color:#fff;letter-spacing:.04em}
+.pe-tile .mv{position:absolute;left:6px;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center}
+.pe-tile.is-loading::after{content:"";position:absolute;inset:auto 10px 10px;height:4px;border-radius:2px;background:var(--color-accent-default);animation:pulse 1s infinite alternate}
+.pe-add{aspect-ratio:108/94;border-radius:var(--radius-md);border:1.5px dashed var(--color-border-strong);background:var(--color-bg-subtle);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--color-text-tertiary);font-size:12px;cursor:pointer}
+.pe-chg{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-top:1px solid var(--color-border-default)}
+.pe-chg:first-child{border-top:0}
+.pe-chg .was{color:var(--color-text-tertiary);text-decoration:line-through;font-size:12px;word-break:break-word}
+.pe-chg .now{font-size:13px;font-weight:500;word-break:break-word}
+.is-changed .field__label::after{content:"Changed";margin-left:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent-default);font-weight:400}
+.pe-hist{display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--color-border-default)}
+.pe-hist:first-child{border-top:0}
+.pe-hist .badge{white-space:nowrap;align-self:flex-start}
+@keyframes pulse{from{opacity:.4}to{opacity:1}}
+@media (max-width:1024px){.pe{grid-template-columns:minmax(0,1fr)}.pe-side{position:static}}
+@media (max-width:768px){.pe{padding:16px 16px 120px}.pe h1{font-size:28px;line-height:34px}.pe .sec{padding:16px}.pe-gal{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body class="subtle">
+<div data-header></div>
+<main id="main"><div class="pe"><div class="skel" style="height:480px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script>
+H.mount({ active: 'my-products', tab: 'you' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, COUNTRY } = H;
+  const root = qs('#main');
+  const slug = location.pathname.split('/').filter(Boolean)[1];
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=' + encodeURIComponent(location.pathname)); return; }
+  let st = await API.editState(slug).catch(() => null);
+  if (!st) { root.innerHTML = `<div class="pe" style="display:block;text-align:center;padding-top:96px"><h1 class="t-h2">You can’t edit this product</h1><p class="c-2" style="margin:8px 0 20px">Only its makers can request changes.</p><a class="btn btn--secondary" href="/my-products">My products</a></div>`; H.contentShown(); return; }
+  // Drafts and pages that never launched are edited directly
+  const listing = st.status === 'live' && st.claimed_at && !st.week_id && !st.launch_date;
+  if (!['live', 'scheduled'].includes(st.status) || listing) { location.replace(st.status === 'review' ? '/under-review?p=' + st.slug : '/submit?id=' + st.id); return; }
+
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Transfer', 'Free'];
+  const STAGES = ['Bootstrapped', 'Pre-seed', 'Seed', 'Series A', 'Series B+', 'Profitable'];
+  const LABEL = { logo_url: 'Logo', name: 'Name', tagline: 'Tagline', website: 'Website', categories: 'Categories', country: 'Country', city: 'City', pay_methods: 'Payment methods', description: 'About', media: 'Images', video_url: 'Demo video', registration: 'CAC / registration number', founder_link: 'Founder profile', stage: 'Stage', platforms: 'Platforms', languages: 'Languages', currencies: 'Currencies', color: 'Brand colour' };
+  const cur = st.current;
+  let v, pending;
+  function reset() { pending = st.pending; v = JSON.parse(JSON.stringify(Object.assign({}, cur, pending ? pending.changes : {}))); }
+  reset();
+  const same = (a, b) => JSON.stringify(a == null ? '' : a) === JSON.stringify(b == null ? '' : b);
+  const diff = () => Object.keys(LABEL).filter(k => !same(v[k], cur[k]));
+  const show = (k, x) => { if (k === 'logo_url') return x ? 'New logo' : 'No logo'; if (k === 'media') return `${(x || []).length} image${(x || []).length === 1 ? '' : 's'}`; if (Array.isArray(x)) return x.join(', ') || '—'; if (k === 'country') return COUNTRY[x] || x || '—'; return String(x == null || x === '' ? '—' : x); };
+  const normUrl = x => { try { const u = new URL(/^https?:/.test(x) ? x : 'https://' + x); return /\./.test(u.hostname) ? u.href.replace(/\/$/, '') : null; } catch (e) { return null; } };
+  const field = (k, label, inner, hint) => `<div class="field" data-f="${k}"><label class="field__label" for="f-${k}">${label}</label>${inner}${hint ? `<p class="field__hint">${hint}</p>` : ''}</div>`;
+  const inp = (k, attrs) => `<input class="input" id="f-${k}" data-k="${k}" value="${esc(v[k] || '')}" ${attrs || ''}>`;
+  const when = t => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  function page() {
+    const hist = st.history || [];
+    root.innerHTML = `<div class="pe reveal"><div class="stack gap-16">
+      <div><a class="row gap-6 t-body-sm c-2" href="/products/${esc(st.slug)}" style="margin-bottom:14px">${icon('arrow-left', 'ic-14')}Back to ${esc(cur.name)}</a>
+        <h1>Edit ${esc(cur.name)}</h1><p class="t-body-md c-2" style="margin-top:6px">Your page is ${st.status === 'live' ? 'live' : 'scheduled'}, so changes go to the Hentity team for a quick check first. Your current page stays up until they’re approved.</p></div>
+      ${pending ? `<div class="alert alert--info">${icon('clock')}<div class="grow"><p class="alert__title">Changes waiting for approval</p><p class="alert__body">Sent ${H.ago(pending.created_at)}: ${esc(Object.keys(pending.changes).map(k => LABEL[k] || k).join(', '))}. Edit below and send again to replace it.</p></div><button class="btn btn--secondary btn--sm" type="button" id="wd">Withdraw</button></div>` : ''}
+      <section class="card sec"><h2>Basics</h2><div class="stack gap-20">
+        <div class="row gap-16" data-f="logo_url"><span id="logo">${H.plogo({ name: v.name, color: v.color, logo_url: v.logo_url }, 64)}</span><div class="stack gap-8"><p class="t-label">Logo <span class="t-caption c-3" style="font-weight:400">· square, 240px or larger</span></p><div class="row gap-8"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload')}Replace<input type="file" accept="image/*" class="sr-only" id="logo-in"></label>${v.logo_url !== cur.logo_url ? `<button class="btn btn--ghost btn--sm" type="button" id="logo-undo">Undo</button>` : ''}</div></div></div>
+        ${field('name', 'Product name', inp('name', 'maxlength="80"'))}
+        ${field('tagline', 'Tagline', inp('tagline', 'maxlength="140"'), 'Say what it does, not how great it is.')}
+        ${field('website', 'Website', inp('website', 'type="url" inputmode="url" placeholder="https://yourproduct.com"'), 'We check it opens and isn’t a waitlist.')}
+        ${field('categories', 'Categories <span class="c-3" style="font-weight:400">· up to 3</span>', `<div class="chips" id="cats">${CATS.map(c => `<button class="chip" type="button" data-chip data-v="${c}" aria-pressed="${(v.categories || []).includes(c)}">${icon('check')}${c}</button>`).join('')}</div>`)}
+        <div class="grid-2">${field('country', 'Country', `<select class="input" id="f-country" data-k="country">${Object.entries(COUNTRY).map(([c, n]) => `<option value="${c}"${c === v.country ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>`)}${field('city', 'City', inp('city'))}</div>
+        ${field('pay_methods', 'How can people pay?', `<div class="chips" id="pay">${PAY.map(c => `<button class="chip" type="button" data-chip data-v="${c}" aria-pressed="${(v.pay_methods || []).includes(c)}">${icon('check')}${c}</button>`).join('')}</div>`)}
+      </div></section>
+      <section class="card sec"><h2>About</h2>${field('description', 'Description', `<textarea class="input" id="f-description" data-k="description" rows="6" maxlength="4000">${esc(v.description || '')}</textarea>`, 'Shown on your product page and to search engines.')}</section>
+      <section class="card sec"><h2>Media</h2><div data-f="media"><p class="field__label" style="margin-bottom:10px">Images <span class="c-3" style="font-weight:400">· up to 5, first is the cover</span></p><div class="pe-gal" id="gal"></div><input type="file" accept="image/*" multiple class="sr-only" id="img-in"></div>
+        <div style="margin-top:20px">${field('video_url', 'Demo video link', inp('video_url', 'type="url" placeholder="https://youtu.be/…"'), 'YouTube or Loom.')}</div></section>
+      <section class="card sec"><h2>Company</h2><div class="stack gap-20">
+        ${field('registration', 'CAC / company registration number', inp('registration', 'maxlength="40" placeholder="RC 1234567" autocomplete="off" spellcheck="false" style="max-width:280px"'), st.verified ? 'Your page is Verified. We’ll recheck the new number before the stamp carries over.' : 'Needed for the Verified stamp. We check it against the CAC register (or your country’s).')}
+        ${field('founder_link', 'Founder profile', inp('founder_link', 'type="url" placeholder="linkedin.com/in/yourname or x.com/yourname"'))}
+        <div class="grid-2">${field('stage', 'Stage', `<select class="input" id="f-stage" data-k="stage">${[...new Set([v.stage, ...STAGES].filter(Boolean))].map(s => `<option${s === v.stage ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>`)}${field('platforms', 'Platforms', inp('platforms', 'placeholder="Web, iOS, Android"'))}</div>
+        <div class="grid-2">${field('languages', 'Languages', inp('languages', 'placeholder="English, Yoruba"'))}${field('currencies', 'Currencies', inp('currencies', 'placeholder="NGN, USD"'))}</div>
+      </div></section>
+      ${hist.length ? `<section class="card sec"><h2>Past requests</h2>${hist.map(h => `<div class="pe-hist"><span class="badge ${h.status === 'approved' ? 'badge--success' : h.status === 'partial' ? 'badge--accent' : h.status === 'rejected' ? 'badge--danger' : ''}">${{ approved: 'Approved', partial: 'Partly approved', rejected: 'Not approved', withdrawn: 'Withdrawn' }[h.status]}</span><div class="grow"><p class="t-body-sm">${esc(Object.keys(h.changes).map(k => LABEL[k] || k).join(', '))}</p><p class="t-caption c-3" style="font-weight:400">${when(h.created_at)}${h.status === 'partial' ? ' · applied: ' + esc(h.applied.map(k => LABEL[k] || k).join(', ')) : ''}</p>${h.admin_note ? `<p class="t-body-sm c-2" style="margin-top:4px">“${esc(h.admin_note)}”</p>` : ''}</div></div>`).join('')}</section>` : ''}
+    </div>
+    <aside class="pe-side stack gap-16"><section class="card card--pad stack gap-12"><div class="row between"><p class="t-label">Your changes</p><span class="mono t-body-sm c-2" id="n"></span></div><div id="chg"></div>
+      <label class="field"><span class="field__label">Note for the reviewer <span class="c-3" style="font-weight:400">· optional</span></span><textarea class="input" id="msg" rows="3" maxlength="600" placeholder="e.g. We rebranded and moved to a new domain">${esc(pending ? pending.note : '')}</textarea></label>
+      <button class="btn btn--accent btn--block" type="button" id="send">${icon('check')}${pending ? 'Update request' : 'Send for approval'}</button>
+      <p class="t-caption c-3" style="font-weight:400">Most requests are checked within a day. We’ll notify you either way.</p></section></aside></div>`;
+    bind(); gal(); sync();
+  }
+
+  function sync() {
+    const d = diff();
+    qsa('[data-f]').forEach(el => el.classList.toggle('is-changed', d.includes(el.dataset.f)));
+    qs('#n').textContent = d.length ? `${d.length} field${d.length === 1 ? '' : 's'}` : '';
+    qs('#chg').innerHTML = d.length ? d.map(k => `<div class="pe-chg"><span class="t-caption c-3" style="font-weight:400">${LABEL[k]}</span>${k === 'logo_url' && v.logo_url ? `<span class="row gap-8">${H.plogo({ name: cur.name, logo_url: cur.logo_url, color: cur.color }, 24)}${icon('arrow-right', 'ic-14')}${H.plogo({ name: v.name, logo_url: v.logo_url, color: v.color }, 24)}</span>` : `<span class="was">${esc(show(k, cur[k]))}</span><span class="now">${esc(show(k, v[k]))}</span>`}</div>`).join('') : `<p class="t-body-sm c-2">Change anything on the left. Only what you change is sent.</p>`;
+    qs('#send').disabled = !d.length || qsa('.pe-tile.is-loading').length > 0;
+  }
+
+  function bind() {
+    qsa('[data-k]').forEach(el => el.addEventListener('input', () => { v[el.dataset.k] = el.value.trim(); sync(); }));
+    qs('#f-website').addEventListener('blur', e => { const u = normUrl(e.target.value.trim()); if (u) { e.target.value = u; v.website = u; sync(); } });
+    H.bindChips(qs('#cats'), () => {
+      let sel = qsa('#cats [aria-pressed="true"]').map(b => b.dataset.v);
+      if (sel.length > 3) { const last = document.activeElement; last.setAttribute('aria-pressed', 'false'); sel = sel.filter(c => c !== last.dataset.v); toast('Pick up to 3 categories', 'error'); }
+      v.categories = sel; sync();
+    });
+    H.bindChips(qs('#pay'), () => { v.pay_methods = qsa('#pay [aria-pressed="true"]').map(b => b.dataset.v); sync(); });
+    qs('#logo-in').addEventListener('change', async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const img = await createImageBitmap(f).catch(() => null); if (!img) { toast('That file isn’t an image', 'error'); return; }
+      qs('#logo').innerHTML = `<span class="plogo plogo--64" style="background:#fff url('${URL.createObjectURL(f)}') center/cover;opacity:.6"></span>`;
+      try { v.logo_url = await API.upload(await compress(f, 512), 'products/' + st.id); if (img.width < 240) toast('Logos look best at 240px or larger'); }
+      catch (err) { H.fail(err); }
+      page();
+    });
+    const undo = qs('#logo-undo'); undo && (undo.onclick = () => { v.logo_url = cur.logo_url; page(); });
+    qs('#img-in').addEventListener('change', e => {
+      [...e.target.files].slice(0, 5 - (v.media || []).length).forEach(async f => {
+        if (!/image\//.test(f.type) || f.size > 8 * 1024 * 1024) { toast(`${f.name} is not an image under 8 MB`, 'error'); return; }
+        const m = { url: null, preview: URL.createObjectURL(f), loading: true }; v.media = [...(v.media || []), m]; gal();
+        try { m.url = await API.upload(await compress(f, 1600), 'products/' + st.id); } catch (err) { v.media = v.media.filter(x => x !== m); H.fail(err); }
+        delete m.loading; delete m.preview; gal();
+      });
+      e.target.value = '';
+    });
+    qs('#gal').addEventListener('click', e => {
+      const rm = e.target.closest('[data-rm]'), mv = e.target.closest('[data-mv]');
+      if (rm) { v.media = v.media.filter((_, i) => i !== +rm.dataset.rm); gal(); }
+      if (mv) { const i = +mv.dataset.mv; const m = [...v.media]; [m[i - 1], m[i]] = [m[i], m[i - 1]]; v.media = m; gal(); }
+    });
+    const wd = qs('#wd'); wd && (wd.onclick = async () => { try { await API.withdrawEdit(pending.id); st = await API.editState(slug); reset(); page(); toast('Request withdrawn'); } catch (err) { H.fail(err); } });
+    qs('#send').onclick = async () => {
+      const d = diff(); if (!d.length) return;
+      if (d.includes('website') && !normUrl(v.website)) { toast('Enter a full website link, like https://yourproduct.com', 'error'); return; }
+      if (d.includes('categories') && !(v.categories || []).length) { toast('Pick at least one category', 'error'); return; }
+      const changes = {}; d.forEach(k => changes[k] = k === 'media' ? v.media.filter(m => m.url || m.color).map(m => m.url ? { url: m.url } : { color: m.color }) : v[k]);
+      const b = qs('#send'); b.disabled = true;
+      try { await API.requestEdit(st.id, changes, qs('#msg').value); st = await API.editState(slug); reset(); page(); toast('Sent for approval. We’ll let you know.'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      catch (err) { H.fail(err); b.disabled = false; }
+    };
+  }
+
+  function gal() {
+    const m = v.media || [];
+    qs('#gal').innerHTML = m.map((x, i) => `<div class="pe-tile${x.loading ? ' is-loading' : ''}" style="${x.url || x.preview ? `background-image:url('${esc(x.preview || x.url)}')` : `background:${esc(x.color || '#eee')}`}">${i === 0 ? '<span class="cover">COVER</span>' : `<button class="mv" type="button" data-mv="${i}" aria-label="Move image ${i + 1} earlier">${icon('arrow-left', 'ic-14')}</button>`}${x.loading ? '' : `<button class="rm" type="button" data-rm="${i}" aria-label="Remove image ${i + 1}">${icon('x', 'ic-14')}</button>`}</div>`).join('')
+      + (m.length < 5 ? `<label class="pe-add" for="img-in">${icon('plus', 'ic-20')}<span>${m.length} / 5</span></label>` : '');
+    sync();
+  }
+
+  async function compress(file, max) {
+    if (!/image\/(jpeg|png|webp)/.test(file.type)) return file;
+    const img = await createImageBitmap(file); const k = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return new Promise(r => c.toBlob(b => r(new File([b], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })), 'image/jpeg', .85));
+  }
+
+  document.title = `Edit ${cur.name} | Hentity`;
+  page(); H.contentShown();
+})();
+</script>
+</body>
+</html>

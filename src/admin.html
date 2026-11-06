@@ -24,7 +24,7 @@ H.mount();
 
   // ---------------------------------------------------------------- shell
   const SECTIONS = [
-    ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['broadcast', 'Broadcast', 'bell']]],
+    ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell']]],
     ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users']]],
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
     ['Community', [['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
@@ -158,6 +158,43 @@ H.mount();
     stampField(d, reg, 'reg');
     H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=day]').closest('.field').hidden = dec !== 'scheduled'; d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
     d.querySelector('[name=items]').closest('.field').hidden = true;
+  }
+
+  // ---- edit requests from makers of live and scheduled products
+  const ELABEL = { logo_url: 'Logo', name: 'Name', tagline: 'Tagline', website: 'Website', categories: 'Categories', country: 'Country', city: 'City', pay_methods: 'Payment methods', description: 'About', media: 'Images', video_url: 'Demo video', registration: 'CAC / registration no.', founder_link: 'Founder profile', stage: 'Stage', platforms: 'Platforms', languages: 'Languages', currencies: 'Currencies', color: 'Brand colour' };
+  const eval_ = (k, x) => {
+    if (k === 'logo_url') return x ? `<img src="${esc(x)}" alt="" style="width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid var(--color-border-default)">` : '<span class="c-3">none</span>';
+    if (k === 'media') return `<span class="row gap-6" style="flex-wrap:wrap">${(x || []).map(m => m.url ? `<img src="${esc(m.url)}" alt="" style="height:44px;border-radius:6px;border:1px solid var(--color-border-default)">` : `<span style="display:inline-block;width:64px;height:44px;border-radius:6px;background:${esc(m.color || '#eee')}"></span>`).join('') || '<span class="c-3">none</span>'}</span>`;
+    if ((k === 'website' || k === 'founder_link' || k === 'video_url') && x) return `<a class="link" href="${esc(/^https?:/.test(x) ? x : 'https://' + x)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(x)}</a>`;
+    if (k === 'registration' && x) return `<span class="mono">${esc(x)}</span>`;
+    const t = Array.isArray(x) ? x.join(', ') : x; return t == null || t === '' ? '<span class="c-3">empty</span>' : `<span style="white-space:pre-wrap;word-break:break-word">${esc(t)}</span>`;
+  };
+  V.edits = async (st) => {
+    st = st || 'pending'; nav('edits');
+    const rows = await A.edits(st);
+    qs('#main').innerHTML = head('Edit requests', 'Makers of live and scheduled products asking to change their page. Approve all, some, or none of the changes.')
+      + `<div class="chips" style="margin-bottom:16px">${[['pending', 'Waiting'], ['all', 'All']].map(([k, l]) => `<a class="chip" href="#edits/${k}" aria-pressed="${k === st}">${l}</a>`).join('')}</div>`
+      + tbl(['Product', 'Requested by', 'Fields', 'Sent', ''], rows.map(e => `<tr><td><span class="row" style="gap:10px">${H.plogo(e.product, 32)}<span><span class="row gap-6"><b>${esc(e.product.name)}</b>${e.product.verified ? H.verified('verified--sm') : ''}</span><span class="c-3">${esc(e.product.status)}</span></span></span></td><td>${e.user ? esc(e.user.name) + '<br><span class="c-3">' + esc(e.user.email || '@' + e.user.username) + '</span>' : '—'}</td><td style="max-width:280px">${esc(Object.keys(e.changes).map(k => ELABEL[k] || k).join(', '))}</td><td>${when(e.created_at)}</td><td style="text-align:right">${e.status === 'pending' ? `<button class="btn btn--primary btn--sm" data-open="${e.id}">Review</button>` : badge({ approved: 'resolved', partial: 'resolved', rejected: 'rejected', withdrawn: 'dismissed' }[e.status]).replace(/>[^<]*</, '>' + e.status + '<')}</td></tr>`), st === 'pending' ? 'No edit requests waiting' : 'No edit requests yet');
+    qs('#main').onclick = ev => { const b = ev.target.closest('[data-open]'); if (b) openEdit(rows.find(r => r.id === b.dataset.open)); };
+  };
+  function openEdit(e) {
+    const keys = Object.keys(e.changes), regChanged = keys.includes('registration');
+    const top = `<div class="row gap-12" style="margin-bottom:12px">${H.plogo(e.product, 48)}<div><p class="t-h4">${esc(e.product.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(e.product.status)} · <a class="link" href="/products/${esc(e.product.slug)}" target="_blank">open page</a> · from ${esc(e.user ? e.user.name : 'a maker')}, ${H.ago(e.created_at)}</p></div></div>
+      ${e.note ? `<p class="alert alert--info" style="margin-bottom:14px">“${esc(e.note)}”</p>` : ''}
+      <p class="t-caption c-3" style="font-weight:400;margin-bottom:6px">Untick anything you don’t want to apply.</p>
+      <div class="stack" style="margin-bottom:16px">${keys.map(k => `<div style="padding:12px 0;border-top:1px solid var(--color-border-default)"><label class="check" style="margin-bottom:8px"><input type="checkbox" data-take="${k}" checked><span class="check__box">${icon('check')}</span><b>${ELABEL[k] || k}</b></label>
+        <div style="display:grid;grid-template-columns:52px 1fr;gap:6px 10px;font-size:13px;margin-left:30px"><span class="c-3">Now</span><div>${eval_(k, e.before[k])}</div><span class="c-accent">New</span><div>${eval_(k, e.changes[k])}</div></div></div>`).join('')}</div>
+      ${regChanged ? `<p class="t-caption c-3" style="font-weight:400;margin-bottom:10px">Check the new number on the CAC register (or the country’s) before keeping the Verified stamp.</p>` : ''}`;
+    const fields = [['why', 'Note to the maker (required if you reject)', 'textarea', { rows: 3 }]].concat(regChanged && e.product.verified ? [['keep', 'Keep the Verified stamp with the new registration number', 'bool']] : []);
+    const d = drawer('Edit request · ' + e.product.name, fields, { keep: false }, async (v) => {
+      const take = qsa('[data-take]', d).filter(c => c.checked).map(c => c.dataset.take);
+      if (!take.length) throw new Error('Tick at least one change, or reject the request');
+      const r = await A.decideEdit(e.id, true, take, v.why, !!v.keep);
+      toast(r.status === 'approved' ? 'All changes are live' : `Applied ${take.length} of ${keys.length} changes`);
+      stats = await A.stats().catch(() => stats); V.edits();
+    }, { top, saveLabel: 'Approve selected', danger: { label: 'Reject', confirm: 'Reject all of these changes? The maker sees your note.', run: async () => { const why = qs('#dform [name=why]').value.trim(); if (!why) throw new Error('Add a short note so the maker knows what to fix'); await A.decideEdit(e.id, false, null, why); toast('Rejected · maker notified'); stats = await A.stats().catch(() => stats); V.edits(); } } });
+    const sv = d.querySelector('[data-save]'); qsa('[data-take]', d).forEach(c => c.addEventListener('change', () => { const n = qsa('[data-take]', d).filter(x => x.checked).length; sv.textContent = n === keys.length ? 'Approve all' : n ? `Approve ${n} of ${keys.length}` : 'Approve selected'; sv.disabled = !n; }));
+    sv.textContent = 'Approve all';
   }
 
   // ---- products

@@ -63,8 +63,8 @@ H.mount({ active: 'my-products', tab: 'you' });
   let rows = [];
   const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft', rejected: 'Not approved' };
   const A = {
-    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
-    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
     changes: r => `<a class="btn btn--accent btn--sm" href="/changes-requested?p=${r.slug}">Fix &amp; resubmit</a>`,
     review: r => `<a class="btn btn--secondary btn--sm" href="/under-review?p=${r.slug}">View status</a>`,
     draft: r => `<a class="btn btn--secondary btn--sm" href="/submit?id=${r.id}">Continue</a><button class="btn btn--ghost btn--sm" type="button" data-del="${r.id}">Delete</button>`,

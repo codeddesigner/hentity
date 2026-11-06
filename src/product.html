@@ -86,6 +86,7 @@ H.mount({ active: 'products', tab: 'products' });
         ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
+      ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit" style="align-self:flex-start">${icon('edit', 'ic-14')}Edit page</a>` : ''}
       <div id="beta-callout"></div>
       <span class="here" id="here" hidden><i></i><span id="here-n"></span></span>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>

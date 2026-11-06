@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=2b969bfffb"></script>
+<script src="/assets/api.js?v=ff6a430903"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -120,6 +120,7 @@ H.mount({ active: 'products', tab: 'products' });
         ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
+      ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit" style="align-self:flex-start">${icon('edit', 'ic-14')}Edit page</a>` : ''}
       <div id="beta-callout"></div>
       <span class="here" id="here" hidden><i></i><span id="here-n"></span></span>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
