@@ -164,12 +164,26 @@
           "value": "strict-origin-when-cross-origin"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
           "key": "Permissions-Policy",
           "value": "camera=(), geolocation=(), microphone=(self)"
+        }
+      ]
+    },
+    {
+      "source": "/((?!insights).*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
+      "source": "/insights",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *"
         }
       ]
     }
