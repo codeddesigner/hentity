@@ -138,9 +138,19 @@ H.mount();
     qs('#main').onclick = e => { const b = e.target.closest('[data-open]'); if (b) openReview(list.find(p => p.id === b.dataset.open)); };
     if (id) { const p = list.find(x => x.id === id) || (await A.products({ term: '' })).find(x => x.id === id); if (p) openReview(p); }
   };
+  // The Verified stamp needs a company registration number (maker-entered, or on the linked company)
+  async function regOf(p) { const own = p.verify && typeof p.verify.company === 'string' ? p.verify.company.trim() : ''; if (own) return own; if (!p.company_id) return ''; const cs = await A.companies().catch(() => []); const c = cs.find(x => x.id === p.company_id); return c && c.registration ? c.registration.trim() : ''; }
+  function stampField(d, reg, regInputName) {
+    const box = d.querySelector('[name=verified]'), lab = box.closest('label');
+    lab.insertAdjacentHTML('afterend', '<p class="t-caption" data-stamp-hint style="font-weight:400;margin:-8px 0 14px 30px"></p>');
+    const hint = d.querySelector('[data-stamp-hint]');
+    const sync = () => { const r = regInputName ? d.querySelector(`[name=${regInputName}]`).value.trim() : reg; box.disabled = !r && !box.checked; hint.className = 't-caption ' + (r ? 'c-3' : 'c-danger'); hint.textContent = r ? 'Registration on file: ' + r + '. Check it (e.g. CAC search) before issuing the stamp.' : 'Needs a company registration number first. Add it above, or ask the maker for it.'; };
+    if (regInputName) d.querySelector(`[name=${regInputName}]`).addEventListener('input', sync);
+    sync();
+  }
   async function openReview(p) {
     location.hash = 'review/' + p.id;
-    const [weeks, makers, notifyN, ownerFull] = await Promise.all([weekOptions(), A.makers(p.id), A.notifyRequests(p.id), p.owner ? A.users(null, [p.owner.id]) : []]); if (ownerFull[0]) p.owner = ownerFull[0];
+    const [weeks, makers, notifyN, ownerFull, reg] = await Promise.all([weekOptions(), A.makers(p.id), A.notifyRequests(p.id), p.owner ? A.users(null, [p.owner.id]) : [], regOf(p)]); if (ownerFull[0]) p.owner = ownerFull[0];
     const media = (p.media || []).map(m => m.url ? `<img src="${esc(m.url)}" alt="" style="height:72px;border-radius:8px;border:1px solid var(--color-border-default)">` : `<span style="display:inline-block;width:110px;height:72px;border-radius:8px;background:${esc(m.color || '#eee')}"></span>`).join('');
     const top = `<div class="row gap-12" style="margin-bottom:16px">${H.plogo(p, 56)}<div><p class="t-h3">${esc(p.name)}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${badge(p.status)} · ${esc((p.categories || []).join(', '))} · ${esc(p.country)} · <a class="link" href="/products/${p.slug}" target="_blank">preview</a></p></div></div>
       ${media ? `<div class="row gap-8" style="overflow-x:auto;margin-bottom:16px">${media}</div>` : '<p class="alert alert--warning" style="margin-bottom:16px">No media uploaded.</p>'}
@@ -150,24 +160,30 @@ H.mount();
         <dt class="c-3">Makers</dt><dd style="margin:0">${makers.map(m => esc(m.user ? m.user.name : '?') + (m.accepted === false ? ' (invited)' : '')).join(', ') || '—'}</dd>
         <dt class="c-3">Pay methods</dt><dd style="margin:0">${esc((p.pay_methods || []).join(', ') || '—')}</dd>
         <dt class="c-3">Stage</dt><dd style="margin:0">${esc(p.stage || '—')}</dd>
-        <dt class="c-3">Verification</dt><dd style="margin:0" class="mono">${esc(JSON.stringify(p.verify || {}))}</dd>
+        <dt class="c-3">Company reg.</dt><dd style="margin:0">${reg ? `<span class="mono">${esc(reg)}</span>` : '<span class="c-3">Not provided (optional) · can’t be verified</span>'}</dd>
+        <dt class="c-3">Founder link</dt><dd style="margin:0">${p.verify && p.verify.founder ? `<a class="link" href="${esc(/^https?:/.test(p.verify.founder) ? p.verify.founder : 'https://' + p.verify.founder)}" target="_blank" rel="noopener">${esc(p.verify.founder)}</a>` : '<span class="c-3">—</span>'}</dd>
+        <dt class="c-3">Domain</dt><dd style="margin:0">${p.verify && p.verify.domain ? esc(p.verify.domain) : '<span class="c-3">—</span>'}</dd>
         <dt class="c-3">Notify list</dt><dd style="margin:0">${notifyN || 0} people</dd>
       </dl>
       <p class="t-eyebrow c-3">Description</p><p class="t-body-sm" style="white-space:pre-wrap;margin:6px 0 16px">${esc(p.description || '—')}</p>
       <p class="t-eyebrow c-3">Maker intro comment</p><p class="t-body-sm" style="white-space:pre-wrap;margin:6px 0 20px">${esc(p.intro || '—')}</p>
       <div class="sep" style="margin:0 0 18px"></div>
       <div class="chips" data-single id="decision" style="margin-bottom:16px">${[['scheduled', 'Approve & schedule'], ['changes', 'Request changes'], ['rejected', 'Reject'], ['live', 'Go live now']].map(([k, l], i) => `<button class="chip" type="button" data-chip data-d="${k}" aria-pressed="${i === 0}">${icon('check')}${l}</button>`).join('')}</div>`;
-    const d = drawer('Review · ' + p.name, [['wk', 'Launch week', 'select', weeks], ['items', 'Fixes needed (Section — what to change)', 'list'], ['note', 'Note to the maker', 'textarea', { rows: 3 }], ['verified', 'Mark product as verified', 'bool']], { wk: p.week_id || (weeks[0] && weeks[0][0]), items: (p.review_items || []).map(i => `${i.section} — ${i.detail}`), note: p.review_note, verified: p.verified }, async (v) => {
+    const d = drawer('Review · ' + p.name, [['wk', 'Launch week', 'select', weeks], ['items', 'Fixes needed (Section — what to change)', 'list'], ['note', 'Note to the maker', 'textarea', { rows: 3 }], ['reg', 'Company registration number (CAC/RC)', 'text'], ['verified', 'Issue the Verified stamp', 'bool']], { wk: p.week_id || (weeks[0] && weeks[0][0]), items: (p.review_items || []).map(i => `${i.section} — ${i.detail}`), note: p.review_note, reg, verified: p.verified }, async (v) => {
       const dec = (qs('#decision [aria-pressed="true"]') || {}).dataset.d || 'scheduled';
       const items = (v.items || []).map(line => { const [s, ...r] = line.split(/\s+[—-]\s+/); const detail = r.join(' — ') || s; return { section: r.length ? s : 'General', title: (r.length ? s : 'General') + ' · ' + detail.split(/[.,]/)[0], detail }; });
       if (dec === 'changes' && !items.length && !v.note) throw new Error('Add at least one fix or a note so the maker knows what to change');
       if (dec === 'rejected' && !v.note) throw new Error('Add a short note explaining the rejection');
       if (dec === 'scheduled') { const w = weeksCache.find(x => x.id === +v.wk); if (w && w.taken >= w.capacity && !confirm(`Week ${w.id} is full (${w.taken}/${w.capacity}). Schedule anyway?`)) return; }
       await A.review(p.id, dec, v.note, dec === 'changes' ? items : [], dec === 'scheduled' || dec === 'live' ? +v.wk : null);
-      if (v.verified !== p.verified) await A.updateProduct(p.id, { verified: v.verified });
+      const patch = {}; if ((v.reg || '') !== reg) patch.verify = Object.assign({}, p.verify, { company: v.reg || undefined });
+      if (v.verified !== p.verified) patch.verified = v.verified;
+      if (patch.verified && !(v.reg || '').trim()) throw new Error('Add the company registration number before issuing the Verified stamp');
+      if (Object.keys(patch).length) await A.updateProduct(p.id, patch);
       toast({ scheduled: `Scheduled for week ${v.wk}`, changes: 'Changes requested — maker notified', rejected: 'Rejected — maker notified', live: 'Live now' }[dec]);
       location.hash = 'review';
     }, { top, saveLabel: 'Send decision' });
+    stampField(d, reg, 'reg');
     H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=wk]').closest('.field').hidden = !['scheduled', 'live'].includes(dec); d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
     d.querySelector('[name=items]').closest('.field').hidden = true;
   }
@@ -185,17 +201,18 @@ H.mount();
     await load();
   };
   async function editProduct(p, after) {
-    const allWeeks = await A.weeks();
-    drawer('Edit · ' + p.name, [
+    const [allWeeks, reg] = await Promise.all([A.weeks(), regOf(p)]);
+    const d = drawer('Edit · ' + p.name, [
       ['name', 'Name', 'text'], ['slug', 'Slug', 'text'], ['tagline', 'Tagline', 'text'], ['description', 'Description', 'textarea', { rows: 5 }], ['website', 'Website', 'text'],
       ['logo_url', 'Logo', 'image'], ['color', 'Brand colour (hex)', 'color'], ['video_url', 'Demo video URL', 'text'], ['media', 'Media (JSON)', 'json', { empty: [] }],
       ['status', 'Status', 'select', ['draft', 'review', 'changes', 'scheduled', 'live', 'rejected', 'archived']], ['week_id', 'Launch week', 'select', [['', '— none —'], ...allWeeks.map(w => [w.id, 'Week ' + w.id + ' · ' + new Date(w.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })])]],
-      ['featured', 'Featured on the board', 'bool'], ['promoted', 'Promoted (sponsored slot)', 'bool'], ['verified', 'Verified product', 'bool'],
+      ['featured', 'Featured on the board', 'bool'], ['promoted', 'Promoted (sponsored slot)', 'bool'], ['reg', 'Company registration number (CAC/RC)', 'text'], ['verified', 'Verified stamp', 'bool'],
       ['categories', 'Categories', 'list'], ['pay_methods', 'Payment methods', 'list'], ['countries', 'Available countries (codes)', 'list'],
       ['country', 'HQ country code', 'text'], ['city', 'City', 'text'], ['stage', 'Stage', 'select', ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+', 'Bootstrapped', 'Profitable']], ['languages', 'Languages', 'text'], ['platforms', 'Platforms', 'text'], ['currencies', 'Currencies', 'text'],
       ['intro', 'Maker intro', 'textarea'], ['review_note', 'Review note', 'textarea', { rows: 2 }], ['upvote_count', 'Upvotes (read-only, counted)', 'readonly'], ['click_count', 'Website clicks', 'readonly'], ['view_count', 'Views', 'readonly']
-    ], p, async v => { if (v.week_id != null) v.week_id = +v.week_id; await A.updateProduct(p.id, v); toast('Saved'); after && after(); },
+    ], Object.assign({}, p, { reg }), async v => { if (v.week_id != null) v.week_id = +v.week_id; const r = (v.reg || '').trim(); delete v.reg; if (r !== reg) v.verify = Object.assign({}, p.verify, { company: r || undefined }); if (v.verified && !r) throw new Error('Add the company registration number before issuing the Verified stamp'); await A.updateProduct(p.id, v); toast('Saved'); after && after(); },
       { danger: { label: 'Delete', confirm: `Delete ${p.name} permanently? Votes, comments and its room go too.`, run: async () => { await A.deleteProduct(p.id); toast('Deleted'); after && after(); } } });
+    stampField(d, reg, 'reg');
   }
 
   // ---- weeks
@@ -232,7 +249,7 @@ H.mount();
   V.companies = async () => {
     nav('companies'); const rows = await A.companies();
     qs('#main').innerHTML = head('Companies', 'Verify company registration and correct details.') + tbl(['Company', 'Stage', 'Location', 'Team', 'Raised', 'Registration', 'Verified', ''], rows.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.stage || '')}</td><td>${esc([c.city, c.country].filter(Boolean).join(', '))}</td><td class="mono">${c.team_size || ''}</td><td>${esc(c.raised || '')}</td><td class="mono">${esc(c.registration || '—')}</td><td>${c.verified ? H.verified('verified--sm') : '—'}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-c="${c.id}">Edit</button></td></tr>`), 'No companies yet');
-    qs('#main').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = rows.find(x => x.id === b.dataset.c); drawer(c.name, [['name', 'Name', 'text'], ['verified', 'Verified company', 'bool'], ['registration', 'Registration number (CAC/RC)', 'text'], ['stage', 'Stage', 'text'], ['city', 'City', 'text'], ['country', 'Country code', 'text'], ['team_size', 'Team size', 'number'], ['founded', 'Founded', 'number'], ['raised', 'Raised', 'text']], c, async v => { await A.updateCompany(c.id, v); toast('Saved'); V.companies(); }); };
+    qs('#main').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = rows.find(x => x.id === b.dataset.c); const d = drawer(c.name, [['name', 'Name', 'text'], ['registration', 'Registration number (CAC/RC)', 'text'], ['verified', 'Verified stamp', 'bool'], ['stage', 'Stage', 'text'], ['city', 'City', 'text'], ['country', 'Country code', 'text'], ['team_size', 'Team size', 'number'], ['founded', 'Founded', 'number'], ['raised', 'Raised', 'text']], c, async v => { if (v.verified && !(v.registration || '').trim()) throw new Error('Add the registration number before issuing the Verified stamp'); await A.updateCompany(c.id, v); toast('Saved'); V.companies(); }); stampField(d, '', 'registration'); };
   };
 
   // ---- reports

@@ -142,7 +142,7 @@
 
     <!-- 06 Verification -->
     <section class="card sec" id="verify" data-sec>
-      <div class="sec-h"><span class="n">06</span><div><h2 class="t-h3">Verification (optional)</h2><p class="t-body-sm c-2">Earn a “Verified startup” tick. Investors filter by it.</p></div></div>
+      <div class="sec-h"><span class="n">06</span><div><h2 class="t-h3">Verification (optional)</h2><p class="t-body-sm c-2">You can launch without these. To get the <b>Verified</b> stamp, add your company registration number: the Hentity team checks it and issues the stamp.</p></div></div>
       <div id="vlist"></div>
     </section>
   </form>
@@ -305,8 +305,8 @@ H.mount({ active: '', tab: 'launch' });
   // ---- Verification
   function renderV() {
     const dom = (normUrl(form.website.value) || 'yourdomain.com').replace(/^https?:\/\//, '').replace(/\/.*/, '');
-    const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
-    qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? `<span class="badge">${s.verified ? 'Verified' : 'Pending review'}</span>` : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">${k === 'domain' ? 'I’ve added it' : 'Add'}</button>`}</div>`).join('');
+    const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number · needed for the Verified stamp', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
+    qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? `<span class="badge">${s.verified ? 'Verified' : k === 'company' ? 'Checked by Hentity' : 'Added'}</span>` : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">${k === 'domain' ? 'I’ve added it' : 'Add'}</button>`}</div>`).join('');
   }
   qs('#vlist').addEventListener('click', e => {
     const b = e.target.closest('[data-v]'); if (b) { const k = b.dataset.v; if (k === 'domain') { s.verify.domain = 'TXT record added · checked during review'; renderV(); scheduleSave(); return; } const row = b.closest('.vrow'); b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); return; }
