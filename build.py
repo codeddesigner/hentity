@@ -10,7 +10,7 @@ head = (SRC / 'partials/head.html').read_text()
 # Signed-in or transactional pages that should never appear in search results
 NOINDEX = {'me', 'my-products', 'notifications', 'saved', 'submit', 'under-review', 'changes-requested', 'scheduled',
            'launch-week', 'launch-recap', 'welcome',
-           'admin', '404', 'maker', 'product', 'article', 'beta', 'beta-new', 'beta-manage', 'beta-apply', 'studio', 'betas'}  # templates: real URLs are server-rendered by api/ssr.js
+           'admin', '404', 'maker', 'product', 'article', 'beta', 'beta-new', 'beta-manage', 'beta-apply', 'studio', 'betas', 'directory-index'}  # templates: real URLs are server-rendered by api/ssr.js
 
 def seo(page: str, rel: pathlib.Path) -> str:
     name = rel.with_suffix('').as_posix()
@@ -61,7 +61,7 @@ def bust(page: str) -> str:
 
 # The home and news pages are served by api/ssr.js (which embeds their data), so their templates are written
 # under other names; a static /index.html or /news.html would otherwise take priority over the rewrite.
-SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html'}
+SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html', 'directory.html': 'directory-index.html'}
 
 if OUT.exists(): shutil.rmtree(OUT)
 public_paths = []

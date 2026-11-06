@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=efdc6a7fee">
+<link rel="stylesheet" href="/assets/styles.css?v=d425a8aed2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=f3f7f3f9d9"></script>
-<script src="/assets/app.js?v=28eab8e794"></script>
+<script src="/assets/app.js?v=bf8b459fb4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -83,6 +83,10 @@
       <h3 class="t-eyebrow c-3">Language</h3><div data-group="lang"></div>
     </aside>
   </div>
+  <nav class="browse" aria-label="Browse the directory">
+    <p class="t-eyebrow c-3">Browse by category</p><p><a href="/categories/fintech">Fintech</a> · <a href="/categories/saas">SaaS</a> · <a href="/categories/apps">Apps</a> · <a href="/categories/ai">AI</a> · <a href="/categories/commerce">Commerce</a> · <a href="/categories/productivity">Productivity</a> · <a href="/categories/dev-tools">Dev Tools</a> · <a href="/categories/health">Health</a> · <a href="/categories/education">Education</a> · <a href="/categories/agriculture">Agriculture</a> · <a href="/categories/logistics">Logistics</a> · <a href="/categories/infrastructure">Infrastructure</a> · <a href="/categories/energy-and-climate">Energy &amp; Climate</a></p>
+    <p class="t-eyebrow c-3">Browse by country</p><p><a href="/countries/nigeria">Nigeria</a> · <a href="/countries/kenya">Kenya</a> · <a href="/countries/ghana">Ghana</a> · <a href="/countries/south-africa">South Africa</a> · <a href="/countries/rwanda">Rwanda</a> · <a href="/countries/egypt">Egypt</a> · <a href="/countries/morocco">Morocco</a> · <a href="/countries/uganda">Uganda</a> · <a href="/countries/tanzania">Tanzania</a> · <a href="/countries/senegal">Senegal</a> · <a href="/countries/ethiopia">Ethiopia</a> · <a href="/countries/cote-divoire">Côte d’Ivoire</a></p>
+  </nav>
 </main>
 <div data-tabbar></div>
 <script src="/assets/data.js?v=d3cbe3db04"></script>
@@ -100,10 +104,18 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   if (prm.get('pay')) Object.assign(state, { pay: [prm.get('pay')], stage: [], sector: [], country: [] });
   if (prm.get('country')) Object.assign(state, { country: [prm.get('country')], pay: [], stage: [], sector: [] });
   if (prm.get('sector')) Object.assign(state, { sector: [prm.get('sector')], pay: [], stage: [], country: [] });
+  // Landing pages: /categories/<slug> and /countries/<slug> (server-rendered for search, filtered here)
+  const SLUG = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const ALL_SECTORS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const seg = location.pathname.split('/').filter(Boolean);
+  let landing = null;
+  if (seg[0] === 'categories' && seg[1]) { const c = ALL_SECTORS.find(x => SLUG(x) === seg[1]); if (c) { landing = { h: `${c} products from Africa`, sector: c }; Object.assign(state, { sector: [c], pay: [], stage: [], country: [], lang: [] }); } }
+  if (seg[0] === 'countries' && seg[1]) { const CN = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' }; const cc = Object.keys(CN).find(k => SLUG(CN[k]) === seg[1]); if (cc) { landing = { h: `Built in ${CN[cc]}`, cc }; Object.assign(state, { country: [cc], pay: [], stage: [], sector: [], lang: [] }); } }
+  if (landing) { scope = 'all'; setTimeout(() => { qs('#title').firstChild.textContent = landing.h + ' '; }, 0); }
   if (term) { Object.keys(state).forEach(k => state[k] = []); scope = 'all'; }
   if (prm.get('sort')) qs('#sort').value = prm.get('sort');
   Object.entries(G).forEach(([g, opts]) => { qs(`[data-group="${g}"]`).innerHTML = opts.map(([v, l]) => `<label class="check"><input type="checkbox" value="${v}" data-f="${g}" ${state[g].includes(v) ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${l || v}</label>`).join(''); });
-  const sectors = ['Fintech', 'Apps', 'Commerce', 'Education', 'Health', 'AI', 'Agriculture', 'Dev Tools', 'Logistics'];
+  const sectors = ALL_SECTORS;
   qs('#sector').innerHTML = sectors.map(s => `<button class="chip" type="button" data-chip data-sector="${s}" aria-pressed="${state.sector.includes(s)}">${icon('check')}${s}</button>`).join('');
   H.bindChips(qs('#sector'), () => { state.sector = qsa('#sector [aria-pressed="true"]').map(c => c.dataset.sector); render(); });
   document.addEventListener('change', e => { const f = e.target.dataset && e.target.dataset.f; if (!f) return; state[f] = qsa(`[data-f="${f}"]:checked`).map(i => i.value); render(); });
@@ -112,11 +124,11 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   qsa('[data-scope]').forEach(t => { t.setAttribute('aria-selected', String(t.dataset.scope === scope)); t.addEventListener('click', () => { scope = t.dataset.scope; store.set('dirScope', scope); qsa('[data-scope]').forEach(o => o.setAttribute('aria-selected', String(o === t))); render(); }); });
   let fol = new Set();
   async function render() {
-    store.set('dirFilters2', state);
+    if (!landing) store.set('dirFilters2', state);
     qs('#list').innerHTML = Array.from({ length: 4 }, () => '<div class="drow"><span class="skel" style="width:48px;height:48px;border-radius:10px"></span><span class="grow stack gap-8"><span class="skel" style="width:30%;height:14px"></span><span class="skel" style="width:60%;height:12px"></span></span></div>').join('');
     try {
       const L = await API.directory({ countries: state.country, pay: state.pay, stages: state.stage, sectors: state.sector, langs: state.lang, term, sort: qs('#sort').value, scope });
-      fol = await API.following('product', L.map(p => p.id));
+      fol = await API.following('product', L.map(p => p.id)); H.contentShown();
       qs('#title').firstChild.textContent = term ? `Results for “${term}” ` : scope === 'local' ? 'Built near you ' : 'Built across Africa ';
       qs('#title-flag').innerHTML = scope === 'local' && !term ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
       qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;

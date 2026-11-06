@@ -343,7 +343,7 @@
 
   // Real-user timings: a few seconds after each page load, send where the time went (no personal data).
   // Read in Supabase table perf_beacons; this is how slowness on visitors' own connections gets diagnosed.
-  const contentShown = () => { try { if (!performance.getEntriesByName('hentity:content').length) performance.mark('hentity:content'); } catch (e) {} };
+  const contentShown = () => { document.querySelectorAll('[data-ssr]').forEach(e => e.remove()); try { if (!performance.getEntriesByName('hentity:content').length) performance.mark('hentity:content'); } catch (e) {} };
   window.addEventListener('load', () => setTimeout(() => {
     try {
       const r = Math.round, n = performance.getEntriesByType('navigation')[0], c = navigator.connection || {};

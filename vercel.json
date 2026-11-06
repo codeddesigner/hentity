@@ -6,6 +6,18 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/directory",
+      "destination": "/api/ssr?type=directory&slug=all"
+    },
+    {
+      "source": "/categories/:slug",
+      "destination": "/api/ssr?type=category&slug=:slug"
+    },
+    {
+      "source": "/countries/:slug",
+      "destination": "/api/ssr?type=country&slug=:slug"
+    },
+    {
       "source": "/b/:slug",
       "destination": "/api/ssr?type=beta&slug=:slug"
     },
@@ -163,7 +175,7 @@
   ],
   "functions": {
     "api/ssr.js": {
-      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply}.html",
+      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply,directory-index}.html",
       "maxDuration": 10
     },
     "api/sitemap.js": {
@@ -175,5 +187,11 @@
     "api/health.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/indexnow",
+      "schedule": "30 6 * * *"
+    }
+  ]
 }
