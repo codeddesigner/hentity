@@ -4,7 +4,7 @@ and adding SEO tags (canonical, Open Graph, Twitter, robots) to every page from 
 import pathlib, shutil, re, html, datetime
 ROOT = pathlib.Path(__file__).parent
 SRC, OUT = ROOT / 'src', ROOT / 'public'
-SITE = 'https://hentity.vercel.app'
+SITE = 'https://hentity.com'
 head = (SRC / 'partials/head.html').read_text()
 
 # Signed-in or transactional pages that should never appear in search results

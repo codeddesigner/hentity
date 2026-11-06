@@ -3,7 +3,7 @@
 // Twitter and JSON-LD from Supabase, and adds a crawlable <noscript> summary. The page then hydrates as usual.
 const SB = 'https://sislzikhjapilksictxd.supabase.co';
 const KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
-const SITE = 'https://hentity.vercel.app';
+const SITE = 'https://hentity.com';
 const COUNTRY = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' };
 
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

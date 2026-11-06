@@ -51,12 +51,12 @@ H.mount();
     userOk = false; clearTimeout(timer); qs('#f-username').classList.remove('is-error');
     if (!v) { h.textContent = 'Lowercase letters, numbers and underscores.'; h.className = 'field__hint'; update(); return; }
     if (v.length < 3) { h.textContent = 'At least 3 characters.'; h.className = 'field__hint'; update(); return; }
-    h.textContent = 'Checking hentity.vercel.app/makers/' + v + '…'; h.className = 'field__hint';
+    h.textContent = 'Checking hentity.com/makers/' + v + '…'; h.className = 'field__hint';
     timer = setTimeout(async () => {
       const ok = await API.usernameAvailable(v);
       if (form.username.value !== v) return;
       if (!ok) { h.textContent = '@' + v + ' is taken. Try ' + v + '_' + (Math.floor(Math.random() * 90) + 10); h.className = 'field__hint is-error'; qs('#f-username').classList.add('is-error'); }
-      else { h.textContent = 'hentity.vercel.app/makers/' + v + ' · available'; h.className = 'field__hint is-success'; userOk = true; }
+      else { h.textContent = 'hentity.com/makers/' + v + ' · available'; h.className = 'field__hint is-success'; userOk = true; }
       update();
     }, 350);
   });

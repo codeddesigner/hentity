@@ -1,7 +1,7 @@
 // /sitemap.xml — static pages plus every live/scheduled product, published article and indexable maker.
 const SB = 'https://sislzikhjapilksictxd.supabase.co';
 const KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
-const SITE = 'https://hentity.vercel.app';
+const SITE = 'https://hentity.com';
 const STATIC = require('./_static-paths.json');
 const get = p => fetch(`${SB}/rest/v1/${p}`, { headers: { apikey: KEY } }).then(r => r.ok ? r.json() : []).catch(() => []);
 const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');

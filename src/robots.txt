@@ -9,4 +9,4 @@ Disallow: /saved
 Disallow: /submit
 Disallow: /api/
 
-Sitemap: https://hentity.vercel.app/sitemap.xml
+Sitemap: https://hentity.com/sitemap.xml

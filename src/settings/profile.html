@@ -112,9 +112,9 @@ H.mount({ active: '', tab: 'you' });
     if (e.target === form.username) {
       form.username.value = form.username.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
       const v = form.username.value, h = qs('#u-hint'); clearTimeout(uT);
-      if (v === saved.username) { userOk = true; h.className = 'field__hint'; h.textContent = 'hentity.vercel.app/makers/' + v + ' · change once every 30 days'; }
+      if (v === saved.username) { userOk = true; h.className = 'field__hint'; h.textContent = 'hentity.com/makers/' + v + ' · change once every 30 days'; }
       else if (v.length < 3) { userOk = false; h.className = 'field__hint is-error'; h.textContent = 'At least 3 characters.'; }
-      else { h.className = 'field__hint'; h.textContent = 'Checking…'; uT = setTimeout(async () => { userOk = await API.usernameAvailable(v); h.className = 'field__hint ' + (userOk ? 'is-success' : 'is-error'); h.textContent = 'hentity.vercel.app/makers/' + v + (userOk ? ' · available' : ' · taken'); }, 300); }
+      else { h.className = 'field__hint'; h.textContent = 'Checking…'; uT = setTimeout(async () => { userOk = await API.usernameAvailable(v); h.className = 'field__hint ' + (userOk ? 'is-success' : 'is-error'); h.textContent = 'hentity.com/makers/' + v + (userOk ? ' · available' : ' · taken'); }, 300); }
     }
     counts(); dirty();
   });
