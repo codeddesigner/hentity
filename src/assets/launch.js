@@ -51,7 +51,7 @@
       const mine = day === opts.own, left = sl.capacity - sl.taken + (mine ? 1 : 0);
       if (day < first) return { k: 'past', t: 'Too long ago', sl };
       if (day > last) return { k: 'far', t: 'Not open yet', sl };
-      return { k: 'open', t: sl.taken ? `${sl.taken} launching` : '', sl, left };
+      return { k: 'open', t: '', sl, left };
     }
     function draw(start) {
       const mDate = new Date(month + '-01T12:00:00Z');
@@ -60,7 +60,7 @@
       root.innerHTML = `<div class="cal">
         <div class="row between" style="margin-bottom:12px"><p class="t-label">${mDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</p><div class="row gap-6"><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="-1" aria-label="Previous month" ${month <= first.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-left', 'ic-14')}</button><button type="button" class="btn btn--secondary btn--icon btn--sm" data-mv="1" aria-label="Next month" ${month >= last.slice(0, 7) ? 'disabled' : ''}>${icon('arrow-right', 'ic-14')}</button></div></div>
         <div class="cal__grid" role="grid">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<span class="cal__dow">${d}</span>`).join('')}
-        ${cells.slice(0, lastRow).map(day => { const st = state(day), on = day === opts.selected, out = day.slice(0, 7) !== month; return `<button type="button" class="cal__d is-${st.k}${on ? ' is-on' : ''}${out ? ' is-out' : ''}" data-day="${day}" ${st.k === 'open' || on ? '' : 'disabled'} aria-pressed="${on}" aria-label="${dayLabel(day)}: ${st.t}"><b>${+day.slice(8)}</b><span>${on ? (st.sl.taken + (day === opts.own ? 0 : 1)) + ' launching' : st.k === 'full' ? `<i class="cal__n">${st.sl.taken} launching · </i>Full` : esc(st.t)}</span></button>`; }).join('')}</div>
+        ${cells.slice(0, lastRow).map(day => { const st = state(day), on = day === opts.selected, out = day.slice(0, 7) !== month; return `<button type="button" class="cal__d is-${st.k}${on ? ' is-on' : ''}${out ? ' is-out' : ''}" data-day="${day}" ${st.k === 'open' || on ? '' : 'disabled'} aria-pressed="${on}" aria-label="${dayLabel(day)}: ${st.t}"><b>${+day.slice(8)}</b><span>${on ? 'Your pick' : esc(st.t)}</span></button>`; }).join('')}</div>
         <p class="row gap-16 wrap t-caption c-3" style="font-weight:400;margin-top:12px"><span class="row gap-6"><i class="cal__key" style="background:var(--color-success)"></i>Open</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-accent-default)"></i>Your pick</span><span class="row gap-6"><i class="cal__key" style="background:var(--color-border-strong)"></i>More than a year ago, or not open yet</span></p>
         <div id="cal-info"></div></div>`;
       info();
@@ -70,7 +70,7 @@
       if (!opts.selected) { box.innerHTML = ''; return; }
       const st = state(opts.selected), sl = st.sl, others = sl.launches || [];
       const n = sl.taken + (opts.selected === opts.own ? 0 : 1), left = Math.max(0, sl.capacity - n);
-      box.innerHTML = `<div class="cal__info">${icon('calendar')}<div><p class="t-label">${esc(dayLabel(opts.selected))}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${opts.selected <= today ? 'Backdated launch · goes live as soon as it’s approved, listed on this day' : 'Live at 06:00 WAT'} · ${n} startup${n === 1 ? '' : 's'} launching that day · on the board until Monday ${esc(shortDay(nextMonday(opts.selected)).replace(/^\w+ /, ''))}</p>${others.length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:8px">${others.slice(0, 4).map(o => H.plogo(o, 20)).join('')}<span>${esc(others.map(o => o.name).slice(0, 3).join(', '))}${others.length > 3 ? ' and ' + (others.length - 3) + ' more' : ''}</span></p>` : ''}</div></div>`;
+      box.innerHTML = `<div class="cal__info">${icon('calendar')}<div><p class="t-label">${esc(dayLabel(opts.selected))}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${opts.selected <= today ? 'Backdated launch · goes live as soon as it’s approved, listed on this day' : 'Live at 06:00 WAT'} · on the board until Monday ${esc(shortDay(nextMonday(opts.selected)).replace(/^\w+ /, ''))}</p>${others.length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:8px">${others.slice(0, 4).map(o => H.plogo(o, 20)).join('')}<span>${esc(others.map(o => o.name).slice(0, 3).join(', '))}${others.length > 3 ? ' and ' + (others.length - 3) + ' more' : ''}</span></p>` : ''}</div></div>`;
     }
     root.onclick = e => {
       const mv = e.target.closest('[data-mv]'); if (mv) { const d = new Date(month + '-01T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() + (+mv.dataset.mv)); month = d.toISOString().slice(0, 7); load(); return; }
