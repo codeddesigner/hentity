@@ -96,22 +96,8 @@ H.mount({ active: 'validate', tab: 'launch' });
     ['Productivity', /\b(notes|calendar|task|productiv|workflow|document)/i], ['SaaS', /\b(software|dashboard|crm|hr|payroll|saas|b2b|erp)/i]];
   const inferCats = t => { const out = KW.filter(([, r]) => r.test(t)).map(([c]) => c); return out.length ? out.slice(0, 2) : ['Apps']; };
   await API.ready;
-  // Coming soon: members see a preview; admins can still run checks to test it
-  if (!API.isAdmin) return soon();
   if (id) return report(id);
   form();
-
-  function soon() {
-    root.innerHTML = `<div class="va reveal" style="grid-template-columns:minmax(0,1fr)"><div style="max-width:640px">
-      <p class="t-eyebrow row gap-8" style="color:var(--color-accent-default)">Validate an idea<span class="soon">Coming soon</span></p>
-      <h1>Is anyone already building this?</h1>
-      <p class="va-lead">Soon you’ll be able to describe an idea and check it against every African startup on Hentity. You’ll see how new it is, who’s closest, where it’s crowded and what to test first.</p>
-      <ul class="stack va-card va-rail" style="list-style:none;margin:24px 0 0;gap:14px">
-        ${[['sparkles', 'Novelty', 'How new it is on Hentity, in your city, country and across Africa'], ['package', 'Closest matches', 'Similar startups, launched or unclaimed, and what you share'], ['globe', 'Where it’s crowded', 'Cities with the most similar startups, and where nobody is'], ['list', 'What to test first', 'Your riskiest assumptions, as a checklist']].map(([i, t, d]) => `<li><span class="ib">${icon(i, 'ic-14')}</span><div><p class="t-body-sm" style="font-weight:500">${t}</p><p class="t-caption c-3" style="font-weight:400">${d}</p></div></li>`).join('')}
-      </ul>
-      <a class="btn btn--secondary" style="margin-top:20px" href="/">${icon('arrow-left', 'ic-16')}Back to launches</a></div></div>`;
-    H.contentShown();
-  }
 
   // ------------------------------------------------------------------ Describe your idea
   async function form(prefill) {

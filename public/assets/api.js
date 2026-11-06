@@ -53,14 +53,17 @@
   // Which feature each page belongs to. A page whose feature is off shows a notice instead (admins still see it).
   const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
     [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar']];
+  // A feature is 'on' (missing key or true), 'off' (false) or 'soon' (shown as Coming soon, unusable)
+  const stateOf = k => features[k] === false ? 'off' : features[k] === 'soon' ? 'soon' : 'on';
   function gate(r) {
     const hit = PAGE_FEATURE.find(([re]) => re.test(location.pathname));
-    if (!hit || features[hit[1]] !== false) return r;
+    const st = hit ? stateOf(hit[1]) : 'on';
+    if (st === 'on') return r;
     const admin = r.profile && ['admin', 'moderator'].includes(r.profile.role);
     const show = () => {
-      if (admin) { const b = document.createElement('div'); b.className = 'feat-off-bar'; b.innerHTML = `${hit[2]} is turned off for everyone else. You can see it because you’re an admin. <a href="/admin#features">Turn it back on</a>`; document.body.prepend(b); return; }
+      if (admin) { const b = document.createElement('div'); b.className = 'feat-off-bar'; b.innerHTML = st === 'soon' ? `${hit[2]} shows as Coming soon to everyone else. You can use it because you’re an admin. <a href="/admin#features">Change</a>` : `${hit[2]} is turned off for everyone else. You can see it because you’re an admin. <a href="/admin#features">Turn it back on</a>`; document.body.prepend(b); return; }
       const m = document.querySelector('#main') || document.querySelector('main');
-      if (m) m.innerHTML = `<div class="feat-off"><h1 class="t-h3">${hit[2]} is off right now</h1><p class="t-body-sm c-2">We’ve paused this part of Hentity for a while. Everything else works as usual.</p><a class="btn btn--secondary btn--sm" href="/">Back to Hentity</a></div>`;
+      if (m) m.innerHTML = st === 'soon' ? `<div class="feat-off"><span class="soon">Coming soon</span><h1 class="t-h3">${hit[2]}</h1></div>` : `<div class="feat-off"><h1 class="t-h3">${hit[2]} is off right now</h1><p class="t-body-sm c-2">We’ve paused this part of Hentity for a while. Everything else works as usual.</p><a class="btn btn--secondary btn--sm" href="/">Back to Hentity</a></div>`;
       window.H && H.contentShown && H.contentShown();
     };
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', show) : show();
@@ -105,7 +108,7 @@
     sb, ready, url: SUPABASE_URL,
     get session() { return session; }, get profile() { return profile; }, get uid() { return uid(); },
     get isAdmin() { return !!profile && ['admin', 'moderator'].includes(profile.role); },
-    get features() { return features; }, on: k => features[k] !== false, featuresReady,
+    get features() { return features; }, on: k => stateOf(k) === 'on', state: stateOf, featuresReady,
     onAuth(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     requireAuth,
     refreshProfile: loadProfile,

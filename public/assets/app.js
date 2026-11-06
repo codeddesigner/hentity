@@ -159,7 +159,11 @@
   // ---------- App shell: sidebar (Figma "App sidebar" 62:497) + tab bar (62:798) ----------
   const counts = { chats: store.get('count.chats', 0), notifs: store.get('count.notifs', 0) };
   // Feature switches: hidden for everyone when off, still shown to admins so they can check them
-  const on = k => !window.API || !API.on || API.on(k) || API.isAdmin;
+  // shown: hidden only when Off (admins see everything). soon: show a Coming soon label.
+  const st = k => window.API && API.state ? API.state(k) : 'on';
+  const on = k => st(k) !== 'off' || (window.API && API.isAdmin);
+  const soon = k => st(k) === 'soon';
+  const lbl = (k, l) => soon(k) ? `${l}<small class="soon-line">Coming soon</small>` : l;
   function sidebar(active) {
     const s = session(); const u = user();
     const item = (key, label, href, ic, count, accentCount) => `<a class="sb-item" href="${href}"${key === active ? ' aria-current="page"' : ''}>${icon(ic, 'ic-20')}<span>${label}</span>${count ? `<span class="sb-count${accentCount || key === active ? ' is-accent' : ''}" data-count="${key}">${count}</span>` : `<span class="sb-count" data-count="${key}" hidden></span>`}</a>`;
@@ -168,12 +172,12 @@
       <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
       <nav class="sb-nav" aria-label="Primary">
         ${item('products', 'Products', '/', 'package')}
-        ${on('chats') ? item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true) : ''}
-        ${on('news') ? item('news', 'News', '/news', 'newspaper') : ''}
-        ${on('insights') ? item('insights', 'Insights', '/insights', 'bar-chart') : ''}
+        ${on('chats') ? item('chats', lbl('chats', 'Chats'), '/chats', 'chats', s ? counts.chats : 0, true) : ''}
+        ${on('news') ? item('news', lbl('news', 'News'), '/news', 'newspaper') : ''}
+        ${on('insights') ? item('insights', lbl('insights', 'Insights'), '/insights', 'bar-chart') : ''}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
-        ${on('validate') ? item('validate', 'Validate an idea<small class="soon-line">Coming soon</small>', '/validate', 'sparkles') : ''}
+        ${on('validate') ? item('validate', lbl('validate', 'Validate an idea'), '/validate', 'sparkles') : ''}
         ${item('my-products', 'My products', '/my-products', 'rocket')}
         ${item('notifications', 'Notifications', '/notifications', 'bell', counts.notifs)}
         ${item('saved', 'Saved', '/saved', 'bookmark')}
@@ -291,7 +295,7 @@
     if (document.querySelector('.lsheet')) return;
     const bg = document.createElement('div'); bg.className = 'scrim'; bg.style.alignItems = 'end'; bg.style.padding = '0';
     bg.innerHTML = `<div class="lsheet" role="dialog" aria-modal="true" aria-label="What do you want to do?"><div class="grab"></div><h2>What do you want to do?</h2>
-      ${[['/validate', 'sparkles', 'Validate an idea <span class="soon">Coming soon</span>', 'Check if it’s new, who’s closest and what to test', false, 'validate'], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard', false, 'submissions'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta', false, 'studio']].filter(x => on(x[5])).map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
+      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true, 'validate'], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard', false, 'submissions'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta', false, 'studio']].filter(x => on(x[5])).map(([h, i, t, d, hl, k]) => [h, i, soon(k) ? `${t} <span class="soon">Coming soon</span>` : t, d, hl && !soon(k)]).map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
     document.body.appendChild(bg);
     bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
   }
@@ -390,5 +394,5 @@
   const CAT_DARK_TEXT = { Commerce: 1, Education: 1, AI: 1, 'Energy & Climate': 1 };
   const catColor = c => CAT_COLOR[c] || '#A3A3A3';
   const catInk = c => CAT_COLOR[c] && !CAT_DARK_TEXT[c] ? '#fff' : '#0a0a0a';
-  window.H = { on, CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { on, soon, CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();

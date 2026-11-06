@@ -137,7 +137,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   let INS = null;
   API.ready.then(() => API.insights('', 30)).then(d => { INS = d; if (rows.length > 1) render(); }).catch(() => {});
   function teaser() {
-    if (!INS || !INS.live || !H.on('insights')) return '';
+    if (!INS || !INS.live || !H.on('insights') || H.soon('insights')) return '';
     const L = (INS.industries || []).slice().sort((a, b) => b.n - a.n), tot = L.reduce((a, i) => a + i.n, 0) || 1;
     const keyed = L.filter(i => H.CAT_COLOR[i.name]), other = L.filter(i => !H.CAT_COLOR[i.name]).reduce((a, i) => a + i.n, 0);
     const segs = keyed.map(i => [i.n, H.catColor(i.name)]).concat(other ? [[other, '#A3A3A3']] : []);
