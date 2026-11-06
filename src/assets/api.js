@@ -4,7 +4,11 @@
   const SUPABASE_URL = 'https://sislzikhjapilksictxd.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
+    // Per-tab lock instead of the browser-wide one. With the shared lock, a single stuck tab (for example one
+    // still running an older version of this file) blocks every hentity.com tab, so signed-in pages never load.
+    // Reproduced with auth-js 2.65.0 (the version supabase-js 2.45.4 ships); auth-js still serialises work
+    // within each tab, and Supabase tolerates two tabs refreshing the same token.
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit', lock: (name, acquireTimeout, fn) => fn() },
     realtime: { params: { eventsPerSecond: 5 } }
   });
 

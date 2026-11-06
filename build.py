@@ -43,6 +43,13 @@ def seo(page: str, rel: pathlib.Path) -> str:
         ]
     return page.replace('</head>', '\n'.join(tags) + '\n</head>', 1), (None if private else path)
 
+# Cache busting: every /assets/* reference gets ?v=<content hash>, so a changed file has a new URL and
+# browsers can't keep running a stale copy (Cloudflare tells browsers to keep scripts for hours).
+import hashlib
+ASSET_V = {f.name: hashlib.sha256(f.read_bytes()).hexdigest()[:10] for f in (SRC / 'assets').iterdir() if f.is_file()}
+def bust(page: str) -> str:
+    return re.sub(r'((?:src|href)=")/assets/([\w.-]+)"', lambda m: f'{m.group(1)}/assets/{m.group(2)}?v={ASSET_V[m.group(2)]}"' if m.group(2) in ASSET_V else m.group(0), page)
+
 if OUT.exists(): shutil.rmtree(OUT)
 public_paths = []
 for p in sorted(SRC.rglob('*')):
@@ -50,7 +57,7 @@ for p in sorted(SRC.rglob('*')):
     if rel.parts[0] == 'partials' or p.is_dir(): continue
     dst = OUT / rel; dst.parent.mkdir(parents=True, exist_ok=True)
     if p.suffix == '.html':
-        page, path = seo(p.read_text().replace('<!--#head-->', head.strip()), rel)
+        page, path = seo(bust(p.read_text().replace('<!--#head-->', head.strip())), rel)
         dst.write_text(page)
         if path and path not in ('/signin', '/signup'): public_paths.append(path)
     else:

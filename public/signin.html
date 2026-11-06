@@ -16,11 +16,11 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css">
+<link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js"></script>
-<script src="/assets/app.js"></script>
-<script src="/assets/motion.js"></script>
+<script src="/assets/api.js?v=d1c5db7c3f"></script>
+<script src="/assets/app.js?v=8648ab500a"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Sign in · Hentity</title>
 <meta name="description" content="Sign in to Hentity with a one-time code sent to your work email.">
 <link rel="canonical" href="https://hentity.com/signin">
@@ -58,7 +58,7 @@
     </form>
   </main>
 </div>
-<script src="/assets/auth.js"></script>
+<script src="/assets/auth.js?v=95112311c0"></script>
 <template id="mfa-tpl"><form class="auth__form reveal" id="mfa-form" novalidate><div class="icon-badge"><span data-icon="shield"></span></div><div class="auth__heading"><h1 class="t-h2">One more step</h1><p class="c-2">Two-step verification is on. Open your authenticator app and type the 6-digit code for Hentity.</p></div><div class="field" id="f-mcode"><label class="field__label" for="mcode">Authenticator code</label><input class="input mono" id="mcode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:22px;text-align:center"></div><button class="btn btn--primary btn--block" type="submit">Verify</button><button class="link" type="button" id="mfa-back" style="align-self:center">Use a different account</button></form></template>
 <script>
 H.mount();
