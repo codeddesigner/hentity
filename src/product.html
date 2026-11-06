@@ -29,10 +29,10 @@
 .badge--founder{background:#000;color:#fff}
 :root[data-theme="dark"] .badge--founder{background:#fff;color:#000}
 .share{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500}
-.share button,.share a{display:inline-flex;align-items:center;gap:6px}
+.share button,.share a{display:inline-flex;align-items:center;gap:6px;min-height:32px}
 .share a:hover,.share button:hover{color:var(--color-accent-default)}
 @media (max-width:1180px){.pp{padding:24px 32px 80px}}
-@media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
+@media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.pp-top>:last-child{order:-1}.pp-top{gap:24px}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
 @media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
 </style>
 </head>
@@ -77,10 +77,10 @@ H.mount({ active: 'products', tab: 'products' });
     </div>
     <div class="stack gap-20 reveal" style="--i:2">
       ${plogo(p, 64)}
-      <div><h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? verified('ic-24') : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p></div>
+      <div><h1 class="pp-title" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p></div>
       ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} this week${p.week_id === (cur && cur.id) ? ' · live now' : ''}</span></div>` : `<div class="row gap-8 wrap">${(p.categories || []).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${!live && p.status === 'scheduled' ? `<span class="badge badge--upcoming">Launches ${weekDate}</span>` : ''}</div>`}
       <div class="grid-2" style="gap:12px">
-        <a class="btn btn--secondary btn--lg" href="${esc(p.website || '#')}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Get it</a>
+        ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
@@ -122,7 +122,7 @@ H.mount({ active: 'products', tab: 'products' });
   </div>`;
   M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
-  qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+  qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));
   const vb = qs('#vote');
   if (vb) {

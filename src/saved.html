@@ -30,7 +30,7 @@ H.mount({ active: 'saved', tab: 'you' });
       el.innerHTML = ps.length ? ps.map(p => D.row(p, 0, { noRank: true, noRails: true, trailing: `<button class="btn btn--ghost btn--sm" data-unsave="${p.id}">Remove</button>` })).join('') : empty('products', '/');
     } else {
       const { data } = b.length ? await API.sb.from('articles').select('slug,title,dek,topic,source,published_at,color,image_url,id').in('id', b.map(x => x.target_id)) : { data: [] };
-      el.innerHTML = (data || []).length ? data.map(a => `<article class="art-row"><div class="grow"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4" style="margin:6px 0"><a href="/news/${a.slug}">${esc(a.title)}</a></h3><p class="t-body-sm c-2">${esc(a.dek)}</p><button class="btn btn--ghost btn--sm" style="margin-top:8px;padding-left:0" data-unsave="${a.id}">Remove</button></div><a class="art-thumb" href="/news/${a.slug}" style="--c:${esc(a.color)}" tabindex="-1">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}</a></article>`).join('') : empty('stories', '/news');
+      el.innerHTML = (data || []).length ? data.map(a => `<article class="art-row stretch"><div class="grow"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4" style="margin:6px 0"><a class="stretch-link" href="/news/${a.slug}">${esc(a.title)}</a></h3><p class="t-body-sm c-2">${esc(a.dek)}</p><button class="btn btn--ghost btn--sm" style="margin-top:8px;padding-left:0" data-unsave="${a.id}">Remove</button></div><a class="art-thumb" href="/news/${a.slug}" style="--c:${esc(a.color)}" tabindex="-1">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}</a></article>`).join('') : empty('stories', '/news');
     }
     M.stagger(el);
   }

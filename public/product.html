@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=5ec12a9c12">
+<link rel="stylesheet" href="/assets/styles.css?v=572b560778">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f9c49319f"></script>
-<script src="/assets/app.js?v=71a79854b9"></script>
+<script src="/assets/app.js?v=d274141581"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Product · Hentity</title>
 <meta name="description" content="A product launched on Hentity, the weekly board for what’s being built across Africa.">
@@ -48,10 +48,10 @@
 .badge--founder{background:#000;color:#fff}
 :root[data-theme="dark"] .badge--founder{background:#fff;color:#000}
 .share{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500}
-.share button,.share a{display:inline-flex;align-items:center;gap:6px}
+.share button,.share a{display:inline-flex;align-items:center;gap:6px;min-height:32px}
 .share a:hover,.share button:hover{color:var(--color-accent-default)}
 @media (max-width:1180px){.pp{padding:24px 32px 80px}}
-@media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
+@media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.pp-top>:last-child{order:-1}.pp-top{gap:24px}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
 @media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
 </style>
 <meta name="robots" content="noindex, follow">
@@ -72,7 +72,7 @@
   <div class="stack gap-16" aria-hidden="true"><span class="skel" style="width:200px;height:14px"></span><div class="pp-top"><span class="skel" style="aspect-ratio:672/394;border-radius:20px"></span><div class="stack gap-16"><span class="skel" style="width:64px;height:64px;border-radius:14px"></span><span class="skel" style="width:70%;height:44px"></span><span class="skel" style="width:90%;height:20px"></span></div></div></div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=8cfb3dc8d0"></script>
+<script src="/assets/data.js?v=2b956ee3c0"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -107,10 +107,10 @@ H.mount({ active: 'products', tab: 'products' });
     </div>
     <div class="stack gap-20 reveal" style="--i:2">
       ${plogo(p, 64)}
-      <div><h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? verified('ic-24') : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p></div>
+      <div><h1 class="pp-title" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p></div>
       ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} this week${p.week_id === (cur && cur.id) ? ' · live now' : ''}</span></div>` : `<div class="row gap-8 wrap">${(p.categories || []).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${!live && p.status === 'scheduled' ? `<span class="badge badge--upcoming">Launches ${weekDate}</span>` : ''}</div>`}
       <div class="grid-2" style="gap:12px">
-        <a class="btn btn--secondary btn--lg" href="${esc(p.website || '#')}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Get it</a>
+        ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
@@ -152,7 +152,7 @@ H.mount({ active: 'products', tab: 'products' });
   </div>`;
   M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
-  qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+  qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));
   const vb = qs('#vote');
   if (vb) {

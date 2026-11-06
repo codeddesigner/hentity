@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=5ec12a9c12">
+<link rel="stylesheet" href="/assets/styles.css?v=572b560778">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f9c49319f"></script>
-<script src="/assets/app.js?v=71a79854b9"></script>
+<script src="/assets/app.js?v=d274141581"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Directory of African startups and products · Hentity</title>
 <meta name="description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
@@ -80,7 +80,7 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=8cfb3dc8d0"></script>
+<script src="/assets/data.js?v=2b956ee3c0"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -114,7 +114,7 @@ H.mount({ active: 'products', tab: 'products' });
       qs('#title').firstChild.textContent = term ? `Results for “${term}” ` : scope === 'local' ? 'Built near you ' : 'Built across Africa ';
       qs('#title-flag').innerHTML = scope === 'local' && !term ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
       qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;
-      qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow card lift"><a href="/products/${p.slug}" tabindex="-1" aria-hidden="true">${plogo(p)}</a><div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
+      qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
         : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">No products match these filters</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Remove a filter or switch to Pan-African.</p><button class="btn btn--secondary btn--sm" type="button" onclick="document.getElementById('clear').click()">Clear all filters</button></div>`;
       M.stagger(qs('#list'));
     } catch (e) { H.fail(e); }

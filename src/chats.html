@@ -99,7 +99,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (m.deleted) return `<div class="msg" data-mid="${m.id}"><span class="avatar">·</span><div class="grow"><p class="msg__body c-3" style="font-style:italic">This message was deleted.</p></div></div>`;
     const u = m.user || {};
     let body = m.body ? `<p class="msg__body">${linkify(esc(m.body))}</p>` : '';
-    if (m.kind === 'product' && m.product) body += `<div class="pcard">${plogo(m.product, 40)}<a class="grow" href="/products/${m.product.slug}" style="min-width:0"><p class="t-label row gap-6">${esc(m.product.name)}${m.product.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-2 truncate" style="font-weight:400">${esc(m.product.tagline)}</p></a>${D.upBtn(m.product)}</div>`;
+    if (m.kind === 'product' && m.product) body += `<div class="pcard stretch">${plogo(m.product, 40)}<a class="grow stretch-link" href="/products/${m.product.slug}" style="min-width:0"><p class="t-label row gap-6">${esc(m.product.name)}${m.product.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-2 truncate" style="font-weight:400">${esc(m.product.tagline)}</p></a>${D.upBtn(m.product)}</div>`;
     if (m.kind === 'voice') body += `<div><div class="voice" data-audio="${esc(m.attachment_url || '')}" data-dur="${m.duration || 0}"><button class="voice__play" type="button" aria-label="Play voice note">${icon('play')}</button><span class="wave">${wave(m.id, 0)}</span><span class="mono t-body-sm">${Math.floor((m.duration || 0) / 60)}:${String((m.duration || 0) % 60).padStart(2, '0')}</span></div>${m.transcript ? `<p class="t-caption c-2" style="margin-top:6px;font-weight:400"><button class="link" type="button" data-tr>Show transcript</button><span class="c-3"> · auto transcript</span></p><p class="t-body-sm c-2" hidden style="margin-top:4px">${esc(m.transcript)}</p>` : ''}</div>`;
     if (m.kind === 'image' && m.attachment_url) body += `<a href="${esc(m.attachment_url)}" target="_blank" rel="noopener"><img src="${esc(m.attachment_url)}" alt="Image from ${esc(nameOf(m))}" style="max-width:320px;max-height:260px;border-radius:12px;margin-top:8px;border:1px solid var(--color-border-default)"></a>`;
     const replies = !opts.inThread && m.reply_count ? `<div class="replies"><span class="stackav">${(m._replyUsers || []).slice(0, 3).map(x => avatar(x, 24)).join('')}</span><button class="link link--accent" type="button" data-thread="${m.id}" style="font-size:13px">${m.reply_count} ${m.reply_count === 1 ? 'reply' : 'replies'}</button><span class="t-caption c-3" style="font-weight:400">Last reply ${H.ago(m.last_reply_at || m.created_at)}</span></div>` : '';
@@ -190,10 +190,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     stopMsg && stopMsg(); presence && presence.leave();
     stopMsg = API.live('msgs', 'messages', 'channel_id=eq.' + cur.id, async ({ eventType, new: n, old }) => {
       if (eventType === 'INSERT') {
-        const full = await API.message(n.id); if (!full) return;
-        if (full.product) { D.remember([Object.assign({ effective_status: 'live' }, full.product)]); }
-        if (!full.parent_id || full.also_in_channel) { if (!msgs.some(m => m.id === full.id)) { msgs.push(full); renderMsgs(full.user_id === API.uid); const el = qs(`[data-mid="${full.id}"]`); el && el.classList.add('is-new'); } }
-        if (full.parent_id) { const parent = msgs.find(m => m.id === full.parent_id); if (parent) { parent.reply_count = (parent.reply_count || 0) + (parent._counted === full.id ? 0 : 1); parent.last_reply_at = full.created_at; parent._replyUsers = [full.user, ...(parent._replyUsers || []).filter(u => u && u.id !== full.user_id)]; renderMsgs(); } if (thread && thread.id === full.parent_id) appendThread(full); }
+        await addMsg(n.id);
         API.markChannelRead(cur.id);
       } else if (eventType === 'UPDATE') { const i = msgs.findIndex(m => m.id === n.id); if (i > -1) { msgs[i] = Object.assign(msgs[i], n); renderMsgs(); } }
       else if (eventType === 'DELETE') { msgs = msgs.filter(m => m.id !== old.id); renderMsgs(); }
@@ -236,7 +233,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     const tm = qs('#t-msg'); tm.focus();
     tm.addEventListener('input', () => t.querySelector('.send').classList.toggle('is-ready', !!tm.value.trim()));
     tm.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); qs('#t-form').requestSubmit(); } });
-    qs('#t-form').onsubmit = async e => { e.preventDefault(); const v = tm.value.trim(); if (!v) return; tm.value = ''; try { await API.send({ channel: cur.id, body: v, parent: thread.id, alsoInChannel: qs('#t-also').checked }); } catch (err) { tm.value = v; H.fail(err); } };
+    qs('#t-form').onsubmit = async e => { e.preventDefault(); const v = tm.value.trim(); if (!v) return; tm.value = ''; try { const r = await API.send({ channel: cur.id, body: v, parent: thread.id, alsoInChannel: qs('#t-also').checked }); if (r && r.id) addMsg(r.id); } catch (err) { tm.value = v; H.fail(err); } };
   }
   function appendThread(m) { if (!thread._all.some(x => x.id === m.id)) { thread._all.push(m); renderThread(); } }
 
@@ -268,6 +265,13 @@ H.mount({ active: 'chats', tab: 'chats' });
   ta.addEventListener('input', () => { readyState(); if (presence && me && Date.now() - lastTyping > 2000) { lastTyping = Date.now(); presence.typing(me.name.split(' ')[0]); } mentionCheck(); });
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !qs('.mention-pop')) { e.preventDefault(); qs('#composer').requestSubmit(); } });
   ta.addEventListener('focus', () => { if (!API.uid) location.href = '/signin?next=' + encodeURIComponent(location.pathname); });
+  // Show a message as soon as it exists: called by the realtime feed and right after sending (so it never waits on realtime)
+  async function addMsg(id) {
+        const full = await API.message(id); if (!full) return;
+        if (full.product) { D.remember([Object.assign({ effective_status: 'live' }, full.product)]); }
+        if (!full.parent_id || full.also_in_channel) { if (!msgs.some(m => m.id === full.id)) { msgs.push(full); renderMsgs(full.user_id === API.uid); const el = qs(`[data-mid="${full.id}"]`); el && el.classList.add('is-new'); } }
+        if (full.parent_id) { const parent = msgs.find(m => m.id === full.parent_id); if (parent) { parent._seen = parent._seen || new Set(); if (parent._seen.has(full.id)) return; parent._seen.add(full.id); parent.reply_count = (parent.reply_count || 0) + 1; parent.last_reply_at = full.created_at; parent._replyUsers = [full.user, ...(parent._replyUsers || []).filter(u => u && u.id !== full.user_id)]; renderMsgs(); } if (thread && thread.id === full.parent_id) appendThread(full); }
+  }
   qs('#composer').addEventListener('submit', async e => {
     e.preventDefault(); if (!cur) return; const v = ta.value.trim(); if (!v && !attach && !shareProduct) return;
     const payload = { channel: cur.id, body: v };
@@ -275,7 +279,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (shareProduct) Object.assign(payload, { kind: 'product', product: shareProduct.id });
     ta.value = ''; attach = null; shareProduct = null; qs('#attach-prev').innerHTML = ''; readyState();
     const btn = qs('#send'); btn.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(6px,-6px)', opacity: 0 }, { transform: 'translate(-4px,4px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 400, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    try { await API.send(payload); } catch (err) { ta.value = v; H.fail(err); }
+    try { const r = await API.send(payload); if (r && r.id) addMsg(r.id); } catch (err) { ta.value = v; H.fail(err); }
   });
   async function attachFile(f) { if (!f) return; if (!/image\//.test(f.type) || f.size > 8 * 1024 * 1024) { toast('Images up to 8 MB', 'error'); return; } qs('#attach-prev').innerHTML = `<div class="row gap-8" style="padding:10px 16px 0"><span class="skel" style="width:48px;height:48px;border-radius:8px"></span><span class="t-caption c-3">Uploading…</span></div>`; try { attach = await API.upload(f, 'chat'); qs('#attach-prev').innerHTML = `<div class="row gap-8" style="padding:10px 16px 0"><img src="${attach}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px"><button class="link" type="button" id="rm-att">Remove</button></div>`; qs('#rm-att').onclick = () => { attach = null; qs('#attach-prev').innerHTML = ''; readyState(); }; readyState(); } catch (err) { qs('#attach-prev').innerHTML = ''; H.fail(err); } }
   qs('#file').addEventListener('change', e => { attachFile(e.target.files[0]); e.target.value = ''; });

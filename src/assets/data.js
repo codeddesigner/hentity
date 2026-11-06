@@ -50,8 +50,8 @@
   let busy = new Set();
   document.addEventListener('click', async e => {
     const b = e.target.closest('[data-vote]'); if (!b || b.disabled) return;
+    if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname + location.search); return; }
     const id = b.dataset.vote; const p = byId.get(id); if (!p) return;
-    if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
     if (busy.has(id)) return; busy.add(id);
     const on = !voted.has(id);
     on ? voted.add(id) : voted.delete(id); p.upvote_count += on ? 1 : -1;
