@@ -118,7 +118,7 @@ H.mount({ active: 'chats', tab: 'chats' });
   function dayLabel(ts) { const d = new Date(ts), t = new Date(); const y = new Date(t - 864e5); return d.toDateString() === t.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }); }
   async function hydrateReplies(list) {
     const ids = list.filter(m => m.reply_count).map(m => m.id); if (!ids.length) return;
-    const { data } = await API.sb.from('messages').select('parent_id,user:profiles(id,name,username,avatar_url,avatar_color)').in('parent_id', ids).order('created_at', { ascending: false }).limit(100);
+    const { data } = await API.sb.from('messages').select('parent_id,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('parent_id', ids).order('created_at', { ascending: false }).limit(100);
     list.forEach(m => { const seen = new Set(); m._replyUsers = (data || []).filter(r => r.parent_id === m.id && r.user && !seen.has(r.user.id) && seen.add(r.user.id)).map(r => r.user); });
   }
   function renderMsgs(scroll) {

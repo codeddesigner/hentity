@@ -105,7 +105,7 @@
     product: slug => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle()),
     productsByIds: ids => ids.length ? q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids)) : Promise.resolve([]),
     company: id => id ? q(sb.from('companies').select('*').eq('id', id).maybeSingle()) : Promise.resolve(null),
-    makers: pid => q(sb.from('product_makers').select('role,accepted,user:profiles(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid)),
+    makers: pid => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid)),
     async directory({ countries, pay, stages, sectors, langs, term, sort, scope }) {
       let s = sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']);
       if (scope === 'local') s = s.eq('country', 'NG'); else if (countries && countries.length) s = s.in('country', countries);
@@ -140,8 +140,8 @@
     votesByDay: (pid) => q(sb.from('upvotes').select('created_at').eq('product_id', pid).gte('created_at', new Date(Date.now() - 8 * 864e5).toISOString())),
 
     // ---------------- comments
-    comments: ({ product, article }) => q(sb.from('comments').select('id,body,created_at,parent_id,deleted,user:profiles(id,username,name,avatar_url,avatar_color)').eq(product ? 'product_id' : 'article_id', product || article).order('created_at')),
-    async comment({ product, article, parent, body }) { requireAuth(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles(id,username,name,avatar_url,avatar_color)').single()); },
+    comments: ({ product, article }) => q(sb.from('comments').select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').eq(product ? 'product_id' : 'article_id', product || article).order('created_at')),
+    async comment({ product, article, parent, body }) { requireAuth(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').single()); },
     deleteComment: id => q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id)),
     async report(type, id, reason) { requireAuth(); err((await sb.from('reports').insert({ reporter_id: uid(), target_type: type, target_id: id, reason })).error); },
 
@@ -181,22 +181,22 @@
 
     // ---------------- chats
     channels: () => q(sb.from('channels').select('id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)').eq('archived', false).order('position').order('name')),
-    channelMembers: (cid) => q(sb.from('channel_members').select('user_id,last_read_at,user:profiles(id,name,username,avatar_url,avatar_color)').eq('channel_id', cid)),
+    channelMembers: (cid) => q(sb.from('channel_members').select('user_id,last_read_at,user:profiles!channel_members_user_id_fkey(id,name,username,avatar_url,avatar_color)').eq('channel_id', cid)),
     async myMemberships() { if (!uid()) return []; return q(sb.from('channel_members').select('channel_id,last_read_at').eq('user_id', uid())); },
     async joinChannel(cid) { if (!uid()) return; await sb.from('channel_members').upsert({ channel_id: cid, user_id: uid(), last_read_at: new Date().toISOString() }, { onConflict: 'channel_id,user_id' }); },
     markChannelRead: (cid) => uid() ? sb.from('channel_members').update({ last_read_at: new Date().toISOString() }).eq('channel_id', cid).eq('user_id', uid()) : null,
     messages: (cid, parent) => {
-      let s = sb.from('messages').select('*,user:profiles(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('channel_id', cid);
+      let s = sb.from('messages').select('*,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('channel_id', cid);
       s = parent ? s.or(`id.eq.${parent},parent_id.eq.${parent}`) : s.or('parent_id.is.null,also_in_channel.eq.true');
       return q(s.order('created_at', { ascending: !!parent }).limit(parent ? 200 : 80));
     },
-    message: id => q(sb.from('messages').select('*,user:profiles(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('id', id).maybeSingle()),
+    message: id => q(sb.from('messages').select('*,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('id', id).maybeSingle()),
     async unreadByChannel(memberships) {
       const out = {};
       await Promise.all(memberships.map(async m => { out[m.channel_id] = await q(sb.from('messages').select('*', { count: 'exact', head: true }).eq('channel_id', m.channel_id).is('parent_id', null).gt('created_at', m.last_read_at).neq('user_id', uid())); }));
       return out;
     },
-    lastMessages: (ids) => q(sb.from('messages').select('channel_id,body,kind,created_at,user:profiles(name)').in('channel_id', ids).is('parent_id', null).order('created_at', { ascending: false }).limit(200)),
+    lastMessages: (ids) => q(sb.from('messages').select('channel_id,body,kind,created_at,user:profiles!messages_user_id_fkey(name)').in('channel_id', ids).is('parent_id', null).order('created_at', { ascending: false }).limit(200)),
     async send({ channel, body, parent, kind, product, attachment, duration, transcript, alsoInChannel }) {
       requireAuth();
       return q(sb.from('messages').insert({ channel_id: channel, user_id: uid(), body: body || '', parent_id: parent || null, kind: kind || 'text', product_id: product || null, attachment_url: attachment || null, duration: duration || null, transcript: transcript || null, also_in_channel: !!alsoInChannel }).select('id').single());
@@ -204,7 +204,7 @@
     deleteMessage: id => q(sb.from('messages').update({ deleted: true, body: '' }).eq('id', id)),
     async react(mid, emoji, on) { requireAuth(); if (on) err((await sb.from('reactions').insert({ message_id: mid, user_id: uid(), emoji })).error); else err((await sb.from('reactions').delete().eq('message_id', mid).eq('user_id', uid()).eq('emoji', emoji)).error); },
     openDM: (other) => q(sb.rpc('open_dm', { other })),
-    dmPartners: async (cids) => { if (!cids.length) return []; return q(sb.from('channel_members').select('channel_id,user:profiles(id,name,username,avatar_url,avatar_color)').in('channel_id', cids).neq('user_id', uid())); },
+    dmPartners: async (cids) => { if (!cids.length) return []; return q(sb.from('channel_members').select('channel_id,user:profiles!channel_members_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('channel_id', cids).neq('user_id', uid())); },
 
     // ---------------- news
     articles: ({ topic, limit } = {}) => { let s = sb.from('articles').select('*').eq('status', 'published'); if (topic && topic !== 'All') s = s.eq('topic', topic); return q(s.order('is_lead', { ascending: false }).order('published_at', { ascending: false }).limit(limit || 30)); },
@@ -243,10 +243,10 @@
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     upsertWeek: w => q(sb.from('weeks').upsert(w)),
     weekCounts: () => q(sb.from('products').select('week_id,status').in('status', ['review', 'scheduled', 'live'])),
-    comments: (term) => { let s = sb.from('comments').select('*,user:profiles(name,username),product:products(name,slug),article:articles(title,slug)'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
+    comments: (term) => { let s = sb.from('comments').select('*,user:profiles!comments_user_id_fkey(name,username),product:products(name,slug),article:articles(title,slug)'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
     updateComment: (id, patch) => q(sb.from('comments').update(patch).eq('id', id)),
     hardDeleteComment: id => q(sb.from('comments').delete().eq('id', id)),
-    messages: (term) => { let s = sb.from('messages').select('*,user:profiles(name,username),channel:channels(name,slug,kind)').neq('kind', 'system'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
+    messages: (term) => { let s = sb.from('messages').select('*,user:profiles!messages_user_id_fkey(name,username),channel:channels(name,slug,kind)').neq('kind', 'system'); if (term) s = s.ilike('body', `%${term}%`); return q(s.order('created_at', { ascending: false }).limit(150)); },
     deleteMessage: id => q(sb.from('messages').delete().eq('id', id)),
     reports: () => q(sb.from('reports').select('*,reporter:profiles!reports_reporter_id_fkey(name,username)').order('created_at', { ascending: false }).limit(200)),
     updateReport: (id, status) => q(sb.from('reports').update({ status, resolved_by: uid() }).eq('id', id)),
@@ -256,16 +256,16 @@
     articles: () => q(sb.from('articles').select('*').order('created_at', { ascending: false })),
     upsertArticle: a => q(sb.from('articles').upsert(a).select().single()),
     deleteArticle: id => q(sb.from('articles').delete().eq('id', id)),
-    suggestions: () => q(sb.from('story_suggestions').select('*,user:profiles(name,username)').order('created_at', { ascending: false })),
+    suggestions: () => q(sb.from('story_suggestions').select('*,user:profiles!story_suggestions_user_id_fkey(name,username)').order('created_at', { ascending: false })),
     updateSuggestion: (id, status) => q(sb.from('story_suggestions').update({ status }).eq('id', id)),
     newsletter: () => q(sb.from('newsletter').select('*').order('created_at', { ascending: false })),
     removeSubscriber: email => q(sb.from('newsletter').delete().eq('email', email)),
     settings: () => q(sb.from('site_settings').select('*').order('key')),
     saveSetting: (key, value) => q(sb.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() })),
-    audit: () => q(sb.from('audit_log').select('*,actor:profiles(name,username)').order('created_at', { ascending: false }).limit(200)),
+    audit: () => q(sb.from('audit_log').select('*,actor:profiles!audit_log_actor_id_fkey(name,username)').order('created_at', { ascending: false }).limit(200)),
     companies: () => q(sb.from('companies').select('*').order('created_at', { ascending: false })),
     updateCompany: (id, patch) => q(sb.from('companies').update(patch).eq('id', id)),
-    makers: (pid) => q(sb.from('product_makers').select('*,user:profiles(name,username)').eq('product_id', pid)),
+    makers: (pid) => q(sb.from('product_makers').select('*,user:profiles!product_makers_user_id_fkey(name,username)').eq('product_id', pid)),
     notifyRequests: (pid) => q(sb.from('notify_requests').select('*', { count: 'exact', head: true }).eq('product_id', pid))
   };
 
