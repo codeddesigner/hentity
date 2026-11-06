@@ -94,6 +94,7 @@
     <section class="card sec" id="makers" data-sec>
       <div class="sec-h"><span class="n">03</span><h2 class="t-h3">Makers &amp; company</h2></div>
       <button class="company" type="button" id="company"></button>
+      <div class="field" style="margin-top:16px"><div class="field__row"><label class="field__label" for="rc">Company registration number <span class="c-3" style="font-weight:400">· optional</span></label></div><input class="input" id="rc" placeholder="RC 1234567" maxlength="40" autocomplete="off" spellcheck="false" style="max-width:280px"><p class="field__hint" id="rc-hint">CAC, RC or your country’s equivalent. <b>Required for the Verified badge</b>, but you don’t need it to get approved and launch.</p></div>
       <div class="row gap-8 wrap" style="margin-top:16px" id="maker-list"></div>
       <div id="add-maker" class="row gap-8" hidden style="margin-top:12px"></div>
     </section>
@@ -112,7 +113,7 @@
 
     <!-- 06 Verification -->
     <section class="card sec" id="verify" data-sec>
-      <div class="sec-h"><span class="n">06</span><div><h2 class="t-h3">Verification (optional)</h2><p class="t-body-sm c-2">You can launch without these. To get the <b>Verified</b> stamp, add your company registration number: the Hentity team checks it and issues the stamp.</p></div></div>
+      <div class="sec-h"><span class="n">06</span><div><h2 class="t-h3">Verification (optional)</h2><p class="t-body-sm c-2">None of these are needed for approval. The <b>Verified</b> badge needs your company registration number: the Hentity team checks it and issues the badge.</p></div></div>
       <div id="vlist"></div>
     </section>
   </form>
@@ -148,6 +149,7 @@ H.mount({ active: '', tab: 'launch' });
   const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
   if (p) history.replaceState(null, '', '/submit?id=' + p.id + (prm.get('step') ? '&step=' + prm.get('step') : ''));
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
+  qs('#rc').value = typeof s.verify.company === 'string' ? s.verify.company : '';
   qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video_url || '';
   qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   qs('#country').value = s.country;
@@ -275,12 +277,12 @@ H.mount({ active: '', tab: 'launch' });
   // ---- Verification
   function renderV() {
     const dom = (normUrl(form.website.value) || 'yourdomain.com').replace(/^https?:\/\//, '').replace(/\/.*/, '');
-    const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number · needed for the Verified stamp', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
+    const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'Add it in section 03 · required for the Verified badge', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
     qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? `<span class="badge">${s.verified ? 'Verified' : k === 'company' ? 'Checked by Hentity' : 'Added'}</span>` : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">${k === 'domain' ? 'I’ve added it' : 'Add'}</button>`}</div>`).join('');
   }
   qs('#vlist').addEventListener('keydown', e => { const i = e.target.closest('[data-vi]'); if (!i) return; if (e.key === 'Enter') { e.preventDefault(); qs(`[data-vs="${i.dataset.vi}"]`).click(); } if (e.key === 'Escape') { e.preventDefault(); renderV(); } });
   qs('#vlist').addEventListener('click', e => {
-    const b = e.target.closest('[data-v]'); if (b) { const k = b.dataset.v; if (k === 'domain') { s.verify.domain = 'TXT record added · checked during review'; renderV(); scheduleSave(); return; } const row = b.closest('.vrow'); b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); return; }
+    const b = e.target.closest('[data-v]'); if (b) { const k = b.dataset.v; if (k === 'company') { qs('#rc').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => qs('#rc').focus(), 350); return; } if (k === 'domain') { s.verify.domain = 'TXT record added · checked during review'; renderV(); scheduleSave(); return; } const row = b.closest('.vrow'); b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); return; }
     const sv = e.target.closest('[data-vs]'); if (sv) { const v = qs(`[data-vi="${sv.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${sv.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[sv.dataset.vs] = v; renderV(); update(); scheduleSave(); toast('Added for verification'); }
   });
 
@@ -308,6 +310,8 @@ H.mount({ active: '', tab: 'launch' });
     }, 700);
   }
 
+  qs('#rc').addEventListener('input', () => { const v = qs('#rc').value.trim(); if (v) s.verify.company = v; else delete s.verify.company; });
+  qs('#rc').addEventListener('change', () => { if (!qs('#vlist [data-vi]')) renderV(); });
   const INTRO_MIN = 50;
   const introHint = () => { const n = qs('#intro-t').value.trim().length, h = qs('#intro-hint'); h.textContent = n >= INTRO_MIN ? 'Say what it is, who it’s for, why you built it and what feedback you need.' : n ? `${INTRO_MIN - n} more character${INTRO_MIN - n === 1 ? '' : 's'} needed (minimum ${INTRO_MIN}).` : 'At least 50 characters. Say what it is, who it’s for, why you built it and what feedback you need.'; h.className = 'field__hint' + (n && n < INTRO_MIN ? ' c-3' : ''); };
   qs('#intro-t').addEventListener('input', introHint); introHint();
