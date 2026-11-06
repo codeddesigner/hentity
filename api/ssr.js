@@ -106,7 +106,7 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'public, s-maxage=60');
     return res.end(page.replace(/<meta name="robots"[^>]*>/g, '').replace('</head>', '<meta name="robots" content="noindex">\n</head>'));
   }
-  const url = SITE + meta.path, img = meta.image || SITE + '/og.png';
+  const url = SITE + meta.path, img = meta.image || SITE + '/og.png?v=' + require('./_cols.json').OG_V;
   const tags = [
     `<title>${esc(meta.title)}</title>`,
     `<meta name="description" content="${esc(meta.desc)}">`,

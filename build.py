@@ -34,12 +34,12 @@ def seo(page: str, rel: pathlib.Path) -> str:
             f'<meta property="og:description" content="{html.escape(desc)}">',
             f'<meta property="og:url" content="{SITE}{path}">',
             '<meta property="og:type" content="website">',
-            f'<meta property="og:image" content="{SITE}/og.png">',
+            f'<meta property="og:image" content="{SITE}/og.png?v={OG_V}">',
             '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">',
             '<meta name="twitter:card" content="summary_large_image">',
             f'<meta name="twitter:title" content="{html.escape(title)}">',
             f'<meta name="twitter:description" content="{html.escape(desc)}">',
-            f'<meta name="twitter:image" content="{SITE}/og.png">',
+            f'<meta name="twitter:image" content="{SITE}/og.png?v={OG_V}">',
         ]
     return page.replace('</head>', '\n'.join(tags) + '\n</head>', 1), (None if private else path)
 
@@ -54,6 +54,7 @@ if SB_LOCAL.exists():
     (SRC / 'assets' / 'supabase.js').write_bytes(SB_LOCAL.read_bytes())
     head = head.replace(f'<script src="{SB_CDN}"></script>', '<script src="/assets/supabase.js"></script>').replace('<link rel="preconnect" href="https://cdn.jsdelivr.net">\n', '')
     print('supabase-js served from /assets/supabase.js')
+OG_V = hashlib.sha256((SRC / 'og.png').read_bytes()).hexdigest()[:10]
 ASSET_V = {f.name: hashlib.sha256(f.read_bytes()).hexdigest()[:10] for f in (SRC / 'assets').iterdir() if f.is_file()}
 def bust(page: str) -> str:
     return re.sub(r'((?:src|href)=")/assets/([\w.-]+)"', lambda m: f'{m.group(1)}/assets/{m.group(2)}?v={ASSET_V[m.group(2)]}"' if m.group(2) in ASSET_V else m.group(0), page)
@@ -80,7 +81,7 @@ for p in sorted(SRC.rglob('*')):
 (ROOT / 'api' / '_static-paths.json').write_text(json.dumps(sorted(public_paths)))
 # Column list shared with the server-side preloader, so both sides always ask for the same fields
 cols = re.search(r"const PRODUCT_COLS = '([^']+)'", (SRC / 'assets' / 'api.js').read_text()).group(1)
-(ROOT / 'api' / '_cols.json').write_text(json.dumps({'PRODUCT_COLS': cols}))
+(ROOT / 'api' / '_cols.json').write_text(json.dumps({'PRODUCT_COLS': cols, 'OG_V': OG_V}))
 if (SRC / 'assets' / 'supabase.js').exists() and not SB_LOCAL.exists(): (SRC / 'assets' / 'supabase.js').unlink()
 print('built', sum(1 for _ in OUT.rglob('*.html')), 'pages ·', len(public_paths), 'indexable')
 
