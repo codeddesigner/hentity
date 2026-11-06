@@ -30,7 +30,7 @@ There are no passwords and no Google sign-in. Members enter their **work email**
 
 ## Admin access
 
-Signing up with **encircode@gmail.com** makes that account an admin automatically (trigger `handle_new_user`). It's a Gmail address, so it's listed as an exception to the work-email rule; remove it under Sign-up rules once you have a work-email admin. Admins can promote others under **Admin → Users**.
+Signing up with **chi@encir.co** makes that account an admin automatically (trigger `handle_new_user`), and so does moving an existing account to that address under Settings → Account (trigger `sync_user_email`). Admins can promote others under **Admin → Users**.
 
 ## Develop
 
