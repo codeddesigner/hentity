@@ -136,7 +136,7 @@
 
     <!-- 04 Week -->
     <section class="card sec" id="week" data-sec>
-      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Pick the day you go live. Each day has 6 spots; you’ll stay on that week’s board until it resets on Monday. Choose a day your team can reply to comments.</p></div></div>
+      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Pick the day you go live. You’ll stay on that week’s board until it resets on Monday. Choose a day your team can reply to comments.</p></div></div>
       <div id="cal"></div>
     </section>
 
@@ -161,7 +161,7 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/launch.js?v=e8a1ba21d8"></script>
+<script src="/assets/launch.js?v=e96c84115d"></script>
 <script>
 H.mount({ active: '', tab: 'launch' });
 (async function () {
@@ -296,7 +296,7 @@ H.mount({ active: '', tab: 'launch' });
   qs('#add-maker').addEventListener('input', async e => { if (e.target.id !== 'm-user') return; const t = e.target.value.trim().replace(/^@/, '').replace(/[%,()]/g, ''); if (t.length < 2) { qs('#m-res').innerHTML = ''; return; } const r = await API.searchProfiles(t); qs('#m-res').innerHTML = r.filter(x => x.id !== API.uid && !makers.some(m => m.user.id === x.id)).map(x => `<button type="button" class="cmdk__opt" data-uid="${x.id}" data-name="${esc(x.name)}">${avatar(x, 28)}<span class="grow" style="text-align:left">${esc(x.name)} <span class="c-3">@${esc(x.username)}</span></span></button>`).join('') || '<p class="t-caption c-3" style="padding:6px">No makers found. They need a Hentity account first.</p>'; });
   qs('#add-maker').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b) return; try { await ensureDraft(); await API.addMaker(p.id, b.dataset.uid, 'Maker'); qs('#add-maker').hidden = true; await loadMakers(); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
 
-  // ---- Launch date (calendar of days, 6 spots each)
+  // ---- Launch date (calendar of days, no daily limit)
   let dayFull = false;
   const cal = L.calendar(qs('#cal'), { selected: s.launch_date, own: p && p.launch_date, onPick: (day, slot) => { s.launch_date = day; dayFull = false; update(); scheduleSave(); } });
 

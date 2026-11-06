@@ -70,7 +70,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
     sc.addEventListener('click', ev => { if (ev.target === sc || ev.target.closest('[data-x]')) sc.remove(); });
     sc.querySelector('#rsave').onclick = async () => { try { await API.saveProduct(p.id, { launch_date: pick }); toast('Moved to ' + L.dayLabel(pick)); setTimeout(() => location.reload(), 700); } catch (err) { H.fail(/DAY_FULL/.test(err.message) ? new Error('That day just filled up. Pick another.') : err); } };
   });
-  qs('#cancel').addEventListener('click', async () => { if (!confirm(`Cancel your ${L.dayLabel(day)} launch? Your spot is released and the product goes back to draft.`)) return; try { await API.saveProduct(p.id, { status: 'draft' }); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); } catch (err) { H.fail(err); } });
+  qs('#cancel').addEventListener('click', async () => { if (!confirm(`Cancel your ${L.dayLabel(day)} launch? The product goes back to draft.`)) return; try { await API.saveProduct(p.id, { status: 'draft' }); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); } catch (err) { H.fail(err); } });
 })();
 </script>
 <style>@media (max-width:768px){#share{grid-template-columns:1fr 1fr!important}}</style>
