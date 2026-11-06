@@ -6,7 +6,7 @@
       <a class="logo logo--lg logo--inverse" href="/" aria-label="Hentity home" style="--logo-knock:#000">${logo()}</a>
       <div class="brand__pitch">
         <p class="t-eyebrow c-accent reveal">Live on Hentity today</p>
-        <p class="brand__title" id="brand-title">Discover what’s being built in Africa.</p>
+        <p class="brand__title" id="brand-title">Discover what’s being built across Africa.</p>
         <div class="brand__stack" id="brand-stack">${[0, 1, 2].map(() => '<div class="mini" style="height:60px;opacity:.15"></div>').join('')}</div>
       </div>
       <div class="brand__proof" id="brand-proof"></div>

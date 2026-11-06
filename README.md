@@ -1,6 +1,6 @@
 # Hentity
 
-Discover what’s being built in Africa. A weekly launch board for African products, with chats, news and a full admin console.
+Discover what’s being built across Africa. A weekly launch board for African products, with chats, news and a full admin console.
 
 Live: https://hentity.com (hentity.vercel.app redirects here) · Design: Figma “Hentity”
 
