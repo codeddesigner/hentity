@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Email preferences | Hentity</title>
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div data-header></div>
+<main id="main" style="max-width:520px;margin:0 auto;padding:96px 24px;text-align:center" class="stack gap-16">
+  <div class="skel" style="height:160px;border-radius:16px"></div>
+</main>
+<div data-tabbar></div>
+<script>
+H.mount({ tab: 'you' });
+// Every Hentity email links here. The link is signed, so it works without signing in.
+(async function () {
+  const { qs, esc, icon, toast } = H;
+  const p = H.params(), u = p.get('u'), t = p.get('t'), k = p.get('k') || 'digest';
+  const NAMES = { digest: 'The Launchpad (weekly)', insights: 'Monthly Insights', find: 'Find emails', scheduled: 'launch emails', featured: 'award emails', review: 'review emails', comments: 'comment emails', milestones: 'milestone emails', replies: 'reply emails', followers: 'follower emails', following: 'launch alerts', all: 'all Hentity emails' };
+  const root = qs('#main');
+  await API.ready;
+  async function go(kind) {
+    try { await API.sb.rpc('email_unsubscribe', { u, t, k: kind }).then(r => { if (r.error) throw r.error; }); return true; } catch (e) { H.fail(e); return false; }
+  }
+  if (!u || !t) { root.innerHTML = `<h1 class="t-h2">This link is incomplete</h1><p class="c-2">Change which emails you get in <a class="link link--accent" href="/settings/notifications">notification settings</a>.</p>`; H.contentShown(); return; }
+  const ok = await go(k);
+  root.innerHTML = ok ? `<div class="icon-badge" style="margin:0 auto">${icon('mail')}</div>
+    <h1 class="t-h2">You’re unsubscribed</h1>
+    <p class="c-2">You won’t get ${esc(NAMES[k] || 'these emails')} any more. Security and sign-in emails still reach you.</p>
+    <div class="row gap-8 wrap" style="justify-content:center">${k !== 'all' ? `<button class="btn btn--secondary" type="button" id="all">Unsubscribe from all emails</button>` : ''}<a class="btn btn--primary" href="/settings/notifications">Email settings</a></div>`
+    : `<h1 class="t-h2">That didn’t work</h1><p class="c-2">The link may be old. You can change which emails you get in <a class="link link--accent" href="/settings/notifications">notification settings</a>.</p>`;
+  const all = qs('#all'); all && (all.onclick = async () => { if (await go('all')) { toast('Unsubscribed from all emails'); all.remove(); qs('h1').textContent = 'You’re unsubscribed from everything'; } });
+  H.contentShown();
+})();
+</script>
+</body>
+</html>

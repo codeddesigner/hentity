@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=e22603bd77">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=56794b968d"></script>
+<script src="/assets/app.js?v=5919c37cb1"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Email preferences | Hentity</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Email preferences | Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.com/unsubscribe">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Email preferences | Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
+</head>
+<body>
+<div data-header></div>
+<main id="main" style="max-width:520px;margin:0 auto;padding:96px 24px;text-align:center" class="stack gap-16">
+  <div class="skel" style="height:160px;border-radius:16px"></div>
+</main>
+<div data-tabbar></div>
+<script>
+H.mount({ tab: 'you' });
+// Every Hentity email links here. The link is signed, so it works without signing in.
+(async function () {
+  const { qs, esc, icon, toast } = H;
+  const p = H.params(), u = p.get('u'), t = p.get('t'), k = p.get('k') || 'digest';
+  const NAMES = { digest: 'The Launchpad (weekly)', insights: 'Monthly Insights', find: 'Find emails', scheduled: 'launch emails', featured: 'award emails', review: 'review emails', comments: 'comment emails', milestones: 'milestone emails', replies: 'reply emails', followers: 'follower emails', following: 'launch alerts', all: 'all Hentity emails' };
+  const root = qs('#main');
+  await API.ready;
+  async function go(kind) {
+    try { await API.sb.rpc('email_unsubscribe', { u, t, k: kind }).then(r => { if (r.error) throw r.error; }); return true; } catch (e) { H.fail(e); return false; }
+  }
+  if (!u || !t) { root.innerHTML = `<h1 class="t-h2">This link is incomplete</h1><p class="c-2">Change which emails you get in <a class="link link--accent" href="/settings/notifications">notification settings</a>.</p>`; H.contentShown(); return; }
+  const ok = await go(k);
+  root.innerHTML = ok ? `<div class="icon-badge" style="margin:0 auto">${icon('mail')}</div>
+    <h1 class="t-h2">You’re unsubscribed</h1>
+    <p class="c-2">You won’t get ${esc(NAMES[k] || 'these emails')} any more. Security and sign-in emails still reach you.</p>
+    <div class="row gap-8 wrap" style="justify-content:center">${k !== 'all' ? `<button class="btn btn--secondary" type="button" id="all">Unsubscribe from all emails</button>` : ''}<a class="btn btn--primary" href="/settings/notifications">Email settings</a></div>`
+    : `<h1 class="t-h2">That didn’t work</h1><p class="c-2">The link may be old. You can change which emails you get in <a class="link link--accent" href="/settings/notifications">notification settings</a>.</p>`;
+  const all = qs('#all'); all && (all.onclick = async () => { if (await go('all')) { toast('Unsubscribed from all emails'); all.remove(); qs('h1').textContent = 'You’re unsubscribed from everything'; } });
+  H.contentShown();
+})();
+</script>
+</body>
+</html>

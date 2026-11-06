@@ -157,6 +157,9 @@
     { key: 'p3', stealth: false, name: 'Fatima N.', what: 'B2B sales lead', experience: '5 yrs', city: 'Abuja', looking_for: ['business'], strengths: ['Enterprise sales', 'Gov'], wants: 'climate or agritech · Can invest time + $5k', open_to: ['cofounder'] }];
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
+    admin_email_stats: () => ({ audience: 26, digest_on: 26, by_kind: { welcome: 3, digest: 26, find: 4 }, launchpad: { n: 1 }, recent: [{ kind: 'digest', to: 'ada@example.com', subject: 'This week in African startups: Biyaport is #1', created_at: new Date().toISOString() }] }),
+    email_preview_all: () => 6,
+    email_unsubscribe: () => ({ ok: true }),
     admin_find_roles: () => [Object.assign({}, FR[3], { status: 'review', startup_name: 'Haul54', startup_line: 'Shared trucks for small traders', country: 'UG', working: 'hybrid', visibility: 'public', updated_at: new Date(Date.now() - 5 * 36e5).toISOString(), owner: { name: 'Ada Obi', email: 'ada@haul54.com', username: 'ada', is_verified: false }, product: null })],
     find_review_role: () => null,
     product_edit_state: a => { const p = T.products.find(x => x.slug === a.pslug) || T.products.find(x => ['live', 'scheduled'].includes(x.status)); if (!p) return null; const cur = { name: p.name, tagline: p.tagline, description: p.description || '', website: p.website || '', logo_url: p.logo_url, color: p.color, media: p.media || [], video_url: p.video_url || '', categories: p.categories || [], country: p.country, city: p.city || '', pay_methods: p.pay_methods || [], stage: p.stage || 'Seed', platforms: 'Web', languages: 'English', currencies: 'NGN', registration: 'RC 1234567', founder_link: 'linkedin.com/in/founder' };

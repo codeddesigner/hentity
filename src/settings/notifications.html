@@ -48,8 +48,11 @@ H.mount({ active: '', tab: 'you' });
       ['replies', 'Replies to you', 'Someone answers your comment', true, false, null],
       ['followers', 'New followers', 'A maker or voter follows you', true, false, null],
       ['following', 'People you follow launch', 'A maker you follow goes live', true, false, null]]],
+    ['Find', [
+      ['find', 'Find activity', 'Applications, interest, matches and role approvals', true, true, null]]],
     ['Digests', [
-      ['digest', 'Weekly leaderboard digest', 'Mondays after the board resets · 06:00 WAT', null, true, null]]]
+      ['digest', 'The Launchpad, weekly', 'Last week’s top launches · Mondays 07:00 WAT', null, true, null],
+      ['insights', 'Monthly Insights', 'What’s growing across Africa · 1st of the month', null, true, null]]]
   ];
   const st = () => Object.assign({}, API.profile.settings || {});
   const prefs = Object.assign({}, st().notif || {});

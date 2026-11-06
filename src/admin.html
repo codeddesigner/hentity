@@ -29,7 +29,7 @@ H.mount();
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
     ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
-    ['System', [['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
+    ['System', [['emails', 'Emails', 'mail'], ['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
   let stats = {};
   function nav(cur) {
@@ -159,6 +159,20 @@ H.mount();
     H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=day]').closest('.field').hidden = dec !== 'scheduled'; d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
     d.querySelector('[name=items]').closest('.field').hidden = true;
   }
+
+  // ---- automated emails (built from the Figma Email page)
+  V.emails = async () => {
+    nav('emails');
+    const st = await A.emailStats();
+    const NAME = { welcome: 'Welcome', digest: 'The Launchpad', potw: 'Product of the Week', launch_day: 'Launch day', find: 'Find', insights: 'Monthly Insights' };
+    const lp = st.launchpad || {};
+    qs('#main').innerHTML = head('Emails', `Sent automatically to ${st.audience} members. Everyone can turn each one off in their settings or from the unsubscribe link.`, `<button class="btn btn--primary btn--sm" id="prev">${icon('mail')}Send me a preview of each</button>`)
+      + `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px">${[
+        ['welcome', 'Every new member, once their email is confirmed'], ['digest', `Mondays 07:00 WAT · ${st.digest_on} subscribed${lp.n ? ' · last: No. ' + lp.n : ''}`], ['potw', 'Top 3 makers, with the Monday digest'],
+        ['launch_day', 'The maker, 06:05 WAT on launch day'], ['find', 'Applications, matches, role approvals'], ['insights', '1st of the month, 09:00 WAT']].map(([k, d]) => `<section class="card" style="padding:16px"><p class="t-label">${NAME[k]}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(d)}</p><p class="t-h3 mono" style="margin-top:10px">${(st.by_kind || {})[k] || 0}</p><p class="t-caption c-3" style="font-weight:400">sent in the last 30 days</p></section>`).join('')}</div>`
+      + `<p class="t-label" style="margin-bottom:10px">Recent</p>` + tbl(['Email', 'To', 'Subject', 'Sent'], (st.recent || []).map(r => `<tr><td>${esc(NAME[r.kind] || r.kind)}</td><td>${esc(r.to || '')}</td><td style="max-width:360px">${esc(r.subject || '')}</td><td>${when(r.created_at)}</td></tr>`), 'Nothing sent yet');
+    qs('#prev').onclick = async () => { const b = qs('#prev'); b.disabled = true; try { const n = await A.emailPreview(); toast(`Sent ${n} previews to ${API.profile.email}`); V.emails(); } catch (e) { H.fail(e); } b.disabled = false; };
+  };
 
   // ---- Find roles: postings from startups without a verified product wait here
   const FKIND = { cofounder: 'Co-founder', fulltime: 'Full-time', parttime: 'Part-time', contract: 'Contract', internship: 'Internship' };
