@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Beta test · Hentity</title>
+<meta name="description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
+<style>
+.bd{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
+.bd-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:40px;align-items:start}
+.bd-side{position:sticky;top:24px;display:flex;flex-direction:column;gap:16px}
+.bd h1{font-size:44px;line-height:50px;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
+.bd-main{display:flex;flex-direction:column;gap:24px}
+.bd-by{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.apply-field{margin-bottom:14px}
+.dev{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-bg-subtle)}
+.dev .ic{color:var(--color-success);flex:none}
+.mbar{display:none}
+.fb-media{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fb-thumb{width:64px;height:112px;border-radius:10px;background:var(--color-bg-muted) center/cover;border:1px solid var(--color-border-default);position:relative}
+.fb-thumb button{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
+.fb-add{width:64px;height:112px;border-radius:10px;border:1.5px dashed var(--color-border-strong);display:grid;place-items:center;align-content:center;gap:4px;font-size:12px;color:var(--color-text-secondary);cursor:pointer}
+.rec-btn{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 16px 0 6px;border-radius:999px;border:1px solid var(--color-border-default);font-size:14px;font-weight:500}
+.rec-btn i{width:32px;height:32px;border-radius:50%;background:var(--color-accent-default);color:#fff;display:grid;place-items:center}
+.rec-btn.is-rec i{animation:bdot 1.2s infinite}
+.task{display:flex;gap:12px;align-items:flex-start;padding:10px 0;width:100%;text-align:left}
+.task .tl-dot{width:24px;height:24px}
+.task.is-done .tl-title{text-decoration:line-through;color:var(--color-text-tertiary)}
+.task.is-done .tl-dot{background:var(--color-success);border-color:var(--color-success);color:#fff}
+@media (max-width:1180px){.bd{padding:24px 32px 80px}}
+@media (max-width:1024px){
+  .bd-grid{grid-template-columns:minmax(0,1fr)}
+  .bd-side{position:static}
+  .bd.is-applying .bd-side .apply-card{display:none}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:40;padding:10px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);gap:12px;align-items:center}
+}
+@media (max-width:768px){.bd{padding:12px 16px 120px}.bd h1{font-size:28px;line-height:34px;letter-spacing:-.02em}.btl{grid-template-columns:1fr 1fr;gap:14px 0}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="bd" id="bd"><div class="skel" style="height:420px;border-radius:20px"></div></main>
+<div data-tabbar></div>
+<script src="/assets/beta.js"></script>
+<script>
+H.mount({ active: 'products', tab: 'products' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, avatar, plogo, verified } = H;
+  const id = location.pathname.split('/').filter(Boolean)[1];
+  await API.ready;
+  const b = id && await API.beta(id).catch(() => null);
+  if (!b) { qs('#bd').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that beta</h1><p class="c-2" style="margin:8px 0 20px">It may have closed or been removed.</p><a class="btn btn--secondary btn--sm" href="/betas">All beta tests</a></div>`; return; }
+  const p = b.product || {}, owner = b.owner || {};
+  document.title = `${b.title} · ${p.name} beta · Hentity`;
+  const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', (b.why || b.title).slice(0, 155));
+  const mine = API.uid && b.owner_id === API.uid;
+  const staff = API.uid && !mine && API.profile && ['admin', 'moderator'].includes(API.profile.role);
+  let app = await API.myBetaApp(b.id).catch(() => null);
+  const prof = Object.assign({}, API.profile || {});
+  const ph = B.phase(b);
+  const makerFirst = (owner.name || p.name || 'The maker').split(' ')[0];
+  const closeDay = B.fmtDay(b.closes_at);
+  const addDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+
+  const OSES = ['Android 14', 'Android 13', 'Android 12', 'Android 11 or older', 'iOS 17+', 'iOS 16 or older', 'Windows', 'macOS', 'Linux', 'ChromeOS', 'Feature phone (USSD)'];
+  let sheet;
+  if (app && app.status === 'accepted') return testerView();
+  detailView();
+
+  // ------------------------------------------------------------------ detail + apply
+  function detailView() {
+    const tags = [...b.platforms, b.time_needed, b.nda ? 'NDA' : null].filter(Boolean).map(t => `<span class="btag">${esc(t)}</span>`).join('');
+    const today = Date.now(), d = s => s ? new Date(s.length === 10 ? s + 'T12:00:00' : s) : null;
+    const tl = [
+      [d(b.closes_at), closeDay, 'Applications close'],
+      [d(b.test_start), b.test_start ? B.fmtDay(b.test_start) : 'After closing', 'Testers picked'],
+      [d(b.test_start), b.test_start ? `${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}` : 'Soon after', 'Testing'],
+      [d(b.test_end ? addDays(b.test_end, 2) : null), b.test_end ? B.fmtDay(addDays(b.test_end, 2)) : 'When you’re done', b.perk ? 'Feedback due · perks unlocked' : 'Feedback due']
+    ];
+    let nowSet = false;
+    const tlHTML = tl.map(([dt, when, what]) => { let cls = ''; if (dt && today >= dt) cls = 'is-done'; else if (!nowSet) { cls = 'is-now'; nowSet = true; } return `<div class="${cls}"><p class="t-label">${esc(when)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(what)}</p></div>`; }).join('');
+    qs('#bd').innerHTML = `
+      <div class="bd-grid">
+        <div class="bd-main">
+          <a class="link row gap-6 t-body-sm reveal" href="/betas" style="width:max-content">${icon('arrow-left', 'ic-14')}Beta tests</a>
+          ${staff ? `<p class="t-caption c-3 reveal" style="font-weight:400">Admin: <a class="link link--accent" href="/betas/${b.id}/manage">open this beta’s dashboard</a></p>` : ''}
+          ${mine ? `<div class="alert alert--accent reveal"><span>${icon('flask')}</span><div><p class="alert__title">This is your beta call</p><p class="alert__body">${b.applied_count} applied · ${b.accepted_count} of ${b.spots} accepted</p></div><a class="link alert__action" href="/betas/${b.id}/manage">Open dashboard</a></div>` : ''}
+          <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}">${icon('arrow-up-right', 'ic-14')}View product</a></div>
+          <h1 class="words">${esc(b.title)}</h1>
+          <div class="bd-by reveal" style="--i:2"><span class="row gap-10 t-body-sm c-2">${avatar(owner, 28)}<span>Posted by <a class="link" href="/makers/${esc(owner.username || '')}">${esc(owner.name || p.name)}</a> · ${H.ago(b.created_at)}</span></span><span class="row gap-6 wrap">${tags}</span></div>
+          ${b.why ? `<section class="card bsec" data-scroll-reveal><h2>Why we need you</h2><p class="body c-2" style="white-space:pre-wrap">${esc(b.why)}</p></section>` : ''}
+          ${b.steps.length ? `<section class="card bsec" data-scroll-reveal><h2>What you’ll do</h2>${b.steps.map((s, i) => `<div class="bstep"><span class="bstep__n">${i + 1}</span><p class="t-body-sm" style="padding-top:3px">${esc(s)}</p></div>`).join('')}</section>` : ''}
+          <section class="card bsec" data-scroll-reveal><div class="row between gap-12" style="margin-bottom:6px"><h2 style="margin:0">Who we’re looking for</h2><span id="match-badge"></span></div><div id="who"></div></section>
+          <section class="card bsec" data-scroll-reveal><h2>Timeline</h2><div class="btl">${tlHTML}</div></section>
+        </div>
+        <aside class="bd-side">
+          <div class="card bsec apply-card" id="apply"></div>
+          <div class="card bsec reveal" style="--i:3"><p class="row gap-8 t-label">${icon('lock', 'ic-16')}How Hentity protects testers</p>
+            <ul class="stack gap-8 t-caption c-2" style="list-style:none;margin:12px 0 0;padding:0;font-weight:400">
+              <li class="row gap-8" style="align-items:flex-start">${icon('check', 'ic-12')}Makers never see your phone number, and only see your email if you choose to share it.</li>
+              <li class="row gap-8" style="align-items:flex-start">${icon('check', 'ic-12')}Your perk is unlocked the moment your feedback is in.</li>
+              <li class="row gap-8" style="align-items:flex-start">${icon('check', 'ic-12')}You can leave a beta at any time.</li></ul></div>
+        </aside>
+      </div>
+      <div class="mbar" id="mbar"></div>`;
+    M.words(qs('#bd .words')); M.scroll(qs('#bd')); H.contentShown();
+    renderApply();
+    if (location.hash === '#apply' && innerWidth > 1024) setTimeout(() => qs('#apply').scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    if (location.hash === '#apply' && innerWidth <= 1024 && B.canApply(b) && !app && !mine) setTimeout(openSheet, 400);
+  }
+
+  function renderWho(confirmed) {
+    const m = B.match(b, prof, confirmed);
+    qs('#who').innerHTML = m.rows.map(r => `<div class="bcheck"><span class="bcheck__i ${r.ok ? '' : r.auto && !r.unknown ? 'is-no' : 'is-info'}">${icon(r.ok ? 'check' : r.auto && !r.unknown ? 'x' : 'info', 'ic-12')}</span><div><p class="t-label">${esc(r.label)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${esc(API.uid ? r.you : r.auto ? 'Checked against your profile' : 'You confirm this when applying')}</p></div></div>`).join('');
+    qs('#match-badge').innerHTML = API.uid ? `<span class="bmatch ${m.score === m.total ? '' : m.score >= m.total - 1 ? 'is-part' : 'is-low'}">${icon('check', 'ic-12')}You match ${m.score} of ${m.total}</span>` : '';
+    return m;
+  }
+
+  function perkBox() { return b.perk ? `<div class="bperk">${icon('sparkles')}<div><p class="t-caption" style="color:var(--color-accent-default)">Your perk</p><p class="t-label" style="margin-top:2px">${esc(b.perk)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Unlocked when your feedback is in</p></div></div>` : ''; }
+  function spotsBar() { const right = ph.k === 'open' ? B.closesIn(b) : ph.label; return `<div style="margin-top:16px"><div class="bcard__bar${ph.k === 'full' ? ' is-full' : ''}"><i style="width:${B.filled(b)}%"></i></div><div class="row between t-caption c-3" style="font-weight:400;margin-top:8px"><span>${b.accepted_count} of ${b.spots} spots filled</span><span>${esc(right)}</span></div></div>`; }
+
+  function renderApply() {
+    const box = qs('#apply');
+    const head = perkBox() + spotsBar() + '<div class="hr" style="margin:16px 0"></div>';
+    let body;
+    if (mine) body = `<p class="t-h4">Your beta</p><p class="t-body-sm c-2" style="margin:6px 0 14px">${b.applied_count} applied · ${b.accepted_count} accepted · ${b.feedback_count} sent feedback</p><a class="btn btn--primary btn--block" href="/betas/${b.id}/manage">${icon('users', 'ic-14')}Open dashboard</a><a class="btn btn--ghost btn--block" style="margin-top:8px" href="/betas/new?id=${b.id}">${icon('edit', 'ic-14')}Edit call</a>`;
+    else if (app && ['applied', 'waitlist'].includes(app.status)) body = `<p class="row gap-8 t-h4">${icon('check')}${app.status === 'waitlist' ? 'You’re on the waitlist' : 'Application sent'}</p><p class="t-body-sm c-2" style="margin:6px 0 14px">${esc(makerFirst)} picks testers by ${esc(closeDay)}. You’ll hear back in your Hentity notifications either way.</p><span class="bmatch ${app.match_score === app.match_total ? '' : 'is-part'}">${icon('check', 'ic-12')}Match ${app.match_score} of ${app.match_total}</span><button class="btn btn--ghost btn--sm btn--block" style="margin-top:14px" id="withdraw">Withdraw application</button>`;
+    else if (app && app.status === 'declined') body = `<p class="t-h4">${esc(p.name)} filled this beta</p><p class="t-body-sm c-2" style="margin-top:6px">Thanks for applying. You keep your place for their next beta.</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/betas">See other betas</a>`;
+    else if (app && app.status === 'left') body = `<p class="t-h4">You left this beta</p><p class="t-body-sm c-2" style="margin-top:6px">Thanks for trying it.</p>`;
+    else if (!B.canApply(b)) body = `<p class="t-h4">Applications are closed</p><p class="t-body-sm c-2" style="margin-top:6px">${ph.k === 'testing' ? 'Testing is under way.' : ph.k === 'picking' ? esc(makerFirst) + ' is picking testers now.' : 'This beta has finished.'}</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/betas">See open betas</a>`;
+    else if (!API.uid) body = `<p class="t-h4">Apply in one step</p><p class="t-body-sm c-2" style="margin:6px 0 14px">Sign in to check if you match and send your application.</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname + '#apply')}">${icon('flask', 'ic-14')}Sign in to apply</a>`;
+    else body = formHTML();
+    box.innerHTML = head + body;
+    renderWho(app && app.confirmed ? app.confirmed : []);
+    if (qs('#withdraw')) qs('#withdraw').onclick = async () => { if (!confirm('Withdraw your application?')) return; try { app = await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); renderApply(); } catch (e) { H.fail(e); } };
+    if (qs('#apply-form')) bindForm(qs('#apply-form'));
+    // mobile bar
+    const mb = qs('#mbar');
+    if (mb) mb.innerHTML = !mine && B.canApply(b) && !app ? `<div class="grow" style="min-width:0"><p class="t-label truncate">${b.perk ? esc(b.perk) : esc(p.name)}</p><p class="t-caption c-3" style="font-weight:400">${b.accepted_count} of ${b.spots} spots · ${esc(B.closesIn(b))}</p></div><button class="btn btn--accent" type="button" id="m-apply">${icon('flask', 'ic-14')}${ph.k === 'full' ? 'Join waitlist' : 'Apply to test'}</button>` : '';
+    if (mb && !mb.innerHTML) mb.remove();
+    if (qs('#m-apply')) qs('#m-apply').onclick = () => API.uid ? openSheet() : (location.href = '/signin?next=' + encodeURIComponent(location.pathname + '#apply'));
+  }
+
+  function formHTML() {
+    const devKnown = prof.device || prof.device_os;
+    return `<form id="apply-form" novalidate>
+      <p class="t-h4" style="margin-bottom:14px">${ph.k === 'full' ? 'Join the waitlist' : 'Apply in one step'}</p>
+      ${b.questions.map((q, i) => `<div class="field apply-field"><label class="field__label" for="q${i}">${esc(q)}</label><input class="input" id="q${i}" data-q="${esc(q)}" maxlength="300" required></div>`).join('')}
+      ${b.requirements.length ? `<p class="field__label" style="margin:4px 0 8px">I can confirm that I…</p>${b.requirements.map((r, i) => `<label class="check" style="display:flex;margin-bottom:10px;align-items:flex-start"><input type="checkbox" data-req="${esc(r)}"><span class="check__box">${icon('check')}</span><span>${esc(r)}</span></label>`).join('')}` : ''}
+      <div class="dev apply-field" id="dev-row" ${devKnown ? '' : 'hidden'}>${icon('check', 'ic-14')}<div class="grow"><p class="t-label">Testing on ${esc(prof.device || 'your device')}</p><p class="t-caption c-3" style="font-weight:400">${esc(prof.device_os || '')} · from your profile</p></div><button class="link link--accent t-body-sm" type="button" id="dev-change">Change</button></div>
+      <div id="dev-edit" class="apply-field" ${devKnown ? 'hidden' : ''}><p class="field__label">What will you test on?</p><div class="grid-2" style="gap:8px"><input class="input" id="dev" placeholder="e.g. Tecno Spark 20" value="${esc(prof.device || '')}" maxlength="60" aria-label="Device"><select class="input" id="dev-os" aria-label="Operating system"><option value="">System…</option>${OSES.map(o => `<option${o === prof.device_os ? ' selected' : ''}>${o}</option>`).join('')}</select></div><p class="field__hint">Saved to your profile so you don’t type it again.</p></div>
+      ${b.nda ? `<label class="check" style="display:flex;margin-bottom:10px"><input type="checkbox" id="nda"><span class="check__box">${icon('check')}</span>Keep this beta private until launch (NDA)</label>` : ''}
+      <label class="check" style="display:flex;margin-bottom:16px"><input type="checkbox" id="share" checked><span class="check__box">${icon('check')}</span>Share my email with ${esc(p.name)} if I’m picked</label>
+      <button class="btn btn--accent btn--block">${icon('flask', 'ic-14')}${ph.k === 'full' ? 'Join the waitlist' : 'Send application'}</button>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${esc(makerFirst)} picks testers by ${esc(closeDay)}. You’ll hear back in your Hentity notifications either way.</p>
+    </form>`;
+  }
+
+  function bindForm(f) {
+    const confirmed = () => qsa('[data-req]', f).filter(x => x.checked).map(x => x.dataset.req);
+    qsa('[data-req]', f).forEach(x => x.addEventListener('change', () => renderWho(confirmed())));
+    const devIn = () => { prof.device = qs('#dev', f).value.trim(); prof.device_os = qs('#dev-os', f).value; renderWho(confirmed()); };
+    qs('#dev', f).addEventListener('input', devIn); qs('#dev-os', f).addEventListener('change', devIn);
+    qs('#dev-change', f) && (qs('#dev-change', f).onclick = () => { qs('#dev-row', f).hidden = true; qs('#dev-edit', f).hidden = false; qs('#dev', f).focus(); });
+    f.addEventListener('submit', async e => {
+      e.preventDefault();
+      const answers = qsa('[data-q]', f).map(i => ({ q: i.dataset.q, a: i.value.trim() }));
+      const miss = qsa('[data-q]', f).find(i => !i.value.trim()); if (miss) { miss.classList.add('is-error'); miss.focus(); toast('Answer the questions so ' + makerFirst + ' can check you match', 'error'); return; }
+      const device = qs('#dev', f).value.trim(), device_os = qs('#dev-os', f).value;
+      if (!device || !device_os) { qs('#dev-row', f).hidden = true; qs('#dev-edit', f).hidden = false; (device ? qs('#dev-os', f) : qs('#dev', f)).classList.add('is-error'); toast('Tell us what you’ll test on', 'error'); return; }
+      if (b.nda && !qs('#nda', f).checked) { toast('Please agree to keep this beta private', 'error'); return; }
+      const btn = f.querySelector('.btn--accent'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Sending';
+      try {
+        if (device !== (API.profile || {}).device || device_os !== (API.profile || {}).device_os) await API.updateProfile({ device, device_os }).catch(() => {});
+        app = await API.applyBeta({ beta_id: b.id, answers, confirmed: confirmed(), device, device_os, nda_ok: !!(qs('#nda', f) && qs('#nda', f).checked), share_email: qs('#share', f).checked });
+        closeSheet(); toast(app.status === 'waitlist' ? 'You’re on the waitlist' : 'Application sent to ' + makerFirst);
+        b.applied_count++; renderApply(); M.burst(qs('#apply .t-h4'));
+      } catch (err) { btn.disabled = false; btn.innerHTML = icon('flask', 'ic-14') + 'Send application'; H.fail(err); }
+    });
+  }
+
+  // phone: the same form in a bottom sheet (Figma: Apply sheet)
+  function openSheet() {
+    if (!API.uid) return;
+    const form = qs('#apply-form'); if (!form) return;
+    qs('#bd').classList.add('is-applying');
+    sheet = document.createElement('div');
+    sheet.innerHTML = `<div class="bsheet-scrim"></div><div class="bsheet" role="dialog" aria-modal="true" aria-label="Apply to test"><div class="bsheet__grab"></div><div class="row between" style="margin-bottom:12px"><p class="t-h3">Apply to test</p><span id="sheet-match"></span></div>${perkBox()}<div style="height:14px"></div></div>`;
+    document.body.append(sheet);
+    qs('.bsheet', sheet).append(form);
+    qs('#sheet-match', sheet).innerHTML = qs('#match-badge').innerHTML;
+    qs('.bsheet-scrim', sheet).onclick = closeSheet;
+    let y0 = null; const sh = qs('.bsheet', sheet);
+    sh.addEventListener('touchstart', e => { if (sh.scrollTop <= 0) y0 = e.touches[0].clientY; }, { passive: true });
+    sh.addEventListener('touchmove', e => { if (y0 != null && e.touches[0].clientY - y0 > 90) { y0 = null; closeSheet(); } }, { passive: true });
+  }
+  function closeSheet() {
+    if (!sheet) return;
+    const form = qs('#apply-form', sheet); if (form) qs('#apply').append(form);
+    sheet.remove(); sheet = null; qs('#bd').classList.remove('is-applying');
+  }
+
+  // ------------------------------------------------------------------ tester: you're in
+  async function testerView() {
+    const [access, fb, room] = await Promise.all([API.betaAccess(b.id).catch(() => null), API.myFeedback(app.id).catch(() => null), b.room_id ? API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data) : null]);
+    const links = (access && access.links) || [];
+    const ts = b.test_start && new Date(b.test_start + 'T00:00:00'), te = b.test_end && new Date(b.test_end + 'T23:59:59');
+    const dayN = ts && Date.now() >= ts ? Math.floor((Date.now() - ts) / 864e5) + 1 : 0;
+    const runs = b.test_start ? `Testing runs ${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}${dayN && (!te || Date.now() <= te) ? ` · you’re on day ${dayN}` : ''}` : 'Testing starts soon';
+    const steps = b.steps.length ? b.steps : ['Try the beta'];
+    qs('#bd').innerHTML = `
+      <div class="bd-grid">
+        <div class="bd-main">
+          <div class="bdark row gap-16 reveal">${plogo(p, 48)}<div><p class="mono" style="font-size:12px;letter-spacing:.06em;color:#ff7a3d">YOU’RE IN · BETA TESTER</p><p style="font-size:20px;line-height:26px;font-weight:600;margin-top:4px">${esc(p.name)} picked you: ${esc(b.title)}</p><p class="t-body-sm" style="color:rgba(255,255,255,.6);margin-top:4px">${esc(runs)}</p></div></div>
+          <section class="card bsec reveal" style="--i:1"><h2>Get the beta</h2>${links.length ? `<div class="grid-2" style="gap:10px">${links.map((l, i) => `<a class="btn ${i ? 'btn--secondary' : 'btn--primary'}" href="${esc(l.url)}" target="_blank" rel="noopener">${icon(/web/i.test(l.label) ? 'globe' : 'arrow-up-right', 'ic-14')}${esc(l.label)}</a>`).join('')}</div>` : `<p class="t-body-sm c-2">${esc(makerFirst)} hasn’t added the beta link yet. You’ll get a notification when it’s ready.</p>`}<p class="row gap-6 t-caption c-3" style="font-weight:400;margin-top:12px">${icon('lock', 'ic-12')}Private link for you only.${b.nda ? ' Please keep the beta to yourself until launch.' : ''}</p></section>
+          <section class="card bsec reveal" style="--i:2"><div class="row between"><h2 style="margin:0">Your tasks</h2><span class="t-caption c-3" id="t-count"></span></div><div id="tasks" style="margin-top:8px"></div></section>
+          <section class="card bsec reveal" style="--i:3" id="fb"></section>
+        </div>
+        <aside class="bd-side">
+          ${b.perk ? `<div class="card bsec"><p class="row gap-8 t-label">${icon('sparkles', 'ic-16')}Your perk</p><div class="row gap-10" style="margin-top:12px;align-items:flex-start"><span class="bcheck__i ${fb ? '' : 'is-info'}">${icon(fb ? 'check' : 'clock', 'ic-12')}</span><div><p class="t-label">${esc(b.perk)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${fb ? 'Unlocked. ' + esc(p.name) + ' will get it to you.' : 'Unlocked when your feedback is in'}</p></div></div></div>` : ''}
+          ${room ? `<div class="card bsec"><p class="row gap-8 t-label">${icon('chats', 'ic-16')}Testers’ room</p><p class="t-caption c-2" style="font-weight:400;margin:8px 0 12px">A private room with the makers and the other ${Math.max(0, b.accepted_count - 1)} testers. Ask questions, compare notes.</p><a class="btn btn--secondary btn--sm btn--block" href="/chats/${esc(room.slug)}">Open the room</a></div>` : ''}
+          ${fb ? '' : `<p class="t-caption c-3" style="font-weight:400">Can’t continue? <button class="link" type="button" id="leave" style="color:var(--color-text-primary)">Leave this beta</button></p>`}
+        </aside>
+      </div>`;
+    H.contentShown();
+    const renderTasks = () => {
+      const done = new Set(app.tasks_done || []);
+      const rows = steps.map((s, i) => ({ t: s, on: done.has(i + 1), i: i + 1 })).concat([{ t: 'Send feedback', on: !!fb, i: 0, d: fb ? 'Sent. Thank you!' : 'Below. Takes about 5 minutes.' }]);
+      qs('#tasks').innerHTML = rows.map(r => `<button type="button" class="task ${r.on ? 'is-done' : ''}" ${r.i ? `data-task="${r.i}"` : 'data-fb'}><span class="tl-dot">${r.on ? icon('check', 'ic-12') : ''}</span><span><span class="tl-title" style="display:block">${esc(r.t)}</span>${r.d ? `<span class="tl-meta">${esc(r.d)}</span>` : ''}</span></button>`).join('');
+      qs('#t-count').textContent = `${rows.filter(r => r.on).length} of ${rows.length} done`;
+    };
+    renderTasks();
+    qs('#tasks').addEventListener('click', async e => {
+      if (e.target.closest('[data-fb]')) { qs('#fb').scrollIntoView({ behavior: 'smooth' }); return; }
+      const t = e.target.closest('[data-task]'); if (!t || fb) return;
+      const n = +t.dataset.task, set = new Set(app.tasks_done || []); set.has(n) ? set.delete(n) : set.add(n);
+      app.tasks_done = [...set].sort((a, c) => a - c); renderTasks();
+      try { await API.updateMyApp(app.id, { tasks_done: app.tasks_done }); } catch (err) { H.fail(err); }
+    });
+    if (qs('#leave')) qs('#leave').onclick = async () => { if (!confirm(`Leave the ${p.name} beta? Your spot goes to someone on the waitlist.`)) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
+    if (fb) { qs('#fb').innerHTML = `<h2>Your feedback</h2><p class="row gap-8 t-body-sm"><span class="bmatch">${icon('check', 'ic-12')}Sent ${H.ago(fb.created_at)}</span><span class="c-3">Ease ${fb.ease}/5 · ${{ yes: 'Worked', mostly: 'Mostly worked', no: 'Didn’t work' }[fb.verdict]}</span></p><p class="body" style="margin-top:12px;white-space:pre-wrap">${esc(fb.details)}</p>${fb.maker_reply ? `<div class="card card--pad" style="margin-top:14px;background:var(--color-bg-subtle)"><p class="t-caption c-3">${esc(makerFirst)} replied</p><p class="t-body-sm" style="margin-top:4px">${esc(fb.maker_reply)}</p></div>` : ''}`; return; }
+    feedbackForm();
+  }
+
+  function feedbackForm() {
+    const media = []; let voice = null, rec = null, chunks = [];
+    qs('#fb').innerHTML = `<h2 style="font-size:22px;line-height:28px">Send feedback</h2>
+      <form id="fb-form" novalidate class="stack gap-16" style="gap:18px">
+        <div><p class="field__label">How easy was it to use? (1 = painful, 5 = effortless)</p><div class="bscore" id="ease" style="margin-top:8px">${[1, 2, 3, 4, 5].map(n => `<button type="button" aria-pressed="false" data-n="${n}">${n}</button>`).join('')}</div></div>
+        <div><p class="field__label">Did everything work as you expected?</p><div class="chips" data-single id="verdict" style="margin-top:8px"><button class="chip" type="button" data-chip data-v="yes" aria-pressed="false">${icon('check')}Yes, all of it</button><button class="chip" type="button" data-chip data-v="mostly" aria-pressed="false">${icon('check')}Mostly</button><button class="chip" type="button" data-chip data-v="no" aria-pressed="false">${icon('check')}No</button></div></div>
+        <div class="field"><div class="field__row"><label class="field__label" for="fb-d">What didn’t work or broke?</label><span class="field__counter" id="fb-c">0 / 1000</span></div><textarea class="input" id="fb-d" rows="3" maxlength="1000" style="height:auto;padding:10px 12px"></textarea><p class="field__hint">Be specific: dates, amounts and screens help most.</p></div>
+        <div class="fb-media" id="fb-media"><label class="fb-add">${icon('image')}Add<input type="file" accept="image/*" multiple class="sr-only" id="fb-file"></label><button type="button" class="rec-btn" id="rec"><i>${icon('mic', 'ic-14')}</i><span>Or record a voice note</span></button></div>
+        <div class="field"><label class="field__label" for="fb-x">Anything else for ${esc(makerFirst)}?</label><input class="input" id="fb-x" maxlength="500"></div>
+        <div class="row between wrap gap-12"><label class="check"><input type="checkbox" id="fb-q" checked><span class="check__box">${icon('check')}</span>${esc(p.name)} can quote my feedback (first name only)</label><button class="btn btn--accent">${icon('send', 'ic-14')}${b.perk ? 'Send feedback and unlock perk' : 'Send feedback'}</button></div>
+      </form>`;
+    const f = qs('#fb-form');
+    H.bindChips(qs('#verdict', f));
+    qs('#ease', f).addEventListener('click', e => { const x = e.target.closest('[data-n]'); if (!x) return; qsa('#ease button', f).forEach(o => o.setAttribute('aria-pressed', String(o === x))); });
+    qs('#fb-d', f).addEventListener('input', e => { qs('#fb-c').textContent = e.target.value.length + ' / 1000'; });
+    const drawMedia = () => { qsa('.fb-thumb', f).forEach(x => x.remove()); media.forEach((u, i) => qs('.fb-add', f).insertAdjacentHTML('beforebegin', `<span class="fb-thumb" style="background-image:url('${esc(u)}')"><button type="button" data-rm="${i}" aria-label="Remove">${icon('x', 'ic-12')}</button></span>`)); qs('.fb-add', f).hidden = media.length >= 4; };
+    qs('#fb-file', f).addEventListener('change', async e => { for (const file of [...e.target.files].slice(0, 4 - media.length)) { if (!/image\//.test(file.type) || file.size > 8e6) { toast('Images up to 8 MB', 'error'); continue; } try { media.push(await API.upload(file, 'beta')); drawMedia(); } catch (err) { H.fail(err); } } e.target.value = ''; });
+    qs('#fb-media', f).addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { media.splice(+r.dataset.rm, 1); drawMedia(); } });
+    qs('#rec', f).addEventListener('click', async () => {
+      const btn = qs('#rec', f);
+      if (rec && rec.state === 'recording') { rec.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) { toast('Voice notes aren’t supported in this browser', 'error'); return; }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); chunks = []; rec = new MediaRecorder(stream); const t0 = Date.now();
+        rec.ondataavailable = ev => chunks.push(ev.data);
+        rec.onstop = async () => { stream.getTracks().forEach(t => t.stop()); btn.classList.remove('is-rec'); const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' }); const secs = Math.round((Date.now() - t0) / 1000); btn.querySelector('span').textContent = 'Uploading…'; try { voice = await API.upload(new File([blob], 'voice.' + (blob.type.includes('mp4') ? 'mp4' : 'webm'), { type: blob.type.split(';')[0] }), 'beta'); btn.querySelector('span').textContent = `Voice note · 0:${String(secs).padStart(2, '0')} ✓`; } catch (err) { H.fail(err); btn.querySelector('span').textContent = 'Or record a voice note'; } };
+        rec.start(); btn.classList.add('is-rec'); btn.querySelector('span').textContent = 'Recording… tap to stop';
+      } catch (err) { toast('Allow the microphone to record a voice note', 'error'); }
+    });
+    f.addEventListener('submit', async e => {
+      e.preventDefault();
+      const ease = +((qs('#ease [aria-pressed="true"]', f) || {}).dataset || {}).n, verdict = ((qs('#verdict [aria-pressed="true"]', f) || {}).dataset || {}).v, details = qs('#fb-d', f).value.trim();
+      if (!ease) { toast('Pick how easy it was, 1 to 5', 'error'); return; }
+      if (!verdict) { toast('Tell us if it worked as expected', 'error'); return; }
+      if (details.length < 10 && verdict !== 'yes') { qs('#fb-d', f).classList.add('is-error'); toast('Tell ' + makerFirst + ' what didn’t work', 'error'); return; }
+      const btn = f.querySelector('.btn--accent'); btn.disabled = true;
+      try { await API.sendFeedback({ application_id: app.id, ease, verdict, details, extra: qs('#fb-x', f).value.trim(), media, voice_url: voice, quote_ok: qs('#fb-q', f).checked }); toast(b.perk ? 'Thanks! Your perk is unlocked' : 'Thanks for your feedback'); testerView(); }
+      catch (err) { btn.disabled = false; H.fail(err); }
+    });
+  }
+})();
+</script>
+</body>
+</html>

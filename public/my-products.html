@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=572b560778">
+<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=7f9c49319f"></script>
-<script src="/assets/app.js?v=d274141581"></script>
+<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/app.js?v=cd28a38c82"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>My products · Hentity</title>
 <style>
@@ -64,6 +64,7 @@
       <div class="card stat lift"><span class="t-body-sm c-2">Product followers</span><b id="s-followers" data-count-to="0">0</b><span class="t-caption c-success" style="font-weight:400">across your products</span></div>
     </div>
     <div class="card" style="overflow:hidden"><table class="ptable"><thead><tr><th>Product</th><th>Status</th><th>Launch</th><th>Upvotes</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <section class="card card--pad" id="my-betas" style="margin-top:16px" hidden></section>
   </main>
   <aside class="stack gap-16">
     <section class="card card--pad prep" id="prep-card" hidden>
@@ -80,7 +81,8 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=2b956ee3c0"></script>
+<script src="/assets/data.js?v=91b9906d2a"></script>
+<script src="/assets/beta.js?v=22e15ba0c4"></script>
 <script>
 H.mount({ active: 'my-products', tab: 'you' });
 (async function () {
@@ -142,6 +144,15 @@ H.mount({ active: 'my-products', tab: 'you' });
   qs('#inv-res').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b || !makerProduct) return; try { await API.addMaker(makerProduct.id, b.dataset.uid, 'Maker'); qs('#invite').reset(); qs('#inv-res').innerHTML = ''; qs('#invite').hidden = true; qs('#inv-btn').hidden = false; renderMakers(makerProduct); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
   qs('#invite').addEventListener('submit', e => e.preventDefault());
   try { rows = await API.myProducts(); render(); computeRank(); } catch (e) { H.fail(e); }
+  // Beta tests for these products
+  (async () => {
+    const box = qs('#my-betas'); if (!rows.length) return;
+    const betas = await API.betasOfProducts(rows.map(r => r.id)).catch(() => []);
+    box.hidden = false;
+    const ph = b => { const k = { open: 'live', full: 'scheduled', picking: 'review', testing: 'review', closed: 'draft', draft: 'draft' }[B.phase(b).k]; return `<span class="status status--${k}">${esc(B.phase(b).label)}</span>`; };
+    box.innerHTML = `<div class="row between wrap gap-12"><div><p class="t-h4 row gap-8">${icon('flask', 'ic-18')}Beta tests</p><p class="t-body-sm c-2" style="margin-top:4px">Get real users to try something before launch. They apply, you pick, they send feedback.</p></div><a class="btn btn--accent btn--sm" href="/betas/new">${icon('flask', 'ic-14')}Request beta testers</a></div>`
+      + (betas.length ? `<div class="stack" style="margin-top:14px">${betas.map(b => `<a class="row gap-12 between" style="padding:12px 0;border-top:1px solid var(--color-border-default)" href="/betas/${b.id}/manage"><span class="row gap-12" style="min-width:0">${plogo(b.product || {}, 28)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(b.title)}</span><span class="t-caption c-3" style="font-weight:400">${b.applied_count} applied · ${b.accepted_count}/${b.spots} accepted · ${b.feedback_count} feedback</span></span></span>${ph(b)}</a>`).join('')}</div>` : '');
+  })();
 })();
 </script>
 </body>

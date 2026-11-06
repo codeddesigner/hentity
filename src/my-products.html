@@ -33,6 +33,7 @@
       <div class="card stat lift"><span class="t-body-sm c-2">Product followers</span><b id="s-followers" data-count-to="0">0</b><span class="t-caption c-success" style="font-weight:400">across your products</span></div>
     </div>
     <div class="card" style="overflow:hidden"><table class="ptable"><thead><tr><th>Product</th><th>Status</th><th>Launch</th><th>Upvotes</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <section class="card card--pad" id="my-betas" style="margin-top:16px" hidden></section>
   </main>
   <aside class="stack gap-16">
     <section class="card card--pad prep" id="prep-card" hidden>
@@ -50,6 +51,7 @@
 </div>
 <div data-tabbar></div>
 <script src="/assets/data.js"></script>
+<script src="/assets/beta.js"></script>
 <script>
 H.mount({ active: 'my-products', tab: 'you' });
 (async function () {
@@ -111,6 +113,15 @@ H.mount({ active: 'my-products', tab: 'you' });
   qs('#inv-res').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b || !makerProduct) return; try { await API.addMaker(makerProduct.id, b.dataset.uid, 'Maker'); qs('#invite').reset(); qs('#inv-res').innerHTML = ''; qs('#invite').hidden = true; qs('#inv-btn').hidden = false; renderMakers(makerProduct); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
   qs('#invite').addEventListener('submit', e => e.preventDefault());
   try { rows = await API.myProducts(); render(); computeRank(); } catch (e) { H.fail(e); }
+  // Beta tests for these products
+  (async () => {
+    const box = qs('#my-betas'); if (!rows.length) return;
+    const betas = await API.betasOfProducts(rows.map(r => r.id)).catch(() => []);
+    box.hidden = false;
+    const ph = b => { const k = { open: 'live', full: 'scheduled', picking: 'review', testing: 'review', closed: 'draft', draft: 'draft' }[B.phase(b).k]; return `<span class="status status--${k}">${esc(B.phase(b).label)}</span>`; };
+    box.innerHTML = `<div class="row between wrap gap-12"><div><p class="t-h4 row gap-8">${icon('flask', 'ic-18')}Beta tests</p><p class="t-body-sm c-2" style="margin-top:4px">Get real users to try something before launch. They apply, you pick, they send feedback.</p></div><a class="btn btn--accent btn--sm" href="/betas/new">${icon('flask', 'ic-14')}Request beta testers</a></div>`
+      + (betas.length ? `<div class="stack" style="margin-top:14px">${betas.map(b => `<a class="row gap-12 between" style="padding:12px 0;border-top:1px solid var(--color-border-default)" href="/betas/${b.id}/manage"><span class="row gap-12" style="min-width:0">${plogo(b.product || {}, 28)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(b.title)}</span><span class="t-caption c-3" style="font-weight:400">${b.applied_count} applied · ${b.accepted_count}/${b.spots} accepted · ${b.feedback_count} feedback</span></span></span>${ph(b)}</a>`).join('')}</div>` : '');
+  })();
 })();
 </script>
 </body>

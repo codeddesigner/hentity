@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Beta dashboard · Hentity</title>
+<meta name="description" content="Pick testers and read feedback for your beta on Hentity.">
+<style>
+.bm{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
+.bm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.bm-head h1{font-size:32px;line-height:38px;font-weight:600;letter-spacing:-.025em}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0 8px}
+.kpis4 .card{padding:18px 20px}
+.kpis4 .n{font-size:32px;line-height:38px;font-weight:600;letter-spacing:-.025em;margin:6px 0 4px}
+.fillbar{display:flex;align-items:center;gap:14px;background:#000;color:#fff;border-radius:var(--radius-lg);padding:12px 12px 12px 18px;margin:16px 0}
+.fillbar .ic{color:var(--color-accent-default);flex:none}
+.atbl td{padding:14px 12px}
+.atbl .quote{color:var(--color-text-secondary);font-size:13px;margin-top:2px;max-width:420px}
+.fbi{padding:20px}
+.fbi + .fbi{margin-top:12px}
+.fbi audio{height:36px;max-width:100%}
+.dist{display:flex;align-items:flex-end;gap:6px;height:44px}
+.dist i{flex:1;background:var(--color-bg-muted);border-radius:4px 4px 0 0;min-height:3px;transition:height .6s cubic-bezier(.2,.8,.2,1)}
+.dist i.on{background:var(--color-accent-default)}
+.split{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--color-bg-muted)}
+.split i:nth-child(1){background:var(--color-success)}.split i:nth-child(2){background:var(--color-warning)}.split i:nth-child(3){background:var(--color-danger,#dc2626)}
+@media (max-width:1180px){.bm{padding:24px 32px 80px}}
+@media (max-width:900px){.kpis4{grid-template-columns:1fr 1fr}.atbl .hide-md{display:none}}
+@media (max-width:768px){.bm{padding:12px 16px 32px}.bm-head h1{font-size:24px;line-height:30px}.fbg{grid-template-columns:1fr!important}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main class="bm" id="bm"><div class="skel" style="height:320px;border-radius:20px"></div></main>
+<div data-tabbar></div>
+<script src="/assets/beta.js"></script>
+<script>
+H.mount({ active: 'my-products', tab: 'you' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, avatar, plogo, flag } = H;
+  const id = location.pathname.split('/').filter(Boolean)[1];
+  await API.ready;
+  if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+  let b = await API.beta(id).catch(() => null);
+  const isAdmin = API.profile && ['admin', 'moderator'].includes(API.profile.role);
+  if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/betas">Beta tests</a></div>`; return; }
+  const p = b.product || {};
+  document.title = `${b.title} · Beta dashboard · Hentity`;
+  let apps = [], fbs = [], tab = H.params().get('tab') || 'applicants', room = null;
+  const load = async () => { [apps, fbs] = await Promise.all([API.betaApplicants(b.id).catch(e => (H.fail(e), [])), API.betaFeedback(b.id).catch(() => [])]); };
+  await load();
+  if (b.room_id) room = await API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data).catch(() => null);
+  const pct = a => a.match_score / Math.max(1, a.match_total);
+  const matchBadge = a => `<span class="bmatch ${pct(a) === 1 ? '' : pct(a) >= .6 ? 'is-part' : 'is-low'}">${icon('check', 'ic-12')}${a.match_score}/${a.match_total} match</span>`;
+
+  function frame() {
+    const ph = B.phase(b), full = apps.filter(a => pct(a) === 1).length;
+    const started = apps.filter(a => a.status === 'accepted' && ((a.tasks_done || []).length || a.has_feedback)).length;
+    const avg = fbs.length ? (fbs.reduce((s, f) => s + f.ease, 0) / fbs.length).toFixed(1) : null;
+    const sub = [b.test_start ? `Testing ${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}` : null, b.platforms.join(' + ') || null, B.countryText(b.countries), b.perk ? 'perk: ' + b.perk : null].filter(Boolean).join(' · ');
+    const pending = apps.filter(a => ['applied', 'waitlist'].includes(a.status)).length;
+    qs('#bm').innerHTML = `
+      <a class="link row gap-6 t-body-sm" href="/my-products" style="width:max-content">${icon('arrow-left', 'ic-14')}My products · ${esc(p.name)}</a>
+      <div class="bm-head" style="margin-top:16px">
+        <div class="row gap-16" style="align-items:flex-start;min-width:0">${plogo(p, 48)}<div style="min-width:0"><h1 class="row gap-12 wrap">${esc(b.title)} ${b.status === 'draft' ? '<span class="bpill bpill--draft">Draft</span>' : `<span class="bpill bpill--${ph.k}">${esc(ph.label)}${ph.k === 'open' ? ' · ' + esc(B.closesIn(b).toLowerCase()) : ''}</span>`}</h1><p class="t-body-sm c-2" style="margin-top:4px">${esc(sub)}</p></div></div>
+        <div class="row gap-8 wrap">${room ? `<a class="btn btn--secondary btn--sm" href="/chats/${esc(room.slug)}">${icon('chats', 'ic-14')}Message testers</a>` : ''}<a class="btn btn--ghost btn--sm" href="/betas/${b.id}">View call</a><a class="btn btn--ghost btn--sm" href="/betas/new?id=${b.id}">Edit call</a>${b.status === 'open' ? '<button class="btn btn--ghost btn--sm" id="close-early">Close early</button>' : b.status === 'draft' ? '<a class="btn btn--accent btn--sm" href="/betas/new?id=' + b.id + '">Finish and post</a>' : '<button class="btn btn--ghost btn--sm" id="reopen">Reopen</button>'}</div>
+      </div>
+      <div class="kpis4">
+        <div class="card"><p class="t-caption c-3" style="font-weight:400">Applied</p><p class="n" data-count-to="${apps.length}">0</p><p class="t-caption c-2" style="font-weight:400">${full} full match${full === 1 ? '' : 'es'}</p></div>
+        <div class="card"><p class="t-caption c-3" style="font-weight:400">Accepted</p><p class="n">${b.accepted_count} / ${b.spots}</p><p class="t-caption" style="color:var(--color-accent-default)">${Math.max(0, b.spots - b.accepted_count)} spots left</p></div>
+        <div class="card"><p class="t-caption c-3" style="font-weight:400">Started testing</p><p class="n">${started || '–'}</p><p class="t-caption c-2" style="font-weight:400">${b.test_start ? 'From ' + B.fmtDay(b.test_start) : 'Ticked a task or sent feedback'}</p></div>
+        <div class="card"><p class="t-caption c-3" style="font-weight:400">Feedback</p><p class="n">${fbs.length}</p><p class="t-caption c-2" style="font-weight:400">${avg ? 'Average ease ' + avg + ' / 5' : 'Arrives as testers finish'}</p></div>
+      </div>
+      <div class="tabs" role="tablist" style="margin-top:20px">${[['applicants', 'Applicants · ' + apps.length], ['testers', 'Testers · ' + b.accepted_count], ['feedback', 'Feedback · ' + fbs.length]].map(([k, l]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}</div>
+      <div id="panel" style="margin-top:16px"></div>`;
+    M.countUp(qs('#bm'));
+    qsa('[data-tab]').forEach(t => t.onclick = () => { tab = t.dataset.tab; history.replaceState(null, '', '?tab=' + tab); qsa('[data-tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); panel(); });
+    if (qs('#close-early')) qs('#close-early').onclick = async () => { if (!confirm('Close applications now? Accepted testers keep their access.')) return; try { await API.saveBeta(b.id, { status: 'closed' }); b.status = 'closed'; toast('Applications closed'); frame(); } catch (e) { H.fail(e); } };
+    if (qs('#reopen')) qs('#reopen').onclick = async () => { if (new Date(b.closes_at) <= new Date()) { location.href = '/betas/new?id=' + b.id; return; } try { await API.saveBeta(b.id, { status: 'open' }); b.status = 'open'; toast('Reopened'); frame(); } catch (e) { H.fail(e); } };
+    panel(); H.contentShown();
+  }
+
+  let filt = 'all', sort = 'match';
+  function panel() {
+    const el = qs('#panel');
+    if (tab === 'applicants') {
+      const pend = apps.filter(a => ['applied', 'waitlist'].includes(a.status));
+      const left = Math.max(0, b.spots - b.accepted_count), bestFull = pend.filter(a => pct(a) === 1).length;
+      const countries = [...new Set(apps.map(a => a.country).filter(Boolean))].slice(0, 3);
+      const chips = [['all', 'All ' + apps.length], ['full', 'Full match ' + apps.filter(a => pct(a) === 1).length], ['pending', 'Waiting ' + pend.length], ...countries.map(c => ['c:' + c, (B.COUNTRIES[c] || c) + ' ' + apps.filter(a => a.country === c).length])];
+      let L = apps.filter(a => filt === 'all' || (filt === 'full' && pct(a) === 1) || (filt === 'pending' && ['applied', 'waitlist'].includes(a.status)) || (filt.startsWith('c:') && a.country === filt.slice(2)));
+      if (sort === 'new') L = L.slice().sort((x, y) => new Date(y.created_at) - new Date(x.created_at));
+      el.innerHTML = `<div class="row between wrap gap-12"><div class="chips" data-single id="af">${chips.map(([k, l]) => `<button class="chip" type="button" data-chip data-f="${k}" aria-pressed="${filt === k}">${icon('check')}${esc(l)}</button>`).join('')}</div><label class="row gap-6 t-body-sm">${icon('chevron-down', 'ic-14')}<select id="sort" style="appearance:none;border:0;background:transparent;font:inherit;font-weight:500;color:inherit;cursor:pointer"><option value="match"${sort === 'match' ? ' selected' : ''}>Best match first</option><option value="new"${sort === 'new' ? ' selected' : ''}>Newest first</option></select></label></div>
+        ${left && pend.length ? `<div class="fillbar">${icon('sparkles')}<p class="grow t-body-sm">Fill the ${Math.min(left, pend.length)} open spot${Math.min(left, pend.length) === 1 ? '' : 's'} with the best matches${bestFull ? ` (${bestFull} full match${bestFull === 1 ? '' : 'es'} waiting)` : ''}.</p><button class="btn btn--accent btn--sm" id="best">Accept ${Math.min(left, pend.length)} best</button></div>` : ''}
+        ${L.length ? `<div class="tbl-wrap"><table class="tbl atbl"><thead><tr><th>Applicant</th><th class="hide-md">Device</th><th>Match</th><th></th></tr></thead><tbody>${L.map(a => `<tr data-app="${a.id}"><td><div class="row gap-12" style="align-items:flex-start">${avatar(a, 36)}<div style="min-width:0"><p class="row gap-6 t-label"><a href="/makers/${esc(a.username)}" target="_blank">${esc(a.name)}</a>${flag(a.country)}<span class="c-3" style="font-weight:400">${esc(a.city || '')}</span></p>${(a.answers || []).filter(x => x.a).slice(0, 2).map(x => `<p class="quote" title="${esc(x.q)}">“${esc(x.a)}”</p>`).join('')}</div></div></td><td class="hide-md"><p class="t-label">${esc(a.device || '—')}</p><p class="t-caption c-3" style="font-weight:400">${esc(a.device_os || '')}</p></td><td>${matchBadge(a)}</td><td style="text-align:right;white-space:nowrap">${a.status === 'accepted' ? `<span class="bmatch">${icon('check', 'ic-12')}Accepted${a.has_feedback ? ' · feedback in' : ''}</span>` : a.status === 'declined' ? `<span class="badge">Declined</span> <button class="link t-caption" data-d="accepted" data-id="${a.id}" style="margin-left:8px">Undo</button>` : a.status === 'left' ? '<span class="badge">Left</span>' : `<button class="btn btn--ghost btn--sm" data-d="declined" data-id="${a.id}">Decline</button> <button class="btn btn--primary btn--sm" data-d="accepted" data-id="${a.id}">Accept</button>`}</td></tr>`).join('')}</tbody></table></div>`
+        : `<div class="card" style="padding:48px 24px;text-align:center"><p class="t-h4">${apps.length ? 'No applicants match this filter' : 'No applicants yet'}</p><p class="t-body-sm c-2" style="margin-top:6px">${apps.length ? '' : b.status === 'draft' ? 'Post your call to start getting applicants.' : 'Share your call: ' + location.origin + '/betas/' + b.id}</p>${!apps.length && b.status !== 'draft' ? `<button class="btn btn--secondary btn--sm" id="copy" style="margin-top:14px">${icon('link', 'ic-14')}Copy link</button>` : ''}</div>`}`;
+      H.bindChips(qs('#af'), () => { const c = qs('#af [aria-pressed="true"]'); filt = c ? c.dataset.f : 'all'; panel(); });
+      qs('#sort').onchange = e => { sort = e.target.value; panel(); };
+      if (qs('#copy')) qs('#copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(location.origin + '/betas/' + b.id); toast('Link copied'); };
+      if (qs('#best')) qs('#best').onclick = async e => { e.target.disabled = true; try { const n = await API.acceptBest(b.id, b.spots - b.accepted_count); toast(`Accepted ${n} tester${n === 1 ? '' : 's'} · they’ve been notified`); await refresh(); } catch (err) { e.target.disabled = false; H.fail(err); } };
+      el.onclick = async e => { const d = e.target.closest('[data-d]'); if (!d) return; d.disabled = true; try { await API.decideApp(d.dataset.id, d.dataset.d); toast(d.dataset.d === 'accepted' ? 'Accepted · they’ve been notified' : 'Declined kindly'); await refresh(); } catch (err) { d.disabled = false; H.fail(err); } };
+      M.stagger(qs('#panel tbody') || qs('#panel'));
+    } else if (tab === 'testers') {
+      const T = apps.filter(a => a.status === 'accepted'), steps = Math.max(1, b.steps.length);
+      el.onclick = null;
+      el.innerHTML = T.length ? `<div class="tbl-wrap"><table class="tbl atbl"><thead><tr><th>Tester</th><th class="hide-md">Device</th><th>Progress</th><th>Email</th></tr></thead><tbody>${T.map(a => { const n = (a.tasks_done || []).length; return `<tr><td><div class="row gap-12">${avatar(a, 32)}<div><p class="t-label row gap-6">${esc(a.name)}${flag(a.country)}</p><p class="t-caption c-3" style="font-weight:400">@${esc(a.username)}</p></div></div></td><td class="hide-md">${esc(a.device || '—')}<p class="t-caption c-3" style="font-weight:400">${esc(a.device_os || '')}</p></td><td>${a.has_feedback ? `<span class="bmatch">${icon('check', 'ic-12')}Feedback sent</span>` : `<div style="width:120px"><div class="bar"><i style="width:${Math.round(n / steps * 100)}%;background:var(--color-accent-default)"></i></div><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${n} of ${steps} steps</p></div>`}</td><td>${a.email ? `<a class="link t-body-sm" href="mailto:${esc(a.email)}">${esc(a.email)}</a>` : '<span class="t-caption c-3">Not shared</span>'}</td></tr>`; }).join('')}</tbody></table></div>${room ? `<p class="t-body-sm c-2" style="margin-top:14px">Testers are in your private room. <a class="link link--accent" href="/chats/${esc(room.slug)}">Open the room</a></p>` : ''}`
+        : `<div class="card" style="padding:48px 24px;text-align:center"><p class="t-h4">No testers yet</p><p class="t-body-sm c-2" style="margin-top:6px">Accept applicants and they’ll appear here.</p></div>`;
+    } else {
+      el.onclick = null;
+      if (!fbs.length) { el.innerHTML = `<div class="card" style="padding:48px 24px;text-align:center"><p class="t-h4">No feedback yet</p><p class="t-body-sm c-2" style="margin-top:6px">It arrives here the moment a tester sends it, and you get a notification.</p></div>`; return; }
+      const dist = [1, 2, 3, 4, 5].map(n => fbs.filter(f => f.ease === n).length), mx = Math.max(...dist, 1);
+      const v = { yes: fbs.filter(f => f.verdict === 'yes').length, mostly: fbs.filter(f => f.verdict === 'mostly').length, no: fbs.filter(f => f.verdict === 'no').length };
+      const avg = (fbs.reduce((s, f) => s + f.ease, 0) / fbs.length).toFixed(1);
+      const tags = {}; fbs.forEach(f => { if (f.tag) tags[f.tag] = (tags[f.tag] || 0) + 1; });
+      const top = Object.entries(tags).sort((a, c) => c[1] - a[1]).slice(0, 3);
+      const pc = n => Math.round(n / fbs.length * 100);
+      el.innerHTML = `<div class="fbg" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+          <div class="card card--pad"><p class="t-caption c-3" style="font-weight:400">Ease of use</p><div class="row between" style="align-items:flex-end;margin-top:6px"><p><b style="font-size:40px;line-height:44px;font-weight:600;letter-spacing:-.03em">${avg}</b> <span class="t-caption c-3" style="font-weight:400">/ 5 · ${fbs.length} rating${fbs.length === 1 ? '' : 's'}</span></p><div class="dist" style="width:120px">${dist.map(n => `<i class="${n === mx ? 'on' : ''}" style="height:${Math.max(6, n / mx * 100)}%"></i>`).join('')}</div></div></div>
+          <div class="card card--pad"><p class="t-caption c-3" style="font-weight:400">Did it work as expected?</p><div class="split" style="margin:14px 0 12px"><i style="width:${pc(v.yes)}%"></i><i style="width:${pc(v.mostly)}%"></i><i style="width:${pc(v.no)}%"></i></div>${[['Yes, all', v.yes, 'var(--color-success)'], ['Mostly', v.mostly, 'var(--color-warning)'], ['No', v.no, 'var(--color-danger,#dc2626)']].map(([l, n, c]) => `<p class="row between t-body-sm" style="margin-top:4px"><span class="row gap-8"><i style="width:8px;height:8px;border-radius:50%;background:${c}"></i>${l}</span><span class="mono">${n} · ${pc(n)}%</span></p>`).join('')}</div>
+          <div class="card card--pad"><p class="row gap-6 t-caption c-3" style="font-weight:400">${icon('sparkles', 'ic-12')}Top issues</p>${top.length ? top.map(([t, n]) => `<p class="row between t-body-sm" style="margin-top:10px"><span>${esc(t)}</span><span class="c-3">${n} tester${n === 1 ? '' : 's'}</span></p>`).join('') : '<p class="t-body-sm c-2" style="margin-top:10px">Tag each note below (e.g. “Import slow”) and the most common issues show up here.</p>'}</div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn btn--ghost btn--sm" id="csv">${icon('upload', 'ic-14')}Export CSV</button></div>
+        ${fbs.map(f => `<article class="card fbi" data-fb="${f.id}">
+          <div class="row between gap-12 wrap"><div class="row gap-10">${avatar(f, 32)}<p class="t-label row gap-6">${esc(f.name)}${flag(f.country)}<span class="c-3" style="font-weight:400">${esc([f.city, f.device].filter(Boolean).join(' · '))} · ${H.ago(f.created_at)}</span></p></div><div class="row gap-8"><span class="mono t-label">${f.ease}/5</span><span class="bmatch ${f.verdict === 'yes' ? '' : f.verdict === 'mostly' ? 'is-part' : 'is-low'}">${{ yes: 'Yes, all', mostly: 'Mostly', no: 'No' }[f.verdict]}</span></div></div>
+          ${f.details ? `<p class="body" style="margin-top:12px;white-space:pre-wrap">${esc(f.details)}</p>` : ''}${f.extra ? `<p class="t-body-sm c-2" style="margin-top:8px">“${esc(f.extra)}”</p>` : ''}
+          ${(f.media || []).length || f.voice_url ? `<div class="row gap-10 wrap" style="margin-top:12px">${(f.media || []).map(u => `<a href="${esc(u)}" target="_blank" rel="noopener" class="fb-thumb" style="display:block;width:64px;height:112px;border-radius:10px;background:var(--color-bg-muted) url('${esc(u)}') center/cover;border:1px solid var(--color-border-default)"></a>`).join('')}${f.voice_url ? `<audio controls preload="none" src="${esc(f.voice_url)}"></audio>` : ''}</div>` : ''}
+          ${f.maker_reply ? `<div class="card card--pad" style="margin-top:12px;background:var(--color-bg-subtle)"><p class="t-caption c-3">Your reply</p><p class="t-body-sm" style="margin-top:4px">${esc(f.maker_reply)}</p></div>` : ''}
+          <div class="row between wrap gap-10" style="margin-top:14px"><div class="row gap-8 wrap"><input class="input" data-tag="${f.id}" value="${esc(f.tag || '')}" placeholder="Tag this issue" maxlength="40" style="height:30px;width:160px;font-size:13px">${f.perk_released ? `<span class="bmatch">${icon('check', 'ic-12')}Perk unlocked</span>` : ''}${f.quote_ok ? '<span class="badge">Can quote</span>' : ''}</div><div class="row gap-8"><button class="btn btn--ghost btn--sm" data-reply="${f.id}">${icon('reply', 'ic-14')}Reply</button><button class="btn ${f.fixed ? 'btn--primary' : 'btn--secondary'} btn--sm" data-fixed="${f.id}" aria-pressed="${f.fixed}">${icon('check', 'ic-14')}${f.fixed ? 'Fixed' : 'Mark as fixed'}</button></div></div>
+        </article>`).join('')}`;
+      M.stagger(el, '.fbi');
+      qs('#csv').onclick = () => { const rows = [['name', 'country', 'device', 'ease', 'verdict', 'details', 'extra', 'tag', 'fixed', 'sent']].concat(fbs.map(f => [f.name, f.country, f.device, f.ease, f.verdict, f.details, f.extra, f.tag, f.fixed, f.created_at])); const csv = rows.map(r => r.map(x => `"${String(x == null ? '' : x).replace(/"/g, '""')}"`).join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = (p.slug || 'beta') + '-feedback.csv'; a.click(); };
+      el.onchange = async e => { const t = e.target.closest('[data-tag]'); if (!t) return; const f = fbs.find(x => x.id === t.dataset.tag); f.tag = t.value.trim(); try { await API.updateFeedback(f.id, { tag: f.tag }); panel(); } catch (err) { H.fail(err); } };
+      el.onclick = async e => {
+        const fx = e.target.closest('[data-fixed]'); if (fx) { const f = fbs.find(x => x.id === fx.dataset.fixed); f.fixed = !f.fixed; try { await API.updateFeedback(f.id, { fixed: f.fixed }); toast(f.fixed ? 'Marked as fixed' : 'Marked as open'); panel(); } catch (err) { H.fail(err); } return; }
+        const rp = e.target.closest('[data-reply]'); if (rp) { const f = fbs.find(x => x.id === rp.dataset.reply); const txt = prompt('Reply to ' + f.name.split(' ')[0] + ' (they see it on their beta page)', f.maker_reply || ''); if (txt == null) return; f.maker_reply = txt.trim() || null; try { await API.updateFeedback(f.id, { maker_reply: f.maker_reply }); toast('Reply sent'); panel(); } catch (err) { H.fail(err); } }
+      };
+    }
+  }
+  async function refresh() { const nb = await API.beta(b.id).catch(() => null); if (nb) b = nb; await load(); frame(); }
+  frame();
+  // live: new applications and feedback appear without a refresh
+  let t; API.live('beta-mgr', 'beta_applications', 'beta_id=eq.' + b.id, () => { clearTimeout(t); t = setTimeout(refresh, 600); });
+})();
+</script>
+</body>
+</html>

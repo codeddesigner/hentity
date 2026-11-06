@@ -11,6 +11,7 @@
   <main class="adm-main" id="main"><div class="skel" style="height:120px"></div></main>
 </div>
 <script src="/assets/data.js"></script>
+<script src="/assets/beta.js"></script>
 <script>
 H.mount();
 (async function () {
@@ -24,7 +25,7 @@ H.mount();
   // ---------------------------------------------------------------- shell
   const SECTIONS = [
     ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['broadcast', 'Broadcast', 'bell']]],
-    ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users']]],
+    ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users']]],
     ['Community', [['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
     ['System', [['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
@@ -212,6 +213,22 @@ H.mount();
       qs('#dm-u').onclick = async () => { const id = await API.openDM(u.id); location.href = '/chats/dm/' + id; };
     };
     await load();
+  };
+
+  // ---- beta tests
+  V.betas = async () => {
+    nav('betas');
+    const { data: rows, error: bErr } = await API.sb.from('betas').select('id,title,status,spots,applied_count,accepted_count,feedback_count,closes_at,test_start,test_end,perk,created_at,product:products(name,slug,color,logo_url),owner:profiles!betas_owner_id_fkey(name,username)').order('created_at', { ascending: false }).limit(300);
+    if (bErr) throw bErr;
+    const phase = b => window.B ? B.phase(b).label : b.status;
+    qs('#main').innerHTML = head('Beta tests', 'Every beta call: close, cancel or remove one, or open its dashboard.') + tbl(['Beta', 'Product', 'Maker', 'Status', 'Applied', 'Accepted', 'Feedback', 'Closes', ''], rows.map(b => `<tr><td><a class="link" href="/betas/${b.id}" target="_blank"><b>${esc(b.title)}</b></a>${b.perk ? `<p class="t-caption c-3" style="font-weight:400">${esc(b.perk)}</p>` : ''}</td><td><span class="row gap-8">${H.plogo(b.product || {}, 24)}${esc((b.product || {}).name || '')}</span></td><td>${b.owner ? esc(b.owner.name) : '—'}</td><td>${badge(b.status === 'open' ? 'live' : b.status === 'draft' ? 'draft' : 'archived').replace(/>[^<]*</, '>' + esc(phase(b)) + '<')}</td><td class="mono">${b.applied_count}</td><td class="mono">${b.accepted_count}/${b.spots}</td><td class="mono">${b.feedback_count}</td><td>${when(b.closes_at)}</td><td style="text-align:right;white-space:nowrap"><a class="btn btn--secondary btn--sm" href="/betas/${b.id}/manage">Dashboard</a> ${b.status === 'open' ? `<button class="btn btn--ghost btn--sm" data-bs="closed" data-id="${b.id}">Close</button>` : ''}${b.status !== 'cancelled' ? `<button class="btn btn--ghost btn--sm" data-bs="cancelled" data-id="${b.id}">Cancel</button>` : ''}<button class="btn btn--ghost btn--sm" data-bdel="${b.id}" style="color:var(--color-danger)">Delete</button></td></tr>`), 'No beta calls yet');
+    qs('#main').onclick = async e => {
+      const s1 = e.target.closest('[data-bs]'), d = e.target.closest('[data-bdel]');
+      try {
+        if (s1) { if (!confirm(s1.dataset.bs === 'cancelled' ? 'Cancel this beta? Testers will no longer see it.' : 'Close applications for this beta?')) return; await API.saveBeta(s1.dataset.id, { status: s1.dataset.bs }); toast('Updated'); V.betas(); }
+        if (d) { if (!confirm('Delete this beta call, its applications and feedback permanently?')) return; await API.deleteBeta(d.dataset.bdel); toast('Deleted'); V.betas(); }
+      } catch (err) { H.fail(err); }
+    };
   };
 
   // ---- companies

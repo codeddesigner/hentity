@@ -6,7 +6,7 @@
 <meta name="description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
 <link rel="canonical" href="https://hentity.com/directory">
 <style>
-.dir{max-width:1136px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box}
+.dir{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0 28px}
 .col-card{overflow:hidden;display:block}
 .col-card i{display:block;height:72px}
@@ -26,6 +26,7 @@
 <body>
 <div data-header></div>
 <main class="dir">
+  <div id="ptabs"></div>
   <div class="row between wrap gap-16" style="align-items:flex-end">
     <div><p class="t-eyebrow c-3" id="dir-count">Directory</p><h1 class="row gap-16" style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em;margin-top:8px" id="title">Built near you <span id="title-flag"></span></h1></div>
     <div class="seg" role="tablist" aria-label="Scope"><button role="tab" aria-selected="false" data-scope="local">Nigeria</button><button role="tab" aria-selected="true" data-scope="all">Pan-African</button></div>
@@ -54,6 +55,7 @@
 <script src="/assets/data.js"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
+H.qs('#ptabs').innerHTML = H.productTabs('directory');
 (async function () {
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();

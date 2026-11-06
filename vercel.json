@@ -6,6 +6,18 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/betas/new",
+      "destination": "/beta-new"
+    },
+    {
+      "source": "/betas/:id/manage",
+      "destination": "/beta-manage"
+    },
+    {
+      "source": "/betas/:id",
+      "destination": "/beta"
+    },
+    {
       "source": "/news",
       "destination": "/api/ssr?type=news"
     },

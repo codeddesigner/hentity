@@ -16,16 +16,16 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=572b560778">
+<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=7f9c49319f"></script>
-<script src="/assets/app.js?v=d274141581"></script>
+<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/app.js?v=cd28a38c82"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Directory of African startups and products · Hentity</title>
 <meta name="description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
 <link rel="canonical" href="https://hentity.com/directory">
 <style>
-.dir{max-width:1136px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box}
+.dir{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0 28px}
 .col-card{overflow:hidden;display:block}
 .col-card i{display:block;height:72px}
@@ -55,6 +55,7 @@
 <body>
 <div data-header></div>
 <main class="dir">
+  <div id="ptabs"></div>
   <div class="row between wrap gap-16" style="align-items:flex-end">
     <div><p class="t-eyebrow c-3" id="dir-count">Directory</p><h1 class="row gap-16" style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em;margin-top:8px" id="title">Built near you <span id="title-flag"></span></h1></div>
     <div class="seg" role="tablist" aria-label="Scope"><button role="tab" aria-selected="false" data-scope="local">Nigeria</button><button role="tab" aria-selected="true" data-scope="all">Pan-African</button></div>
@@ -80,9 +81,10 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=2b956ee3c0"></script>
+<script src="/assets/data.js?v=91b9906d2a"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
+H.qs('#ptabs').innerHTML = H.productTabs('directory');
 (async function () {
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();

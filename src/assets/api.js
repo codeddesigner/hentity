@@ -67,6 +67,7 @@
   }
 
   const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
+  const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,status,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
   const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at';
 
   const API = {
@@ -204,6 +205,32 @@
     blocks: () => q(sb.from('blocks').select('created_at,blocked:profiles!blocks_blocked_id_fkey(id,name,username)').eq('user_id', uid())),
     block: (id, on) => on ? q(sb.from('blocks').insert({ user_id: uid(), blocked_id: id })) : q(sb.from('blocks').delete().eq('user_id', uid()).eq('blocked_id', id)),
 
+    // ---------------- beta tests
+    betas: () => q(sb.from('betas').select(BETA_COLS).in('status', ['open', 'closed']).order('closes_at', { ascending: true }).limit(120)),
+    beta: id => q(sb.from('betas').select(BETA_COLS).eq('id', id).maybeSingle()),
+    betasOfProducts: ids => ids.length ? q(sb.from('betas').select(BETA_COLS).in('product_id', ids).order('created_at', { ascending: false })) : Promise.resolve([]),
+    betaStats: () => q(sb.rpc('beta_stats')),
+    betaReach: cs => q(sb.rpc('beta_reach', { cs: cs || [] })),
+    myBetaApps: () => uid() ? q(sb.from('beta_applications').select('id,beta_id,status,tasks_done,perk_released_at,created_at').eq('user_id', uid())) : Promise.resolve([]),
+    myBetaApp: id => uid() ? q(sb.from('beta_applications').select('*').eq('beta_id', id).eq('user_id', uid()).maybeSingle()) : Promise.resolve(null),
+    async applyBeta(row) { requireAuth(); touched(); return q(sb.from('beta_applications').insert(Object.assign({ user_id: uid() }, row)).select().single()); },
+    updateMyApp: (id, patch) => { touched(); return q(sb.from('beta_applications').update(patch).eq('id', id).select().single()); },
+    betaAccess: id => q(sb.from('beta_access').select('links').eq('beta_id', id).maybeSingle()),
+    async saveBeta(id, row, links) {
+      requireAuth(); touched();
+      const b = id ? await q(sb.from('betas').update(row).eq('id', id).select('id').single()) : await q(sb.from('betas').insert(row).select('id').single());
+      if (links) err((await sb.from('beta_access').upsert({ beta_id: b.id, links })).error);
+      return b;
+    },
+    deleteBeta: id => q(sb.from('betas').delete().eq('id', id)),
+    betaApplicants: id => q(sb.rpc('beta_applicants', { b: id })),
+    decideApp: (id, status) => { touched(); return q(sb.from('beta_applications').update({ status }).eq('id', id)); },
+    acceptBest: (b, n) => { touched(); return q(sb.rpc('beta_accept_best', { b, n })); },
+    betaFeedback: id => q(sb.rpc('beta_feedback_list', { b: id })),
+    async sendFeedback(row) { requireAuth(); touched(); return q(sb.from('beta_feedback').insert(row).select().single()); },
+    myFeedback: appId => q(sb.from('beta_feedback').select('*').eq('application_id', appId).maybeSingle()),
+    updateFeedback: (id, patch) => q(sb.from('beta_feedback').update(patch).eq('id', id)),
+
     // ---------------- chats
     channels: () => q(sb.from('channels').select('id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)').eq('archived', false).order('position').order('name')),
     channelMembers: (cid) => q(sb.from('channel_members').select('user_id,last_read_at,user:profiles!channel_members_user_id_fkey(id,name,username,avatar_url,avatar_color)').eq('channel_id', cid)),
@@ -238,6 +265,14 @@
     settings: async (key) => { if (Object.prototype.hasOwnProperty.call(PRE, 'settings:' + key)) return pre('settings:' + key); const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
 
     // ---------------- realtime
+    // How many people have this page open right now (Supabase presence; no database writes)
+    presence(room, cb) {
+      let key; try { key = sessionStorage.getItem('hentity.pk') || Math.random().toString(36).slice(2); sessionStorage.setItem('hentity.pk', key); } catch (e) { key = Math.random().toString(36).slice(2); }
+      const ch = sb.channel('here:' + room, { config: { presence: { key } } });
+      ch.on('presence', { event: 'sync' }, () => { try { cb(Object.keys(ch.presenceState()).length); } catch (e) {} });
+      ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.track({ at: Date.now() }).catch(() => {}); });
+      return () => sb.removeChannel(ch);
+    },
     live(name, table, filter, cb) {
       const ch = sb.channel(name + ':' + Math.random().toString(36).slice(2));
       ch.on('postgres_changes', Object.assign({ event: '*', schema: 'public', table }, filter ? { filter } : {}), cb).subscribe();

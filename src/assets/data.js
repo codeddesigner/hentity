@@ -39,7 +39,7 @@
         <p class="prow__tag">${esc(p.tagline)}</p>
         <div class="prow__meta">
           ${cat ? `<span class="badge">${esc(cat)}</span>` : ''}
-          <span class="row hide-sm">${icon('comment', 'ic-14')}${fmt(p.comment_count)}</span>
+          <span class="row hide-sm">${icon('comment', 'ic-14')}<span data-ccount="${p.id}">${fmt(p.comment_count)}</span></span>
           <span class="row loc">${flag(p.country)}${esc(p.city)}</span>
           ${rails && !opts.noRails ? `<span class="badge badge--outline hide-sm">${esc(rails)}</span>` : ''}
         </div>
@@ -67,8 +67,10 @@
     if (stop) stop();
     stop = API.live('counts', 'products', null, ({ new: n }) => {
       if (!n || !byId.has(n.id)) return;
-      const p = byId.get(n.id); if (p.upvote_count === n.upvote_count) return;
-      p.upvote_count = n.upvote_count; p.comment_count = n.comment_count;
+      const p = byId.get(n.id);
+      if (p.comment_count !== n.comment_count) { p.comment_count = n.comment_count; document.querySelectorAll(`[data-ccount="${n.id}"]`).forEach(el => M.roll(el, fmt(n.comment_count))); }
+      if (p.upvote_count === n.upvote_count) return;
+      p.upvote_count = n.upvote_count;
       document.querySelectorAll(`[data-vote="${n.id}"]`).forEach(syncBtn);
       onChange && onChange(p);
     });

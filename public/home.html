@@ -16,16 +16,16 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=572b560778">
+<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=7f9c49319f"></script>
-<script src="/assets/app.js?v=d274141581"></script>
+<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/app.js?v=cd28a38c82"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Hentity · Discover what’s being built across Africa</title>
 <meta name="description" content="This week’s new products from founders across Africa, ranked by the community. Upvote, comment and follow makers from Lagos to Nairobi.">
 <link rel="canonical" href="https://hentity.com/">
 <style>
-.home{max-width:1136px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box}
+.home{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
 .hero-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #week-label{font-family:var(--font-sans);font-weight:500;letter-spacing:.02em}
 .hero h1{font-size:72px;line-height:76px;font-weight:600;letter-spacing:-0.035em;margin:20px 0 22px;text-wrap:balance}
@@ -79,8 +79,9 @@
 <body>
 <div data-header></div>
 <main class="home" id="main">
+  <div id="ptabs"></div>
   <section class="hero" id="hero">
-    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Booking open · resets Mon 06:00 WAT</span></a></div>
+    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Booking open · resets Mon 06:00 WAT</span></a><span class="here" id="here" hidden><i></i><span id="here-n"></span></span></div>
     <h1><span class="long" id="headline">Discover what’s being built across Africa.</span><span class="h-short" style="display:none">This week’s launches</span></h1>
     <p class="lead-copy">This week’s new products from founders across Africa, ranked by the community.</p>
   </section>
@@ -121,9 +122,10 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=2b956ee3c0"></script>
+<script src="/assets/data.js?v=91b9906d2a"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
+H.qs('#ptabs').innerHTML = H.productTabs('week');
 M.words(H.qs('#headline'));
 M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
 (async function () {
@@ -144,8 +146,8 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   function skeleton() {
     qs('#feed').innerHTML = Array.from({ length: 5 }, (_, i) => `<div class="skel-row" aria-hidden="true" style="opacity:${1 - i * .15}"><span class="skel" style="width:26px;height:26px;border-radius:50%"></span><span class="skel" style="width:48px;height:48px;border-radius:10px"></span><span class="grow stack gap-8"><span class="skel" style="width:40%;height:16px"></span><span class="skel" style="width:75%;height:14px"></span><span class="skel" style="width:50%;height:12px"></span></span><span class="skel" style="width:56px;height:60px;border-radius:10px"></span></div>`).join('');
   }
-  async function load() {
-    skeleton();
+  async function load(quiet) {
+    if (!quiet) skeleton();
     try {
       cur = cur || await API.currentWeek();
       const pay = qs('#pays').value;
@@ -218,6 +220,9 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     (recent || []).forEach(c => c.user && liveItem({ n: c.user.name.split(' ')[0], u: c.user }, `${c.user.name.split(' ')[0]} commented on ${c.product ? c.product.name : c.article ? 'a story' : 'a launch'}`, `${H.ago(c.created_at)}${c.user.city ? ' · ' + c.user.city : ''}`));
     if (!(recent || []).length) qs('#live').innerHTML = '<li class="t-body-sm c-3">Quiet right now. Upvotes and comments show up here live.</li>';
   })().catch(() => {});
+  API.presence('home', n => { const el = qs('#here'); if (n < 2) { el.hidden = true; return; } el.hidden = false; M.roll(qs('#here-n'), `${n} people here now`); });
+  API.live('live-comments', 'comments', null, async ({ eventType, new: n }) => { if (eventType !== 'INSERT' || !n || !n.product_id) return; const who = await nameOf(n.user_id); const p = D.byId.get(n.product_id); if (!p) return; liveItem(who, `${who.n} commented on ${p.name}`, `just now${who.c ? ' · ' + who.c : ''}`, true); });
+  API.live('live-launches', 'products', null, ({ eventType, new: n, old }) => { if (!n || n.status !== 'live' || !cur || n.week_id !== cur.id || D.byId.has(n.id) || (old && old.status === 'live')) return; D.byId.set(n.id, n); liveItem({ n: n.name }, `${n.name} just launched`, 'just now', true); if (board === 'this') { clearTimeout(window.__reloadT); window.__reloadT = setTimeout(() => load(true), 800); } });
   API.live('live-votes', 'upvotes', null, async ({ eventType, new: n }) => { if (eventType !== 'INSERT') return; const who = await nameOf(n.user_id); const p = D.byId.get(n.product_id); liveItem(who, `${who.n} upvoted ${p ? p.name : 'a launch'}`, `just now${who.c ? ' · ' + who.c : ''}`, true); });
 
   M.scroll();
