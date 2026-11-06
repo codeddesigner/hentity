@@ -370,7 +370,11 @@ main{display:block}
 .upvote.is-voted{border-color:var(--color-accent-default);color:var(--color-accent-default);background:var(--color-accent-subtle)}
 
 /* product row */
-.prow{display:flex;align-items:center;gap:16px;padding:16px;border-radius:var(--radius-lg);transition:background .15s}
+.prow{display:flex;align-items:center;gap:16px;padding:16px;border-radius:var(--radius-lg);transition:background .15s;position:relative;cursor:pointer}
+/* The whole row opens the product: the name link stretches over the row; buttons and other links sit above it */
+.prow__name a::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:1}
+.prow button,.prow [data-vote],.prow__meta a,.prow .prow__name .badge{position:relative;z-index:2}
+.prow__name a:focus-visible{outline:none}.prow:has(.prow__name a:focus-visible){box-shadow:0 0 0 2px var(--color-accent-default)}
 .prow:hover{background:var(--color-bg-subtle)}
 .prow__rank{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--color-text-tertiary);flex:none}
 .prow__rank--1{background:var(--award-gold);color:#fff}.prow__rank--2{background:var(--award-silver);color:#fff}.prow__rank--3{background:var(--award-bronze);color:#fff}
