@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=172c5f3c9c">
+<link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=b1423660d0"></script>
-<script src="/assets/app.js?v=2366c70bf4"></script>
+<script src="/assets/api.js?v=2b969bfffb"></script>
+<script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -44,6 +44,8 @@
 <div class="chat" id="chat">
   <section class="clist" aria-label="Conversations">
     <div class="clist__head"><h1 class="t-h3">Chats</h1><button class="nav__icon" type="button" id="new-dm" aria-label="New message" style="border:1px solid var(--color-border-default)"><span data-icon="plus"></span></button></div>
+    <div class="fswitch m-flex" id="find-switch" style="margin:0 16px 10px"><a href="/chats" aria-current="page">Messages</a><a href="/find">Find</a></div>
+    <script>try { if (window.H && H.on && !H.on('find')) document.getElementById('find-switch').remove(); } catch (e) {}</script>
     <label class="clist__search"><span data-icon="search" data-cls="ic-14"></span><input id="jump" placeholder="Jump to a chat" aria-label="Jump to a chat"></label>
     <div class="chips show-sm" style="padding:4px 16px 8px;flex-wrap:nowrap;overflow-x:auto" id="mfilters" data-single></div>
     <div class="clist__scroll" id="clist"></div>

@@ -30,6 +30,34 @@
       "destination": "/api/go?t=:token"
     },
     {
+      "source": "/find/people",
+      "destination": "/find"
+    },
+    {
+      "source": "/find/matches",
+      "destination": "/find"
+    },
+    {
+      "source": "/find/roles/:id",
+      "destination": "/find-role"
+    },
+    {
+      "source": "/find/post",
+      "destination": "/find-post"
+    },
+    {
+      "source": "/find/open",
+      "destination": "/find-open"
+    },
+    {
+      "source": "/find/m/:id",
+      "destination": "/find-match"
+    },
+    {
+      "source": "/find/privacy",
+      "destination": "/find-privacy"
+    },
+    {
       "source": "/validate/:id",
       "destination": "/validate"
     },

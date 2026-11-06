@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Find co-founders and early team | Hentity</title>
+<meta name="description" content="Co-founders, first hires and team members for African startups. Post a role or say you're open to work. Nobody sees your details until you both say yes.">
+<style>
+.inbox-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px 20px;border-top:1px solid var(--color-border-default)}
+.inbox-row:first-child{border-top:0}
+.inbox-intro{grid-column:2/-1;padding:12px 14px;border-radius:10px;background:var(--color-bg-subtle);font-size:13.5px;line-height:20px;color:var(--color-text-secondary)}
+@media (max-width:768px){.inbox-row{grid-template-columns:40px minmax(0,1fr)}.inbox-row>.row:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  const seg = location.pathname.split('/').filter(Boolean)[1] || '';
+  const tab = ['people', 'matches'].includes(seg) ? seg : 'roles';
+  await API.ready;
+  const f = { kinds: [], q: '', cat: '', cc: '' };
+  const [counts, myProfile] = await Promise.all([API.findCounts().catch(() => ({})), API.myFindProfile().catch(() => null)]);
+  const KINDS = [['cofounder', 'Co-founder'], ['fulltime', 'Full-time'], ['parttime', 'Part-time'], ['contract', 'Contract'], ['internship', 'Internship']];
+  root.innerHTML = `<div class="fd reveal">
+    ${F.mobileSwitch('find')}
+    <div class="fd-head"><div><h1>Find</h1><p class="t-body-md c-2" style="margin-top:6px">Co-founders, first hires and team members for African startups. Nobody sees your details until you both say yes.</p></div>
+      <div class="row gap-8 d-flex"><a class="btn btn--secondary" href="/find/open">${icon('user', 'ic-16')}${myProfile ? 'Your Find profile' : 'I’m open to work'}</a><a class="btn btn--accent" href="/find/post">${icon('plus', 'ic-16')}Post a role</a></div></div>
+    <nav class="fd-tabs" aria-label="Find">${[['roles', 'Open roles', 'Roles', counts.roles, '/find'], ['people', 'People open to work', 'People', counts.people, '/find/people'], ['matches', 'My matches', 'Matches', counts.matches, '/find/matches']].map(([k, l, ml, n, h]) => `<a href="${h}"${k === tab ? ' aria-current="page"' : ''}><span class="d-only">${l}</span><span class="m-only">${ml}</span>${n ? `<span class="n">${n}</span>` : ''}</a>`).join('')}</nav>
+    ${tab === 'matches' ? '' : `<div class="fd-filters"><label class="fsearch">${icon('search', 'ic-16')}<input class="input" id="fq" placeholder="Role, skill or startup" aria-label="Search"></label>
+      <div class="chips" id="fk"><button class="chip" type="button" data-all aria-pressed="true">${icon('check')}All</button>${KINDS.map(([v, l]) => `<button class="chip" type="button" data-v="${v}" aria-pressed="false">${icon('check')}${l}</button>`).join('')}</div>
+      ${tab === 'roles' ? `<select class="input" id="fcat" aria-label="Category"><option value="">Category</option>${F.CATS.map(c => `<option>${esc(c)}</option>`).join('')}</select>` : ''}
+      <select class="input" id="fcc" aria-label="Location"><option value="">Location</option>${Object.entries(H.COUNTRY).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select></div>`}
+    <div class="fd-grid"${tab === 'people' ? ' style="grid-template-columns:minmax(0,1fr)"' : ''}><div id="list"></div>${tab === 'people' ? '' : '<aside class="fside" id="side"></aside>'}</div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', `<a class="btn btn--accent ffab" href="/find/post">${icon('plus', 'ic-16')}Post a role</a>`);
+  if (tab !== 'people') side(); H.contentShown();
+
+  // ---- right panel: your Find profile + how it works (Figma 172:6)
+  function side() {
+    const me = API.profile;
+    qs('#side').innerHTML = (API.uid ? `<section class="card">
+        <div class="row gap-10">${F.mini(me && me.name, me && me.avatar_url)}<div style="min-width:0"><p class="t-label truncate">${esc(me ? me.name : '')}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(myProfile ? [myProfile.what, myProfile.city].filter(Boolean).join(' · ') : 'No Find profile yet')}</p></div></div>
+        ${myProfile ? `<div style="margin-top:8px">${F.toggle('open', 'Open to work', 'Shown to founders who match', myProfile.mode !== 'paused')}${F.toggle('stealth', 'Stealth mode', 'Your name and employer stay hidden', myProfile.mode === 'stealth')}</div>
+          <a class="btn btn--secondary btn--sm btn--block" href="/find/privacy" style="margin-top:8px">${icon('shield', 'ic-14')}Privacy settings</a>`
+        : `<p class="t-body-sm c-2" style="margin:12px 0">Let startups find you for a job, a team role or co-founding. Stay hidden from your employer if you need to.</p><a class="btn btn--primary btn--sm btn--block" href="/find/open">I’m open to work</a>`}
+      </section>` : `<section class="card"><p class="t-label">Join Find</p><p class="t-body-sm c-2" style="margin:6px 0 12px">Sign in to say you’re interested, post a role or set up a private profile.</p><a class="btn btn--primary btn--sm btn--block" href="/signin?next=/find">Sign in</a></section>`)
+      + `<section class="card"><p class="t-label">How it works</p><ol class="fsteps">${[['Say you’re interested', 'With a short intro. They see your skills, not your name if you’re in stealth.'], ['Both say yes', 'Only then do names, profiles and a chat unlock.'], ['Talk it through', 'Fit checklist: roles, equity, time, values.'], ['Make it official', 'Trial week, then an offer letter or co-founder agreement.']].map(([t, d], i) => `<li><span class="n">${i + 1}</span><div><p class="t-body-sm" style="font-weight:500">${t}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${d}</p></div></li>`).join('')}</ol></section>`;
+    const save = async patch => { try { Object.assign(myProfile, await API.saveFindProfile(patch)); toast('Saved'); side(); } catch (e) { H.fail(e); side(); } };
+    const op = qs('#side [name="open"]'), st = qs('#side [name="stealth"]');
+    op && op.addEventListener('change', () => save({ mode: op.checked ? (st.checked ? 'stealth' : 'visible') : 'paused' }));
+    st && st.addEventListener('change', () => save({ mode: !op.checked ? 'paused' : st.checked ? 'stealth' : 'visible' }));
+  }
+
+  // ---- list
+  let t;
+  async function load() {
+    const box = qs('#list');
+    box.innerHTML = `<div class="fd-cards${tab === 'people' ? ' three' : ''}">${'<div class="skel" style="height:260px;border-radius:16px"></div>'.repeat(4)}</div>`;
+    try {
+      if (tab === 'roles') {
+        const rows = await API.findBoard(f);
+        box.innerHTML = rows.length ? `<div class="fd-cards">${rows.map(F.roleCard).join('')}</div>` : empty('No open roles match yet', 'Be the first: post a co-founder role, a job or an internship.', '/find/post', 'Post a role');
+      } else if (tab === 'people') {
+        const rows = API.uid ? await API.findPeople(f) : [];
+        box.innerHTML = !API.uid ? empty('Sign in to see people', 'Profiles are only shown to signed-in members.', '/signin?next=/find/people', 'Sign in') : rows.length ? `<div class="fd-cards three">${rows.map(u => F.personCard(u)).join('')}</div>` : empty('Nobody matches yet', 'Profiles appear here when people say they’re open to work.', '/find/open', 'I’m open to work');
+      } else return inbox();
+    } catch (e) { H.fail(e); box.innerHTML = empty('Couldn’t load Find', e.message || '', '/find', 'Try again'); }
+  }
+  const empty = (t, d, h, l) => `<div class="card" style="padding:48px 24px;text-align:center"><p class="t-h4">${esc(t)}</p><p class="t-body-sm c-2" style="margin:6px auto 16px;max-width:42ch">${esc(d)}</p><a class="btn btn--secondary btn--sm" href="${h}">${esc(l)}</a></div>`;
+  if (tab !== 'matches') {
+    qs('#fq').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { f.q = e.target.value.trim(); load(); }, 300); });
+    qs('#fk').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; if (b.hasAttribute('data-all')) { f.kinds = []; } else { const v = b.dataset.v; f.kinds = f.kinds.includes(v) ? f.kinds.filter(x => x !== v) : f.kinds.concat(v); }
+      qsa('#fk .chip').forEach(c => c.setAttribute('aria-pressed', String(c.hasAttribute('data-all') ? !f.kinds.length : f.kinds.includes(c.dataset.v)))); load(); });
+    qs('#fcat') && qs('#fcat').addEventListener('change', e => { f.cat = e.target.value; load(); });
+    qs('#fcc').addEventListener('change', e => { f.cc = e.target.value; load(); });
+    qs('#list').addEventListener('click', e => { if (e.target.closest('a,button')) return; const c = e.target.closest('[data-href]'); if (c) location.href = c.dataset.href; });
+    qs('#list').addEventListener('click', e => { const b = e.target.closest('[data-invite]'); if (b) invite(b.dataset.invite); });
+  }
+  load();
+
+  // ---- invite a person to one of my roles
+  async function invite(key) {
+    if (!API.uid) { location.href = '/signin?next=/find/people'; return; }
+    const roles = (await API.myFindRoles()).filter(r => r.status === 'open');
+    if (!roles.length) { if (confirm('Post a role first, then invite people to it. Post one now?')) location.href = '/find/post'; return; }
+    API.findView(key);
+    const el = document.createElement('div'); el.className = 'scrim';
+    el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Invite to a role"><h2 class="t-h3">Invite to a role</h2>
+      <label class="field"><span class="field__label">Role</span><select class="input" name="r">${roles.map(r => `<option value="${r.id}">${esc(r.title)}</option>`).join('')}</select></label>
+      <label class="field"><span class="field__label">A short note</span><textarea class="input" name="intro" rows="3" maxlength="800" placeholder="Why you think they’d be a good fit"></textarea></label>
+      <p class="t-caption c-3" style="font-weight:400">They see your role${roles.some(r => r.visibility !== 'public') ? ' (stealth roles stay hidden)' : ''}. If they say yes, you both see each other and a chat opens.</p>
+      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Send invite</button></div></form>`;
+    document.body.appendChild(el);
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); });
+    el.querySelector('form').onsubmit = async e => { e.preventDefault(); const fd = new FormData(e.target); try { const r = await API.findInvite(key, fd.get('r'), fd.get('intro')); el.remove(); toast(`Invite sent · ${r.intros_left} intros left this week`); } catch (err) { H.fail(err); } };
+  }
+
+  // ---- My matches: incoming intros to answer, sent ones, matches (Figma 175:2088 list)
+  async function inbox() {
+    const box = qs('#list');
+    if (!API.uid) { box.innerHTML = empty('Sign in to see your matches', '', '/signin?next=/find/matches', 'Sign in'); return; }
+    const rows = await API.findInbox();
+    if (!rows.length) { box.innerHTML = empty('No matches yet', 'Say you’re interested in a role, or post one and invite people.', '/find', 'Browse open roles'); return; }
+    const inc = rows.filter(r => r.type === 'interest' && r.incoming && r.status === 'pending'), mt = rows.filter(r => r.type === 'match'), out = rows.filter(r => r.type === 'interest' && (!r.incoming || r.status !== 'pending'));
+    const who = r => r.person ? (r.person.stealth ? `${esc(r.person.what || 'Someone')}${r.person.experience ? ' · ' + esc(r.person.experience) : ''}` : esc(r.person.name)) : 'Someone';
+    box.innerHTML = (inc.length ? `<p class="t-eyebrow c-3" style="margin:0 0 10px">Waiting for your answer · ${inc.length}</p><section class="card" style="overflow:hidden;margin-bottom:20px">${inc.map(r => `<div class="inbox-row">
+        ${r.person && !r.person.stealth ? F.mini(r.person.name, r.person.avatar_url) : `<span class="flock" style="width:40px;height:40px">${icon('lock', 'ic-16')}</span>`}
+        <div style="min-width:0"><p class="t-label">${who(r)}</p><p class="t-caption c-3" style="font-weight:400">${r.kind === 'invite' ? 'Invited you to' : 'Interested in'} ${esc(r.title)}${r.person && r.person.city ? ' · ' + esc(r.person.city) : ''}</p></div>
+        <div class="row gap-8"><button class="btn btn--ghost btn--sm" data-no="${r.id}">Not now</button><button class="btn btn--primary btn--sm" data-yes="${r.id}">Say yes</button></div>
+        ${r.intro || (r.answers || []).length ? `<div class="inbox-intro">${r.intro ? `<p>${esc(r.intro)}</p>` : ''}${(r.answers || []).map((a, i) => a ? `<p style="margin-top:8px"><b style="font-weight:500;color:var(--color-text-primary)">${esc((r.questions || [])[i] || 'Answer')}</b><br>${esc(a)}</p>` : '').join('')}</div>` : ''}</div>`).join('')}</section>` : '')
+      + (mt.length ? `<p class="t-eyebrow c-3" style="margin:0 0 10px">Matches · ${mt.length}</p><section class="card" style="overflow:hidden;margin-bottom:20px">${mt.map(r => `<a class="inbox-row" href="/find/m/${r.id}">
+        ${r.other ? F.mini(r.other.name, r.other.avatar_url) : `<span class="flock" style="width:40px;height:40px">${icon('lock', 'ic-16')}</span>`}
+        <div style="min-width:0"><p class="t-label truncate">${esc(r.other ? r.other.name + ' · ' + (r.startup || '') : r.startup || 'Your match')}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(r.last || r.title || '')}</p></div>
+        <span class="fpill ${r.revealed ? 'k-pay' : 'k-co'}">${r.revealed ? 'Matched' : r.me_signed ? 'Waiting for their signature' : 'NDA to sign'}</span></a>`).join('')}</section>` : '')
+      + (out.length ? `<p class="t-eyebrow c-3" style="margin:0 0 10px">Sent and closed</p><section class="card" style="overflow:hidden">${out.map(r => `<div class="inbox-row">
+        <span class="flock" style="width:40px;height:40px">${icon(r.status === 'declined' ? 'x' : 'clock', 'ic-16')}</span>
+        <div style="min-width:0"><p class="t-label truncate">${esc(r.startup || '')} · ${esc(r.title)}</p><p class="t-caption c-3" style="font-weight:400">${r.status === 'declined' ? (r.incoming ? 'You said not now' : 'Not this time') : r.kind === 'invite' ? 'You invited them' : 'You said you’re interested'} · ${esc(H.ago(r.at))}</p></div>
+        ${r.status === 'pending' && !r.incoming ? `<span class="row gap-8"><span class="fpill">Waiting</span><button class="btn btn--ghost btn--sm" data-wd="${r.id}">Withdraw</button></span>` : `<span class="fpill">${r.status === 'declined' ? 'Closed' : 'Waiting'}</span>`}</div>`).join('')}</section>` : '');
+    box.onclick = async e => {
+      const y = e.target.closest('[data-yes]'), n = e.target.closest('[data-no]'), w = e.target.closest('[data-wd]');
+      try {
+        if (y) { y.disabled = true; const r = await API.findDecide(y.dataset.yes, true); location.href = '/find/m/' + r.match_id; }
+        if (n) { await API.findDecide(n.dataset.no, false); toast('Answered: not now'); inbox(); }
+        if (w) { await API.findWithdraw(w.dataset.wd); toast('Withdrawn'); inbox(); }
+      } catch (err) { H.fail(err); y && (y.disabled = false); }
+    };
+  }
+})();
+</script>
+</body>
+</html>

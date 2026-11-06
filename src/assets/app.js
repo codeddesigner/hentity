@@ -175,6 +175,7 @@
         ${on('chats') ? item('chats', lbl('chats', 'Chats'), '/chats', 'chats', s ? counts.chats : 0, true) : ''}
         ${on('news') ? item('news', lbl('news', 'News'), '/news', 'newspaper') : ''}
         ${on('insights') ? item('insights', lbl('insights', 'Insights'), '/insights', 'bar-chart') : ''}
+        ${on('find') ? item('find', lbl('find', 'Find'), '/find', 'users') : ''}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
         ${on('validate') ? item('validate', lbl('validate', 'Validate an idea'), '/validate', 'sparkles') : ''}
@@ -194,7 +195,7 @@
   function tabbar(active) {
     const s = session();
     const items = [['products', 'Products', '/', 'package'], ['chats', 'Chats', '/chats', 'chats'], ['launch', 'Launch', '/submit', 'plus'], ['news', 'News', '/news', 'newspaper'], ['you', 'You', s ? '/me' : '/signin', 'user']]
-      .filter(([k]) => k === 'chats' ? on('chats') : k === 'news' ? on('news') : k === 'launch' ? (on('submissions') || on('validate') || on('studio')) : true);
+      .filter(([k]) => k === 'chats' ? on('chats') : k === 'news' ? on('news') : k === 'launch' ? (on('submissions') || on('validate') || on('studio') || on('find')) : true);
     return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
       ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
       : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s && counts.chats ? `<span class="tab-badge">${counts.chats}</span>` : ''}</a>`).join('')}</nav>`;
@@ -295,7 +296,7 @@
     if (document.querySelector('.lsheet')) return;
     const bg = document.createElement('div'); bg.className = 'scrim'; bg.style.alignItems = 'end'; bg.style.padding = '0';
     bg.innerHTML = `<div class="lsheet" role="dialog" aria-modal="true" aria-label="What do you want to do?"><div class="grab"></div><h2>What do you want to do?</h2>
-      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true, 'validate'], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard', false, 'submissions'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta', false, 'studio']].filter(x => on(x[5])).map(([h, i, t, d, hl, k]) => [h, i, soon(k) ? `${t} <span class="soon">Coming soon</span>` : t, d, hl && !soon(k)]).map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
+      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true, 'validate'], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard', false, 'submissions'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta', false, 'studio'], ['/find/post', 'users', 'Find a co-founder', 'Post a role: co-founder, first hire or intern', false, 'find']].filter(x => on(x[5])).map(([h, i, t, d, hl, k]) => [h, i, soon(k) ? `${t} <span class="soon">Coming soon</span>` : t, d, hl && !soon(k)]).map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
     document.body.appendChild(bg);
     bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
   }

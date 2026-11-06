@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Privacy on Find | Hentity</title>
+<meta name="robots" content="noindex">
+<style>
+.pv-seg{display:grid;grid-template-columns:repeat(3,1fr);padding:4px;border-radius:12px;background:var(--color-bg-muted);gap:4px}
+.pv-seg button{height:36px;border-radius:9px;font-size:14px;font-weight:500;color:var(--color-text-secondary)}
+.pv-seg button[aria-pressed="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pv-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.pv-tbl th{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:400;text-align:left;padding:8px 0;border-bottom:1px solid var(--color-border-default)}
+.pv-tbl th:not(:first-child),.pv-tbl td:not(:first-child){text-align:center;width:96px}
+.pv-tbl td{padding:12px 0;border-bottom:1px solid var(--color-border-default)}
+.pv-tbl tr:last-child td{border-bottom:0}
+.pv-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--color-border-default)}
+.pv-row:first-of-type{border-top:0}
+.pv-ic{width:32px;height:32px;border-radius:8px;background:var(--color-bg-subtle);display:grid;place-items:center;color:var(--color-text-secondary)}
+@media (max-width:768px){.pv-tbl th:not(:first-child),.pv-tbl td:not(:first-child){width:72px}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/find/privacy'); return; }
+  const me = API.profile;
+  let [f, stats] = await Promise.all([API.myFindProfile().catch(() => null), API.findStats().catch(() => ({ views: 0, blocked: 0 }))]);
+  const isNew = !f;
+  f = Object.assign({ mode: 'stealth', show: { strangers: { name: false, employer: false, links: false, role: true, skills: true, city: true }, matches: { name: true, employer: true, links: true, role: true, skills: true, city: true } }, reach: 'verified', nda: true, ask_before_reveal: true, hide_from: [], open_to: [], what: '', strengths: [], spaces: [], city: me.city || '' }, f || {});
+  const FIELDS = [['name', 'Name and photo'], ['employer', 'Current employer'], ['links', 'LinkedIn and website'], ['role', 'Role and years of experience'], ['skills', 'Skills and spaces'], ['city', 'City']];
+  let as = 'stranger';
+  root.innerHTML = `<div class="fd reveal">
+    <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Find</a>
+    <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em">Privacy on Find</h1>
+    <p class="t-body-md c-2" style="margin:6px 0 24px">Looking for your next role while employed is normal. Decide exactly who sees what, and when.</p>
+    ${isNew ? `<div class="alert alert--info" style="margin-bottom:16px">${icon('info')}<div><p class="alert__title">You don’t have a Find profile yet</p><p class="alert__body">These settings apply once you <a class="link link--accent" href="/find/open">say you’re open to work</a>. Saving here creates a paused profile.</p></div></div>` : ''}
+    <div class="fform"><div class="stack gap-16">
+      <section class="card fsec"><h2>Your Find profile</h2><div class="pv-seg" id="mode">${[['visible', 'Visible'], ['stealth', 'Stealth'], ['paused', 'Paused']].map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${f.mode === v}">${l}</button>`).join('')}</div><p class="t-caption c-3" style="font-weight:400;margin-top:10px" id="mode-d"></p></section>
+      <section class="card fsec"><h2 style="margin-bottom:4px">What people see before a match</h2><p class="t-caption c-3" style="font-weight:400;margin-bottom:12px">After you both say yes, matches see what you allow below. Visible mode shows everything to everyone.</p>
+        <table class="pv-tbl"><thead><tr><th>Field</th><th>Strangers</th><th>Matches</th></tr></thead><tbody>
+        ${FIELDS.map(([k, l]) => `<tr><td>${l}</td>${['strangers', 'matches'].map(w => `<td><label class="toggle" style="display:inline-flex"><input type="checkbox" data-show="${w}.${k}" ${f.show[w] && f.show[w][k] !== false && (f.show[w][k] || w === 'matches') ? 'checked' : ''} aria-label="${l}: ${w}"><span class="toggle__track"></span></label></td>`).join('')}</tr>`).join('')}
+        <tr><td>Phone number <span class="fpill" style="height:20px">${icon('lock', 'ic-12')}Never shared</span></td><td class="c-3">—</td><td class="c-3">—</td></tr></tbody></table></section>
+      <section class="card fsec"><h2>Who can reach you</h2>
+        ${F.radioCards('reach', [['anyone', 'users', 'Anyone on Hentity', 'Any signed-in member can invite you'], ['verified', 'shield', 'Verified members only', 'Phone and ID checked'], ['founders', 'rocket', 'Founders of verified startups only', 'Fewer, more serious invites']], f.reach)}
+        <div style="margin-top:12px">${F.toggle('nda', 'Require a mutual NDA before names reveal', 'Uses Hentity’s NDA template, signed in the app', f.nda)}${F.toggle('ask', 'Ask me before revealing to each match', 'Turn off to reveal automatically when you both say yes', f.ask_before_reveal)}</div></section>
+      <section class="card fsec"><h2>Hide from your employer</h2><p class="t-body-sm c-2" style="margin:-6px 0 12px">People at these companies never see your profile or your roles, even in stealth. We also hide you from anyone signed up with these email domains.</p><div id="hide"></div></section>
+      <section class="card fsec"><h2>Safety and your data</h2>
+        <div class="pv-row"><span class="pv-ic">${icon('shield', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Blocked people</p><p class="t-caption c-3" style="font-weight:400">${stats.blocked} ${stats.blocked === 1 ? 'person' : 'people'} can’t see or message you</p></div><a class="btn btn--secondary btn--sm" href="/settings/privacy">Manage</a></div>
+        <div class="pv-row"><span class="pv-ic">${icon('eye', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Profile views</p><p class="t-caption c-3" style="font-weight:400">${stats.views} founder${stats.views === 1 ? '' : 's'} looked at you this month. Names are never shown.</p></div><span></span></div>
+        <div class="pv-row"><span class="pv-ic">${icon('lock', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Chats are private</p><p class="t-caption c-3" style="font-weight:400">Hentity staff only read a chat if one of you reports it.</p></div><span></span></div>
+        <div class="pv-row"><span class="pv-ic">${icon('download', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Download your Find data</p><p class="t-caption c-3" style="font-weight:400">Profile, roles, intros, chats and NDA signatures as a file</p></div><button class="btn btn--secondary btn--sm" id="dl">Download</button></div>
+        <div class="pv-row"><span class="pv-ic" style="color:var(--color-danger)">${icon('trash', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500;color:var(--color-danger)">Delete Find history</p><p class="t-caption c-3" style="font-weight:400">Removes your profile, intros and chats. Signed NDAs stay with the other party.</p></div><button class="btn btn--secondary btn--sm" id="del">Delete</button></div></section>
+    </div>
+    <aside class="fside"><p class="t-eyebrow c-3">Preview as</p><div class="pv-seg" id="as">${[['stranger', 'Stranger'], ['match', 'Match'], ['employer', 'Employer']].map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${v === as}">${l}</button>`).join('')}</div><div id="prev"></div><div id="emp"></div>
+      <button class="btn btn--accent btn--block" id="save">Save privacy settings</button></aside></div></div>`;
+  const hide = F.tagList(root, '#hide', f.hide_from, 'Add company', 'Company and domain, e.g. Nexa Bank · nexabank.com');
+  F.bindRadio(root, 'reach', v => f.reach = v);
+  const MODE_D = { visible: 'Visible: founders see your name, photo and current role.', stealth: 'Stealth: founders see your skills, role and city. Nothing that identifies you.', paused: 'Paused: hidden from everyone. Your chats stay.' };
+  const seg = (sel, cb) => qs(sel).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; qsa(sel + ' button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); cb(b.dataset.v); });
+  seg('#mode', v => { f.mode = v; qs('#mode-d').textContent = MODE_D[v]; preview(); });
+  seg('#as', v => { as = v; preview(); });
+  qs('#mode-d').textContent = MODE_D[f.mode];
+  qsa('[data-show]').forEach(c => c.addEventListener('change', () => { const [w, k] = c.dataset.show.split('.'); f.show[w] = Object.assign({}, f.show[w], { [k]: c.checked }); preview(); }));
+  function preview() {
+    const blocked = hide.get();
+    qs('#prev').innerHTML = as === 'employer' ? (blocked.length ? '' : `<section class="card" style="padding:18px"><p class="t-body-sm c-2">Add your employer under “Hide from your employer” and they’ll see nothing at all.</p></section>`)
+      : f.mode === 'paused' ? `<section class="card" style="padding:18px"><p class="t-label row gap-6">${icon('clock', 'ic-14')}Paused</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Nobody sees your profile right now.</p></section>` : F.previewMe(f, me, as);
+    qs('#emp').innerHTML = blocked.length ? `<div class="row gap-8" style="align-items:flex-start;padding:4px 2px"><span style="color:var(--color-success)">${icon('shield', 'ic-16')}</span><div><p class="t-body-sm" style="font-weight:500">Your employer sees nothing</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">Anyone at ${esc(blocked.map(b => b.split('·')[0].trim()).join(' or '))} gets no trace of your profile, interests or roles.</p></div></div>` : '';
+  }
+  qs('#hide').addEventListener('change', preview); preview();
+  qs('#save').onclick = async () => {
+    const row = { mode: isNew && f.mode !== 'paused' && !f.what ? 'paused' : f.mode, show: f.show, reach: f.reach, nda: qs('[name="nda"]').checked, ask_before_reveal: qs('[name="ask"]').checked, hide_from: hide.get() };
+    try { await API.saveFindProfile(row); toast('Privacy settings saved'); } catch (e) { H.fail(e); }
+  };
+  qs('#dl').onclick = async () => { try { const d = await API.findExport(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'hentity-find-data.json'; a.click(); } catch (e) { H.fail(e); } };
+  qs('#del').onclick = async () => { if (!confirm('Delete your Find profile, intros and chats? Signed NDAs stay with the other party. This can’t be undone.')) return; try { await API.findDeleteHistory(); toast('Find history deleted'); setTimeout(() => location.href = '/find', 600); } catch (e) { H.fail(e); } };
+  H.contentShown();
+})();
+</script>
+</body>
+</html>

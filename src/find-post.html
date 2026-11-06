@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Post a role | Find | Hentity</title>
+<meta name="description" content="Post a co-founder role, a job or an internship on Hentity Find. You decide who sees it and when they see your name.">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=' + encodeURIComponent(location.pathname + location.search)); return; }
+  const editId = H.params().get('edit');
+  const [prods, ex] = await Promise.all([API.myProducts().catch(() => []), editId ? API.myFindRole(editId).catch(() => null) : null]);
+  const firstTime = !editId && !(await API.myFindRoles().catch(() => [])).length;
+  const r = Object.assign({ kind: 'cofounder', area: 'technical', title: '', owns: '', traction: '', looking_for: '', skills: [], category: '', stage: '', equity_min: 10, equity_max: 25, vesting: '4 years, 1-year cliff', pay: 'equity', salary: '', duration: '',
+    commitment: 'fulltime', city: (API.profile && API.profile.city) || '', country: (API.profile && API.profile.country) || 'NG', working: 'hybrid', visibility: firstTime || !editId ? 'stealth' : 'public', nda: true, verified_only: false, hide_from: [], questions: ['', ''], product_id: null, startup_name: '', startup_line: '', status: 'open' }, ex || {});
+  if (!r.questions || !r.questions.length) r.questions = ['', ''];
+  const pub = (prods || []).filter(p => ['live', 'scheduled', 'unclaimed'].includes(p.effective_status || p.status) || p.status === 'draft');
+  root.innerHTML = `<div class="fd reveal">
+    <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Find</a>
+    <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em">${editId ? 'Edit role' : 'Post a role'}</h1>
+    <p class="t-body-md c-2" style="margin:6px 0 24px">Tell people what you’re building and who you need. You decide who sees it and when they see your name.</p>
+    <div class="fform"><form id="f" class="stack gap-16" novalidate>
+      <section class="card fsec"><h2>The role</h2>
+        <span class="flbl">What kind of role?</span>${F.chips('kind', Object.entries(F.KIND).map(([k, v]) => [k, v[0]]), r.kind)}
+        <p class="fhint" style="margin-top:8px" id="kind-hint"></p>
+        <span class="flbl">Who do you need?</span>${F.chips('area', Object.entries(F.AREA), r.area)}
+        <label class="flbl" for="title">Role title</label><input class="input" id="title" maxlength="90" value="${esc(r.title)}" placeholder="Technical co-founder (CTO)">
+        <label class="flbl" for="owns">What they’ll own</label><p class="fhint">Be specific. Good posts get 3× more interest.</p><textarea class="input" id="owns" rows="3" maxlength="1200" placeholder="Build our offline-first app for farmers and lead the tech team.">${esc(r.owns)}</textarea>
+        <label class="flbl" for="lf">Who you’re looking for</label><textarea class="input" id="lf" rows="2" maxlength="800" placeholder="Someone who has shipped a mobile app used in low-connectivity areas.">${esc(r.looking_for)}</textarea>
+        <label class="flbl" for="skills">Skills</label><input class="input" id="skills" value="${esc((r.skills || []).join(', '))}" placeholder="React Native, Python, Offline-first"><p class="fhint" style="margin-top:6px">Separate with commas, up to 8.</p>
+      </section>
+      <section class="card fsec"><h2>Your startup</h2>
+        <label class="flbl" for="prod">Startup</label><select class="input" id="prod"><option value="">Not on Hentity yet (type its name below)</option>${pub.map(p => `<option value="${p.id}"${p.id === r.product_id ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select>
+        <div class="f2" style="margin-top:12px"><div><label class="flbl" for="sname">Name</label><input class="input" id="sname" maxlength="80" value="${esc(r.startup_name)}" placeholder="Mazao Hub"></div><div><label class="flbl" for="sline">One line about it</label><input class="input" id="sline" maxlength="120" value="${esc(r.startup_line)}" placeholder="Offline-first farm records for smallholders"></div></div>
+        <div class="f2"><div><label class="flbl" for="cat">Industry</label><select class="input" id="cat"><option value="">Pick one</option>${F.CATS.map(c => `<option${c === r.category ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select></div><div><label class="flbl" for="stage">Stage</label><select class="input" id="stage"><option value="">Pick one</option>${F.STAGES.map(c => `<option${c === r.stage ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select></div></div>
+        <label class="flbl" for="traction">Where you are</label><p class="fhint">Team, users, money raised. Hidden on stealth roles until you both say yes.</p><textarea class="input" id="traction" rows="2" maxlength="800" placeholder="Two founders, 400 farmers in a WhatsApp pilot, KSh 1.2M in grants.">${esc(r.traction)}</textarea>
+      </section>
+      <section class="card fsec"><h2>The deal</h2><div id="deal"></div>
+        <div class="f2"><div><label class="flbl" for="city">City</label><input class="input" id="city" maxlength="60" value="${esc(r.city)}"></div><div><span class="flbl">Working</span>${F.chips('working', Object.entries(F.WORK), r.working)}</div></div>
+      </section>
+      <section class="card fsec"><h2>Who can see it</h2>
+        ${F.radioCards('vis', [['public', 'globe', 'Public', 'Everyone on Hentity sees your startup and name.'], ['stealth', 'lock', 'Stealth', 'Listed on the board with your startup and name hidden. Revealed only when you both say yes.'], ['invite', 'link', 'Invite only', 'Not on the board. Only people you invite can see it.']], r.visibility)}
+        <div style="margin-top:12px">${F.toggle('nda', 'Sign a mutual NDA before reveal', 'Hentity’s NDA template, signed in-app when you both say yes', r.nda)}${F.toggle('vonly', 'Only verified members can respond', 'Phone and ID-checked accounts only', r.verified_only)}</div>
+        <span class="flbl" style="margin-top:14px">Hide from people at</span><p class="fhint">They won’t see this, even in stealth. Good for keeping it from your current employer. Add a company name or an email domain.</p><div id="hide"></div>
+      </section>
+      <section class="card fsec"><h2>Questions for applicants <span class="c-3" style="font-weight:400">(optional)</span></h2><div id="qs" class="stack gap-10"></div><button class="btn btn--ghost btn--sm" type="button" id="addq" style="margin-top:10px;align-self:flex-start">${icon('plus', 'ic-14')}Add a question</button></section>
+    </form>
+    <aside class="fside"><p class="t-eyebrow c-3">Preview · how others see it</p><div id="prev"></div>
+      <section class="card" id="hidden-box"></section>
+      <div class="f2" style="gap:10px"><button class="btn btn--secondary" type="button" id="draft">Save draft</button><button class="btn btn--accent" type="button" id="post">${editId && r.status === 'open' ? 'Save' : 'Post role'}</button></div>
+      ${editId ? `<button class="btn btn--ghost btn--sm" type="button" id="close" style="align-self:center">${r.status === 'closed' ? 'Reopen role' : 'Close role'}</button>` : ''}
+    </aside></div></div>`;
+  const hide = F.tagList(root, '#hide', r.hide_from, 'Add company', 'Company name or email domain (e.g. Nexa Bank or nexabank.com)');
+  qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); if (g.dataset.g === 'kind') { r.kind = F.readChips(root, 'kind')[0]; deal(); } preview(); }));
+  F.bindRadio(root, 'vis', v => { r.visibility = v; preview(); });
+  function questions() { qs('#qs').innerHTML = r.questions.map((q, i) => `<label class="field"><span class="field__label">Question ${i + 1}</span><input class="input" data-q="${i}" maxlength="200" value="${esc(q)}" placeholder="${i === 0 ? 'Why does this problem matter to you?' : 'When could you start full-time?'}"></label>`).join(''); }
+  questions();
+  qs('#addq').onclick = () => { if (r.questions.length >= 4) return toast('Up to 4 questions', 'error'); read(); r.questions.push(''); questions(); };
+  // The deal: co-founders get equity, vesting, commitment; jobs get salary (+ optional equity)
+  function deal() {
+    const co = r.kind === 'cofounder';
+    qs('#kind-hint').textContent = co ? 'For jobs, "The deal" asks for a salary range and optional equity instead.' : 'Co-founder roles ask for equity, vesting and commitment instead.';
+    qs('#deal').innerHTML = co ? `<span class="flbl">Equity range</span><p class="fhint">Shown as a range. Final terms are agreed in the co-founder agreement.</p>
+        <div class="frange"><span class="track"></span><span class="fill" id="fill"></span><input type="range" id="emin" min="0" max="50" step="1" value="${r.equity_min ?? 10}" aria-label="Minimum equity"><input type="range" id="emax" min="0" max="50" step="1" value="${r.equity_max ?? 25}" aria-label="Maximum equity"></div>
+        <div class="row between t-caption c-3" style="font-weight:400"><span>0%</span><b class="t-body-sm" id="eq" style="color:var(--color-text-primary)"></b><span>50%</span></div>
+        <div class="f2"><div><label class="flbl" for="vest">Vesting</label><input class="input" id="vest" value="${esc(r.vesting)}"><p class="fhint" style="margin-top:6px">The usual for co-founders</p></div><div><span class="flbl">Pay</span>${F.chips('pay', [['equity', 'Equity only'], ['stipend', 'Stipend'], ['salary', 'Salary']], r.pay)}</div></div>
+        <span class="flbl">Commitment</span>${F.chips('commitment', Object.entries(F.COMMIT), r.commitment)}`
+      : `<div class="f2"><div><label class="flbl" for="salary">Pay</label><input class="input" id="salary" maxlength="60" value="${esc(r.salary)}" placeholder="₦900k–1.2M / month"></div><div><label class="flbl" for="eqj">Equity (optional, %)</label><input class="input" id="eqj" type="number" min="0" max="50" step="0.1" value="${r.equity_max ?? ''}" placeholder="0.5"></div></div>
+        ${['contract', 'internship'].includes(r.kind) ? `<label class="flbl" for="dur">Length</label><input class="input" id="dur" maxlength="40" value="${esc(r.duration)}" placeholder="6 months">` : ''}`;
+    qsa('#deal [data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); preview(); }));
+    const mn = qs('#emin'), mx = qs('#emax');
+    const sync = () => { if (!mn) return; let a = +mn.value, b = +mx.value; if (a > b) [a, b] = [b, a]; qs('#eq').textContent = `${a}% – ${b}%`; qs('#fill').style.left = (a / 50 * 100) + '%'; qs('#fill').style.width = ((b - a) / 50 * 100) + '%'; preview(); };
+    mn && mn.addEventListener('input', sync); mx && mx.addEventListener('input', sync); sync();
+  }
+  deal();
+  function read() {
+    const co = r.kind === 'cofounder', g = n => F.readChips(root, n)[0];
+    qsa('[data-q]').forEach(i => r.questions[+i.dataset.q] = i.value.trim());
+    let a = co && qs('#emin') ? +qs('#emin').value : null, b = co && qs('#emax') ? +qs('#emax').value : null; if (a !== null && a > b) [a, b] = [b, a];
+    return { kind: g('kind') || 'cofounder', area: g('area') || 'technical', title: qs('#title').value.trim(), owns: qs('#owns').value.trim(), looking_for: qs('#lf').value.trim(),
+      skills: qs('#skills').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 8), product_id: qs('#prod').value || null, startup_name: qs('#sname').value.trim(), startup_line: qs('#sline').value.trim(),
+      category: qs('#cat').value, stage: qs('#stage').value, traction: qs('#traction').value.trim(),
+      equity_min: co ? a : null, equity_max: co ? b : (qs('#eqj') && qs('#eqj').value !== '' ? +qs('#eqj').value : null), vesting: co && qs('#vest') ? qs('#vest').value.trim() : '',
+      pay: co ? (g('pay') || 'equity') : 'salary', salary: !co && qs('#salary') ? qs('#salary').value.trim() : '', duration: qs('#dur') ? qs('#dur').value.trim() : '',
+      commitment: co ? (g('commitment') || 'fulltime') : 'fulltime', city: qs('#city').value.trim(), country: r.country, working: g('working') || 'hybrid',
+      visibility: r.visibility, nda: qs('[name="nda"]').checked, verified_only: qs('[name="vonly"]').checked, hide_from: hide.get(), questions: r.questions.filter(Boolean) };
+  }
+  function preview() {
+    const v = read(), p = (pub.find(x => x.id === v.product_id) || {});
+    const card = Object.assign({}, v, { id: '', stealth: v.visibility !== 'public', created_at: new Date().toISOString(), interest_count: 0, startup: v.visibility !== 'public' ? { name: 'Stealth ' + (v.category ? v.category.toLowerCase() : 'startup') } : { name: v.startup_name || p.name || 'Your startup', logo_url: p.logo_url, color: p.color }, poster: v.visibility !== 'public' ? { name: (F.AREA[v.area] || 'Technical') + ' founder' } : { name: API.profile.name, avatar_url: API.profile.avatar_url }, title: v.title || 'Role title' });
+    qs('#prev').innerHTML = F.roleCard(card).replace(/<a class="btn[^>]*>[^<]*<\/a>/, '');
+    const hid = v.visibility === 'public' ? [] : ['Startup name and logo', 'Your name and photo', v.traction ? 'Traction details' : ''].filter(Boolean);
+    qs('#hidden-box').innerHTML = v.visibility === 'invite' ? `<p class="t-label">Invite only</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Not on the board. Invite people from People open to work.</p>` : hid.length ? `<p class="t-label">Hidden until you both say yes</p><div class="stack gap-6" style="margin-top:10px">${hid.map(h => `<p class="row gap-8 t-caption c-2" style="font-weight:400">${icon('eye', 'ic-14')}${h}</p>`).join('')}</div>` : `<p class="t-label">Public</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Everyone on Hentity sees your startup and name.</p>`;
+  }
+  qs('#f').addEventListener('input', preview);
+  qs('#prod').addEventListener('change', () => { const p = pub.find(x => x.id === qs('#prod').value); if (p) { qs('#sname').value = p.name; qs('#sline').value = p.tagline || ''; if (!qs('#cat').value && (p.categories || [])[0]) qs('#cat').value = p.categories[0]; } preview(); });
+  preview();
+  async function save(status) {
+    const v = read();
+    if (status === 'open') {
+      if (v.title.length < 3) return toast('Add a role title', 'error');
+      if (v.owns.length < 30) return toast('Say what they’ll own (a sentence or two)', 'error');
+      if (!v.product_id && !v.startup_name) return toast('Name your startup (it stays hidden in stealth)', 'error');
+      if (!v.category) return toast('Pick an industry', 'error');
+    }
+    try { const out = await API.saveFindRole(editId, Object.assign(v, { status })); toast(status === 'open' ? (editId ? 'Saved' : 'Your role is live') : 'Draft saved'); setTimeout(() => location.href = status === 'open' ? '/find/roles/' + out.id : '/find/post?edit=' + out.id, 400); }
+    catch (e) { H.fail(e); }
+  }
+  qs('#post').onclick = () => save('open');
+  qs('#draft').onclick = () => save('draft');
+  qs('#close') && (qs('#close').onclick = async () => { try { await API.saveFindRole(editId, { status: r.status === 'closed' ? 'open' : 'closed' }); toast(r.status === 'closed' ? 'Reopened' : 'Closed. It’s off the board.'); setTimeout(() => location.reload(), 400); } catch (e) { H.fail(e); } });
+  H.contentShown();
+})();
+</script>
+</body>
+</html>

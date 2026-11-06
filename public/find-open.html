@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=2b969bfffb"></script>
+<script src="/assets/app.js?v=ad345a5164"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>I’m open to work | Find | Hentity</title>
+<meta name="description" content="Let African startups find you for a job, a team role or co-founding. Stay hidden from your employer if you need to.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="I’m open to work | Find | Hentity">
+<meta property="og:description" content="Let African startups find you for a job, a team role or co-founding. Stay hidden from your employer if you need to.">
+<meta property="og:url" content="https://hentity.com/find-open">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="I’m open to work | Find | Hentity">
+<meta name="twitter:description" content="Let African startups find you for a job, a team role or co-founding. Stay hidden from your employer if you need to.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js?v=9aaffbb9aa"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=/find/open'); return; }
+  const ex = await API.myFindProfile().catch(() => null), me = API.profile;
+  const f = Object.assign({ open_to: ['cofounder', 'fulltime'], what: me.headline || '', experience: '', strengths: [], looking_for: [], spaces: [], available: 'now', wants: '', employer: '', city: me.city || '', country: me.country || 'NG', mode: 'stealth', nda: true, reach: 'verified', hide_from: [] }, ex || {});
+  const SPACES = ['Fintech', 'Commerce', 'Energy & Climate', 'Education', 'AI', 'Agriculture', 'Logistics', 'Health', 'SaaS', 'Dev Tools'];
+  root.innerHTML = `<div class="fd reveal">
+    <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Find</a>
+    <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em">I’m open to work</h1>
+    <p class="t-body-md c-2" style="margin:6px 0 24px">Let startups find you for a job, a team role or co-founding. Stay hidden from your employer if you need to.</p>
+    <div class="fform"><form id="f" class="stack gap-16" novalidate>
+      <section class="card fsec"><h2>About you</h2>
+        <span class="flbl">I’m open to</span>${F.chips('open', Object.entries(F.KIND).map(([k, v]) => [k, k === 'cofounder' ? 'Co-founding' : v[0]]), f.open_to, true)}
+        <div class="f2"><div><label class="flbl" for="what">What you do</label><input class="input" id="what" maxlength="80" value="${esc(f.what)}" placeholder="Product manager"></div><div><label class="flbl" for="exp">Experience</label><input class="input" id="exp" maxlength="30" value="${esc(f.experience)}" placeholder="6 years"></div></div>
+        <label class="flbl" for="str">Your strengths</label><input class="input" id="str" value="${esc((f.strengths || []).join(', '))}" placeholder="Product, Payments, User research"><p class="fhint" style="margin-top:6px">Separate with commas, up to 6.</p>
+        <span class="flbl">Looking for</span>${F.chips('lf', Object.entries(F.AREA).filter(([k]) => k !== 'other'), f.looking_for, true)}
+        <span class="flbl">Spaces you care about</span>${F.chips('sp', SPACES.map(c => [c, H.catShort ? H.catShort(c) : c]), f.spaces, true)}
+        <div class="f2"><div><span class="flbl">Available</span>${F.chips('av', Object.entries(F.AVAIL), f.available)}</div><div><label class="flbl" for="city">City</label><input class="input" id="city" maxlength="60" value="${esc(f.city)}"></div></div>
+        <label class="flbl" for="wants">What you want, in a line</label><input class="input" id="wants" maxlength="140" value="${esc(f.wants)}" placeholder="A technical co-founder in fintech or commerce · from February">
+        <label class="flbl" for="emp">Current employer <span class="c-3" style="font-weight:400">(only shown to matches, if you allow it)</span></label><input class="input" id="emp" maxlength="80" value="${esc(f.employer)}" placeholder="Nexa Bank">
+      </section>
+      <section class="card fsec"><h2>Who can see it</h2>
+        ${F.radioCards('mode', [['visible', 'globe', 'Visible', 'Founders see your name, photo and current role.'], ['stealth', 'lock', 'Stealth', 'Founders see your skills, role and city only. You choose who to reveal yourself to.'], ['paused', 'clock', 'Paused', 'Hidden from everyone. Your chats stay.']], f.mode)}
+        <div style="margin-top:12px">${F.toggle('nda', 'Sign a mutual NDA before reveal', 'Hentity’s NDA template, signed in-app when you both say yes', f.nda)}${F.toggle('vonly', 'Only verified members can respond', 'Phone and ID-checked accounts only', f.reach !== 'anyone')}</div>
+        <span class="flbl" style="margin-top:14px">Hide from people at</span><p class="fhint">They won’t see this, even in stealth. Good for keeping it from your current employer. Add a company name or an email domain.</p><div id="hide"></div>
+        <p class="t-caption c-3" style="font-weight:400;margin-top:14px">More controls, like exactly which fields strangers and matches see, are in <a class="link link--accent" href="/find/privacy">Privacy on Find</a>.</p>
+      </section>
+    </form>
+    <aside class="fside"><p class="t-eyebrow c-3">Preview · what founders see</p><div id="prev"></div>
+      <section class="card row gap-10" style="padding:16px">${F.mini(me.name, me.avatar_url)}<div><p class="t-body-sm" style="font-weight:500">${esc(me.name)}</p><p class="t-caption c-3" style="font-weight:400">Only you and people you reveal to see this</p></div></section>
+      <button class="btn btn--accent btn--lg btn--block" type="button" id="save">Save profile</button></aside></div></div>`;
+  const hide = F.tagList(root, '#hide', f.hide_from, 'Add company', 'Company name or email domain (e.g. Nexa Bank or nexabank.com)');
+  qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (g.hasAttribute('data-single') && !g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); preview(); }));
+  F.bindRadio(root, 'mode', v => { f.mode = v; preview(); });
+  const read = () => ({ open_to: F.readChips(root, 'open'), what: qs('#what').value.trim(), experience: qs('#exp').value.trim(), strengths: qs('#str').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 6),
+    looking_for: F.readChips(root, 'lf'), spaces: F.readChips(root, 'sp'), available: F.readChips(root, 'av')[0] || 'now', city: qs('#city').value.trim(), country: f.country, wants: qs('#wants').value.trim(), employer: qs('#emp').value.trim(),
+    mode: f.mode, nda: qs('[name="nda"]').checked, reach: qs('[name="vonly"]').checked ? 'verified' : 'anyone', hide_from: hide.get() });
+  function preview() { const v = Object.assign({}, f, read()); qs('#prev').innerHTML = v.mode === 'paused' ? `<section class="card" style="padding:20px"><p class="t-label row gap-6">${icon('clock', 'ic-14')}Paused</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Nobody sees your profile right now.</p></section>` : F.previewMe(v, me, 'stranger'); }
+  qs('#f').addEventListener('input', preview); preview();
+  qs('#save').onclick = async () => {
+    const v = read();
+    if (!v.open_to.length) return toast('Pick at least one kind of role', 'error');
+    if (v.what.length < 2) return toast('Say what you do', 'error');
+    try { await API.saveFindProfile(v); toast(ex ? 'Profile saved' : 'You’re on Find. Founders can invite you now.'); setTimeout(() => location.href = '/find', 500); } catch (e) { H.fail(e); }
+  };
+  H.contentShown();
+})();
+</script>
+</body>
+</html>

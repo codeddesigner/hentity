@@ -51,7 +51,7 @@
     return features;
   })();
   // Which feature each page belongs to. A page whose feature is off shows a notice instead (admins still see it).
-  const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
+  const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/find/, 'find', 'Find'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
     [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar']];
   // A feature is 'on' (missing key or true), 'off' (false) or 'soon' (shown as Coming soon, unusable)
   const stateOf = k => features[k] === false ? 'off' : features[k] === 'soon' ? 'soon' : 'on';
@@ -279,6 +279,31 @@
     // Insights
     insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
     // Validate an idea (Figma: Validate)
+    // Find (roles, people open to work, mutual interest, matches)
+    findBoard: (f = {}) => q(sb.rpc('find_board', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cat: f.cat || null, cc: f.cc || null, lim: 60 })),
+    findPeople: (f = {}) => q(sb.rpc('find_people', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cc: f.cc || null, lim: 60 })),
+    findCounts: () => q(sb.rpc('find_counts')),
+    findRole: id => q(sb.rpc('find_role', { rid: id })),
+    myFindRoles: () => uid() ? q(sb.from('find_roles').select('*').eq('owner_id', uid()).order('created_at', { ascending: false })) : Promise.resolve([]),
+    myFindRole: id => q(sb.from('find_roles').select('*').eq('id', id).maybeSingle()),
+    saveFindRole: (id, row) => { requireAuth(); return id ? q(sb.from('find_roles').update(row).eq('id', id).select('*').single()) : q(sb.from('find_roles').insert(row).select('*').single()); },
+    myFindProfile: () => uid() ? q(sb.from('find_profiles').select('*').eq('user_id', uid()).maybeSingle()) : Promise.resolve(null),
+    saveFindProfile: row => { requireAuth(); return q(sb.from('find_profiles').upsert(Object.assign({ user_id: uid() }, row)).select('*').single()); },
+    findExpress: (rid, intro, answers) => { requireAuth(); return q(sb.rpc('find_express', { rid, intro, answers: answers || [] })); },
+    findInvite: (key, rid, intro) => { requireAuth(); return q(sb.rpc('find_invite', { person_key: key, rid, intro })); },
+    findView: key => q(sb.rpc('find_view', { person_key: key })).catch(() => {}),
+    findDecide: (iid, accept) => q(sb.rpc('find_decide', { iid, accept })),
+    findWithdraw: iid => q(sb.rpc('find_withdraw', { iid })),
+    findInbox: () => uid() ? q(sb.rpc('find_inbox')) : Promise.resolve([]),
+    findMatch: id => q(sb.rpc('find_match', { mid: id })),
+    findMessages: id => q(sb.from('find_messages').select('*').eq('match_id', id).order('created_at')),
+    findSend: (id, body) => q(sb.rpc('find_send', { mid: id, body })),
+    findSignNda: (id, name) => q(sb.rpc('find_sign_nda', { mid: id, signed_name: name })),
+    findSetFit: (id, answers) => q(sb.rpc('find_set_fit', { mid: id, answers })),
+    findSetTrial: (id, trial) => q(sb.rpc('find_set_trial', { mid: id, trial })),
+    findStats: () => q(sb.rpc('find_my_stats')),
+    findExport: () => q(sb.rpc('find_export')),
+    findDeleteHistory: () => q(sb.rpc('find_delete_history')),
     validateIdea: a => q(sb.rpc('validate_idea', { idea: a.idea, who: a.who || null, cc: a.cc || null, city: a.city || null, money: a.money || null, stage: a.stage || null, cats: a.cats || [] })),
     ideaCheck: id => q(sb.from('idea_checks').select('*').eq('id', id).maybeSingle()),
     myIdeaChecks: () => uid() ? q(sb.from('idea_checks').select('id,idea,score,created_at').eq('user_id', uid()).order('created_at', { ascending: false }).limit(6)) : Promise.resolve([]),

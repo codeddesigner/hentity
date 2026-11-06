@@ -10,6 +10,8 @@
 <div class="chat" id="chat">
   <section class="clist" aria-label="Conversations">
     <div class="clist__head"><h1 class="t-h3">Chats</h1><button class="nav__icon" type="button" id="new-dm" aria-label="New message" style="border:1px solid var(--color-border-default)"><span data-icon="plus"></span></button></div>
+    <div class="fswitch m-flex" id="find-switch" style="margin:0 16px 10px"><a href="/chats" aria-current="page">Messages</a><a href="/find">Find</a></div>
+    <script>try { if (window.H && H.on && !H.on('find')) document.getElementById('find-switch').remove(); } catch (e) {}</script>
     <label class="clist__search"><span data-icon="search" data-cls="ic-14"></span><input id="jump" placeholder="Jump to a chat" aria-label="Jump to a chat"></label>
     <div class="chips show-sm" style="padding:4px 16px 8px;flex-wrap:nowrap;overflow-x:auto" id="mfilters" data-single></div>
     <div class="clist__scroll" id="clist"></div>

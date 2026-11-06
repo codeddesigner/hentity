@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Open role | Find | Hentity</title>
+<meta name="description" content="An open role at an African startup on Hentity Find. Say you're interested; names reveal only when you both say yes.">
+<meta name="robots" content="noindex">
+<style>
+.fr{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.fr h1{font-size:44px;line-height:50px;font-weight:600;letter-spacing:-.03em;margin:16px 0 14px}
+.fr .blk{padding:24px}.fr .blk h2{font-size:20px;line-height:26px;font-weight:600;margin-bottom:10px}
+.fr .blk p{font-size:15px;line-height:24px;color:var(--color-text-secondary);white-space:pre-line}
+.fr-panel{position:sticky;top:20px;padding:24px}
+.fr-sees{padding:14px;border-radius:12px;background:var(--color-bg-subtle);margin-top:16px}
+@media (max-width:1024px){.fr{grid-template-columns:minmax(0,1fr)}.fr-panel{position:static}}
+@media (max-width:768px){.fr h1{font-size:30px;line-height:36px}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, esc, icon, toast } = H;
+  const root = qs('#main');
+  const id = location.pathname.split('/').filter(Boolean)[2];
+  await API.ready;
+  const r = id ? await API.findRole(id).catch(() => null) : null;
+  if (!r) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This role isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be closed, invite-only, or the link is wrong.</p><a class="btn btn--secondary" href="/find">Back to Find</a></div>`; H.contentShown(); return; }
+  document.title = `${r.title} | Find | Hentity`;
+  const s = r.startup || {}, k = F.KIND[r.kind] || F.KIND.cofounder, pName = r.stealth ? 'The founder' : (r.poster.name || '').split(' ')[0];
+  const me = r.me;
+  const tags = [F.catPill(r.category), F.pill(esc(F.pay(r)), 'k-pay'), r.vesting ? F.pill(esc(r.vesting)) : '', F.pill(k[0], k[1]), r.kind === 'cofounder' ? F.pill(F.COMMIT[r.commitment]) : r.duration ? F.pill(esc(r.duration)) : '', r.city ? F.pill(icon('pin', 'ic-12') + esc([r.city, F.WORK[r.working]].join(' · '))) : ''].filter(Boolean).join('');
+  const blk = (t, body) => body ? `<section class="card blk">${t ? `<h2>${t}</h2>` : ''}<p>${esc(body)}</p></section>` : '';
+  root.innerHTML = `<div class="fd reveal">
+    <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Open roles</a>
+    <div class="fr"><div class="stack gap-16">
+      <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div>${s.slug ? `<a class="t-body-sm" style="font-weight:500" href="/products/${esc(s.slug)}">View product</a>` : ''}</div>
+        <h1>${esc(r.title)}</h1><div class="fpills">${tags}</div>
+        ${(r.skills || []).length ? `<div class="fskills">${r.skills.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</section>
+      ${blk('What you’ll own', r.owns)}
+      ${r.traction ? blk('Where we are', r.traction) : r.traction_hidden ? `<section class="card blk"><h2>Where we are</h2><p class="row gap-8">${icon('lock', 'ic-14')}Traction details are shared when you both say yes.</p></section>` : ''}
+      ${blk('Who we’re looking for', r.looking_for)}
+      ${(r.team || []).length ? `<section class="card blk"><h2>The founders</h2><div class="f2" style="margin-top:8px">${r.team.map(m => `<a class="row gap-12" href="/makers/${esc(m.username)}">${F.mini(m.name, m.avatar_url)}<span><span class="t-body-sm" style="font-weight:500;display:block">${esc(m.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc([m.role, m.headline].filter(Boolean).join(' · '))}</span></span></a>`).join('')}</div></section>` : ''}
+    </div>
+    <aside class="card fr-panel" id="panel"></aside></div></div>`;
+  panel(); H.contentShown();
+
+  function panel() {
+    const box = qs('#panel');
+    if (r.mine) { box.innerHTML = `<h2 class="t-h3">Your role</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.interest_count} ${r.kind === 'cofounder' ? 'interested' : 'applied'} so far. Answer them in My matches.</p><div class="stack gap-8"><a class="btn btn--primary btn--block" href="/find/matches">My matches</a><a class="btn btn--secondary btn--block" href="/find/post?edit=${r.id}">Edit role</a></div>`; return; }
+    if (r.my_interest) { box.innerHTML = `<h2 class="t-h3">${r.my_interest.status === 'accepted' ? 'It’s a match' : r.my_interest.mine ? 'Interest sent' : `${esc(pName)} invited you`}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.my_interest.status === 'accepted' ? 'You both said yes.' : r.my_interest.mine ? `${esc(pName)} gets your intro. If they say yes too, you’ll both see each other and a chat opens.` : 'Answer in My matches.'}</p>${r.match_id ? `<a class="btn btn--primary btn--block" href="/find/m/${r.match_id}">Open match</a>` : `<a class="btn btn--secondary btn--block" href="/find/matches">My matches</a>`}`; return; }
+    if (!API.uid) { box.innerHTML = `<h2 class="t-h3">Say you’re interested</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Sign in to send a short intro. Your name stays hidden until you both say yes.</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname)}">Sign in</a>`; return; }
+    const sees = me ? `<div class="row gap-10" style="margin-top:8px">${me.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : F.mini(me.name, me.avatar_url)}<div><p class="t-body-sm" style="font-weight:500">${esc(me.stealth ? [me.what, me.experience].filter(Boolean).join(' · ') || 'Your skills' : me.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc([me.city, me.stealth ? 'stealth' : ''].filter(Boolean).join(' · '))}</p></div></div><p class="t-caption c-3" style="font-weight:400;margin-top:8px">${me.stealth ? 'Your name, photo and employer stay hidden until you both say yes.' : 'Your profile is visible. Switch to stealth in Privacy settings.'}</p>`
+      : `<p class="t-caption c-2" style="font-weight:400;margin-top:6px">Your name and photo, plus your intro. <a class="link link--accent" href="/find/open">Set up a stealth profile</a> to show only your skills.</p>`;
+    box.innerHTML = `<h2 class="t-h3">${r.kind === 'cofounder' ? 'Say you’re interested' : 'Apply'}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${esc(pName)} gets a short intro. If they say yes too, you’ll both see each other and a chat opens.</p>
+      <form id="fi" class="stack gap-14"><label class="field"><span class="field__label">Your intro</span><textarea class="input" name="intro" rows="4" maxlength="800" required placeholder="What you’ve built, why this role, when you could start"></textarea></label>
+      ${(r.questions || []).map((qq, i) => `<label class="field"><span class="field__label">${esc(qq)}</span><input class="input" name="a${i}" maxlength="400"></label>`).join('')}
+      <div class="fr-sees"><p class="row gap-6 t-body-sm" style="font-weight:500">${icon('eye', 'ic-14')}What ${esc(pName)} sees now</p>${sees}</div>
+      ${r.verified_only && !(API.profile && API.profile.is_verified) ? `<p class="alert alert--warning" style="padding:10px 12px">This role only takes replies from verified members.</p>` : ''}
+      <button class="btn btn--accent btn--lg btn--block" type="submit">${r.kind === 'cofounder' ? 'Send interest' : 'Send application'}</button>
+      <p class="t-caption c-3" style="font-weight:400;text-align:center">You have ${r.intros_left} of 5 intros left this week</p></form>`;
+    qs('#fi').onsubmit = async e => {
+      e.preventDefault(); const fd = new FormData(e.target), b = e.target.querySelector('[type=submit]'); b.disabled = true;
+      try { await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || ''))); r.my_interest = { status: 'pending', mine: true }; r.interest_count++; toast('Sent. We’ll tell you when they answer.'); panel(); }
+      catch (err) { H.fail(err); b.disabled = false; }
+    };
+  }
+})();
+</script>
+</body>
+</html>

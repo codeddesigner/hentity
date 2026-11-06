@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=1b34d0fe2d">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=2b969bfffb"></script>
+<script src="/assets/app.js?v=ad345a5164"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Match | Find | Hentity</title>
+<meta name="robots" content="noindex">
+<style>
+body.has-sidebar main.fm-main{padding:0}
+.fm{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-rows:minmax(0,1fr);height:100vh;height:100dvh}
+.fm>*{min-height:0}
+.fm-list{border-right:1px solid var(--color-border-default);overflow:auto;padding:20px 0}
+.fm-list h1{font-size:22px;font-weight:600;padding:0 16px 12px}
+.fm-item{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;padding:12px 16px}
+.fm-item[aria-current="page"]{background:var(--color-bg-subtle)}
+.fm-thread{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--color-border-default)}
+.fm-top{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--color-border-default)}
+.fm-msgs{flex:1;overflow:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+.fm-sys{align-self:center;display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--color-text-tertiary);text-align:center}
+.fm-b{max-width:78%;padding:12px 14px;border-radius:14px;background:var(--color-bg-subtle);font-size:14px;line-height:21px;white-space:pre-wrap}
+.fm-b small{display:block;margin-top:6px;font-size:11.5px;color:var(--color-text-tertiary)}
+.fm-b.mine{align-self:flex-end;background:var(--color-bg-inverse);color:var(--color-text-inverse)}.fm-b.mine small{color:#a3a3a3}
+.fm-row{display:flex;gap:8px;align-items:flex-end}
+.fm-cta{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:12px;background:var(--color-accent-subtle,#fff1ea)}
+.fm-comp{display:flex;gap:10px;align-items:center;padding:12px 24px;border-top:1px solid var(--color-border-default)}
+.fm-comp textarea{flex:1;resize:none;min-height:42px;max-height:140px}
+.fm-fit{overflow:auto;padding:20px}
+.fm-fit h2{font-size:22px;font-weight:600}
+.fit-bar{display:grid;grid-auto-flow:column;gap:6px;margin:14px 0 8px}.fit-bar i{height:5px;border-radius:3px;background:var(--color-bg-muted)}
+.fit{padding:14px;border:1px solid var(--color-border-default);border-radius:12px;margin-top:10px}
+.fit .fst{font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px}
+.st-a{background:#E9F8EE;color:#15803D}.st-t{background:#FFF6DB;color:#A16207}.st-o{background:var(--color-bg-muted);color:var(--color-text-secondary)}
+.fm-reveal{max-width:520px;margin:0 auto;padding:48px 24px;text-align:center}
+.fm-reveal h1{font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em;margin:18px 0 10px}
+.fm-pair{display:flex;justify-content:center}.fm-pair .fav{width:72px;height:72px;font-size:14px;border:3px solid var(--color-bg-canvas)}.fm-pair .fav+.fav{margin-left:-14px}
+.fm-sign{display:flex;gap:8px;margin-top:12px}.fm-sign span{flex:1;display:flex;gap:6px;align-items:center;justify-content:center;height:32px;border-radius:999px;font-size:12.5px;background:var(--color-bg-muted);color:var(--color-text-secondary)}
+.fm-sign span.ok{background:#E9F8EE;color:#15803D}
+.nda-text{max-height:260px;overflow:auto;padding:14px;border-radius:10px;background:var(--color-bg-subtle);font-size:13px;line-height:20px;color:var(--color-text-secondary);text-align:left}
+.fm-mbar{display:none}
+.fm-top .m-only{display:none}
+@media (max-width:768px){.fm-top .m-only{display:grid}}
+@media (max-width:1180px){.fm{grid-template-columns:260px minmax(0,1fr)}.fm-fit{display:none}.fm-mbar{display:flex}}
+@media (max-width:768px){.fm{grid-template-columns:minmax(0,1fr);height:calc(100dvh - 84px - 57px)}.fm-list{display:none}.fm-top{padding:12px 16px}.fm-msgs{padding:16px}.fm-comp{padding:10px 16px}}
+</style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Match | Find | Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.com/find-match">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Match | Find | Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
+</head>
+<body>
+<div data-header></div>
+<main id="main" class="fm-main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<div data-tabbar></div>
+<script src="/assets/find.js?v=9aaffbb9aa"></script>
+<script>
+H.mount({ active: 'find', tab: 'chats' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  const id = location.pathname.split('/').filter(Boolean)[2];
+  await API.ready;
+  if (!API.uid) { location.replace('/signin?next=' + encodeURIComponent(location.pathname)); return; }
+  let [m, inbox] = await Promise.all([API.findMatch(id).catch(() => null), API.findInbox().catch(() => [])]);
+  if (!m) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This match isn’t available</h1><a class="btn btn--secondary" style="margin-top:16px" href="/find/matches">My matches</a></div>`; H.contentShown(); return; }
+  const r = m.role || {}, co = r.kind === 'cofounder', other = m.other || {}, oName = other.name || 'Your match', oFirst = String(oName).split(' ')[0];
+  const me = API.profile;
+  document.title = `${m.revealed ? oName : 'Match'} | Find | Hentity`;
+  const matches = inbox.filter(x => x.type === 'match');
+  const listHtml = `<aside class="fm-list"><h1>My matches</h1>${matches.map(x => `<a class="fm-item" href="/find/m/${x.id}"${x.id === id ? ' aria-current="page"' : ''}>${x.other ? F.mini(x.other.name, x.other.avatar_url) : `<span class="flock" style="width:36px;height:36px">${icon('lock', 'ic-14')}</span>`}<span style="min-width:0"><span class="t-body-sm truncate" style="display:block;font-weight:500">${esc(x.other ? x.other.name + ' · ' + (x.startup || '') : x.startup || 'Match')}</span><span class="t-caption c-3 truncate" style="display:block;font-weight:400">${esc(x.last || x.title || '')}</span><span class="fpill ${x.revealed ? 'k-pay' : 'k-co'}" style="margin-top:6px;height:20px">${x.revealed ? 'Matched' : x.me_signed ? 'Waiting' : 'NDA to sign'}</span></span></a>`).join('')}<a class="fm-item" href="/find/matches" style="color:var(--color-text-secondary)"><span></span><span class="t-body-sm row gap-6">All intros and invites${icon('arrow-right', 'ic-12')}</span></a></aside>`;
+  if (!m.revealed) return reveal();
+  root.innerHTML = `<div class="fm">${listHtml}
+    <section class="fm-thread"><div class="fm-top"><a class="nav__icon m-only" href="/find/matches" aria-label="Back">${icon('arrow-left', 'ic-18')}</a>${F.mini(oName, other.avatar_url)}<div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${other.username ? `<a href="/makers/${esc(other.username)}">${esc(oName)}</a>` : esc(oName)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc([r.startup && r.startup.name, r.title].filter(Boolean).join(' · '))}</p></div>${m.nda_required ? `<span class="fpill k-pay">${icon('shield', 'ic-12')}NDA signed</span>` : ''}${other.linkedin ? `<a class="nav__icon" href="${esc(/^http/.test(other.linkedin) ? other.linkedin : 'https://' + other.linkedin)}" target="_blank" rel="noopener" aria-label="LinkedIn">${icon('link', 'ic-16')}</a>` : ''}</div>
+      <button class="fm-mbar row between gap-12" type="button" id="fit-open" style="padding:10px 16px;border-bottom:1px solid var(--color-border-default);font-size:13px;font-weight:500"><span>${co ? 'Co-founder fit' : 'Hiring steps'}</span><span class="c-3" id="fit-sum"></span></button>
+      <div class="fm-msgs" id="msgs"></div>
+      <form class="fm-comp" id="comp"><textarea class="input" id="body" rows="1" maxlength="4000" placeholder="Message ${esc(oFirst)}"></textarea><button class="nav__icon" type="submit" aria-label="Send" style="color:var(--color-accent-default)">${icon('send', 'ic-20')}</button></form></section>
+    <aside class="fm-fit" id="fit"></aside></div>`;
+  root.classList.add('fm-main');
+  let msgs = await API.findMessages(id).catch(() => []);
+  const fmtT = d => { const x = new Date(d), today = new Date().toDateString() === x.toDateString(); return (today ? 'Today' : x.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })) + ' · ' + x.toTimeString().slice(0, 5); };
+  function drawMsgs() {
+    const box = qs('#msgs');
+    box.innerHTML = `<p class="fm-sys">${icon('lock', 'ic-12')}You both said yes${m.nda_required ? ' · NDA signed by both' : ''} · names revealed · ${esc(new Date(m.revealed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</p>`
+      + (m.intro ? `<div class="fm-row"${m.intro_from_me ? ' style="justify-content:flex-end"' : ''}><div class="fm-b${m.intro_from_me ? ' mine' : ''}"><b style="font-weight:500">Intro</b>\n${esc(m.intro)}${(m.answers || []).filter(Boolean).length ? '\n\n' + (r.questions || []).map((q, i) => m.answers[i] ? q + '\n' + m.answers[i] : '').filter(Boolean).map(esc).join('\n\n') : ''}</div></div>` : '')
+      + msgs.map(x => { const mine = x.user_id === API.uid; return `<div class="fm-row"${mine ? ' style="justify-content:flex-end"' : ''}>${mine ? '' : F.mini(oName, other.avatar_url)}<div class="fm-b${mine ? ' mine' : ''}">${esc(x.body)}<small>${fmtT(x.created_at)}</small></div></div>`; }).join('')
+      + (!m.trial ? `<div class="fm-cta">${icon('sparkles', 'ic-16')}<div class="grow"><p class="t-body-sm" style="font-weight:500">${co ? 'Make the trial official' : 'Plan a trial task'}</p><p class="t-caption c-2" style="font-weight:400">Set scope, dates and who owns the code${co ? '' : ' or work'}. Kept with this match.</p></div><button class="btn btn--secondary btn--sm" type="button" id="trial">Plan trial</button></div>` : '');
+    box.scrollTop = box.scrollHeight;
+    qs('#trial') && (qs('#trial').onclick = planTrial);
+  }
+  drawMsgs();
+  qs('#comp').onsubmit = async e => { e.preventDefault(); const t = qs('#body').value.trim(); if (!t) return; qs('#body').value = ''; try { const x = await API.findSend(id, t); if (!msgs.some(y => y.id === x.id)) msgs.push(x); drawMsgs(); } catch (err) { H.fail(err); qs('#body').value = t; } };
+  qs('#body').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); qs('#comp').requestSubmit(); } });
+  try { API.live('fm', 'find_messages', 'match_id=eq.' + id, ({ eventType, new: n }) => { if (eventType === 'INSERT' && !msgs.some(y => y.id === n.id)) { msgs.push(n); drawMsgs(); } }); } catch (e) {}
+
+  // ---- fit checklist (co-founders) or hiring steps (jobs)
+  const FIT = [['roles', 'Roles', 'Who owns what?'], ['equity', 'Equity', 'What split feels fair to you?'], ['time', 'Time', 'Full-time from when? Any other commitments?'], ['money', 'Money', 'How long can you go unpaid?'], ['decisions', 'Decisions', 'Who makes which calls?'], ['exit', 'If it doesn’t work', 'What happens to equity and code?']];
+  const STEPS = [['call', 'Intro call', 'A 30-minute call to meet properly'], ['task', 'Trial task', 'A short paid task or trial week'], ['offer', 'Offer letter', 'Role, pay, start date, equity if any']];
+  function fit() {
+    const mine = m.fit_mine || {}, theirs = m.fit_theirs || {};
+    const status = k => { const a = mine[k + '_ok'], b = theirs[k + '_ok']; if (!mine[k]) return ['o', 'Your turn']; if (!theirs[k]) return ['o', 'Waiting']; if (a === 'talk' || b === 'talk') return ['t', 'Talk about it']; if (a === 'agree' && b === 'agree') return ['a', 'Aligned']; return ['o', 'Open']; };
+    let html;
+    if (co) {
+      const st = FIT.map(([k]) => status(k)), n = t => st.filter(x => x[0] === t).length;
+      html = `<h2>Co-founder fit</h2><p class="t-caption c-3" style="font-weight:400;margin-top:4px">You each answer privately. You see their answer once you’ve given yours, then mark where you agree and what to talk about.</p>
+        <div class="fit-bar">${st.map(x => `<i style="background:${x[0] === 'a' ? '#2FE0A5' : x[0] === 't' ? '#FFD43B' : ''}"></i>`).join('')}</div><p class="t-caption c-2" style="font-weight:400">${n('a')} aligned · ${n('t')} to talk about · ${FIT.length - n('a') - n('t')} open</p>
+        ${FIT.map(([k, t, ph], i) => { const s = st[i]; return `<div class="fit"><div class="row between gap-8"><p class="t-body-sm" style="font-weight:500">${t}</p><span class="fst st-${s[0]}">${s[1]}</span></div>
+          ${mine[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:6px">You: ${esc(mine[k])}</p>${theirs[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:2px">${esc(oFirst)}: ${esc(theirs[k])}</p><div class="row gap-6" style="margin-top:8px"><button class="btn btn--ghost btn--sm" data-ok="${k}:agree"${mine[k + '_ok'] === 'agree' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>We agree</button><button class="btn btn--ghost btn--sm" data-ok="${k}:talk"${mine[k + '_ok'] === 'talk' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>Talk about it</button></div>` : ''}<button class="link t-caption" data-edit="${k}" style="margin-top:6px">Edit</button>`
+            : `<textarea class="input" rows="2" data-ans="${k}" placeholder="${esc(ph)}" style="margin-top:8px;font-size:13px"></textarea><button class="btn btn--secondary btn--sm" data-save="${k}" style="margin-top:6px">Save</button>`}</div>`; }).join('')}
+        <button class="btn btn--secondary btn--sm btn--block" id="agree" style="margin-top:14px">${icon('file-text', 'ic-14')}Draft co-founder agreement</button>`;
+    } else {
+      const done = mine.steps || {};
+      html = `<h2>Hiring steps</h2><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Tick each step as you go. Only the two of you see this.</p>
+        ${STEPS.map(([k, t, d]) => `<label class="fit row gap-10" style="cursor:pointer"><input type="checkbox" data-step="${k}" ${done[k] ? 'checked' : ''}><span><span class="t-body-sm" style="font-weight:500;display:block">${t}</span><span class="t-caption c-3" style="font-weight:400">${d}</span></span></label>`).join('')}
+        <button class="btn btn--secondary btn--sm btn--block" id="agree" style="margin-top:14px">${icon('file-text', 'ic-14')}Draft offer letter</button>`;
+    }
+    qs('#fit').innerHTML = html;
+    const sum = qs('#fit-sum'); if (sum) sum.textContent = co ? `${FIT.filter(([k]) => status(k)[0] === 'a').length} of ${FIT.length} aligned` : `${Object.values((mine.steps || {})).filter(Boolean).length} of 3 done`;
+    const put = async patch => { m.fit_mine = Object.assign({}, m.fit_mine, patch); try { await API.findSetFit(id, m.fit_mine); m = await API.findMatch(id); fit(); } catch (e) { H.fail(e); } };
+    qsa('#fit [data-save]').forEach(b => b.onclick = () => { const k = b.dataset.save, v = qs(`#fit [data-ans="${k}"]`).value.trim(); if (v) put({ [k]: v.slice(0, 300) }); });
+    qsa('#fit [data-edit]').forEach(b => b.onclick = () => { const k = b.dataset.edit; const v = prompt('Your answer', mine[k] || ''); if (v !== null) put({ [k]: v.trim().slice(0, 300), [k + '_ok']: null }); });
+    qsa('#fit [data-ok]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.ok.split(':'); put({ [k + '_ok']: v }); });
+    qsa('#fit [data-step]').forEach(c => c.onchange = () => put({ steps: Object.assign({}, mine.steps, { [c.dataset.step]: c.checked }) }));
+    qs('#agree').onclick = draftAgreement;
+  }
+  fit();
+  qs('#fit-open') && (qs('#fit-open').onclick = () => { const el = document.createElement('div'); el.className = 'scrim'; el.style.alignItems = 'end'; el.style.padding = '0'; el.innerHTML = `<div class="lsheet" style="max-height:85vh;overflow:auto"><div class="grab"></div><div id="fit-m"></div></div>`; document.body.appendChild(el); const box = qs('#fit'); el.querySelector('#fit-m').appendChild(box); box.style.display = 'block'; el.addEventListener('click', e => { if (e.target === el) { qs('.fm').appendChild(box); box.style.display = ''; el.remove(); } }); });
+
+  function planTrial() {
+    const el = document.createElement('div'); el.className = 'scrim';
+    el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Plan a trial"><h2 class="t-h3">Plan the trial</h2>
+      <label class="field"><span class="field__label">Scope</span><textarea class="input" name="scope" rows="2" maxlength="300" required placeholder="Build the sync prototype; test it with 20 farmers"></textarea></label>
+      <div class="f2"><label class="field"><span class="field__label">Start</span><input class="input" type="date" name="start" required></label><label class="field"><span class="field__label">End</span><input class="input" type="date" name="end" required></label></div>
+      <label class="field"><span class="field__label">Who owns the code or work</span><select class="input" name="owner"><option>The startup</option><option>${esc(me.name)}</option><option>${esc(oName)}</option><option>Shared until an agreement is signed</option></select></label>
+      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Save trial</button></div></form>`;
+    document.body.appendChild(el);
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); });
+    el.querySelector('form').onsubmit = async e => { e.preventDefault(); const fd = new FormData(e.target); const t = { scope: fd.get('scope'), start: fd.get('start'), end: fd.get('end'), code_owner: fd.get('owner') };
+      try { await API.findSetTrial(id, t); m.trial = t; msgs = await API.findMessages(id); drawMsgs(); el.remove(); toast('Trial saved'); } catch (err) { H.fail(err); } };
+  }
+  function draftAgreement() {
+    const a = m.fit_mine || {}, b = m.fit_theirs || {}, w = window.open('', '_blank');
+    if (!w) return toast('Allow pop-ups to open the draft', 'error');
+    const rows = (co ? FIT : STEPS).map(([k, t]) => `<tr><td><b>${t}</b></td><td>${esc(a[k] || '')}</td><td>${esc(b[k] || '')}</td></tr>`).join('');
+    w.document.write(`<!doctype html><title>Draft ${co ? 'co-founder agreement' : 'offer letter'}</title><style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#111;line-height:1.5}td,th{border:1px solid #ddd;padding:8px;vertical-align:top;text-align:left}table{border-collapse:collapse;width:100%}small{color:#666}</style>
+      <h1>Draft ${co ? 'co-founder agreement' : 'offer letter'}</h1><p><small>Prepared on Hentity Find, ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}. A starting point for a conversation, not legal advice. Have a lawyer review the final version.</small></p>
+      <p><b>Startup:</b> ${esc((r.startup && r.startup.name) || '')}<br><b>Role:</b> ${esc(r.title || '')}<br><b>Between:</b> ${esc(me.name)} and ${esc(oName)}</p>
+      ${co ? `<p><b>Equity range discussed:</b> ${esc(F.pay(r))}${r.vesting ? ' · ' + esc(r.vesting) : ''}</p>` : `<p><b>Pay:</b> ${esc(F.pay(r))}</p>`}
+      ${m.trial ? `<p><b>Trial:</b> ${esc(m.trial.scope)} (${esc(m.trial.start)} to ${esc(m.trial.end)}). Work owned by: ${esc(m.trial.code_owner)}.</p>` : ''}
+      ${co ? `<h2>What you each said</h2><table><tr><th></th><th>${esc(me.name)}</th><th>${esc(oName)}</th></tr>${rows}</table>` : ''}
+      <h2>To agree</h2><ol><li>Roles and responsibilities</li><li>Equity split, vesting schedule and cliff</li><li>Time commitment and start date</li><li>Pay, if any, and when it starts</li><li>How decisions are made and how disagreements are resolved</li><li>Intellectual property: everything built belongs to the company</li><li>What happens if someone leaves</li></ol>
+      <p style="margin-top:40px">Signed: ______________________ &nbsp;&nbsp; Signed: ______________________</p><script>print()<\/script>`);
+    w.document.close();
+  }
+  H.contentShown();
+
+  // ---- not revealed yet: "It's a match" + mutual NDA (Figma 175:2030)
+  function reveal() {
+    const theyName = m.side === 'poster' ? 'They' : (other.name && !other.stealth ? oFirst : 'The founder');
+    root.innerHTML = `<div class="fm" style="grid-template-columns:300px minmax(0,1fr)">${listHtml}<div style="overflow:auto"><div class="fm-reveal reveal">
+      <div class="fm-pair"><span class="fav">${icon('lock', 'ic-20')}</span>${F.mini(me.name, me.avatar_url)}</div>
+      <h1>It’s a match</h1><p class="t-body-md c-2">You both said yes to ${esc(r.title || 'this role')}${r.startup && !r.stealth ? ' at ' + esc(r.startup.name) : ''}.</p>
+      ${m.nda_required ? `<section class="card" style="padding:18px;margin-top:22px;text-align:left"><div class="row gap-12" style="align-items:flex-start"><span class="flock" style="width:40px;height:40px;background:var(--color-accent-subtle,#fff1ea);color:var(--color-accent-default)">${icon('signature', 'ic-18')}</span><div><p class="t-body-sm" style="font-weight:500">Sign the mutual NDA</p><p class="t-caption c-2" style="font-weight:400">One of you asked for one. Both of you sign, then names and details reveal.</p></div></div>
+        <div class="fm-sign"><span class="${m.they_signed ? 'ok' : ''}">${icon(m.they_signed ? 'check' : 'clock', 'ic-12')}${esc(theyName)} ${m.they_signed ? 'signed' : 'hasn’t signed yet'}</span><span class="${m.me_signed ? 'ok' : ''}">${icon(m.me_signed ? 'check' : 'clock', 'ic-12')}${m.me_signed ? 'You signed' : 'Waiting for you'}</span></div></section>` : ''}
+      <section class="card" style="padding:18px;margin-top:12px;text-align:left;background:var(--color-bg-subtle);border:0"><p class="t-body-sm" style="font-weight:500">After you ${m.nda_required ? 'both sign' : 'both say yes'}</p><div class="stack gap-8" style="margin-top:10px">${['Full names, photos and LinkedIn', 'Startup name, traction and partners', 'A private chat with a ' + (co ? 'fit checklist' : 'hiring checklist')].map(t => `<p class="row gap-8 t-body-sm c-2">${icon('check', 'ic-14')}${t}</p>`).join('')}</div></section>
+      ${m.me_signed ? `<p class="t-body-sm c-2" style="margin-top:22px">You’ve signed. We’ll tell you the moment they do.</p>` : `<button class="btn btn--accent btn--lg btn--block" id="sign" style="margin-top:22px">${icon('signature', 'ic-16')}Read and sign NDA</button>`}
+      <a class="btn btn--ghost btn--block" href="/find/matches" style="margin-top:8px">Not now</a></div></div></div>`;
+    H.contentShown();
+    qs('#sign') && (qs('#sign').onclick = () => {
+      const el = document.createElement('div'); el.className = 'scrim';
+      el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Mutual NDA" style="max-width:560px"><h2 class="t-h3">Mutual non-disclosure agreement</h2>
+        <div class="nda-text"><p><b>1. Parties.</b> You and the other person in this Hentity Find match ("the parties").</p><p><b>2. Confidential information.</b> Anything one party shares with the other through this match that isn't already public: names, employers, the startup and its product, users, traction, finances, plans and code.</p><p><b>3. What you agree.</b> Use it only to decide whether to work together; don't share it with anyone else without written permission; delete it if asked.</p><p><b>4. Not covered.</b> Information that is public, that you already knew, or that the law requires you to disclose.</p><p><b>5. Term.</b> Two years from the date you both sign.</p><p><b>6. Signing.</b> Typing your full name below is your electronic signature. Hentity records the time and keeps a copy for both parties.</p></div>
+        <label class="field"><span class="field__label">Type your full name to sign: ${esc(me.name)}</span><input class="input" name="nm" required autocomplete="off"></label>
+        <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">${icon('signature', 'ic-14')}Sign</button></div></form>`;
+      document.body.appendChild(el);
+      el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); });
+      el.querySelector('form').onsubmit = async e => { e.preventDefault(); try { const out = await API.findSignNda(id, new FormData(e.target).get('nm')); el.remove(); toast(out.revealed ? 'Both signed. Names revealed.' : 'Signed. Waiting for them.'); setTimeout(() => location.reload(), 500); } catch (err) { H.fail(err); } };
+    });
+  }
+})();
+</script>
+</body>
+</html>
