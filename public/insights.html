@@ -46,9 +46,9 @@
 .ins-h{font-size:14px;font-weight:500}.ins-s{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
 .kpis4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:18px}
 .kpis4>div{padding:6px 16px;border-left:1px solid var(--color-border-default)}.kpis4>div:first-child{padding-left:0;border-left:0}
-.kpis4 p.l{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.kpis4 p.l{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;white-space:nowrap}
 .kpis4 b{display:block;font-size:30px;line-height:38px;font-weight:500;letter-spacing:-.02em;margin:10px 0 8px}
-.delta{font-size:12px;display:inline-flex;align-items:center;gap:4px}.delta.up{color:var(--color-success)}.delta.down{color:var(--color-error)}.delta.flat{color:var(--color-text-tertiary)}
+.delta{font-size:12px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.delta.up{color:var(--color-success)}.delta.down{color:var(--color-error)}.delta.flat{color:var(--color-text-tertiary)}
 .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,9px);gap:2px;margin-top:6px}
 .heat i{width:9px;height:9px;border-radius:2px;background:var(--color-bg-muted)}
 .heat i[data-l="1"]{background:#c9c9c9}.heat i[data-l="2"]{background:#8a8a8a}.heat i[data-l="3"]{background:#454545}.heat i[data-l="4"]{background:#0a0a0a}
@@ -65,11 +65,13 @@
 .cbar{display:flex;gap:3px;height:12px;margin:14px 0 10px}.cbar i{border-radius:2px}
 .stg{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:8px}.stg span{flex:1;color:var(--color-text-secondary)}.stg i{height:5px;border-radius:3px;background:var(--color-text-primary)}.stg b{width:40px;text-align:right;font-weight:500}
 .tree{position:relative;height:470px;margin-top:14px}
-.tree a{position:absolute;padding:10px;font-family:var(--font-mono);font-size:12px;color:#0a0a0a;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;transition:filter .15s}
-.tree a:hover{filter:brightness(.95)}
+.tree a{position:absolute;padding:10px;font-family:var(--font-mono);font-size:12px;color:#fff;border-radius:2px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;transition:filter .15s}
+.tree a:hover{filter:brightness(1.08)}
 .tree a b{font-family:var(--font-sans);font-size:15px;font-weight:500;text-align:right}
-.tree a.fast{outline:1.5px solid var(--color-accent-default);outline-offset:-1.5px;color:var(--color-accent-default);background:var(--color-bg-canvas)!important}
-.tree a.zero{color:var(--color-text-tertiary)}
+.tlegend{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tlegend>*{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.tlegend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.mseg,.m-only,.mshare{display:none}
 .citylist .r{display:grid;grid-template-columns:28px 20px 130px minmax(0,1fr) 48px 36px;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--color-border-default);font-size:13px}
 .citylist .r:first-child{border-top:0}
 .citylist .n{font-family:var(--font-mono);color:var(--color-text-tertiary)}
@@ -78,15 +80,21 @@
 .ins-note{display:flex;gap:8px;font-size:12px;color:var(--color-text-tertiary);margin-top:8px}
 .ins-table{width:100%;border-collapse:collapse;font-size:13px}.ins-table th{text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:12px;padding:8px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td{padding:10px 0;border-bottom:1px solid var(--color-border-default)}.ins-table td.num,.ins-table th.num{text-align:right;font-variant-numeric:tabular-nums}
 .chipsx{display:none}
-body.embed .sidebar,body.embed .tabbar,body.embed .ins-bar .ins-act{display:none!important}
+body.embed .sidebar,body.embed .tabbar,body.embed .mseg,body.embed .mtop,body.embed .ins-bar .ins-act{display:none!important}
 body.embed .ins{padding:16px}
 @media (max-width:1180px){.ins{padding:24px 32px 80px}}
 @media (max-width:960px){.ins-grid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:768px){
   .ins{padding:12px 16px 32px}.ins h1{font-size:28px;line-height:34px;margin:4px 0 14px}
   .ins-bar{display:none}.chipsx{display:flex;margin:0 -16px 18px;padding:0 16px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
-  .kpis4{grid-template-columns:1fr 1fr;row-gap:18px}.kpis4>div:nth-child(3){padding-left:0;border-left:0}
-  .heat-sec,.concs,.cc-sec{display:none}.tree{height:300px}
+  .kpis4{grid-template-columns:1fr 1fr;margin-top:0}.kpis4>div{padding:2px 0 18px 16px;border-left:1px solid var(--color-border-default)}
+  .kpis4>div:nth-child(1){order:0;padding-left:0;border-left:0}.kpis4>div:nth-child(3){order:1}.kpis4>div:nth-child(2){order:2;padding-left:0;border-left:0}.kpis4>div:nth-child(4){order:3}
+  .kpis4>div:nth-child(2),.kpis4>div:nth-child(4){padding-top:18px;border-top:1px solid var(--color-border-default)}
+  .kpis4 b{font-size:28px;line-height:36px;margin:8px 0 6px}
+  .kp-head,.heat-sec,.concs,.cc-sec,.tlegend .dm,.d-only,.ins-eyebrow .d-only{display:none!important}.m-only{display:inline}.tree{height:180px}
+  .mseg{display:flex;width:100%;margin:0 0 18px}.mseg a{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;border-radius:8px;font-size:13px;font-weight:500;color:var(--color-text-secondary)}.mseg a[aria-current]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .ins-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.mshare{display:inline-flex}
+  .ins-sec{padding-bottom:20px;margin-bottom:20px}
   .citylist .r{grid-template-columns:20px 90px minmax(0,1fr) 40px}.citylist .n,.citylist .p{display:none}
 }
 </style>
@@ -105,8 +113,9 @@ body.embed .ins{padding:16px}
 <body>
 <div data-header></div>
 <main class="ins" id="main">
-  <p class="ins-eyebrow">INSIGHTS · UPDATED HOURLY</p>
-  <h1>The state of African startups</h1>
+  <nav class="seg mseg" aria-label="Browse"><a href="/">Launches</a><a href="/directory">Directory</a><a href="/insights" aria-current="page"><span data-icon="bar-chart" data-cls="ic-14"></span>Insights</a></nav>
+  <p class="ins-eyebrow">INSIGHTS<span class="d-only"> · UPDATED HOURLY</span></p>
+  <div class="ins-top"><h1><span class="d-only">The state of African startups</span><span class="m-only">African startups</span></h1><button class="nav__icon mshare" type="button" data-share aria-label="Share"><span data-icon="share" data-cls="ic-20"></span></button></div>
   <div class="ins-bar">
     <div class="ins-tabs" role="tablist" id="tabs">
       <button role="tab" data-t="overview" aria-selected="true"><span data-icon="bar-chart" data-cls="ic-14"></span>Overview</button>
@@ -118,11 +127,11 @@ body.embed .ins{padding:16px}
       <select id="days" aria-label="Period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select><span data-icon="chevron-down" data-cls="ic-14" style="margin-left:-20px;pointer-events:none"></span></label>
     <button class="ins-act" type="button" id="csv"><span data-icon="download" data-cls="ic-16"></span>Download CSV</button>
     <button class="ins-act" type="button" id="embed"><span data-icon="link" data-cls="ic-16"></span>Embed</button>
-    <button class="btn btn--primary btn--sm" type="button" id="share">Share</button>
+    <button class="btn btn--primary btn--sm" type="button" id="share" data-share><span data-icon="share" data-cls="ic-14"></span>Share</button>
   </div>
   <div class="chips chipsx" data-single id="ccm"></div>
   <div id="view"><div class="skel" style="height:520px;border-radius:16px"></div></div>
-  <p class="ins-note"><span data-icon="info" data-cls="ic-14"></span><span>Counts every public product on Hentity, launched or scheduled. Page views are Hentity page loads. Free to reuse under CC BY 4.0 with a link to hentity.com/insights.</span></p>
+  <p class="ins-note"><span data-icon="info" data-cls="ic-14"></span><span>Counts every public product on Hentity, launched or scheduled. “Live” means the profile is public; visitor numbers are Hentity page views. Download the data under CC BY 4.0.</span></p>
 </main>
 <div data-tabbar></div>
 <script>
@@ -142,6 +151,7 @@ H.mount({ active: 'insights', tab: 'products' });
   const n = v => (v || 0).toLocaleString('en-US');
   const pct = (a, b) => b ? Math.round((a - b) / b * 1000) / 10 : null;
   const delta = (cur, prev, word) => { const p = pct(cur, prev); if (p === null) return cur ? `<span class="delta up">${icon('upvote', 'ic-12')}${n(cur)} new</span>` : `<span class="delta flat">No change</span>`; return `<span class="delta ${p > 0 ? 'up' : p < 0 ? 'down' : 'flat'}">${p ? icon('upvote', 'ic-12').replace('<svg', `<svg style="${p < 0 ? 'transform:rotate(180deg)' : ''}"`) : ''}${Math.abs(p)}%${word ? ' ' + word : ''}</span>`; };
+  const vsPrev = () => days === 30 ? 'vs ' + new Date(Date.now() - 30 * 864e5).toLocaleDateString('en-GB', { month: 'short' }) : days === 7 ? 'vs last week' : days === 365 ? 'vs last year' : `vs prior ${days} days`;
   const period = () => ({ 7: 'last 7 days', 30: 'last 30 days', 90: 'last 90 days', 365: 'last 12 months' })[days] || `last ${days} days`;
 
   async function load() {
@@ -161,11 +171,11 @@ H.mount({ active: 'insights', tab: 'products' });
   // ---------------------------------------------------------------- pieces
   function kpis() {
     const where = cc ? CN[cc] : 'Hentity ecosystem';
-    return `<section class="ins-sec"><p class="ins-h">Overview</p><p class="ins-s">${esc(where)} · ${period()}</p>
+    return `<section class="ins-sec"><div class="kp-head"><p class="ins-h">Overview</p><p class="ins-s">${esc(where)} · ${period()}</p></div>
       <div class="kpis4">
         <div><p class="l">${icon('rocket', 'ic-16')}Startups live</p><b data-count-to="${D.live}">0</b><span class="delta ${D.live_week ? 'up' : 'flat'}">${D.live_week ? icon('upvote', 'ic-12') + n(D.live_week) + ' this week' : 'None new this week'}</span></div>
-        <div><p class="l">${icon('calendar', 'ic-16')}Launched</p><b data-count-to="${D.launched}">0</b>${delta(D.launched, D.launched_prev)}</div>
-        <div><p class="l">${icon('eye', 'ic-16')}Page views</p><b data-count-to="${D.views}">0</b>${delta(D.views, D.views_prev)}</div>
+        <div><p class="l">${icon('calendar', 'ic-16')}Launched</p><b data-count-to="${D.launched}">0</b>${delta(D.launched, D.launched_prev, `<span class="d-only">${vsPrev()}</span>`)}</div>
+        <div><p class="l">${icon('eye', 'ic-16')}Visitors</p><b data-count-to="${D.views}">0</b>${delta(D.views, D.views_prev)}</div>
         <div><p class="l">${icon('globe', 'ic-16')}Cities</p><b data-count-to="${D.cities}">0</b><span class="delta ${D.cities_new ? 'up' : 'flat'}">${D.cities_new ? icon('upvote', 'ic-12') + n(D.cities_new) + ' new' : 'No new cities'}</span></div>
       </div></section>`;
   }
@@ -215,32 +225,36 @@ H.mount({ active: 'insights', tab: 'products' });
     }
     return out;
   }
+  // Figma: top 8 industries get their own colour; the rest are grey "Other"
+  const PAL = ['#2A78D6', '#EB6834', '#008300', '#E34948', '#6250D6', '#EDA100', '#E87BA4', '#1BAF7A'], OTHER = '#A3A3A3';
   function industries(fullHeight) {
     const by = new Map((D.industries || []).map(i => [i.name, i]));
     const L = CATS.map(c => Object.assign({ name: c, n: 0, cur: 0, prev: 0 }, by.get(c) || {})).concat((D.industries || []).filter(i => !CATS.includes(i.name)));
-    L.sort((a, b) => b.n - a.n);
+    L.sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
     const minPos = Math.max(1, Math.min(...L.filter(i => i.n).map(i => i.n), 1));
     const growth = L.filter(i => i.cur >= 2).map(i => [i, i.prev ? (i.cur - i.prev) / i.prev : i.cur]).sort((a, b) => b[1] - a[1])[0];
     const fast = growth && growth[1] > 0 ? growth[0].name : null;
-    const max = Math.max(1, L[0] ? L[0].n : 1);
-    return `<section${fullHeight ? '' : ' class="ins-sec"'}><p class="ins-h">Industries</p><p class="ins-s">${L.filter(i => i.n).length} industries · sorted by startups live</p>
-      <div class="tree" id="tree" data-items='${esc(JSON.stringify(L.map(i => ({ name: i.name, n: i.n, w: i.n || minPos * 0.35, cur: i.cur, prev: i.prev }))))}' data-fast="${esc(fast || '')}" data-max="${max}"></div>
-      <div class="row gap-16 t-caption c-3" style="font-weight:400;margin-top:10px"><span class="row gap-6"><i style="width:9px;height:9px;background:#E5F000;display:inline-block"></i>Largest</span>${fast ? `<span class="row gap-6"><i style="width:9px;height:9px;outline:1.5px solid var(--color-accent-default);display:inline-block"></i>Fastest growing</span>` : ''}</div></section>`;
+    const live = L.filter(i => i.n).length, top = L.filter(i => i.n).slice(0, PAL.length);
+    L.forEach(i => { const k = top.indexOf(i); i.c = k >= 0 ? PAL[k] : OTHER; });
+    const rest = L.length > top.length;
+    return `<section${fullHeight ? '' : ' class="ins-sec"'}><p class="ins-h">Industries</p><p class="ins-s d-only">${live} industr${live === 1 ? 'y' : 'ies'}${rest ? ` · top ${top.length} have their own colour, the rest are grouped as Other` : ' · sorted by startups live'}</p>
+      <div class="tree" id="tree" data-items='${esc(JSON.stringify(L.map(i => ({ name: i.name, n: i.n, w: i.n || minPos * 0.35, cur: i.cur, prev: i.prev, c: i.c }))))}' data-fast="${esc(fast || '')}"></div>
+      <div class="tlegend">${top.map((i, k) => `<a href="/categories/${slug(i.name)}"${k >= 7 ? ' class="dm"' : ''}><i style="background:${i.c}"></i>${esc(i.name)}</a>`).join('')}${rest ? `<span class="dm"><i style="background:${OTHER}"></i>Other</span>` : ''}</div></section>`;
   }
   function drawTree() {
     const el = qs('#tree'); if (!el) return;
-    const items = JSON.parse(el.dataset.items), fast = el.dataset.fast, max = +el.dataset.max;
+    let items = JSON.parse(el.dataset.items); const fast = el.dataset.fast;
+    if (innerWidth <= 768) items = items.filter(i => i.n && i.c !== OTHER).slice(0, 7);   // phone: just the big coloured ones
     const W = el.clientWidth, Hh = el.clientHeight, G = 4;
     const cells = squarify(items, W, Hh);
-    el.innerHTML = cells.map((c, i) => {
-      const bg = i === 0 && c.n ? '#E5F000' : c.n === 0 ? 'var(--color-bg-subtle)' : c.n / max > 0.25 ? '#A6E1F7' : '#D3F0FB';
+    el.innerHTML = cells.map(c => {
       const g = c.name === fast && c.prev ? Math.round((c.cur - c.prev) / c.prev * 100) : null;
-      return `<a href="/categories/${slug(c.name)}" class="${c.name === fast ? 'fast' : ''}${c.n === 0 ? ' zero' : ''}" style="left:${c.x}px;top:${c.y}px;width:${Math.max(0, c.w - G)}px;height:${Math.max(0, c.h - G)}px;background:${bg}" title="${esc(c.name)}: ${c.n}"><span>${esc(c.name.toLowerCase())}${c.name === fast ? ` ↑${g !== null ? g + '%' : ''}` : ''}</span>${c.w > 46 && c.h > 46 ? `<b>${n(c.n)}</b>` : ''}</a>`;
+      return `<a href="/categories/${slug(c.name)}" style="left:${c.x}px;top:${c.y}px;width:${Math.max(0, c.w - G)}px;height:${Math.max(0, c.h - G)}px;background:${c.c}" title="${esc(c.name)}: ${c.n}"><span class="truncate">${esc(c.name.toLowerCase())}${c.name === fast ? ` ↑${g !== null ? g + '%' : ''}` : ''}</span>${c.w > 46 && c.h > 46 ? `<b>${n(c.n)}</b>` : ''}</a>`;
     }).join('');
   }
   function cities(limit) {
     const C = (D.city_list || []).slice(0, limit), max = Math.max(1, ...C.map(c => c.n));
-    return `<section><p class="ins-h">Cities</p><p class="ins-s">${limit < (D.city_list || []).length ? `Top ${limit} of ${D.city_list.length} cities` : `${C.length} cities`} · startups live</p>
+    return `<section><p class="ins-h"><span class="m-only">Top c</span><span class="d-only">C</span>ities</p><p class="ins-s">${limit < (D.city_list || []).length ? `Top ${limit} of ${D.city_list.length} cities` : `${C.length} cities`} · startups live</p>
       <div class="citylist" style="margin-top:12px">${C.map((c, i) => `<div class="r"><span class="n">${String(i + 1).padStart(2, '0')}</span>${flag(c.cc)}<span class="truncate">${esc(c.city)}</span><span class="tr"><i style="width:${c.n / max * 100}%;background:${i === 0 ? '#E5F000' : '#A6E1F7'}"></i></span><span class="v">${n(c.n)}</span><span class="p">${c.new ? '+' + c.new : ''}</span></div>`).join('') || '<p class="t-body-sm c-2" style="padding:10px 0">No cities yet.</p>'}</div></section>`;
   }
   function funding() {
@@ -272,7 +286,7 @@ H.mount({ active: 'insights', tab: 'products' });
   qs('#days').addEventListener('change', e => { days = +e.target.value; ALL = null; load(); });
   qs('#ccm').addEventListener('click', e => { const b = e.target.closest('[data-cc]'); if (!b) return; cc = b.dataset.cc; qs('#cc').value = cc; load(); });
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawTree, 150); });
-  qs('#share').onclick = () => { const u = location.href.replace(/[?&]embed=1/, ''); if (navigator.share) navigator.share({ title: 'The state of African startups · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u).catch(() => {}); toast('Link copied'); } };
+  qsa('[data-share]').forEach(b => b.onclick = () => { const u = location.href.replace(/[?&]embed=1/, ''); if (navigator.share) navigator.share({ title: 'The state of African startups · Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u).catch(() => {}); toast('Link copied'); } });
   qs('#embed').onclick = () => { const u = `${location.origin}/insights?embed=1${cc ? '&country=' + cc : ''}`; const code = `<iframe src="${u}" width="100%" height="900" style="border:0" title="The state of African startups · Hentity"></iframe>`; navigator.clipboard && navigator.clipboard.writeText(code).catch(() => {}); toast('Embed code copied'); };
   qs('#csv').onclick = () => {
     if (!D) return;
