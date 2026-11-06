@@ -107,7 +107,7 @@
     <!-- 05 Intro -->
     <section class="card sec" id="intro" data-sec>
       <div class="sec-h"><span class="n">05</span><div><h2 class="t-h3">Introduction</h2><p class="t-body-sm c-2">Posted as the first comment when your week starts.</p></div></div>
-      <div class="field"><div class="field__row"><label class="field__label" for="intro-t">Maker introduction</label><span class="field__counter" data-count="intro-t"></span></div><textarea class="input" id="intro-t" rows="4" maxlength="2000" placeholder="Hi Hentity 👋 I spent three years doing books for market traders by hand. Ledgerline is the tool I wished I had…"></textarea><p class="field__hint">Say what it is, who it’s for, why you built it and what feedback you need.</p></div>
+      <div class="field"><div class="field__row"><label class="field__label" for="intro-t">Maker introduction</label><span class="field__counter" data-count="intro-t"></span></div><textarea class="input" id="intro-t" rows="4" maxlength="2000" placeholder="Hi Hentity 👋 I spent three years doing books for market traders by hand. Ledgerline is the tool I wished I had…"></textarea><p class="field__hint" id="intro-hint">At least 50 characters. Say what it is, who it’s for, why you built it and what feedback you need.</p></div>
     </section>
 
     <!-- 06 Verification -->
@@ -307,10 +307,13 @@ H.mount({ active: '', tab: 'launch' });
     }, 700);
   }
 
+  const INTRO_MIN = 50;
+  const introHint = () => { const n = qs('#intro-t').value.trim().length, h = qs('#intro-hint'); h.textContent = n >= INTRO_MIN ? 'Say what it is, who it’s for, why you built it and what feedback you need.' : n ? `${INTRO_MIN - n} more character${INTRO_MIN - n === 1 ? '' : 's'} needed (minimum ${INTRO_MIN}).` : 'At least 50 characters. Say what it is, who it’s for, why you built it and what feedback you need.'; h.className = 'field__hint' + (n && n < INTRO_MIN ? ' c-3' : ''); };
+  qs('#intro-t').addEventListener('input', introHint); introHint();
   const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch week'], ['intro', 'Introduction'], ['verify', 'Verification', true]];
   let current = 'basics';
   function done() {
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: true, week: !!s.week_id && slots.some(w => w.id === s.week_id && (w.taken < w.capacity || w.id === (p && p.week_id))), intro: qs('#intro-t').value.trim().length >= 40, verify: Object.values(s.verify).filter(Boolean).length >= 1 };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: true, week: !!s.week_id && slots.some(w => w.id === s.week_id && (w.taken < w.capacity || w.id === (p && p.week_id))), intro: qs('#intro-t').value.trim().length >= INTRO_MIN, verify: Object.values(s.verify).filter(Boolean).length >= 1 };
   }
   function update() {
     if (!ready) return;
