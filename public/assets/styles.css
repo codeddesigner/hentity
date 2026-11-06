@@ -859,3 +859,23 @@ body.chat-page{overflow:hidden}
 .drow .plogo{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
 .drow:hover .plogo{transform:rotate(-4deg) scale(1.05)}
 @media (prefers-reduced-motion:reduce){.here i,.bpill::before{animation:none}}
+
+/* ---------- Launch-day calendar ---------- */
+.cal__grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal__dow{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:center;padding:4px 0}
+.cal__d{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:6px 2px;border-radius:var(--radius-md);border:1px solid var(--color-border-default);background:var(--color-bg-canvas);transition:border-color .15s,background .15s,transform .12s}
+.cal__d b{font-size:15px;line-height:18px;font-weight:600}
+.cal__d span{font-size:11px;line-height:14px;color:var(--color-text-tertiary);text-align:center}
+.cal__d.is-open span{color:var(--color-success);font-weight:500}
+.cal__d.is-open:hover{border-color:var(--color-text-primary)}
+.cal__d:active:not(:disabled){transform:scale(.95)}
+.cal__d.is-past,.cal__d.is-far,.cal__d.is-full{background:var(--color-bg-subtle);color:var(--color-text-tertiary);cursor:not-allowed}
+.cal__d.is-out{opacity:.55}
+.cal__d.is-on{background:var(--color-bg-inverse);border-color:var(--color-bg-inverse);color:var(--color-text-inverse);opacity:1}
+.cal__d.is-on span{color:rgba(255,255,255,.7)}
+.cal__key{width:8px;height:8px;border-radius:50%;display:inline-block}
+.cal__info{display:flex;gap:12px;margin-top:14px;padding:14px 16px;border-radius:var(--radius-md);background:var(--color-accent-subtle);border:1px solid color-mix(in srgb,var(--color-accent-default) 35%,transparent)}
+.cal__info>.ic{color:var(--color-accent-default);flex:none;margin-top:2px}
+
+.cal__n{font-style:normal}
+@media (max-width:640px){.cal__n{display:none}.cal__grid{gap:4px}.cal__d{min-height:50px}.cal__d span{font-size:9.5px}}

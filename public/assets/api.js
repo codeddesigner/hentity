@@ -59,7 +59,7 @@
     }, 0);
   });
 
-  function err(e) { if (e) { const m = e.message || String(e); const x = new Error(m === 'WEEK_FULL' ? 'WEEK_FULL' : m); x.code = e.code; throw x; } }
+  function err(e) { if (e) { const m = e.message || String(e); const x = new Error({ WEEK_FULL: 'WEEK_FULL', DAY_FULL: 'DAY_FULL', DAY_PAST: 'Pick a launch day from tomorrow onwards', DAY_TOO_FAR: 'Launch days open up to 5 weeks ahead' }[m] || m); x.code = e.code; throw x; } }
   async function q(promise) { const { data, error, count } = await promise; err(error); return count !== undefined && count !== null && data === null ? count : data; }
   const uid = () => session && session.user.id;
   function requireAuth(next) {
@@ -68,7 +68,7 @@
 
   const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
   const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,status,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
-  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at';
+  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date';
 
   const API = {
     sb, ready, url: SUPABASE_URL,
@@ -117,13 +117,16 @@
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     async board({ week, country, pay, limit } = {}) {
       const key = `board:${week}:${country || 'all'}:${pay || ''}:${limit || 60}`; if (Object.prototype.hasOwnProperty.call(PRE, key)) return pre(key);
-      let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).in('status', ['scheduled', 'live']);
+      let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('effective_status', 'live');   // a product appears from 06:00 WAT on its launch day
       if (country && country !== 'all') s = s.eq('country', country);
       if (pay) s = s.contains('pay_methods', [pay]);
       const rows = await q(s.order('upvote_count', { ascending: false }).limit(limit || 60));
       return rows;
     },
-    upcoming: (week) => pre('upcoming:' + week, () => q(sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('status', 'scheduled').order('verified', { ascending: false }).limit(20))),
+    // Approved launches whose day hasn't started yet, soonest first
+    upcoming: () => pre('upcoming', () => q(sb.from('product_feed').select(PRODUCT_COLS).eq('status', 'scheduled').neq('effective_status', 'live').order('launch_date', { ascending: true }).order('verified', { ascending: false }).limit(20))),
+    daySlots: (d1, d2) => q(sb.rpc('day_slots', { d1, d2 })),
+    launchingToday: () => pre('today', () => q(sb.from('product_feed').select('id', { count: 'exact', head: true }).eq('launch_date', new Date(Date.now() + 3600e3).toISOString().slice(0, 10)).in('status', ['scheduled', 'live']))),
     wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
     product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle())),
     productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
@@ -290,7 +293,7 @@
   // ---------------- admin
   API.admin = new Proxy({
     stats: () => q(sb.rpc('admin_stats')),
-    review: (p, decision, note, items, wk) => q(sb.rpc('admin_review', { p, decision, note: note || null, items: items || [], wk: wk || null })),
+    review: (p, decision, note, items, wk, day) => q(sb.rpc('admin_review', { p, decision, note: note || null, items: items || [], wk: wk || null, day: day || null })),
     setUser: (u, patch) => q(sb.rpc('admin_set_user', { u, new_role: patch.role ?? null, verified: patch.verified ?? null, is_banned: patch.banned ?? null })),
     broadcast: (t, b, l) => q(sb.rpc('admin_broadcast', { ttl: t, bdy: b, lnk: l || null })),
     products: ({ status, term } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',updated_at,review_note,review_items,intro,verify,support_pledge,owner:profiles!products_owner_id_fkey(id,name,username)'); if (status && status !== 'all') s = status === 'live' ? s.eq('effective_status', 'live') : s.eq('status', status); if (term) s = s.or(`name.ilike.%${term}%,slug.ilike.%${term}%`); return q(s.order('updated_at', { ascending: false }).limit(200)); },

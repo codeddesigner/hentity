@@ -66,7 +66,7 @@ H.mount({ active: 'products', tab: 'products' });
   const live = D.isLive(p);
   const media = (p.media && p.media.length ? p.media : [{ color: p.color }]).slice(0, 5);
   const mediaStyle = m => m.url ? `background-image:url('${esc(m.url)}')` : `background:${esc(m.color || '#000')}`;
-  const weekDate = p.week_starts_at ? new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '';
+  const weekDate = p.launch_date ? new Date(p.launch_date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' }) : p.week_starts_at ? new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '';
   const voteLabel = () => (D.voted.has(p.id) ? 'Upvoted · ' : 'Upvote · ') + D.fmt(p.upvote_count);
   qs('#pp').innerHTML = `
   <nav class="crumbs reveal" aria-label="Breadcrumb"><a href="/">Discover</a><span>/</span><a href="/directory?sector=${encodeURIComponent((p.categories || [])[0] || '')}">${esc((p.categories || [])[0] || 'Products')}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav>

@@ -14,17 +14,17 @@
       <div class="countdown" role="timer" aria-label="Time until launch"><div><b id="cd-d">10</b><span>days</span></div><div><b id="cd-h">07</b><span>hours</span></div><div><b id="cd-m">54</b><span>minutes</span></div></div>
       <section class="card card--pad stack gap-14" style="gap:14px">
         <div class="row between"><h2 class="t-label">Your upcoming page is live</h2><span class="badge badge--accent badge--pill" id="following">0 following</span></div>
-        <p class="t-body-sm c-2">Followers get an email and a WhatsApp reminder when your week starts. Share it now so they’re ready on Monday.</p>
+        <p class="t-body-sm c-2" id="share-copy">Followers get a reminder on your launch morning. Share it now so they’re ready.</p>
         <div class="row gap-8"><input class="input grow" id="url" readonly aria-label="Upcoming page link"><button class="btn btn--secondary" type="button" id="copy"><span data-icon="copy"></span>Copy</button></div>
         <div class="grid-2" style="grid-template-columns:repeat(4,1fr);gap:8px" id="share"></div>
       </section>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Launch-week checklist</h2><div class="stack gap-12" id="check"></div></section>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">Launch-day checklist</h2><div class="stack gap-12" id="check"></div></section>
     </div>
     <aside class="stack gap-20">
       <div><p class="t-eyebrow c-3" style="margin-bottom:12px">How it looks in “Upcoming”</p>
         <div class="card card--pad stack gap-12"><div class="row between"><span class="plogo plogo--32" data-s0>L</span><span class="row gap-4 mono t-body-sm c-2"><span data-icon="calendar" data-cls="ic-14"></span><span id="up-date">NOV 16</span></span></div><div><p class="t-h4" data-s="name"></p><p class="t-body-sm c-2" style="margin-top:4px" data-s="tagline"></p></div><button class="btn btn--secondary btn--sm btn--block" type="button" disabled style="opacity:1"><span data-icon="bell"></span>Notify me</button></div>
       </div>
-      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">Need a different week?</h2><p class="t-body-sm c-2">You can move or cancel until the Friday before your week. Your upcoming page and followers carry over.</p>
+      <section class="card card--pad"><h2 class="t-label" style="margin-bottom:10px">Need a different day?</h2><p class="t-body-sm c-2" id="move-copy">You can move or cancel until your launch day starts. Your upcoming page and followers carry over.</p>
         <div class="grid-2" style="gap:8px;margin-top:14px"><a class="btn btn--secondary btn--sm" href="/submit#week" id="resched"><span data-icon="calendar"></span>Reschedule</a><button class="btn btn--ghost btn--sm" type="button" id="cancel">Cancel launch</button></div></section>
       
     </aside>
@@ -41,10 +41,13 @@ H.mount({ active: 'my-products', tab: 'launch' });
   if ((p.effective_status || p.status) === 'live') { location.replace('/launch-week?p=' + p.slug); return; }
   qsa('[data-s="name"]').forEach(el => el.textContent = p.name); qsa('[data-s="tagline"]').forEach(el => el.textContent = p.tagline);
   qs('[data-s0]').outerHTML = H.plogo(p, 32);
-  qs('#title').textContent = `You’re in Week ${p.week_id} · ${L.range(p)}`;
-  qs('#lead').textContent = `${p.name} goes live Monday at 06:00 WAT and stays on the Week ${p.week_id} board for 7 days.`;
-  qs('#up-date').textContent = new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase();
-  const start = new Date(p.week_starts_at).getTime();
+  const day = p.launch_date || (p.week_starts_at && new Date(new Date(p.week_starts_at).getTime() + 3600e3).toISOString().slice(0, 10));
+  const reset = L.nextMonday(day);
+  qs('#title').textContent = `You launch ${L.dayLabel(day)}`;
+  qs('#lead').textContent = `${p.name} goes live ${L.dayLabel(day, { day: undefined, month: undefined })} at 06:00 WAT and stays on the Week ${p.week_id} board until it resets on Monday ${L.dayLabel(reset, { weekday: undefined })}.`;
+  qs('#up-date').textContent = L.dayLabel(day, { weekday: undefined }).toUpperCase();
+  qs('#share-copy').textContent = `Followers get a reminder on your launch morning. Share it now so they’re ready on ${L.dayLabel(day, { day: undefined, month: undefined })}.`;
+  const start = L.launchAt(day).getTime();
   function tick() { let ms = Math.max(0, start - Date.now()); const d = Math.floor(ms / 864e5); ms -= d * 864e5; const h = Math.floor(ms / 36e5); ms -= h * 36e5; const m = Math.floor(ms / 6e4); [['#cd-d', d], ['#cd-h', h], ['#cd-m', m]].forEach(([s, v]) => { const el = qs(s); const t = String(v).padStart(2, '0'); if (el.textContent !== t) M.roll(el, t, true); }); }
   tick(); setInterval(tick, 10000);
   const { count } = await API.sb.from('notify_requests').select('*', { count: 'exact', head: true }).eq('product_id', p.id);
@@ -53,12 +56,21 @@ H.mount({ active: 'my-products', tab: 'launch' });
   qs('#copy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(url); toast('Link copied'); });
   const txt = encodeURIComponent(`${p.name} launches on Hentity on Monday. Follow it here: ${url}`);
   qs('#share').innerHTML = [['WhatsApp', 'https://wa.me/?text=' + txt], ['LinkedIn', 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url)], ['X', 'https://x.com/intent/post?text=' + txt], ['Email', 'mailto:?subject=' + encodeURIComponent(p.name + ' launches Monday') + '&body=' + txt]].map(([l, h]) => `<a class="btn btn--secondary btn--sm" href="${h}" target="_blank" rel="noopener">${icon('share')}${l}</a>`).join('');
-  const C = ['Introduction comment is ready (posts when your week starts)', 'Makers have accepted their invites', 'Someone on the team replies to comments every day of the week', 'WhatsApp and LinkedIn posts scheduled for Monday morning'];
+  const C = ['Introduction comment is ready (posts the moment you go live)', 'Makers have accepted their invites', 'Someone on the team replies to comments every day until the board resets', `WhatsApp and LinkedIn posts scheduled for ${L.dayLabel(day, { day: undefined, month: undefined })} morning`];
   const key = 'week.' + p.id; const done = H.store.get(key, [(p.intro || '').length >= 40, true, false, false]);
   qs('#check').innerHTML = C.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
   qs('#check').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; H.store.set(key, done); });
-  qs('#resched').addEventListener('click', async e => { e.preventDefault(); if (!confirm('Move to a different week? Your product goes back to draft so you can pick a new week and resubmit.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id + '#week'; } catch (err) { H.fail(err); } });
-  qs('#cancel').addEventListener('click', async () => { if (!confirm(`Cancel the Week ${p.week_id} launch? Your spot is released and the product goes back to draft.`)) return; try { await API.saveProduct(p.id, { status: 'draft', week_id: null }); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); } catch (e) { H.fail(e); } });
+  qs('#resched').addEventListener('click', e => {
+    e.preventDefault();
+    const sc = document.createElement('div'); sc.className = 'scrim';
+    sc.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="Pick a new launch day" style="max-width:560px"><div class="row between" style="margin-bottom:6px"><p class="t-h3">Pick a new day</p><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div><p class="t-body-sm c-2" style="margin-bottom:14px">Your page, followers and approval stay as they are.</p><div id="rcal"></div><div class="row gap-8" style="justify-content:flex-end;margin-top:16px"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--accent" type="button" id="rsave" disabled>Move my launch</button></div></div>`;
+    document.body.append(sc);
+    let pick = null;
+    L.calendar(sc.querySelector('#rcal'), { selected: day, own: day, onPick: d => { pick = d; sc.querySelector('#rsave').disabled = d === day; } });
+    sc.addEventListener('click', ev => { if (ev.target === sc || ev.target.closest('[data-x]')) sc.remove(); });
+    sc.querySelector('#rsave').onclick = async () => { try { await API.saveProduct(p.id, { launch_date: pick }); toast('Moved to ' + L.dayLabel(pick)); setTimeout(() => location.reload(), 700); } catch (err) { H.fail(/DAY_FULL/.test(err.message) ? new Error('That day just filled up. Pick another.') : err); } };
+  });
+  qs('#cancel').addEventListener('click', async () => { if (!confirm(`Cancel your ${L.dayLabel(day)} launch? Your spot is released and the product goes back to draft.`)) return; try { await API.saveProduct(p.id, { status: 'draft' }); toast('Launch cancelled'); setTimeout(() => location.href = '/my-products', 600); } catch (err) { H.fail(err); } });
 })();
 </script>
 <style>@media (max-width:768px){#share{grid-template-columns:1fr 1fr!important}}</style>

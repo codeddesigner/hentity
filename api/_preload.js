@@ -29,7 +29,7 @@ async function currentWeek() {
   const now = new Date().toISOString();
   return one(await get(`weeks?${sel('*')}&starts_at=lte.${now}&ends_at=gt.${now}`));
 }
-const boardRows = week => get(`product_feed?${sel(PRODUCT_COLS)}&week_id=eq.${week}&status=in.(scheduled,live)&order=upvote_count.desc&limit=60`);
+const boardRows = week => get(`product_feed?${sel(PRODUCT_COLS)}&week_id=eq.${week}&effective_status=eq.live&order=upvote_count.desc&limit=60`);
 
 async function home() {
   const out = {};
@@ -38,8 +38,8 @@ async function home() {
   out.week = week;
   await Promise.all([
     settle(out, `board:${week.id}:all::60`, boardRows(week.id)),
-    settle(out, `upcoming:${week.id + 1}`, get(`product_feed?${sel(PRODUCT_COLS)}&week_id=eq.${week.id + 1}&status=eq.scheduled&order=verified.desc&limit=20`)),
-    settle(out, 'slots', rpc('week_slots')),
+    settle(out, 'upcoming', get(`product_feed?${sel(PRODUCT_COLS)}&status=eq.scheduled&effective_status=neq.live&order=launch_date.asc,verified.desc&limit=20`)),
+    settle(out, 'today', get(`product_feed?select=id&launch_date=eq.${new Date(Date.now() + 3600e3).toISOString().slice(0, 10)}&status=in.(scheduled,live)`).then(r => (r || []).length)),
     settle(out, 'recent', get(`comments?${sel(RECENT)}&deleted=eq.false&order=created_at.desc&limit=5`))
   ]);
   return out;

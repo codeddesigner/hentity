@@ -2,7 +2,7 @@
 // Read-only, public data only; useful after schema changes (e.g. an ambiguous embed returns HTTP 300).
 const SB = 'https://sislzikhjapilksictxd.supabase.co';
 const KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
-const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at';
+const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date';
 const Q = {
   board: ['product_feed', PRODUCT_COLS, 'status=in.(scheduled,live)&limit=3'],
   weeks: ['weeks', '*', 'limit=1'],

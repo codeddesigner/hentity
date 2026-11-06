@@ -11,6 +11,8 @@
   T.notifications.push({ id: 'n2', user_id: ME, type: 'follow', grp: 'followers', title: '<b>Thandi Bhengu</b> started following you.', body: 'Followers', link: '/makers/thandi', action_label: 'Follow back', actor_id: '00000000-0000-4000-a000-000000000006', read_at: null, created_at: new Date(Date.now() - 864e5).toISOString() });
   T.products.filter(p => p.slug === 'momo-parser' || p.slug === 'ledgerline-for-accountants').forEach(p => p.owner_id = ME);
   T.channels.forEach(c => { if (c.kind !== 'dm') T.channel_members.push({ channel_id: c.id, user_id: ME, last_read_at: new Date(Date.now() - 3 * 36e5).toISOString() }); });
+  // launch days for scheduled/live products (local tests only)
+  (function () { T.products.forEach((p, i) => { const w = T.weeks.find(x => x.id === p.week_id); if (w && ['scheduled', 'live'].includes(p.status)) { const d = new Date(new Date(w.starts_at).getTime() + 3600e3 + (i % 3) * 864e5); p.launch_date = d.toISOString().slice(0, 10); } }); })();
   // ---- beta tests (local tests only)
   (function seedBetas() {
     const P = T.products, mineP = P.find(p => p.owner_id === ME) || P[0], other = P.filter(p => p.owner_id !== ME);
@@ -32,7 +34,7 @@
     T.beta_feedback = [{ id: 'f1', beta_id: 'b0000004-0000-4000-8000-000000000004', application_id: 'a4', user_id: others[2].id, ease: 4, verdict: 'mostly', details: 'Two transfers on 3 Oct came in as one. Reversal on 14 Oct shows as income.', extra: 'Please add Kuda next!', media: [], voice_url: null, quote_ok: true, tag: '', fixed: false, created_at: day(0).toISOString() }];
   })();
   const weekOf = id => T.weeks.find(w => w.id === id);
-  function feed() { return T.products.map(p => { const w = weekOf(p.week_id); return Object.assign({}, p, { effective_status: p.status === 'scheduled' && w && new Date(w.starts_at) <= new Date() ? 'live' : p.status, week_starts_at: w && w.starts_at, week_ends_at: w && w.ends_at }); }); }
+  function feed() { return T.products.map(p => { const w = weekOf(p.week_id); return Object.assign({}, p, { effective_status: p.status === 'scheduled' && (p.launch_date ? new Date(p.launch_date + 'T05:00:00Z') <= new Date() : w && new Date(w.starts_at) <= new Date()) ? 'live' : p.status, week_starts_at: w && w.starts_at, week_ends_at: w && w.ends_at }); }); }
   const FK = { user: 'user_id', product: 'product_id', owner: 'owner_id', actor: 'actor_id', channel: 'channel_id', reporter: 'reporter_id', article: 'article_id', blocked: 'blocked_id' };
   function parseEmbeds(sel) {
     const out = []; const re = /(\w+):(\w+)(?:!(\w+))?\(([^()]*)\)|(\w+)\(([^()]*)\)/g; let m;
@@ -105,6 +107,7 @@
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_stats: () => ({ users: 42, users_week: 9, products: T.products.length, live: 13, review: T.products.filter(p => p.status === 'review').length, scheduled: 3, upvotes_week: 5210, comments_week: 230, messages_week: 410, reports_open: 2, subscribers: 312, suggestions: 3, signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 2 + (i * 7) % 9 })), votes_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 200 + (i * 53) % 400 })) }),
+    day_slots: a => { const out = []; for (let d = new Date(a.d1 + 'T12:00:00Z'); d.toISOString().slice(0, 10) <= a.d2; d.setUTCDate(d.getUTCDate() + 1)) { const day = d.toISOString().slice(0, 10); const ps = T.products.filter(p => p.launch_date === day && ['review', 'scheduled', 'live'].includes(p.status)); out.push({ day, taken: ps.length + (day.endsWith('7') ? 6 - ps.length : 0), capacity: 6, launches: ps.filter(p => p.status !== 'review').map(p => ({ name: p.name, color: p.color, logo_url: p.logo_url })) }); } return out; },
     beta_stats: () => ({ open: T.betas.filter(b => b.status === 'open').length, match: 2, testers_month: T.beta_applications.filter(a => a.status === 'accepted').length, perks: T.beta_feedback.length }),
     beta_reach: a => { const o = {}; T.profiles.forEach(p => { if (!a.cs.length || a.cs.includes(p.country)) o[p.country] = (o[p.country] || 0) + 1; }); return o; },
     beta_accept_best: a => { const b = T.betas.find(x => x.id === a.b); const pend = T.beta_applications.filter(x => x.beta_id === a.b && ['applied', 'waitlist'].includes(x.status)).sort((x, y) => y.match_score / y.match_total - x.match_score / x.match_total).slice(0, Math.max(0, Math.min(a.n, b.spots - b.accepted_count))); pend.forEach(x => { x.status = 'accepted'; b.accepted_count++; }); return pend.length; },

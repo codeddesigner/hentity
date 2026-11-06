@@ -22,7 +22,7 @@
     <aside class="stack gap-20">
       <div><p class="t-eyebrow c-3" style="margin-bottom:12px">Your launch card</p><div id="card"></div></div>
       <section class="card card--pad"><h2 class="t-label" style="margin-bottom:14px">While you wait</h2><div class="stack gap-12" id="wait"></div></section>
-      <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Editing is paused during review</p><p class="alert__body">Withdraw the submission to make changes. You’ll keep your Week <span data-s="week"></span> spot while it has room.</p></div></div>
+      <div class="alert alert--info"><span data-icon="info"></span><div><p class="alert__title">Editing is paused during review</p><p class="alert__body">Withdraw the submission to make changes. You’ll keep your <span data-s="week"></span> spot while it has room.</p></div></div>
     </aside>
   </div>
 </main>
@@ -36,17 +36,17 @@ H.mount({ active: 'my-products', tab: 'launch' });
   if (!p) { L.none('Nothing is in review right now'); return; }
   if (p.status !== 'review') { location.replace(({ changes: '/changes-requested', scheduled: '/scheduled', live: '/launch-week', draft: '/submit?id=' + p.id }[p.effective_status || p.status] || '/my-products') + (p.status === 'draft' ? '' : '?p=' + p.slug)); return; }
   qsa('[data-s="name"]').forEach(el => el.textContent = p.name);
-  qsa('[data-s="week"]').forEach(el => el.textContent = p.week_id || '—');
+  qsa('[data-s="week"]').forEach(el => el.textContent = p.launch_date ? L.dayLabel(p.launch_date) : 'launch day');
   const at = new Date(p.submitted_at || Date.now());
   qs('#lead').textContent = `Submitted ${at.toLocaleDateString('en-GB', { weekday: 'long' })} at ${at.toTimeString().slice(0, 5)}. Most reviews finish within about 1 hour; we’ll email ${API.session.user.email} either way.`;
-  qs('#tl').innerHTML = L.timeline([['done', 'Draft created', L.fmtDate(p.created_at)], ['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Moderator review', 'Checking website, media and eligibility'], ['todo', 'Approved & scheduled', 'Your upcoming page goes live so people can follow'], ['todo', `Launch week${p.week_id ? ' · ' + L.range(p) : ''}`, 'Starts Mon 06:00 WAT']]);
+  qs('#tl').innerHTML = L.timeline([['done', 'Draft created', L.fmtDate(p.created_at)], ['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Moderator review', 'Checking website, media and eligibility'], ['todo', 'Approved & scheduled', 'Your upcoming page goes live so people can follow'], ['todo', `Launch day${p.launch_date ? ' · ' + L.dayLabel(p.launch_date) : ''}`, 'Live at 06:00 WAT']]);
   qs('#card').innerHTML = L.card(p);
-  const W = ['Tell your team the launch date', 'Draft your launch-week post for WhatsApp and LinkedIn', 'Prepare answers to the three questions you expect', 'Invite early users to follow your upcoming page'];
+  const W = ['Tell your team the launch date', 'Draft your launch-day post for WhatsApp and LinkedIn', 'Prepare answers to the three questions you expect', 'Invite early users to follow your upcoming page'];
   const key = 'wait.' + p.id; const done = H.store.get(key, [false, false, false, false]);
   qs('#wait').innerHTML = W.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
   qs('#wait').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; H.store.set(key, done); });
   qs('#view').href = '/submit?id=' + p.id;
-  qs('#withdraw').addEventListener('click', async () => { if (!confirm('Withdraw from review? You can edit and resubmit; your week is held while there are spots.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id; } catch (e) { H.fail(e); } });
+  qs('#withdraw').addEventListener('click', async () => { if (!confirm('Withdraw from review? You can edit and resubmit; your launch day is held while it has room.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id; } catch (e) { H.fail(e); } });
   if (API.isAdmin) qs('#admin-box').hidden = false, qs('#admin-link').href = '/admin#review/' + p.id;
   API.live('rv', 'products', 'id=eq.' + p.id, ({ new: n }) => { if (n && n.status !== 'review') { toast('Your review decision is in'); setTimeout(() => location.reload(), 900); } });
 })();

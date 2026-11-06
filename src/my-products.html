@@ -77,7 +77,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     qs('#s-votes').dataset.countTo = votes; qs('#s-comments').dataset.countTo = comments; qs('#s-followers').dataset.countTo = followers;
     M.countUp(qs('.stats'));
     qs('#rows').innerHTML = rows.length ? rows.map(r => `<tr><td><div class="pname">${plogo(r, 32)}<div class="grow"><p class="t-label row gap-6" style="font-size:14px">${['live', 'scheduled'].includes(st(r)) ? `<a href="/products/${r.slug}">${esc(r.name)}</a>` : esc(r.name || 'Untitled product')}${r.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc(r.tagline || 'Last edited ' + H.ago(r.created_at))}</p></div></div></td>
-      <td data-l="status"><span class="status status--${st(r) === 'rejected' ? 'draft' : st(r)}">${S[st(r)] || st(r)}</span></td><td data-l="launch" class="c-2">${r.week_id ? `Week ${r.week_id} · ${new Date(r.week_starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'Not booked'}</td><td data-l="votes" class="t-count">${st(r) === 'live' || r.upvote_count ? D.fmt(r.upvote_count) : '–'}</td>
+      <td data-l="status"><span class="status status--${st(r) === 'rejected' ? 'draft' : st(r)}">${S[st(r)] || st(r)}</span></td><td data-l="launch" class="c-2">${r.launch_date ? new Date(r.launch_date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : r.week_id ? `Week ${r.week_id}` : 'Not booked'}</td><td data-l="votes" class="t-count">${st(r) === 'live' || r.upvote_count ? D.fmt(r.upvote_count) : '–'}</td>
       <td class="actions"><div class="row gap-4" style="justify-content:flex-end">${(A[st(r)] || A.draft)(r)}</div></td></tr>`).join('')
       : `<tr><td colspan="5" style="text-align:center;padding:48px 20px"><p class="t-h4">No products yet</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Start a launch draft. It saves as you go.</p><a class="btn btn--accent btn--sm" href="/submit?new=1">${icon('plus')}Submit a product</a></td></tr>`;
     M.stagger(qs('#rows'));
@@ -94,7 +94,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     const key = 'prep.' + p.id; const prep = store.get(key, [((p.media || []).length >= 4), (p.intro || '').length > 40, true, false, false]);
     const items = ['Gallery: 4 images + demo video', 'First comment drafted', 'Co-maker added', 'WhatsApp reminder to your community', 'Launch-day badge on your site'];
     qs('#prep-logo').outerHTML = plogo(p, 40).replace('class="plogo', 'id="prep-logo" class="plogo');
-    const days = Math.max(0, Math.ceil((new Date(p.week_starts_at) - Date.now()) / 864e5));
+    const days = Math.max(0, Math.ceil(((p.launch_date ? new Date(p.launch_date + 'T05:00:00Z') : new Date(p.week_starts_at)) - Date.now()) / 864e5));
     qs('#prep').innerHTML = items.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${prep[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
     const upd = () => { const n = prep.filter(Boolean).length; qs('#prog i').style.width = (n / 5 * 100) + '%'; qs('#prep-sub').textContent = `${p.name} · ${n === 5 ? 'ready for launch day' : st(p) === 'live' ? 'live now' : days + ' days to go'}`; };
     upd(); qs('#prep').onchange = e => { prep[+e.target.dataset.i] = e.target.checked; store.set(key, prep); upd(); };

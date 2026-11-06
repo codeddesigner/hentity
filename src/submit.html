@@ -102,8 +102,8 @@
 
     <!-- 04 Week -->
     <section class="card sec" id="week" data-sec>
-      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch week</h2><p class="t-body-sm c-2">The board resets Monday 06:00 WAT. Pick a week your team can reply to comments every day.</p></div></div>
-      <div role="radiogroup" aria-label="Launch week" id="weeks"></div>
+      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Pick the day you go live. Each day has 6 spots; you’ll stay on that week’s board until it resets on Monday. Choose a day your team can reply to comments.</p></div></div>
+      <div id="cal"></div>
     </section>
 
     <!-- 05 Intro -->
@@ -142,7 +142,7 @@ H.mount({ active: '', tab: 'launch' });
   else if (!prm.get('new')) { const all = await API.myProducts(); p = all.find(x => x.status === 'changes') || all.find(x => x.status === 'draft') || null; }
   if (p && ['review'].includes(p.status)) { location.replace('/under-review?p=' + p.slug); return; }
   if (p && ['scheduled', 'live'].includes(p.effective_status || p.status) && !prm.get('step')) { location.replace('/scheduled?p=' + p.slug); return; }
-  const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
+  const s = Object.assign({ name: '', tagline: '', website: '', categories: [], country: API.profile.country || 'NG', city: API.profile.city || '', pay_methods: [], media: [], video_url: '', intro: '', week_id: null, launch_date: null, verify: {}, logo_url: null, company_id: null, color: '#000000' }, p || {});
   if (p) history.replaceState(null, '', '/submit?id=' + p.id + (prm.get('step') ? '&step=' + prm.get('step') : ''));
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
   qs('#founder').value = typeof s.verify.founder === 'string' ? s.verify.founder : '';
@@ -260,16 +260,10 @@ H.mount({ active: '', tab: 'launch' });
   qs('#add-maker').addEventListener('input', async e => { if (e.target.id !== 'm-user') return; const t = e.target.value.trim().replace(/^@/, '').replace(/[%,()]/g, ''); if (t.length < 2) { qs('#m-res').innerHTML = ''; return; } const r = await API.searchProfiles(t); qs('#m-res').innerHTML = r.filter(x => x.id !== API.uid && !makers.some(m => m.user.id === x.id)).map(x => `<button type="button" class="cmdk__opt" data-uid="${x.id}" data-name="${esc(x.name)}">${avatar(x, 28)}<span class="grow" style="text-align:left">${esc(x.name)} <span class="c-3">@${esc(x.username)}</span></span></button>`).join('') || '<p class="t-caption c-3" style="padding:6px">No makers found. They need a Hentity account first.</p>'; });
   qs('#add-maker').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b) return; try { await ensureDraft(); await API.addMaker(p.id, b.dataset.uid, 'Maker'); qs('#add-maker').hidden = true; await loadMakers(); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
 
-  // ---- Weeks
-  let slots = await API.weekSlots();
-  function renderWeeks() {
-    qs('#weeks').innerHTML = slots.map((w, i) => { const full = w.taken >= w.capacity && w.id !== (p && p.week_id); const on = w.id === s.week_id; const left = w.capacity - w.taken; const lc = full ? 'c-3' : on ? 'c-accent' : left > 10 ? 'c-success' : 'c-warning';
-      const st = new Date(w.starts_at), en = new Date(new Date(w.ends_at) - 864e5); const started = st <= new Date();
-      return `<button class="week" type="button" role="radio" aria-checked="${on}" data-w="${w.id}" ${full || started ? 'disabled' : ''}><span class="rad"></span><span class="stack"><span class="t-label">Week ${w.id}</span><span class="t-caption c-3" style="font-weight:400">${st.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}–${en.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}${started ? ' · this week' : ''}</span></span><span class="left ${lc}">${started ? 'Live now' : full ? 'Full' : `${left} of ${w.capacity} left`}</span></button>`; }).join('');
-    M.stagger(qs('#weeks'));
-  }
-  renderWeeks();
-  qs('#weeks').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b || b.disabled) return; s.week_id = +b.dataset.w; renderWeeks(); update(); });
+  // ---- Launch date (calendar of days, 6 spots each)
+  let dayFull = false;
+  if (s.launch_date && s.launch_date <= L.lagosToday()) s.launch_date = null;   // an old pick that has passed
+  const cal = L.calendar(qs('#cal'), { selected: s.launch_date, own: p && p.launch_date, onPick: (day, slot) => { s.launch_date = day; dayFull = false; update(); scheduleSave(); } });
 
   // ---- Persistence
   const slugify = t => (t || 'product').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'product';
@@ -284,7 +278,7 @@ H.mount({ active: '', tab: 'launch' });
     try { return await saving; } finally { saving = null; }
   }
   function payload() {
-    return { name: form.name.value.trim() || 'Untitled product', tagline: form.tagline.value.trim(), website: normUrl(form.website.value.trim()) || form.website.value.trim(), categories: s.categories, country: qs('#country').value, city: form.city.value.trim(), countries: [qs('#country').value], pay_methods: s.pay_methods, media: media.filter(m => !m.error && !m.loading && (m.url || m.color)).map(m => m.url ? { url: m.url } : { color: m.color }), video_url: qs('#video').value.trim() || null, intro: qs('#intro-t').value, week_id: s.week_id, verify: s.verify, logo_url: s.logo_url, company_id: s.company_id, description: qs('#intro-t').value.replace(/^hi hentity\W*/i, '').slice(0, 2000) };
+    return { name: form.name.value.trim() || 'Untitled product', tagline: form.tagline.value.trim(), website: normUrl(form.website.value.trim()) || form.website.value.trim(), categories: s.categories, country: qs('#country').value, city: form.city.value.trim(), countries: [qs('#country').value], pay_methods: s.pay_methods, media: media.filter(m => !m.error && !m.loading && (m.url || m.color)).map(m => m.url ? { url: m.url } : { color: m.color }), video_url: qs('#video').value.trim() || null, intro: qs('#intro-t').value, launch_date: s.launch_date, verify: s.verify, logo_url: s.logo_url, company_id: s.company_id, description: qs('#intro-t').value.replace(/^hi hentity\W*/i, '').slice(0, 2000) };
   }
   function scheduleSave() {
     clearTimeout(saveT);
@@ -301,10 +295,10 @@ H.mount({ active: '', tab: 'launch' });
   const INTRO_MIN = 50;
   const introHint = () => { const n = qs('#intro-t').value.trim().length, h = qs('#intro-hint'); h.textContent = n >= INTRO_MIN ? 'Say what it is, who it’s for, why you built it and what feedback you need.' : n ? `${INTRO_MIN - n} more character${INTRO_MIN - n === 1 ? '' : 's'} needed (minimum ${INTRO_MIN}).` : 'At least 50 characters. Say what it is, who it’s for, why you built it and what feedback you need.'; h.className = 'field__hint' + (n && n < INTRO_MIN ? ' c-3' : ''); };
   qs('#intro-t').addEventListener('input', introHint); introHint();
-  const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch week'], ['intro', 'Introduction']];
+  const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch date'], ['intro', 'Introduction']];
   let current = 'basics';
   function done() {
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.week_id && slots.some(w => w.id === s.week_id && (w.taken < w.capacity || w.id === (p && p.week_id))), intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date > L.lagosToday() && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
   }
   function update() {
     if (!ready) return;
@@ -317,7 +311,7 @@ H.mount({ active: '', tab: 'launch' });
     const missing = req.filter(k => !d[k]).map(k => SECS.find(x => x[0] === k)[1]);
     const introLeft = INTRO_MIN - qs('#intro-t').value.trim().length;
     const bMiss = [!form.name.value.trim() && 'name', !form.tagline.value.trim() && 'tagline', !normUrl(form.website.value.trim()) && 'product link', !s.categories.length && 'category', !form.city.value.trim() && 'city'].filter(Boolean);
-    const why = { makers: 'Makers & company (founder profile)', basics: bMiss.length ? `Basics (${bMiss.join(', ')})` : 'Basics', media: 'Media (add at least one image)', week: 'Launch week (pick one)', intro: introLeft > 0 ? `Introduction (${introLeft} more character${introLeft === 1 ? '' : 's'}, minimum ${INTRO_MIN})` : 'Introduction' };
+    const why = { makers: 'Makers & company (founder profile)', basics: bMiss.length ? `Basics (${bMiss.join(', ')})` : 'Basics', media: 'Media (add at least one image)', week: 'Launch date (pick a day)', intro: introLeft > 0 ? `Introduction (${introLeft} more character${introLeft === 1 ? '' : 's'}, minimum ${INTRO_MIN})` : 'Introduction' };
     qs('#ready-hint').innerHTML = missing.length ? 'To submit, finish: ' + req.filter(k => !d[k]).map(k => `<a class="link" href="#${k}">${esc(why[k])}</a>`).join(', ') + '.' : qs('#support').checked ? 'Ready when you are.' : 'Tick the box above to submit.';
     qs('#submit').disabled = !(n === 5 && qs('#support').checked);
     const preview = Object.assign({}, s, payload(), { logo_url: s.logo_url });
@@ -342,14 +336,14 @@ H.mount({ active: '', tab: 'launch' });
       location.href = '/under-review?p=' + p.slug;
     } catch (e) {
       btn.innerHTML = icon('rocket') + 'Submit for review'; btn.disabled = false;
-      if (/WEEK_FULL/.test(e.message)) {
-        const was = s.week_id; slots = await API.weekSlots(); const nx = slots.find(w => w.id > was && w.taken < w.capacity && new Date(w.starts_at) > new Date());
-        if (nx) { s.week_id = nx.id; renderWeeks(); update(); await API.saveProduct(p.id, { week_id: nx.id }); }
+      if (/DAY_FULL/.test(e.message)) {
+        const was = s.launch_date, nx = await cal.nextOpen(was);
+        if (nx) { s.launch_date = nx; await cal.set(nx); update(); await API.saveProduct(p.id, { launch_date: nx }).catch(() => {}); } else { dayFull = true; update(); }
         qs('#week').scrollIntoView({ behavior: 'smooth' });
         let w = qs('.toasts'); if (!w) { w = document.createElement('div'); w.className = 'toasts'; document.body.appendChild(w); }
         const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'alert');
-        t.innerHTML = `${icon('info')}<span>Week ${was} filled up while you were editing.${nx ? ` We’ve held a spot in Week ${nx.id}.` : ''}</span><a href="#week" class="c-accent" style="margin-left:8px">Change</a>`;
-        w.appendChild(t); setTimeout(() => t.remove(), 8000);
+        t.innerHTML = `${icon('info')}<span>${esc(L.dayLabel(was))} filled up while you were editing.${nx ? ` We’ve held ${esc(L.dayLabel(nx))} for you. Keep it, or pick another day below.` : ' Pick another day below.'}</span><a href="#week" class="c-accent" style="margin-left:8px">Change</a>`;
+        w.appendChild(t); setTimeout(() => t.remove(), 9000);
       } else H.fail(e);
     }
   });

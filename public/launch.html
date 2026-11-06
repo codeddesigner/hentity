@@ -16,13 +16,13 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
+<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/api.js?v=9a57985f97"></script>
 <script src="/assets/app.js?v=d32b850796"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Launch your product on Hentity · African product launches</title>
-<meta name="description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, 30 launches a week.">
+<meta name="description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, up to 6 launches a day.">
 <link rel="canonical" href="https://hentity.com/launch">
 <style>
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:40px 0}
@@ -38,14 +38,14 @@
 @media (max-width:768px){.steps,.need{grid-template-columns:minmax(0,1fr)}.launch-h1{font-size:34px!important;line-height:40px!important}}
 </style>
 <meta property="og:title" content="Launch your product on Hentity · African product launches">
-<meta property="og:description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, 30 launches a week.">
+<meta property="og:description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, up to 6 launches a day.">
 <meta property="og:url" content="https://hentity.com/launch">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png?v=712e217edc">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Launch your product on Hentity · African product launches">
-<meta name="twitter:description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, 30 launches a week.">
+<meta name="twitter:description" content="Launch your startup to makers, early adopters and investors across Africa. Free, ranked by the community, up to 6 launches a day.">
 <meta name="twitter:image" content="https://hentity.com/og.png?v=712e217edc">
 </head>
 <body>
@@ -55,11 +55,11 @@
     <div>
       <div class="icon-badge icon-badge--accent"><span data-icon="rocket"></span></div>
       <h1 class="launch-h1" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em;margin:40px 0 20px">Launch your product to people who want to try it.</h1>
-      <p class="lead">Every approved product gets a permanent page and a week on the leaderboard. Makers, early adopters and investors across Africa and beyond see what you built.</p>
+      <p class="lead">Every approved product gets a permanent page and a launch day you choose. Makers, early adopters and investors across Africa and beyond see what you built.</p>
       <ol class="steps" style="list-style:none;padding:0">
         <li class="card"><p class="mono t-body-sm c-accent">01</p><p class="t-h4" style="margin:10px 0 12px">Prepare</p><p class="t-body-sm c-2">Fill in one page with a live preview. Most makers finish in about 15 minutes; it saves as you go, even on mobile.</p></li>
         <li class="card"><p class="mono t-body-sm c-accent">02</p><p class="t-h4" style="margin:10px 0 12px">Review</p><p class="t-body-sm c-2">A moderator checks it’s real, working and has an African connection. You’ll hear back by email.</p></li>
-        <li class="card"><p class="mono t-body-sm c-accent">03</p><p class="t-h4" style="margin:10px 0 12px">Launch week</p><p class="t-body-sm c-2">Your week starts Monday 06:00 WAT. 30 products, 7 days of upvotes, comments and follows.</p></li>
+        <li class="card"><p class="mono t-body-sm c-accent">03</p><p class="t-h4" style="margin:10px 0 12px">Launch date</p><p class="t-body-sm c-2">Pick any open day. You go live at 06:00 WAT and compete on that week’s board, with upvotes, comments and follows.</p></li>
       </ol>
       <h2 class="t-h4" style="margin-bottom:14px">What you’ll need</h2>
       <div class="need">
@@ -80,7 +80,7 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/launch.js?v=525384fbcd"></script>
+<script src="/assets/launch.js?v=af26018d21"></script>
 <script>
 H.mount({ active: '', tab: 'launch' });
 M.words(H.qs('.launch-h1'));
@@ -91,7 +91,7 @@ M.stagger(H.qs('.steps')); M.stagger(H.qs('.need'));
   if (!API.uid) { card.hidden = true; return; }
   const all = (await API.myProducts()).filter(p => ['draft', 'changes'].includes(p.status));
   if (!all.length) { card.hidden = true; return; }
-  const done = p => [p.name && p.tagline && p.website && (p.categories || []).length, (p.media || []).length, true, p.week_id, (p.intro || '').trim().length >= 50, !!(p.verify && p.verify.founder)].filter(Boolean).length;
+  const done = p => [p.name && p.tagline && p.website && (p.categories || []).length, (p.media || []).length, true, p.launch_date || p.week_id, (p.intro || '').trim().length >= 50, !!(p.verify && p.verify.founder)].filter(Boolean).length;
   H.qs('#resume').innerHTML = all.slice(0, 4).map(p => `<a class="resume" href="/submit?id=${p.id}">${H.plogo(p, 32)}<div class="grow stack gap-6"><p class="t-label">${H.esc(p.name || 'Untitled product')}</p><p class="t-caption c-3" style="font-weight:400">${done(p)} of 6 sections done${p.status === 'changes' ? ' · changes requested' : ''}</p><div class="progress" style="height:3px"><i style="width:${done(p) / 6 * 100}%"></i></div></div>${H.icon('arrow-right')}</a>`).join('');
 })();
 </script>

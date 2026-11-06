@@ -16,9 +16,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
+<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/api.js?v=9a57985f97"></script>
 <script src="/assets/app.js?v=d32b850796"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Hentity · Discover what’s being built across Africa</title>
@@ -81,7 +81,7 @@
 <main class="home" id="main">
   <div id="ptabs"></div>
   <section class="hero" id="hero">
-    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Booking open · resets Mon 06:00 WAT</span></a><span class="here" id="here" hidden><i></i><span id="here-n"></span></span></div>
+    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Board resets Mon 06:00 WAT</span></a><span class="here" id="here" hidden><i></i><span id="here-n"></span></span></div>
     <h1><span class="long" id="headline">Discover what’s being built across Africa.</span><span class="h-short" style="display:none">This week’s launches</span></h1>
     <p class="lead-copy">This week’s new products from founders across Africa, ranked by the community.</p>
   </section>
@@ -107,15 +107,15 @@
         <ul class="live stack gap-16" id="live" style="list-style:none;margin:0;padding:0"></ul>
       </section>
       <section class="card card--pad how" data-scroll-reveal>
-        <h2 class="t-label" style="margin-bottom:16px;font-size:13px">How a launch week works</h2>
+        <h2 class="t-label" style="margin-bottom:16px;font-size:13px">How launching works</h2>
         <ul class="stack gap-12" style="list-style:none;margin:0;padding:0">
-          <li><span data-icon="check" data-cls="ic-14"></span>30 launches per week. Booking opens 4 weeks ahead.</li>
+          <li><span data-icon="check" data-cls="ic-14"></span>Makers pick their own launch day, up to 6 a day, up to 4 weeks ahead.</li>
           <li><span data-icon="check" data-cls="ic-14"></span>The board resets Monday 06:00 WAT and runs 7 days.</li>
           <li><span data-icon="check" data-cls="ic-14"></span>Top 3 become Products of the Week, with medals and badges for their sites.</li>
         </ul>
       </section>
       <section data-scroll-reveal>
-        <h2 class="t-h4" style="margin-bottom:16px">Launching next week</h2>
+        <h2 class="t-h4" style="margin-bottom:16px">Launching soon</h2>
         <div class="stack gap-12" id="upcoming"></div>
       </section>
     </aside>
@@ -151,7 +151,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     try {
       cur = cur || await API.currentWeek();
       const pay = qs('#pays').value;
-      if (board === 'upcoming') rows = await API.upcoming(cur.id + 1);
+      if (board === 'upcoming') rows = await API.upcoming();
       else if (board === 'fame') rows = await API.wallOfFame();
       else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
@@ -163,7 +163,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   function render(animate) {
     let rank = 0; const shown = expanded ? rows : rows.slice(0, 7);
     qs('#feed').innerHTML = shown.length ? shown.map(p => {
-      if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
+      if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
       return D.row(p, p.promoted ? 0 : ++rank);
     }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
@@ -191,10 +191,10 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     if (cur) {
       const s = new Date(cur.starts_at), e = new Date(new Date(cur.ends_at) - 864e5);
       qs('#week-label').textContent = `Week ${cur.id} · ${s.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}–${e.getMonth() === s.getMonth() ? e.getDate() : e.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}, ${s.getFullYear()}`;
-      const [slots, up, notif] = await Promise.all([API.weekSlots(), API.upcoming(cur.id + 1), API.uid ? API.notifyRequests() : new Set()]); const nx = slots.find(w => w.id === cur.id + 1);
-      if (nx) qs('#spots span:last-child').textContent = `${nx.taken} of ${nx.capacity} spots taken for week ${nx.id} · resets Mon 06:00 WAT`;
+      const [today, up, notif] = await Promise.all([API.launchingToday().catch(() => 0), API.upcoming(), API.uid ? API.notifyRequests() : new Set()]);
+      qs('#spots span:last-child').textContent = `${today ? today + ' launching today · ' : ''}board resets Mon 06:00 WAT`;
       D.remember(up);
-      qs('#upcoming').innerHTML = up.slice(0, 3).map(p => `<div class="card card--pad lift stack gap-12"><div class="row between">${plogo(p, 32)}<span class="row gap-4 mono t-body-sm c-2">${icon('calendar', 'ic-14')}${new Date(p.week_starts_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase()}</span></div><div><p class="row gap-6 t-h4"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? verified('verified--sm') : ''}</p><p class="t-body-sm c-2" style="margin-top:4px">${esc(p.tagline)}</p></div><button class="btn btn--secondary btn--sm btn--block" data-notify="${p.id}">${icon('bell')}Notify me</button></div>`).join('') || '<p class="t-body-sm c-2">Nothing booked yet. <a class="link link--accent" href="/launch">Book your week</a></p>';
+      qs('#upcoming').innerHTML = up.slice(0, 3).map(p => `<div class="card card--pad lift stack gap-12"><div class="row between">${plogo(p, 32)}<span class="row gap-4 mono t-body-sm c-2">${icon('calendar', 'ic-14')}${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span></div><div><p class="row gap-6 t-h4"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? verified('verified--sm') : ''}</p><p class="t-body-sm c-2" style="margin-top:4px">${esc(p.tagline)}</p></div><button class="btn btn--secondary btn--sm btn--block" data-notify="${p.id}">${icon('bell')}Notify me</button></div>`).join('') || '<p class="t-body-sm c-2">Nothing booked yet. <a class="link link--accent" href="/launch">Pick your launch day</a></p>';
       notifySet = notif; bindNotify();
     }
   })().catch(H.fail);

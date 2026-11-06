@@ -16,9 +16,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=8cb8bb1306">
+<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f9b83562ec"></script>
+<script src="/assets/api.js?v=9a57985f97"></script>
 <script src="/assets/app.js?v=d32b850796"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Changes requested · Hentity</title>
@@ -52,14 +52,14 @@
       <form id="reply-f" class="card card--pad stack gap-12" hidden><label class="field__label" for="msg">Message to moderation</label><textarea class="input" id="msg" rows="3" placeholder="Thanks! The demo account is…"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Send</button><button class="btn btn--ghost btn--sm" type="button" id="reply-x">Cancel</button></div></form>
     </div>
     <aside class="stack gap-20">
-      <div class="alert alert--warning"><span data-icon="alert-circle"></span><div><p class="alert__title">Your Week <span data-s="week"></span> spot is held while there’s room</p><p class="alert__body">Resubmit soon to keep it. If the week fills, we’ll hold the next open week for you.</p></div></div>
+      <div class="alert alert--warning"><span data-icon="alert-circle"></span><div><p class="alert__title">Your <span data-s="week"></span> spot is held while there’s room</p><p class="alert__body">Resubmit soon to keep it. If the day fills, we’ll hold the next open day for you.</p></div></div>
       <section class="card card--pad"><h2 class="t-label" style="margin-bottom:16px">Progress</h2><div id="tl"></div></section>
       <div><p class="t-eyebrow c-3" style="margin-bottom:12px">Your launch card</p><div id="card"></div></div>
     </aside>
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/launch.js?v=525384fbcd"></script>
+<script src="/assets/launch.js?v=af26018d21"></script>
 <script>
 H.mount({ active: 'my-products', tab: 'launch' });
 (async function () {
@@ -67,7 +67,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   let p; try { ({ p } = await L.mine(['changes'])); } catch (e) { return; }
   if (!p) { L.none('No changes requested'); return; }
   qsa('[data-s="name"]').forEach(el => el.textContent = p.name);
-  qsa('[data-s="week"]').forEach(el => el.textContent = p.week_id || '—');
+  qsa('[data-s="week"]').forEach(el => el.textContent = p.launch_date ? L.dayLabel(p.launch_date) : 'launch day');
   qs('#note').innerHTML = `<p>Thanks ${esc(API.profile.name.split(' ')[0])}, this looks great. ${(p.review_items || []).length ? 'A few things before we can approve:' : ''}</p><p style="margin-top:10px;white-space:pre-wrap">${esc(p.review_note || '')}</p>`;
   qs('#note-date').textContent = L.fmtDate(p.reviewed_at);
   qs('#items').innerHTML = (p.review_items || []).map(it => `<div class="list-row" style="padding:16px 0">${icon('alert-circle', 'ic-18 c-warning')}<div class="grow"><p class="list-row__title">${esc(it.title)}</p><p class="list-row__desc">${esc(it.detail || '')}</p></div><a class="btn btn--secondary btn--sm" href="/submit?id=${p.id}#${esc(it.anchor || 'basics')}">Fix</a></div>`).join('') || `<div class="list-row" style="padding:16px 0"><div class="grow"><p class="list-row__desc">Open your submission, make the changes above and resubmit.</p></div><a class="btn btn--secondary btn--sm" href="/submit?id=${p.id}">Edit</a></div>`;
