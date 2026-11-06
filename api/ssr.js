@@ -66,7 +66,8 @@ const PRELOAD = require('./_preload');
 function withPreload(page, data) {
   if (!data || !Object.keys(data).length) return page;
   const json = JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
-  return page.replace(/<head>/i, `<head>\n<script>window.__PRELOAD__=${json}</script>`);
+  // right after <meta charset>, which browsers expect within the first 1 KB
+  return page.replace(/(<meta charset="utf-8">)/i, `$1\n<script>window.__PRELOAD__=${json}</script>`);
 }
 
 module.exports = async (req, res) => {
