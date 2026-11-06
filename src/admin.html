@@ -150,11 +150,11 @@ H.mount();
       if (v.verified !== p.verified) patch.verified = v.verified;
       if (patch.verified && !(v.reg || '').trim()) throw new Error('Add the company registration number before issuing the Verified stamp');
       if (Object.keys(patch).length) await A.updateProduct(p.id, patch);
-      toast({ scheduled: `Scheduled for week ${v.wk}`, changes: 'Changes requested — maker notified', rejected: 'Rejected — maker notified', live: 'Live now' }[dec]);
+      toast({ scheduled: `Scheduled for week ${v.wk}`, changes: 'Changes requested — maker notified', rejected: 'Rejected — maker notified', live: 'Live now on this week’s board' }[dec]);
       location.hash = 'review';
     }, { top, saveLabel: 'Send decision' });
     stampField(d, reg, 'reg');
-    H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=wk]').closest('.field').hidden = !['scheduled', 'live'].includes(dec); d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
+    H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=wk]').closest('.field').hidden = dec !== 'scheduled'; d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
     d.querySelector('[name=items]').closest('.field').hidden = true;
   }
 
