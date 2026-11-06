@@ -159,6 +159,8 @@
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_email_stats: () => ({ audience: 26, digest_on: 26, by_kind: { welcome: 3, digest: 26, find: 4 }, launchpad: { n: 1 }, recent: [{ kind: 'digest', to: 'ada@example.com', subject: 'This week in African startups: Biyaport is #1', created_at: new Date().toISOString() }] }),
     email_preview_all: () => 6,
+    admin_nudge_audience: a => ({ counts: { photo: 9, bio: 14, headline: 11, location: 6, links: 12, p_logo: 3, p_media: 5, p_desc: 4, p_cac: 7, p_founder: 2, p_draft: 4, p_changes: 1, p_website: 0 }, people: [{ id: 'u1', name: 'Ada Obi', email: 'ada@haul54.com', missing: (a.kinds || []).slice(0, 3), last: null }, { id: 'u2', name: 'Kofi Mensah', email: 'kofi@farmcast.gh', missing: (a.kinds || []).slice(0, 1), last: new Date(Date.now() - 864e5).toISOString() }, { id: 'u3', name: 'Thandi Bhengu', email: 'thandi@wardhealth.co.za', missing: (a.kinds || []).slice(1, 2), tips_off: true }] }),
+    admin_send_nudges: () => ({ sent: 1, skipped: 0 }),
     email_unsubscribe: () => ({ ok: true }),
     admin_find_roles: () => [Object.assign({}, FR[3], { status: 'review', startup_name: 'Haul54', startup_line: 'Shared trucks for small traders', country: 'UG', working: 'hybrid', visibility: 'public', updated_at: new Date(Date.now() - 5 * 36e5).toISOString(), owner: { name: 'Ada Obi', email: 'ada@haul54.com', username: 'ada', is_verified: false }, product: null })],
     find_review_role: () => null,

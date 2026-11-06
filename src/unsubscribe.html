@@ -17,7 +17,7 @@ H.mount({ tab: 'you' });
 (async function () {
   const { qs, esc, icon, toast } = H;
   const p = H.params(), u = p.get('u'), t = p.get('t'), k = p.get('k') || 'digest';
-  const NAMES = { digest: 'The Launchpad (weekly)', insights: 'Monthly Insights', find: 'Find emails', scheduled: 'launch emails', featured: 'award emails', review: 'review emails', comments: 'comment emails', milestones: 'milestone emails', replies: 'reply emails', followers: 'follower emails', following: 'launch alerts', all: 'all Hentity emails' };
+  const NAMES = { digest: 'The Launchpad (weekly)', insights: 'Monthly Insights', find: 'Find emails', scheduled: 'launch emails', featured: 'award emails', review: 'review emails', comments: 'comment emails', milestones: 'milestone emails', replies: 'reply emails', followers: 'follower emails', following: 'launch alerts', tips: 'tips to finish your page', all: 'all Hentity emails' };
   const root = qs('#main');
   await API.ready;
   async function go(kind) {

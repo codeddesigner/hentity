@@ -164,15 +164,52 @@ H.mount();
   V.emails = async () => {
     nav('emails');
     const st = await A.emailStats();
-    const NAME = { welcome: 'Welcome', digest: 'The Launchpad', potw: 'Product of the Week', launch_day: 'Launch day', find: 'Find', insights: 'Monthly Insights' };
+    const NAME = { nudge: 'Finish your page', welcome: 'Welcome', digest: 'The Launchpad', potw: 'Product of the Week', launch_day: 'Launch day', find: 'Find', insights: 'Monthly Insights' };
     const lp = st.launchpad || {};
     qs('#main').innerHTML = head('Emails', `Sent automatically to ${st.audience} members. Everyone can turn each one off in their settings or from the unsubscribe link.`, `<button class="btn btn--primary btn--sm" id="prev">${icon('mail')}Send me a preview of each</button>`)
       + `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px">${[
         ['welcome', 'Every new member, once their email is confirmed'], ['digest', `Mondays 07:00 WAT · ${st.digest_on} subscribed${lp.n ? ' · last: No. ' + lp.n : ''}`], ['potw', 'Top 3 makers, with the Monday digest'],
         ['launch_day', 'The maker, 06:05 WAT on launch day'], ['find', 'Applications, matches, role approvals'], ['insights', '1st of the month, 09:00 WAT']].map(([k, d]) => `<section class="card" style="padding:16px"><p class="t-label">${NAME[k]}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(d)}</p><p class="t-h3 mono" style="margin-top:10px">${(st.by_kind || {})[k] || 0}</p><p class="t-caption c-3" style="font-weight:400">sent in the last 30 days</p></section>`).join('')}</div>`
+      + `<section class="card" style="padding:20px;margin-bottom:20px" id="nudge"></section>`
       + `<p class="t-label" style="margin-bottom:10px">Recent</p>` + tbl(['Email', 'To', 'Subject', 'Sent'], (st.recent || []).map(r => `<tr><td>${esc(NAME[r.kind] || r.kind)}</td><td>${esc(r.to || '')}</td><td style="max-width:360px">${esc(r.subject || '')}</td><td>${when(r.created_at)}</td></tr>`), 'Nothing sent yet');
+    nudgePanel();
     qs('#prev').onclick = async () => { const b = qs('#prev'); b.disabled = true; try { const n = await A.emailPreview(); toast(`Sent ${n} previews to ${API.profile.email}`); V.emails(); } catch (e) { H.fail(e); } b.disabled = false; };
   };
+
+  // "Finish your page" nudges: pick the gaps, see who's missing them, send each person their own checklist
+  const GAPS = [['Profile', [['photo', 'Profile photo'], ['headline', 'Headline'], ['bio', 'Bio'], ['location', 'City'], ['links', 'LinkedIn, X or website']]],
+    ['Products', [['p_draft', 'Unfinished submission'], ['p_changes', 'Changes requested, not resubmitted'], ['p_logo', 'Logo'], ['p_media', 'Screenshots'], ['p_desc', 'Description'], ['p_website', 'Website'], ['p_cac', 'CAC / registration number'], ['p_founder', 'Founder link']]]];
+  const GAP_L = Object.fromEntries(GAPS.flatMap(g => g[1]));
+  async function nudgePanel() {
+    const box = qs('#nudge'); let picked = new Set(['photo', 'bio', 'p_logo', 'p_cac', 'p_draft']), aud = null, excluded = new Set();
+    box.innerHTML = `<div class="row between wrap gap-12"><div><p class="t-h4">Nudge people to finish their page</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Each person gets one email listing only their own gaps, with a link to fix each. Nobody gets more than one every 3 days, and they can turn these off.</p></div></div>
+      <div id="gaps" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px"></div>
+      <label class="field" style="margin-top:16px"><span class="field__label">Personal note <span class="c-3" style="font-weight:400">(optional, shown at the top)</span></span><textarea class="input" id="nnote" rows="2" maxlength="500" placeholder="e.g. We’re featuring complete pages in Monday’s Launchpad."></textarea></label>
+      <div id="who" style="margin-top:16px"></div>
+      <div class="row gap-8 wrap" style="margin-top:16px"><button class="btn btn--secondary btn--sm" type="button" id="ntest">${icon('mail')}Send me a test</button><button class="btn btn--primary btn--sm" type="button" id="nsend"></button></div>`;
+    async function load() {
+      qs('#who').innerHTML = '<div class="skel" style="height:80px"></div>';
+      aud = await A.nudgeAudience([...picked]).catch(e => { H.fail(e); return { counts: {}, people: [] }; });
+      qs('#gaps').innerHTML = GAPS.map(([g, items]) => `<div><p class="t-eyebrow c-3" style="margin-bottom:8px">${g}</p>${items.map(([k, l]) => `<label class="check" style="margin:6px 0;display:flex"><input type="checkbox" data-gap="${k}"${picked.has(k) ? ' checked' : ''}><span class="check__box">${icon('check')}</span>${l} <span class="c-3" style="margin-left:4px">${(aud.counts || {})[k] || 0}</span></label>`).join('')}</div>`).join('');
+      const ready = aud.people.filter(p => !p.tips_off && !(p.last && Date.now() - new Date(p.last) < 3 * 864e5));
+      qs('#who').innerHTML = aud.people.length ? `<details><summary class="t-body-sm" style="cursor:pointer">${aud.people.length} ${aud.people.length === 1 ? 'person is' : 'people are'} missing at least one of these · ${ready.length - [...excluded].filter(id => ready.some(p => p.id === id)).length} will get an email</summary>
+        <div class="tbl-wrap" style="margin-top:10px;max-height:320px;overflow:auto"><table class="tbl"><thead><tr><th></th><th>Person</th><th>Missing</th><th>Status</th></tr></thead><tbody>${aud.people.map(p => { const recent = p.last && Date.now() - new Date(p.last) < 3 * 864e5; return `<tr><td><input type="checkbox" data-pid="${p.id}" ${excluded.has(p.id) || p.tips_off || recent ? '' : 'checked'} ${p.tips_off || recent ? 'disabled' : ''} aria-label="Include ${esc(p.name)}"></td><td>${esc(p.name)}<br><span class="c-3">${esc(p.email)}</span></td><td style="max-width:340px">${p.missing.map(k => `<span class="badge" style="margin:2px">${esc(GAP_L[k] || k)}</span>`).join('')}</td><td class="c-3">${p.tips_off ? 'Turned these off' : recent ? 'Nudged ' + H.ago(p.last) : p.last ? 'Last nudged ' + H.ago(p.last) : 'Ready'}</td></tr>`; }).join('')}</tbody></table></div></details>` : `<p class="t-body-sm c-2">Nobody is missing those right now.</p>`;
+      const n = ready.filter(p => !excluded.has(p.id)).length;
+      qs('#nsend').textContent = n ? `Send to ${n} ${n === 1 ? 'person' : 'people'}` : 'Nobody to send to'; qs('#nsend').disabled = !n;
+    }
+    box.addEventListener('change', e => {
+      const g = e.target.closest('[data-gap]'); if (g) { g.checked ? picked.add(g.dataset.gap) : picked.delete(g.dataset.gap); load(); }
+      const p = e.target.closest('[data-pid]'); if (p) { p.checked ? excluded.delete(p.dataset.pid) : excluded.add(p.dataset.pid); const ready = aud.people.filter(x => !x.tips_off && !(x.last && Date.now() - new Date(x.last) < 3 * 864e5) && !excluded.has(x.id)).length; qs('#nsend').textContent = ready ? `Send to ${ready} ${ready === 1 ? 'person' : 'people'}` : 'Nobody to send to'; qs('#nsend').disabled = !ready; }
+    });
+    qs('#ntest').onclick = async () => { try { await A.sendNudges([...picked], qs('#nnote').value, true); toast('Test sent to ' + API.profile.email); } catch (e) { H.fail(e); } };
+    qs('#nsend').onclick = async () => {
+      const ids = aud.people.filter(p => !excluded.has(p.id) && !p.tips_off).map(p => p.id);
+      if (!ids.length || !confirm(`Email ${qs('#nsend').textContent.replace('Send to ', '')} about: ${[...picked].map(k => GAP_L[k]).join(', ')}?`)) return;
+      const b = qs('#nsend'); b.disabled = true;
+      try { const r = await A.sendNudges([...picked], qs('#nnote').value, false, ids); toast(`Sent ${r.sent}${r.skipped ? ` · ${r.skipped} skipped (recently nudged or opted out)` : ''}`); V.emails(); } catch (e) { H.fail(e); b.disabled = false; }
+    };
+    load();
+  }
 
   // ---- Find roles: postings from startups without a verified product wait here
   const FKIND = { cofounder: 'Co-founder', fulltime: 'Full-time', parttime: 'Part-time', contract: 'Contract', internship: 'Internship' };

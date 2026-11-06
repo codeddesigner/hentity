@@ -448,6 +448,8 @@
     products: ({ status, term } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',updated_at,review_note,review_items,intro,verify,support_pledge,owner:profiles!products_owner_id_fkey(id,name,username)'); if (status && status !== 'all') s = status === 'live' ? s.eq('effective_status', 'live') : s.eq('status', status); if (term) s = s.or(`name.ilike.%${term}%,slug.ilike.%${term}%`); return q(s.order('updated_at', { ascending: false }).limit(200)); },
     emailStats: () => q(sb.rpc('admin_email_stats')),
     emailPreview: () => q(sb.rpc('email_preview_all')),
+    nudgeAudience: kinds => q(sb.rpc('admin_nudge_audience', { kinds })),
+    sendNudges: (kinds, note, test, ids) => q(sb.rpc('admin_send_nudges', { kinds, note: note || null, test_only: !!test, only_ids: ids || null })),
     findRoles: st => q(sb.rpc('admin_find_roles', { st: st || 'review' })),
     reviewFindRole: (rid, ok, why) => q(sb.rpc('find_review_role', { rid, ok, why: why || null })),
     edits: st => q(sb.rpc('admin_product_edits', { st: st || 'pending' })),

@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=e22603bd77">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=56794b968d"></script>
+<script src="/assets/api.js?v=2ba1f30e54"></script>
 <script src="/assets/app.js?v=5919c37cb1"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -87,7 +87,8 @@ H.mount({ active: '', tab: 'you' });
       ['find', 'Find activity', 'Applications, interest, matches and role approvals', true, true, null]]],
     ['Digests', [
       ['digest', 'The Launchpad, weekly', 'Last week’s top launches · Mondays 07:00 WAT', null, true, null],
-      ['insights', 'Monthly Insights', 'What’s growing across Africa · 1st of the month', null, true, null]]]
+      ['insights', 'Monthly Insights', 'What’s growing across Africa · 1st of the month', null, true, null],
+      ['tips', 'Tips to finish your page', 'When your profile or product is missing something', null, true, null]]]
   ];
   const st = () => Object.assign({}, API.profile.settings || {});
   const prefs = Object.assign({}, st().notif || {});
