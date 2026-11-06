@@ -1,28 +1,6 @@
-/* Settings shell: side nav (Figma "Settings nav item" 47:121) + toggles that save to profiles.settings. */
-(function () {
-  const { icon, qs, qsa } = window.H;
-  const items = [['profile', 'Profile', 'user'], ['account', 'Account & security', 'lock'], ['notifications', 'Notifications', 'bell'], ['privacy', 'Privacy & data', 'eye']];
-  const el = qs('[data-sidenav]');
-  if (el) {
-    const cur = el.dataset.sidenav;
-    el.outerHTML = `<nav class="side-nav" aria-label="Settings">
+(function(){const{icon:n,qs:c,qsa:o}=window.H,r=[["profile","Profile","user"],["account","Account & security","lock"],["notifications","Notifications","bell"],["privacy","Privacy & data","eye"]],t=c("[data-sidenav]");if(t){const a=t.dataset.sidenav;t.outerHTML=`<nav class="side-nav" aria-label="Settings">
       <p class="side-nav__title">Settings</p>
-      ${items.map(([k, l, ic]) => `<a href="/settings/${k}"${k === cur ? ' aria-current="page"' : ''}>${icon(ic)}${l.replace('&', '&amp;')}</a>`).join('')}
+      ${r.map(([e,s,i])=>`<a href="/settings/${e}"${e===a?' aria-current="page"':""}>${n(i)}${s.replace("&","&amp;")}</a>`).join("")}
       <div class="sep"></div>
-      <a class="is-danger" href="/settings/delete"${cur === 'delete' ? ' aria-current="page"' : ''}>${icon('trash')}Delete account</a>
-    </nav>`;
-  }
-  // [data-autosave="key"] checkboxes are stored in profiles.settings[key]
-  async function init() {
-    await API.ready;
-    if (!API.uid) { location.replace('/signin?next=' + encodeURIComponent(location.pathname)); return; }
-    const st = (API.profile && API.profile.settings) || {};
-    qsa('[data-autosave]').forEach(t => { if (t.dataset.autosave in st) t.checked = !!st[t.dataset.autosave]; });
-  }
-  document.addEventListener('change', async e => {
-    const t = e.target.closest('[data-autosave]'); if (!t) return;
-    const st = Object.assign({}, API.profile.settings || {}, { [t.dataset.autosave]: t.checked });
-    try { await API.updateProfile({ settings: st }); H.toast(t.dataset.msg || 'Saved'); } catch (err) { t.checked = !t.checked; H.fail(err); }
-  });
-  window.SettingsReady = init();
-})();
+      <a class="is-danger" href="/settings/delete"${a==="delete"?' aria-current="page"':""}>${n("trash")}Delete account</a>
+    </nav>`}async function d(){if(await API.ready,!API.uid){location.replace("/signin?next="+encodeURIComponent(location.pathname));return}const a=API.profile&&API.profile.settings||{};o("[data-autosave]").forEach(e=>{e.dataset.autosave in a&&(e.checked=!!a[e.dataset.autosave])})}document.addEventListener("change",async a=>{const e=a.target.closest("[data-autosave]");if(!e)return;const s=Object.assign({},API.profile.settings||{},{[e.dataset.autosave]:e.checked});try{await API.updateProfile({settings:s}),H.toast(e.dataset.msg||"Saved")}catch(i){e.checked=!e.checked,H.fail(i)}}),window.SettingsReady=d()})();

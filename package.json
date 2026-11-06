@@ -4,5 +4,8 @@
   "description": "Static site + Vercel functions. The only dependency is the Supabase client, which build.py serves from /assets so pages don't wait on a third-party CDN.",
   "dependencies": {
     "@supabase/supabase-js": "2.45.4"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
   }
 }

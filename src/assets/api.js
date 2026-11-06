@@ -418,7 +418,7 @@
 
     // ---------------- realtime
     // How many people have this page open right now (Supabase presence; no database writes)
-    presence(room, cb) {
+    here(room, cb) {
       let key; try { key = sessionStorage.getItem('hentity.pk') || Math.random().toString(36).slice(2); sessionStorage.setItem('hentity.pk', key); } catch (e) { key = Math.random().toString(36).slice(2); }
       const ch = sb.channel('here:' + room, { config: { presence: { key } } });
       ch.on('presence', { event: 'sync' }, () => { try { cb(Object.keys(ch.presenceState()).length); } catch (e) {} });

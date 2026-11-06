@@ -1,129 +1,16 @@
-/* Find (Figma: Find) — shared bits for /find, /find/roles/:id, /find/post, /find/open, /find/m/:id, /find/privacy */
-(function () {
-  const { icon, esc, plogo, flag } = H;
-  const KIND = { cofounder: ['Co-founder', 'k-co'], fulltime: ['Full-time', 'k-job'], parttime: ['Part-time', 'k-job'], contract: ['Contract', 'k-con'], internship: ['Internship', 'k-job'] };
-  const AREA = { technical: 'Technical', business: 'Business', design: 'Design', growth: 'Growth', operations: 'Operations', other: 'Other' };
-  const WORK = { onsite: 'On-site', hybrid: 'Hybrid', remote: 'Remote OK' };
-  const COMMIT = { fulltime: 'Full-time', parttime_first: 'Part-time first', flexible: 'Flexible' };
-  const AVAIL = { now: 'Now', '3months': 'In 3 months', side: 'Side project' };
-  const OPEN = { cofounder: 'co-founding', fulltime: 'full-time', parttime: 'part-time', contract: 'contract', internship: 'internship' };
-  const STAGES = ['Idea', 'Pre-seed', 'Building', 'Has users', 'Revenue', 'Seed'];
-  const CATS = ['Fintech', 'Commerce', 'Agriculture', 'Health', 'Logistics', 'Education', 'AI', 'Energy & Climate', 'SaaS', 'Dev Tools', 'Infrastructure', 'Productivity', 'Apps'];
-  const pct = n => (n === null || n === undefined || n === '') ? '' : (+n % 1 ? (+n).toFixed(1) : String(+n));
-  function pay(r) {
-    if (r.kind === 'cofounder' || r.pay === 'equity') return r.equity_min != null && r.equity_max != null ? `${pct(r.equity_min)}–${pct(r.equity_max)}% equity` : r.equity_min != null ? `${pct(r.equity_min)}% equity` : 'Equity';
-    return [r.salary, r.equity_max ? `${pct(r.equity_max)}%` : ''].filter(Boolean).join(' + ') || (r.pay === 'stipend' ? 'Stipend' : 'Salary');
-  }
-  const pill = (t, cls) => `<span class="fpill ${cls || ''}">${t}</span>`;
-  const catPill = c => c ? `<span class="fpill"><i class="dot" style="background:${H.catColor(c)}"></i>${esc(H.catShort ? H.catShort(c) : c)}</span>` : '';
-  const initials = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  const mini = (name, avatar, color) => avatar ? `<span class="fav" style="background:#fff url('${esc(avatar)}') center/cover"></span>` : `<span class="fav">${esc(initials(name))}</span>`;
-  function startupMark(r, size) {
-    const s = r.startup || {};
-    if (r.stealth) return `<span class="flock" style="width:${size}px;height:${size}px">${icon('lock', size > 36 ? 'ic-20' : 'ic-16')}</span>`;
-    return plogo({ name: s.name || '?', color: s.color || '#111', logo_url: s.logo_url }, size);
-  }
-  // Role card (Figma 172:6)
-  function roleCard(r) {
-    const k = KIND[r.kind] || KIND.cofounder, s = r.startup || {}, p = r.poster || {};
-    const cta = r.mine ? `<a class="btn btn--secondary btn--sm" href="/find/post?edit=${r.id}">Edit</a>`
-      : r.my_interest ? `<span class="fpill k-ok">${icon('check', 'ic-12')}${r.my_interest.status === 'accepted' ? 'Matched' : r.my_interest.mine ? 'Interest sent' : 'Invited you'}</span>`
-      : `<a class="btn ${r.stealth ? 'btn--primary' : 'btn--secondary'} btn--sm" href="/find/roles/${r.id}">${r.kind === 'cofounder' ? 'I’m interested' : 'Apply'}</a>`;
-    return `<article class="card fcard" data-href="/find/roles/${r.id}">
-      <div class="row between gap-12"><span class="row gap-10" style="min-width:0">${startupMark(r, 32)}<span class="t-body-sm c-2 truncate">${esc(s.name)}</span>${s.verified && !r.stealth ? H.verified('ic-14') : ''}</span><span class="t-caption c-3" style="font-weight:400">${esc(H.ago(r.created_at))}</span></div>
-      <h3 class="fcard__t">${esc(r.title)}</h3>
-      <div class="fpills">${pill(k[0], k[1])}${catPill(r.category)}${pill(esc(pay(r)), 'k-pay')}${r.kind === 'cofounder' ? pill(COMMIT[r.commitment] || '') : r.duration ? pill(esc(r.duration)) : pill(k[0])}${r.stage ? pill(esc(r.stage)) : ''}</div>
-      ${r.city || r.working ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${icon('pin', 'ic-14')}${esc([r.city, WORK[r.working]].filter(Boolean).join(' · '))}</p>` : ''}
-      ${(r.skills || []).length ? `<div class="fskills">${r.skills.slice(0, 4).map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
-      ${r.stealth ? `<p class="fnote">${icon('eye', 'ic-14')}Startup and founder revealed when you both say yes</p>` : ''}
-      <div class="fcard__foot"><span class="row gap-10" style="min-width:0">${r.stealth ? `<span class="fav">${icon('user', 'ic-14')}</span>` : mini(p.name, p.avatar_url)}<span style="min-width:0"><span class="t-body-sm truncate" style="display:block;font-weight:500">${esc(p.name || '')}</span><span class="t-caption c-3" style="font-weight:400">${r.interest_count || 0} ${r.kind === 'cofounder' ? 'interested' : 'applied'}</span></span></span>${cta}</div>
-    </article>`;
-  }
-  // Person card (Figma 172:1619)
-  function personCard(u, opts) {
-    opts = opts || {};
-    const open = (u.open_to || []).map(k => OPEN[k]).filter(Boolean);
-    const head = u.stealth ? `<span class="flock" style="width:40px;height:40px">${icon('lock', 'ic-16')}</span><span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(u.what || 'Open to work')}</span><span class="t-caption c-3" style="font-weight:400">${esc([u.seniority, u.experience ? u.experience + (/\d$/.test(u.experience) ? ' yrs' : '') : ''].filter(Boolean).join(' · ') || 'Stealth profile')}</span></span>`
-      : `${mini(u.name, u.avatar_url)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(u.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc([u.what, u.experience].filter(Boolean).join(' · '))}</span></span>`;
-    return `<article class="card fcard fperson">
-      <div class="row gap-12" style="align-items:center">${head}</div>
-      ${u.stealth ? `<span class="fpill" style="margin-top:12px;align-self:flex-start">${icon('eye', 'ic-12')}Stealth · name hidden</span>` : ''}
-      ${u.city || (u.looking_for || []).length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${icon('pin', 'ic-14')}${esc([u.city, (u.looking_for || []).map(a => AREA[a]).filter(Boolean)[0]].filter(Boolean).join(' · '))}</p>` : ''}
-      ${(u.strengths || []).length ? `<div class="fskills">${u.strengths.slice(0, 4).map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
-      <p class="t-body-sm c-2" style="margin-top:12px">${u.wants ? 'Wants: ' + esc(u.wants) : open.length ? 'Open to: ' + esc(open.join(' or ')) + ((u.spaces || []).length ? ' · ' + esc(u.spaces.slice(0, 2).join(', ').toLowerCase()) : '') : ''}</p>
-      ${opts.noInvite ? '' : `<button class="btn btn--secondary btn--sm btn--block" style="margin-top:14px" type="button" data-invite="${esc(u.key)}">Invite to a role</button>`}
-    </article>`;
-  }
-  // What a stranger sees of my profile (preview cards on /find/open and /find/privacy)
-  function previewMe(f, me, as) {
-    const s = (f.show || {})[as === 'match' ? 'matches' : 'strangers'] || {};
-    const showName = f.mode === 'visible' || as === 'match' ? (as === 'match' ? s.name !== false : true) : !!s.name;
-    const u = { stealth: !showName, name: me && me.name, avatar_url: me && me.avatar_url, what: s.role === false && !showName ? '' : f.what, experience: f.experience, city: s.city === false && as !== 'match' ? '' : f.city,
-      strengths: s.skills === false && as !== 'match' ? [] : f.strengths, spaces: f.spaces, open_to: f.open_to, looking_for: f.looking_for, wants: f.wants };
-    return personCard(u, { noInvite: true });
-  }
-  function chips(name, opts, cur, multi) {
-    const on = v => multi ? (cur || []).includes(v) : cur === v;
-    return `<div class="chips" ${multi ? '' : 'data-single'} data-g="${name}">${opts.map(([v, l]) => `<button class="chip" type="button" data-chip data-v="${esc(v)}" aria-pressed="${on(v)}">${icon('check')}${esc(l)}</button>`).join('')}</div>`;
-  }
-  const readChips = (root, name) => [...root.querySelectorAll(`[data-g="${name}"] [aria-pressed="true"]`)].map(b => b.dataset.v);
-  function radioCards(name, opts, cur) {
-    return `<div class="stack gap-10" data-radio="${name}">${opts.map(([v, ic, t, d]) => `<label class="fradio${v === cur ? ' is-on' : ''}"><input type="radio" name="${name}" value="${v}" ${v === cur ? 'checked' : ''}><span class="fradio__dot"></span><span><span class="row gap-6 t-body-sm" style="font-weight:500">${icon(ic, 'ic-14')}${esc(t)}</span><span class="t-caption c-2" style="font-weight:400;display:block;margin-top:2px">${esc(d)}</span></span></label>`).join('')}</div>`;
-  }
-  function bindRadio(root, name, onChange) {
-    root.querySelectorAll(`[data-radio="${name}"] input`).forEach(i => i.addEventListener('change', () => { root.querySelectorAll(`[data-radio="${name}"] .fradio`).forEach(l => l.classList.toggle('is-on', l.querySelector('input').checked)); onChange && onChange(i.value); }));
-  }
-  const toggle = (name, t, d, on) => `<label class="ftog"><span><span class="t-body-sm" style="font-weight:500;display:block">${esc(t)}</span>${d ? `<span class="t-caption c-3" style="font-weight:400">${esc(d)}</span>` : ''}</span><span class="toggle"><input type="checkbox" name="${name}" ${on ? 'checked' : ''}><span class="toggle__track"></span></span></label>`;
-  // Editable tag list: "Nexa Bank ×  Payluma ×  + Add company"
-  function tagList(root, sel, items, addLabel, ph) {
-    const el = root.querySelector(sel); let list = (items || []).slice();
-    const draw = () => { el.innerHTML = `<div class="ftags">${list.map((t, i) => `<span class="ftag">${esc(t)}<button type="button" data-rm="${i}" aria-label="Remove ${esc(t)}">${icon('x', 'ic-12')}</button></span>`).join('')}<button type="button" class="ftag ftag--add" data-add>${icon('plus', 'ic-12')}${esc(addLabel)}</button></div>`; };
-    el.addEventListener('click', e => {
-      const rm = e.target.closest('[data-rm]'); if (rm) { list.splice(+rm.dataset.rm, 1); draw(); el.dispatchEvent(new Event('change')); return; }
-      if (e.target.closest('[data-add]')) { const v = prompt(ph || addLabel); if (v && v.trim()) { v.split(',').map(x => x.trim()).filter(Boolean).forEach(x => { if (!list.includes(x)) list.push(x.slice(0, 60)); }); draw(); el.dispatchEvent(new Event('change')); } }
-    });
-    draw();
-    return { get: () => list.slice(), set: v => { list = v.slice(); draw(); } };
-  }
-  // Mobile: Messages | Find switcher under the Chats tab (Figma 172:1444)
-  const mobileSwitch = active => `<div class="fswitch m-flex"><a href="/chats"${active === 'chats' ? ' aria-current="page"' : ''}>Messages</a><a href="/find"${active === 'find' ? ' aria-current="page"' : ''}>Find</a></div>`;
-
-  // ---- CV picker (Figma 26.15 / 26.16): a file card with Replace + remove, or a drop zone
-  const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
-  const CV_OK = /\.(pdf|docx?)$/i;
-  function cvPicker(box, opts) {
-    // opts: { cv, profileCv, sub, onChange }
-    let cv = opts.cv || null, busy = false;
-    const input = `<input type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="sr-only" data-cv-in>`;
-    const card = c => `<div class="fcv"><span class="fcv__ic">${H.icon('file-text', 'ic-18')}</span><div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${H.esc(c.name)}</p><p class="t-caption c-3" style="font-weight:400">${kb(c.size || 0)}${opts.profileCv && c.path === opts.profileCv.path && opts.sub ? ' · ' + opts.sub : ''}</p></div><label class="btn btn--ghost btn--sm" style="cursor:pointer">Replace${input}</label><button class="nav__icon" type="button" data-cv-rm aria-label="Remove CV">${H.icon('trash', 'ic-16')}</button></div>`;
-    function draw() {
-      box.innerHTML = busy ? `<div class="fcv"><span class="fcv__ic">${H.icon('upload', 'ic-18')}</span><p class="t-body-sm c-2">Uploading…</p></div>`
-        : cv ? card(cv) + (opts.profileCv && cv.path === opts.profileCv.path && opts.allowOther ? `<label class="fcv-other">${H.icon('upload', 'ic-14')}Upload a different CV for this role${input}</label>` : '')
-        : `<label class="fcv-drop">${input}<span class="fcv-drop__ic">${H.icon('upload', 'ic-18')}</span><span class="c-accent" style="font-weight:500">Upload your CV</span><span class="t-caption c-3" style="font-weight:400">PDF or Word, up to 5 MB</span></label>`
-          + (opts.profileCv ? `<p class="fcv-or"><span>or use the one on your profile</span></p>${card(opts.profileCv).replace('data-cv-rm', 'data-cv-use').replace(H.icon('trash', 'ic-16'), H.icon('check', 'ic-16')).replace('aria-label="Remove CV"', 'aria-label="Use this CV"')}` : '');
-    }
-    box.addEventListener('change', async e => {
-      const inp = e.target.closest('[data-cv-in]'); if (!inp) return; const file = inp.files[0]; inp.value = ''; if (!file) return;
-      if (!CV_OK.test(file.name)) return H.toast('Use a PDF or Word file', 'error');
-      if (file.size > 5 * 1024 * 1024) return H.toast('CVs can be up to 5 MB', 'error');
-      busy = true; draw();
-      try { cv = await API.uploadCv(file); opts.onChange && opts.onChange(cv); } catch (err) { H.fail(err); }
-      busy = false; draw();
-    });
-    box.addEventListener('click', e => {
-      if (e.target.closest('[data-cv-rm]')) { cv = null; opts.onChange && opts.onChange(null); draw(); }
-      if (e.target.closest('[data-cv-use]')) { cv = opts.profileCv; opts.onChange && opts.onChange(cv); draw(); }
-    });
-    draw();
-    return { get: () => cv };
-  }
-  const liOk = v => !v || /^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.com\/(in|pub)\/[^\s]{2,}/i.test(v.trim());
-  const liField = (id, val) => `<div class="fli"><span class="fli__in">in</span><input class="input" id="${id}" value="${H.esc(val || '')}" placeholder="linkedin.com/in/your-name" inputmode="url" autocomplete="off" spellcheck="false"><span class="fli__ok badge badge--success"${liOk(val) && val ? '' : ' hidden'}>${H.icon('check', 'ic-12')}Added</span></div>`;
-  function bindLi(root, id) { const i = root.querySelector('#' + id); const ok = i.parentElement.querySelector('.fli__ok'); i.addEventListener('input', () => { const v = i.value.trim(); ok.hidden = !(v && liOk(v)); i.closest('.fli').classList.toggle('is-error', !!v && !liOk(v)); }); }
-  // Open a stored CV in a new tab (signed link)
-  async function openCv(path) { const w = window.open('', '_blank'); try { const u = await API.cvUrl(path); if (w) w.location = u; else location.href = u; } catch (e) { w && w.close(); H.fail(e); } }
-  const cvChip = c => c ? `<button class="fpill" type="button" data-open-cv="${H.esc(c.path)}">${H.icon('file-text', 'ic-12')}${H.esc(c.name || 'CV')}</button>` : '';
-  const liChip = l => l ? `<a class="fpill" href="${H.esc(/^https?:/.test(l) ? l : 'https://' + l)}" target="_blank" rel="noopener nofollow"><b style="color:#0A66C2">in</b>LinkedIn</a>` : '';
-  document.addEventListener('click', e => { const b = e.target.closest('[data-open-cv]'); if (b) { e.preventDefault(); openCv(b.dataset.openCv); } });
-  window.F = { cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
-})();
+(function(){const{icon:r,esc:n,plogo:A,flag:Q}=H,$={cofounder:["Co-founder","k-co"],fulltime:["Full-time","k-job"],parttime:["Part-time","k-job"],contract:["Contract","k-con"],internship:["Internship","k-job"]},v={technical:"Technical",business:"Business",design:"Design",growth:"Growth",operations:"Operations",other:"Other"},b={onsite:"On-site",hybrid:"Hybrid",remote:"Remote OK"},w={fulltime:"Full-time",parttime_first:"Part-time first",flexible:"Flexible"},I={now:"Now","3months":"In 3 months",side:"Side project"},k={cofounder:"co-founding",fulltime:"full-time",parttime:"part-time",contract:"contract",internship:"internship"},B=["Idea","Pre-seed","Building","Has users","Revenue","Seed"],L=["Fintech","Commerce","Agriculture","Health","Logistics","Education","AI","Energy & Climate","SaaS","Dev Tools","Infrastructure","Productivity","Apps"],h=t=>t==null||t===""?"":+t%1?(+t).toFixed(1):String(+t);function _(t){return t.kind==="cofounder"||t.pay==="equity"?t.equity_min!=null&&t.equity_max!=null?`${h(t.equity_min)}\u2013${h(t.equity_max)}% equity`:t.equity_min!=null?`${h(t.equity_min)}% equity`:"Equity":[t.salary,t.equity_max?`${h(t.equity_max)}%`:""].filter(Boolean).join(" + ")||(t.pay==="stipend"?"Stipend":"Salary")}const f=(t,e)=>`<span class="fpill ${e||""}">${t}</span>`,C=t=>t?`<span class="fpill"><i class="dot" style="background:${H.catColor(t)}"></i>${n(H.catShort?H.catShort(t):t)}</span>`:"",x=t=>String(t||"?").split(/\s+/).filter(Boolean).slice(0,2).map(e=>e[0]).join("").toUpperCase(),g=(t,e,a)=>e?`<span class="fav" style="background:#fff url('${n(e)}') center/cover"></span>`:`<span class="fav">${n(x(t))}</span>`;function S(t,e){const a=t.startup||{};return t.stealth?`<span class="flock" style="width:${e}px;height:${e}px">${r("lock",e>36?"ic-20":"ic-16")}</span>`:A({name:a.name||"?",color:a.color||"#111",logo_url:a.logo_url},e)}function M(t){const e=$[t.kind]||$.cofounder,a=t.startup||{},s=t.poster||{},i=t.mine?`<a class="btn btn--secondary btn--sm" href="/find/post?edit=${t.id}">Edit</a>`:t.my_interest?`<span class="fpill k-ok">${r("check","ic-12")}${t.my_interest.status==="accepted"?"Matched":t.my_interest.mine?"Interest sent":"Invited you"}</span>`:`<a class="btn ${t.stealth?"btn--primary":"btn--secondary"} btn--sm" href="/find/roles/${t.id}">${t.kind==="cofounder"?"I\u2019m interested":"Apply"}</a>`;return`<article class="card fcard" data-href="/find/roles/${t.id}">
+      <div class="row between gap-12"><span class="row gap-10" style="min-width:0">${S(t,32)}<span class="t-body-sm c-2 truncate">${n(a.name)}</span>${a.verified&&!t.stealth?H.verified("ic-14"):""}</span><span class="t-caption c-3" style="font-weight:400">${n(H.ago(t.created_at))}</span></div>
+      <h3 class="fcard__t">${n(t.title)}</h3>
+      <div class="fpills">${f(e[0],e[1])}${C(t.category)}${f(n(_(t)),"k-pay")}${t.kind==="cofounder"?f(w[t.commitment]||""):t.duration?f(n(t.duration)):f(e[0])}${t.stage?f(n(t.stage)):""}</div>
+      ${t.city||t.working?`<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${r("pin","ic-14")}${n([t.city,b[t.working]].filter(Boolean).join(" \xB7 "))}</p>`:""}
+      ${(t.skills||[]).length?`<div class="fskills">${t.skills.slice(0,4).map(c=>`<span>${n(c)}</span>`).join("")}</div>`:""}
+      ${t.stealth?`<p class="fnote">${r("eye","ic-14")}Startup and founder revealed when you both say yes</p>`:""}
+      <div class="fcard__foot"><span class="row gap-10" style="min-width:0">${t.stealth?`<span class="fav">${r("user","ic-14")}</span>`:g(s.name,s.avatar_url)}<span style="min-width:0"><span class="t-body-sm truncate" style="display:block;font-weight:500">${n(s.name||"")}</span><span class="t-caption c-3" style="font-weight:400">${t.interest_count||0} ${t.kind==="cofounder"?"interested":"applied"}</span></span></span>${i}</div>
+    </article>`}function E(t,e){e=e||{};const a=(t.open_to||[]).map(i=>k[i]).filter(Boolean);return`<article class="card fcard fperson">
+      <div class="row gap-12" style="align-items:center">${t.stealth?`<span class="flock" style="width:40px;height:40px">${r("lock","ic-16")}</span><span style="min-width:0"><span class="t-label truncate" style="display:block">${n(t.what||"Open to work")}</span><span class="t-caption c-3" style="font-weight:400">${n([t.seniority,t.experience?t.experience+(/\d$/.test(t.experience)?" yrs":""):""].filter(Boolean).join(" \xB7 ")||"Stealth profile")}</span></span>`:`${g(t.name,t.avatar_url)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${n(t.name)}</span><span class="t-caption c-3" style="font-weight:400">${n([t.what,t.experience].filter(Boolean).join(" \xB7 "))}</span></span>`}</div>
+      ${t.stealth?`<span class="fpill" style="margin-top:12px;align-self:flex-start">${r("eye","ic-12")}Stealth \xB7 name hidden</span>`:""}
+      ${t.city||(t.looking_for||[]).length?`<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${r("pin","ic-14")}${n([t.city,(t.looking_for||[]).map(i=>v[i]).filter(Boolean)[0]].filter(Boolean).join(" \xB7 "))}</p>`:""}
+      ${(t.strengths||[]).length?`<div class="fskills">${t.strengths.slice(0,4).map(i=>`<span>${n(i)}</span>`).join("")}</div>`:""}
+      <p class="t-body-sm c-2" style="margin-top:12px">${t.wants?"Wants: "+n(t.wants):a.length?"Open to: "+n(a.join(" or "))+((t.spaces||[]).length?" \xB7 "+n(t.spaces.slice(0,2).join(", ").toLowerCase()):""):""}</p>
+      ${e.noInvite?"":`<button class="btn btn--secondary btn--sm btn--block" style="margin-top:14px" type="button" data-invite="${n(t.key)}">Invite to a role</button>`}
+    </article>`}function O(t,e,a){const s=(t.show||{})[a==="match"?"matches":"strangers"]||{},i=t.mode==="visible"||a==="match"?a==="match"?s.name!==!1:!0:!!s.name,c={stealth:!i,name:e&&e.name,avatar_url:e&&e.avatar_url,what:s.role===!1&&!i?"":t.what,experience:t.experience,city:s.city===!1&&a!=="match"?"":t.city,strengths:s.skills===!1&&a!=="match"?[]:t.strengths,spaces:t.spaces,open_to:t.open_to,looking_for:t.looking_for,wants:t.wants};return E(c,{noInvite:!0})}function F(t,e,a,s){const i=c=>s?(a||[]).includes(c):a===c;return`<div class="chips" ${s?"":"data-single"} data-g="${t}">${e.map(([c,o])=>`<button class="chip" type="button" data-chip data-v="${n(c)}" aria-pressed="${i(c)}">${r("check")}${n(o)}</button>`).join("")}</div>`}const P=(t,e)=>[...t.querySelectorAll(`[data-g="${e}"] [aria-pressed="true"]`)].map(a=>a.dataset.v);function R(t,e,a){return`<div class="stack gap-10" data-radio="${t}">${e.map(([s,i,c,o])=>`<label class="fradio${s===a?" is-on":""}"><input type="radio" name="${t}" value="${s}" ${s===a?"checked":""}><span class="fradio__dot"></span><span><span class="row gap-6 t-body-sm" style="font-weight:500">${r(i,"ic-14")}${n(c)}</span><span class="t-caption c-2" style="font-weight:400;display:block;margin-top:2px">${n(o)}</span></span></label>`).join("")}</div>`}function V(t,e,a){t.querySelectorAll(`[data-radio="${e}"] input`).forEach(s=>s.addEventListener("change",()=>{t.querySelectorAll(`[data-radio="${e}"] .fradio`).forEach(i=>i.classList.toggle("is-on",i.querySelector("input").checked)),a&&a(s.value)}))}const T=(t,e,a,s)=>`<label class="ftog"><span><span class="t-body-sm" style="font-weight:500;display:block">${n(e)}</span>${a?`<span class="t-caption c-3" style="font-weight:400">${n(a)}</span>`:""}</span><span class="toggle"><input type="checkbox" name="${t}" ${s?"checked":""}><span class="toggle__track"></span></span></label>`;function U(t,e,a,s,i){const c=t.querySelector(e);let o=(a||[]).slice();const l=()=>{c.innerHTML=`<div class="ftags">${o.map((p,d)=>`<span class="ftag">${n(p)}<button type="button" data-rm="${d}" aria-label="Remove ${n(p)}">${r("x","ic-12")}</button></span>`).join("")}<button type="button" class="ftag ftag--add" data-add>${r("plus","ic-12")}${n(s)}</button></div>`};return c.addEventListener("click",p=>{const d=p.target.closest("[data-rm]");if(d){o.splice(+d.dataset.rm,1),l(),c.dispatchEvent(new Event("change"));return}if(p.target.closest("[data-add]")){const u=prompt(i||s);u&&u.trim()&&(u.split(",").map(y=>y.trim()).filter(Boolean).forEach(y=>{o.includes(y)||o.push(y.slice(0,60))}),l(),c.dispatchEvent(new Event("change")))}}),l(),{get:()=>o.slice(),set:p=>{o=p.slice(),l()}}}const D=t=>`<div class="fswitch m-flex"><a href="/chats"${t==="chats"?' aria-current="page"':""}>Messages</a><a href="/find"${t==="find"?' aria-current="page"':""}>Find</a></div>`,q=t=>t>=1048576?(t/1048576).toFixed(1)+" MB":Math.max(1,Math.round(t/1024))+" KB",K=/\.(pdf|docx?)$/i;function N(t,e){let a=e.cv||null,s=!1;const i='<input type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="sr-only" data-cv-in>',c=l=>`<div class="fcv"><span class="fcv__ic">${H.icon("file-text","ic-18")}</span><div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${H.esc(l.name)}</p><p class="t-caption c-3" style="font-weight:400">${q(l.size||0)}${e.profileCv&&l.path===e.profileCv.path&&e.sub?" \xB7 "+e.sub:""}</p></div><label class="btn btn--ghost btn--sm" style="cursor:pointer">Replace${i}</label><button class="nav__icon" type="button" data-cv-rm aria-label="Remove CV">${H.icon("trash","ic-16")}</button></div>`;function o(){t.innerHTML=s?`<div class="fcv"><span class="fcv__ic">${H.icon("upload","ic-18")}</span><p class="t-body-sm c-2">Uploading\u2026</p></div>`:a?c(a)+(e.profileCv&&a.path===e.profileCv.path&&e.allowOther?`<label class="fcv-other">${H.icon("upload","ic-14")}Upload a different CV for this role${i}</label>`:""):`<label class="fcv-drop">${i}<span class="fcv-drop__ic">${H.icon("upload","ic-18")}</span><span class="c-accent" style="font-weight:500">Upload your CV</span><span class="t-caption c-3" style="font-weight:400">PDF or Word, up to 5 MB</span></label>`+(e.profileCv?`<p class="fcv-or"><span>or use the one on your profile</span></p>${c(e.profileCv).replace("data-cv-rm","data-cv-use").replace(H.icon("trash","ic-16"),H.icon("check","ic-16")).replace('aria-label="Remove CV"','aria-label="Use this CV"')}`:"")}return t.addEventListener("change",async l=>{const p=l.target.closest("[data-cv-in]");if(!p)return;const d=p.files[0];if(p.value="",!!d){if(!K.test(d.name))return H.toast("Use a PDF or Word file","error");if(d.size>5*1024*1024)return H.toast("CVs can be up to 5 MB","error");s=!0,o();try{a=await API.uploadCv(d),e.onChange&&e.onChange(a)}catch(u){H.fail(u)}s=!1,o()}}),t.addEventListener("click",l=>{l.target.closest("[data-cv-rm]")&&(a=null,e.onChange&&e.onChange(null),o()),l.target.closest("[data-cv-use]")&&(a=e.profileCv,e.onChange&&e.onChange(a),o())}),o(),{get:()=>a}}const m=t=>!t||/^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.com\/(in|pub)\/[^\s]{2,}/i.test(t.trim()),W=(t,e)=>`<div class="fli"><span class="fli__in">in</span><input class="input" id="${t}" value="${H.esc(e||"")}" placeholder="linkedin.com/in/your-name" inputmode="url" autocomplete="off" spellcheck="false"><span class="fli__ok badge badge--success"${m(e)&&e?"":" hidden"}>${H.icon("check","ic-12")}Added</span></div>`;function G(t,e){const a=t.querySelector("#"+e),s=a.parentElement.querySelector(".fli__ok");a.addEventListener("input",()=>{const i=a.value.trim();s.hidden=!(i&&m(i)),a.closest(".fli").classList.toggle("is-error",!!i&&!m(i))})}async function j(t){const e=window.open("","_blank");try{const a=await API.cvUrl(t);e?e.location=a:location.href=a}catch(a){e&&e.close(),H.fail(a)}}const z=t=>t?`<button class="fpill" type="button" data-open-cv="${H.esc(t.path)}">${H.icon("file-text","ic-12")}${H.esc(t.name||"CV")}</button>`:"",J=t=>t?`<a class="fpill" href="${H.esc(/^https?:/.test(t)?t:"https://"+t)}" target="_blank" rel="noopener nofollow"><b style="color:#0A66C2">in</b>LinkedIn</a>`:"";document.addEventListener("click",t=>{const e=t.target.closest("[data-open-cv]");e&&(t.preventDefault(),j(e.dataset.openCv))}),window.F={cvPicker:N,liOk:m,liField:W,bindLi:G,openCv:j,cvChip:z,liChip:J,kb:q,KIND:$,AREA:v,WORK:b,COMMIT:w,AVAIL:I,OPEN:k,STAGES:B,CATS:L,pay:_,pill:f,catPill:C,mini:g,initials:x,startupMark:S,roleCard:M,personCard:E,previewMe:O,chips:F,readChips:P,radioCards:R,bindRadio:V,toggle:T,tagList:U,mobileSwitch:D}})();

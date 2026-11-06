@@ -13,12 +13,13 @@
 .fr-panel{position:sticky;top:20px;padding:24px}
 .fr-sees{padding:14px;border-radius:12px;background:var(--color-bg-subtle);margin-top:16px}
 .fr-panel .t-h3{font-size:20px;line-height:26px}
-.fr-bar,.fr-bg,.fr-grab{display:none}
+.fr-bar,.fr-bg,.fr-grab,.fr-x{display:none}
 @media (max-width:1024px){.fr{grid-template-columns:minmax(0,1fr)}.fr-panel{position:static}}
 @media (max-width:768px){
   .fr-panel{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:91;max-height:88dvh;overflow:auto;border-radius:20px 20px 0 0;padding:12px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s ease;box-shadow:0 -8px 32px rgba(0,0,0,.12)}
   .fr-panel.is-open{transform:none}
   .fr-grab{display:block;width:36px;height:4px;border-radius:2px;background:var(--color-border-strong);margin:0 auto 14px}
+  .fr-x{display:grid!important;position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;place-items:center;color:var(--color-text-secondary)}
   .fr-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90}
   .fr-bg.is-open{display:block}
   .fr-bar{display:flex;position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:60;padding:10px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);gap:10px;align-items:center}
@@ -63,11 +64,13 @@ H.mount({ active: 'find', tab: 'chats' });
   const bar = document.createElement('div'); bar.className = 'fr-bar'; document.body.append(bar);
   const sheet = open => { qs('#panel').classList.toggle('is-open', open); bg.classList.toggle('is-open', open); document.body.style.overflow = open && matchMedia('(max-width:768px)').matches ? 'hidden' : ''; };
   bg.onclick = () => sheet(false);
+  qs('#panel').addEventListener('click', e => { if (e.target.closest('[data-close-sheet]')) sheet(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') sheet(false); });
   bar.addEventListener('click', e => { if (e.target.closest('[data-sheet]')) sheet(true); });
   panel(); H.contentShown();
 
   function panel() {
-    const box = qs('#panel'), grab = '<span class="fr-grab" aria-hidden="true"></span>';
+    const box = qs('#panel'), grab = `<span class="fr-grab" aria-hidden="true"></span><button class="fr-x" type="button" data-close-sheet aria-label="Close">${icon('x', 'ic-18')}</button>`;
     const verb = job ? 'Apply' : 'Say you’re interested';
     bar.innerHTML = `<div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${esc(r.title)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc([s.name, k[0], r.city].filter(Boolean).join(' · '))}</p></div><button class="btn btn--accent" type="button" data-sheet>${r.mine ? 'Your role' : r.my_interest ? (r.my_interest.status === 'accepted' ? 'Matched' : 'Sent') : verb}</button>`;
     if (r.mine && ['review', 'rejected', 'draft'].includes(r.status)) {

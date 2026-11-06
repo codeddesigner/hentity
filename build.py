@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tiny static build: copies src/ to public/, expanding <!--#head--> with src/partials/head.html
 and adding SEO tags (canonical, Open Graph, Twitter, robots) to every page from its <title> and description."""
-import pathlib, shutil, re, html, datetime
+import pathlib, shutil, re, html, datetime, os
 ROOT = pathlib.Path(__file__).parent
 SRC, OUT = ROOT / 'src', ROOT / 'public'
 SITE = 'https://hentity.com'
@@ -83,6 +83,19 @@ for p in sorted(SRC.rglob('*')):
 cols = re.search(r"const PRODUCT_COLS = '([^']+)'", (SRC / 'assets' / 'api.js').read_text()).group(1)
 (ROOT / 'api' / '_cols.json').write_text(json.dumps({'PRODUCT_COLS': cols, 'OG_V': OG_V}))
 if (SRC / 'assets' / 'supabase.js').exists() and not SB_LOCAL.exists(): (SRC / 'assets' / 'supabase.js').unlink()
+
+# Minify our JS and CSS in public/ with esbuild when it's installed (Vercel installs it from package.json).
+# Plain scripts keep their top-level names, so the globals pages share (H, API, F, L, M...) are untouched.
+import subprocess
+ESB = next((str(p) for p in [ROOT / 'node_modules/.bin/esbuild', pathlib.Path('/opt/npm-tools/node_modules/.bin/esbuild')] if p.exists()), shutil.which('esbuild'))
+if ESB and os.environ.get('NO_MINIFY') != '1':
+    files = [f for f in (OUT / 'assets').iterdir() if f.suffix in ('.js', '.css') and f.name != 'supabase.js']
+    before = sum(f.stat().st_size for f in files)
+    for f in files:
+        subprocess.run([ESB, str(f), '--minify', '--log-level=error', '--allow-overwrite', '--outfile=' + str(f)], check=True)
+    print(f'minified {len(files)} assets: {before // 1024} KB -> {sum(f.stat().st_size for f in files) // 1024} KB')
+else:
+    print('esbuild not found: assets left unminified')
 print('built', sum(1 for _ in OUT.rglob('*.html')), 'pages ·', len(public_paths), 'indexable')
 
 # Guard: a redirect whose source pattern also matches its own destination loops forever (this once broke /admin)

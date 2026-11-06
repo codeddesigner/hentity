@@ -30,7 +30,8 @@
 <div data-tabbar></div>
 <script src="/assets/data.js"></script>
 <script>
-H.mount({ active: '', tab: 'you' });
+// Only your own profile lights up the You tab
+H.mount({ active: '', tab: (API.profile && API.profile.username && location.pathname.split('/')[2] === API.profile.username) ? 'you' : '' });
 (async function () {
   const { qs, qsa, icon, flag, esc, store, toast, plogo, avatar } = H;
   const handle = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || '');

@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=88a42d4d6f">
+<link rel="stylesheet" href="/assets/styles.css?v=dc06054513">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=e3bd69782b"></script>
+<script src="/assets/api.js?v=314a151ce2"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -93,8 +93,8 @@ H.mount({ active: 'my-products', tab: 'launch' });
   qs('#medal-n').textContent = '#' + (rank || '—');
   if (rank > 3 || !rank) qs('.medal-big').style.background = 'var(--color-bg-muted)', qs('.medal-big').style.color = 'var(--color-text-primary)';
   else qs('.medal-big').style.background = `var(--award-${['gold', 'silver', 'bronze'][rank - 1]})`;
-  qs('#win-title').textContent = rank && rank <= 3 ? `${p.name} is ${rank === 1 ? 'Product' : '#' + rank + ' Product'} of the Week` : `${p.name} finished #${rank} of ${ranked.length}`;
-  qs('#win-sub').textContent = `Ranked #${rank} of ${ranked.length} launches. ${rank <= 3 ? 'The medal stays on your product page and your profile.' : 'Your page stays live and searchable permanently.'}`;
+  qs('#win-title').textContent = !rank ? `${p.name} launched in week ${p.week_id}` : rank <= 3 ? `${p.name} is ${rank === 1 ? 'Product' : '#' + rank + ' Product'} of the Week` : `${p.name} ${final ? 'finished' : 'is'} #${rank} of ${ranked.length}`;
+  qs('#win-sub').textContent = !rank ? 'Your page stays live and searchable permanently. Here’s how launch week went.' : `Ranked #${rank} of ${ranked.length} launches. ${rank <= 3 ? 'The medal stays on your product page and your profile.' : 'Your page stays live and searchable permanently.'}`;
   M.words(qs('#win-title'));
   qs('#k1').dataset.countTo = p.upvote_count; qs('#k2').dataset.countTo = p.comment_count; qs('#k3').dataset.countTo = p.follower_count; qs('#k4').dataset.countTo = p.click_count;
   qs('#k4s').textContent = p.view_count ? `${(p.click_count / p.view_count * 100).toFixed(1)}% of ${p.view_count.toLocaleString('en-US')} views` : 'from your product page';

@@ -1,91 +1,18 @@
-/* Auth screens: brand panel (Figma "Auth brand panel" 23:3), mobile top bar, and shared validation. */
-(function () {
-  const { icon, logo, qs, store } = window.H;
-  function brand() {
-    return `<aside class="brand" aria-label="Live on Hentity today">
-      <a class="logo logo--lg logo--inverse" href="/" aria-label="Hentity home" style="--logo-knock:#000">${logo()}</a>
+(function(){const{icon:s,logo:m,qs:c,store:x}=window.H;function f(){return`<aside class="brand" aria-label="Live on Hentity today">
+      <a class="logo logo--lg logo--inverse" href="/" aria-label="Hentity home" style="--logo-knock:#000">${m()}</a>
       <div class="brand__pitch">
         <p class="t-eyebrow c-accent reveal">Live on Hentity today</p>
-        <p class="brand__title" id="brand-title">Discover what’s being built across Africa.</p>
-        <div class="brand__stack" id="brand-stack">${[0, 1, 2].map(() => '<div class="mini" style="height:60px;opacity:.15"></div>').join('')}</div>
+        <p class="brand__title" id="brand-title">Discover what\u2019s being built across Africa.</p>
+        <div class="brand__stack" id="brand-stack">${[0,1,2].map(()=>'<div class="mini" style="height:60px;opacity:.15"></div>').join("")}</div>
       </div>
       <div class="brand__proof" id="brand-proof"></div>
-    </aside>`;
-  }
-  async function fillBrand() {
-    const el = qs('#brand-stack'); if (!el) return;
-    M.words(qs('#brand-title'));
-    try {
-      const cur = await API.currentWeek();
-      const rows = (await API.board({ week: cur.id, limit: 6 })).filter(p => !p.promoted).slice(0, 3);
-      const voted = await API.myVotes(rows.map(p => p.id));
-      el.innerHTML = rows.map((l, i) => `<a class="mini reveal" style="--i:${i + 3}" href="/products/${l.slug}">${H.plogo(l, 32)}<span class="mini__text"><span>${H.esc(l.name)}</span><span>${H.esc(l.tagline)}</span></span><span class="mini__votes${voted.has(l.id) ? ' is-voted' : ''}">${icon('upvote', 'ic-12')}<span class="t-count">${l.upvote_count.toLocaleString('en-US')}</span></span></a>`).join('');
-      const st = await API.publicStats().catch(() => null);
-      if (!st || !st.products) return;   // nothing launched yet: show no numbers rather than made-up ones
-      qs('#brand-proof').innerHTML = [['products', st.products], ['countries', st.countries], ['makers', st.makers]].map(([l, n], i) => `<div class="reveal" style="--i:${i + 6}"><p class="stat__n" data-count-to="${n}">0</p><p class="stat__l">${l}</p></div>`).join('');
-      M.countUp(qs('#brand-proof'));
-    } catch (e) { el.innerHTML = ''; }
-  }
-  function mobileBar(back) {
-    return `<div class="auth__mobilebar">
-      <a class="logo" href="/" aria-label="Hentity home">${logo()}</a>
-      <a class="nav__icon" href="${back || '/'}" aria-label="Close">${icon('x', 'ic-20')}</a>
-    </div>`;
-  }
-  const b = qs('[data-brand]'); if (b) { b.outerHTML = brand(); fillBrand(); }
-  const m = qs('[data-mobilebar]'); if (m) m.outerHTML = mobileBar(m.dataset.back);
-
-  // password reveal buttons
-  document.querySelectorAll('[data-reveal]').forEach(btn => {
-    btn.innerHTML = icon('eye');
-    btn.addEventListener('click', () => {
-      const inp = btn.parentElement.querySelector('input');
-      const show = inp.type === 'password';
-      inp.type = show ? 'text' : 'password';
-      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-    });
-  });
-
-  const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
-  const next = () => { const n = H.params().get('next'); return n && n.startsWith('/') && !n.startsWith('//') ? n : '/'; };
-  function friendly(m) {
-    if (/Signups not allowed|User not found/i.test(m)) return ['No account uses this email', 'Check the address, or create an account with your work email.'];
-    if (/expired|invalid.*(otp|token)|Token has expired/i.test(m)) return ['That code didn’t work', 'Codes expire after an hour and only work once. Use the newest one, or send a new code.'];
-    if (/For security purposes|after \d+ seconds/i.test(m)) return ['Wait a moment', 'You can request another code in a minute.'];
-    if (/rate limit|too many/i.test(m)) return ['Too many attempts', 'Wait a few minutes, then request a new code.'];
-    if (/WORK_EMAIL_REQUIRED|Database error saving new user|Error updating user/i.test(m)) return ['Use your work email or Gmail', 'Use a company email address or Gmail. Other personal inboxes like Yahoo or Outlook.com aren’t accepted'];
-    if (/already registered|already been registered/i.test(m)) return ['This email already has an account', 'Sign in instead — we’ll email you a code.'];
-    return ['Something went wrong', m];
-  }
-  // Code step: replaces a form with a 6-digit code entry. opts: { email, title, resend(), verified(), back() }
-  function codeStep(form, opts) {
-    const wrap = document.createElement('form'); wrap.className = 'auth__form reveal'; wrap.noValidate = true; wrap.id = 'code-form';
-    wrap.innerHTML = `<div class="icon-badge">${icon('mail')}</div>
-      <div class="auth__heading"><h1 class="t-h2">${H.esc(opts.title || 'Check your email')}</h1><p class="c-2">We sent a sign-in code to <b style="color:var(--color-text-primary)">${H.esc(opts.email)}</b>. Enter it below to continue.</p></div>
-      <div class="alert alert--error" id="code-err" role="alert" hidden>${icon('alert-circle')}<div><p class="alert__title" id="code-err-t"></p><p class="alert__body" id="code-err-b"></p></div></div>
-      <div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="••••••" style="letter-spacing:.4em;font-size:22px;text-align:center"></div>
+    </aside>`}async function g(){const e=c("#brand-stack");if(e){M.words(c("#brand-title"));try{const o=await API.currentWeek(),t=(await API.board({week:o.id,limit:6})).filter(a=>!a.promoted).slice(0,3),r=await API.myVotes(t.map(a=>a.id));e.innerHTML=t.map((a,l)=>`<a class="mini reveal" style="--i:${l+3}" href="/products/${a.slug}">${H.plogo(a,32)}<span class="mini__text"><span>${H.esc(a.name)}</span><span>${H.esc(a.tagline)}</span></span><span class="mini__votes${r.has(a.id)?" is-voted":""}">${s("upvote","ic-12")}<span class="t-count">${a.upvote_count.toLocaleString("en-US")}</span></span></a>`).join("");const i=await API.publicStats().catch(()=>null);if(!i||!i.products)return;c("#brand-proof").innerHTML=[["products",i.products],["countries",i.countries],["makers",i.makers]].map(([a,l],d)=>`<div class="reveal" style="--i:${d+6}"><p class="stat__n" data-count-to="${l}">0</p><p class="stat__l">${a}</p></div>`).join(""),M.countUp(c("#brand-proof"))}catch{e.innerHTML=""}}}function w(e){return`<div class="auth__mobilebar">
+      <a class="logo" href="/" aria-label="Hentity home">${m()}</a>
+      <a class="nav__icon" href="${e||"/"}" aria-label="Close">${s("x","ic-20")}</a>
+    </div>`}const v=c("[data-brand]");v&&(v.outerHTML=f(),g());const p=c("[data-mobilebar]");p&&(p.outerHTML=w(p.dataset.back)),document.querySelectorAll("[data-reveal]").forEach(e=>{e.innerHTML=s("eye"),e.addEventListener("click",()=>{const o=e.parentElement.querySelector("input"),t=o.type==="password";o.type=t?"text":"password",e.setAttribute("aria-label",t?"Hide password":"Show password")})});const k=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e),_=()=>{const e=H.params().get("next");return e&&e.startsWith("/")&&!e.startsWith("//")?e:"/"};function b(e){return/Signups not allowed|User not found/i.test(e)?["No account uses this email","Check the address, or create an account with your work email."]:/expired|invalid.*(otp|token)|Token has expired/i.test(e)?["That code didn\u2019t work","Codes expire after an hour and only work once. Use the newest one, or send a new code."]:/For security purposes|after \d+ seconds/i.test(e)?["Wait a moment","You can request another code in a minute."]:/rate limit|too many/i.test(e)?["Too many attempts","Wait a few minutes, then request a new code."]:/WORK_EMAIL_REQUIRED|Database error saving new user|Error updating user/i.test(e)?["Use your work email or Gmail","Use a company email address or Gmail. Other personal inboxes like Yahoo or Outlook.com aren\u2019t accepted"]:/already registered|already been registered/i.test(e)?["This email already has an account","Sign in instead \u2014 we\u2019ll email you a code."]:["Something went wrong",e]}function S(e,o){const t=document.createElement("form");t.className="auth__form reveal",t.noValidate=!0,t.id="code-form",t.innerHTML=`<div class="icon-badge">${s("mail")}</div>
+      <div class="auth__heading"><h1 class="t-h2">${H.esc(o.title||"Check your email")}</h1><p class="c-2">We sent a sign-in code to <b style="color:var(--color-text-primary)">${H.esc(o.email)}</b>. Enter it below to continue.</p></div>
+      <div class="alert alert--error" id="code-err" role="alert" hidden>${s("alert-circle")}<div><p class="alert__title" id="code-err-t"></p><p class="alert__body" id="code-err-b"></p></div></div>
+      <div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022" style="letter-spacing:.4em;font-size:22px;text-align:center"></div>
       <button class="btn btn--primary btn--block" type="submit" id="code-go" disabled>Continue</button>
       <div class="auth__row"><button class="link" type="button" id="code-resend" disabled>Resend code</button><button class="link" type="button" id="code-back">Use a different email</button></div>
-      <p class="t-caption c-3" style="font-weight:400;text-align:center">Can’t find it? Check spam, or search your inbox for “Hentity”.</p>`;
-    form.replaceWith(wrap);
-    const inp = wrap.querySelector('#code'), go = wrap.querySelector('#code-go'), rs = wrap.querySelector('#code-resend');
-    let autoT;
-    inp.focus();
-    let t; const cool = () => { let n = 60; rs.disabled = true; clearInterval(t); const tick = () => { rs.textContent = n > 0 ? `Resend code (0:${String(n).padStart(2, '0')})` : 'Resend code'; rs.disabled = n > 0; n--; if (n < -1) clearInterval(t); }; tick(); t = setInterval(tick, 1000); };
-    cool();
-    const showErr = ([a, b]) => { wrap.querySelector('#code-err-t').textContent = a; wrap.querySelector('#code-err-b').textContent = b; wrap.querySelector('#code-err').hidden = false; wrap.querySelector('#f-code').classList.add('is-error'); };
-    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 8); go.disabled = inp.value.length < 6; wrap.querySelector('#code-err').hidden = true; wrap.querySelector('#f-code').classList.remove('is-error'); clearTimeout(autoT); const n = inp.value.length;
-      // Codes are 6 digits (or 8 if the project is set that way): submit at 8 at once, or at 6 after a short pause in typing
-      if (!inp.dataset.auto && (n === 8 || n === 6)) autoT = setTimeout(() => { if (inp.value.length === n && !inp.dataset.auto) { inp.dataset.auto = 1; wrap.requestSubmit(); } }, n === 8 ? 0 : 900); });
-    wrap.addEventListener('submit', async e => {
-      e.preventDefault(); if (inp.value.length < 6) return;
-      go.disabled = true; go.innerHTML = icon('clock', 'spin') + 'Checking';
-      try { await API.auth.verifyCode(opts.email, inp.value); await opts.verified(); }
-      catch (ex) { showErr(friendly(ex.message)); inp.select(); delete inp.dataset.auto; go.disabled = false; go.textContent = 'Continue'; }
-    });
-    rs.addEventListener('click', async () => { try { await opts.resend(); H.toast('New code sent'); cool(); } catch (ex) { showErr(friendly(ex.message)); } });
-    wrap.querySelector('#code-back').addEventListener('click', () => { clearInterval(t); opts.back ? opts.back() : location.reload(); });
-    return wrap;
-  }
-  window.Auth = { emailOk, next, friendly, codeStep };
-})();
+      <p class="t-caption c-3" style="font-weight:400;text-align:center">Can\u2019t find it? Check spam, or search your inbox for \u201CHentity\u201D.</p>`,e.replaceWith(t);const r=t.querySelector("#code"),i=t.querySelector("#code-go"),a=t.querySelector("#code-resend");let l;r.focus();let d;const h=()=>{let n=60;a.disabled=!0,clearInterval(d);const u=()=>{a.textContent=n>0?`Resend code (0:${String(n).padStart(2,"0")})`:"Resend code",a.disabled=n>0,n--,n<-1&&clearInterval(d)};u(),d=setInterval(u,1e3)};h();const y=([n,u])=>{t.querySelector("#code-err-t").textContent=n,t.querySelector("#code-err-b").textContent=u,t.querySelector("#code-err").hidden=!1,t.querySelector("#f-code").classList.add("is-error")};return r.addEventListener("input",()=>{r.value=r.value.replace(/\D/g,"").slice(0,8),i.disabled=r.value.length<6,t.querySelector("#code-err").hidden=!0,t.querySelector("#f-code").classList.remove("is-error"),clearTimeout(l);const n=r.value.length;!r.dataset.auto&&(n===8||n===6)&&(l=setTimeout(()=>{r.value.length===n&&!r.dataset.auto&&(r.dataset.auto=1,t.requestSubmit())},n===8?0:900))}),t.addEventListener("submit",async n=>{if(n.preventDefault(),!(r.value.length<6)){i.disabled=!0,i.innerHTML=s("clock","spin")+"Checking";try{await API.auth.verifyCode(o.email,r.value),await o.verified()}catch(u){y(b(u.message)),r.select(),delete r.dataset.auto,i.disabled=!1,i.textContent="Continue"}}}),a.addEventListener("click",async()=>{try{await o.resend(),H.toast("New code sent"),h()}catch(n){y(b(n.message))}}),t.querySelector("#code-back").addEventListener("click",()=>{clearInterval(d),o.back?o.back():location.reload()}),t}window.Auth={emailOk:k,next:_,friendly:b,codeStep:S}})();
