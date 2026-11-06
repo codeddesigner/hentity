@@ -151,26 +151,27 @@ language plpgsql security definer set search_path = public, extensions as $$
 declare k text; tos text[]; pname text; owner_email text; owner_name text; total int;
 begin
   if new.status <> 'awaiting_payment' or (tg_op = 'UPDATE' and old.status = 'awaiting_payment') then return new; end if;
+  total := new.airtime_amount * new.spots + ceil(new.airtime_amount * new.spots * public.beta_fee_pct());
   begin
     select decrypted_secret into k from vault.decrypted_secrets where name = 'resend_review_alerts' limit 1;
     select array_agg(email) into tos from profiles where role = 'admin' and coalesce(email, '') <> '' and not banned;
-    if k is null or tos is null then return new; end if;
-    select p.name, pr.email, pr.name into pname, owner_email, owner_name from products p left join profiles pr on pr.id = new.owner_id where p.id = new.product_id;
-    total := new.airtime_amount * new.spots + ceil(new.airtime_amount * new.spots * public.beta_fee_pct());
-    perform net.http_post(
-      url := 'https://api.resend.com/emails',
-      headers := jsonb_build_object('Authorization', 'Bearer ' || k, 'Content-Type', 'application/json'),
-      body := jsonb_build_object('from', 'Hentity Betas <noreply@hentity.com>', 'to', to_jsonb(tos),
-        'subject', 'Payment needed: ' || pname || ' beta · ₦' || to_char(total, 'FM999,999,999'),
-        'html', '<div style="font-family:Arial,sans-serif;max-width:560px"><h2 style="margin:0 0 6px">' || h_esc(new.title) || '</h2><p style="color:#555">' || h_esc(pname) || ' · ' || h_esc(coalesce(owner_name, '')) || ' · ' || h_esc(coalesce(owner_email, '')) || '</p>'
-          || '<p>Airtime: ' || new.spots || ' testers × ₦' || to_char(new.airtime_amount, 'FM999,999') || ' + 5% fee = <b>₦' || to_char(total, 'FM999,999,999') || '</b></p>'
-          || '<p>Send the maker payment details. When the money is in, mark it paid in Admin → Beta tests and the call goes live.</p>'
-          || '<p style="margin:24px 0"><a href="https://hentity.com/admin#betas" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:bold">Open Admin</a></p></div>'));
+    if k is not null and tos is not null then
+      select p.name, pr.email, pr.name into pname, owner_email, owner_name from products p left join profiles pr on pr.id = new.owner_id where p.id = new.product_id;
+      perform net.http_post(
+        url := 'https://api.resend.com/emails',
+        headers := jsonb_build_object('Authorization', 'Bearer ' || k, 'Content-Type', 'application/json'),
+        body := jsonb_build_object('from', 'Hentity Betas <noreply@hentity.com>', 'to', to_jsonb(tos),
+          'subject', 'Payment needed: ' || pname || ' beta · ₦' || to_char(total, 'FM999,999,999'),
+          'html', '<div style="font-family:Arial,sans-serif;max-width:560px"><h2 style="margin:0 0 6px">' || h_esc(new.title) || '</h2><p style="color:#555">' || h_esc(pname) || ' · ' || h_esc(coalesce(owner_name, '')) || ' · ' || h_esc(coalesce(owner_email, '')) || '</p>'
+            || '<p>Airtime: ' || new.spots || ' testers × ₦' || to_char(new.airtime_amount, 'FM999,999') || ' + 5% fee = <b>₦' || to_char(total, 'FM999,999,999') || '</b></p>'
+            || '<p>Send the maker payment details. When the money is in, mark it paid in Admin → Beta tests and the call goes live.</p>'
+            || '<p style="margin:24px 0"><a href="https://hentity.com/admin#betas" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:bold">Open Admin</a></p></div>'));
+    end if;
   exception when others then raise warning 'beta payment email failed: %', sqlerrm;
   end;
   if new.owner_id is not null then
     insert into notifications (user_id, type, grp, product_id, title, body, link)
-    values (new.owner_id, 'beta_payment', 'launches', new.product_id, 'Your beta call is waiting for payment', 'Hentity will email you how to pay ₦' || to_char(total, 'FM999,999,999') || '. It goes live once the money is in.', '/betas/' || new.id || '/manage');
+    values (new.owner_id, 'beta_payment', 'launches', new.product_id, 'Your beta call is waiting for payment', 'Hentity will email you how to pay ₦' || to_char(total, 'FM999,999,999') || '. It goes live once the money is in.', '/studio');
   end if;
   return new;
 end $$;
