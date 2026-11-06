@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=dc06054513">
+<link rel="stylesheet" href="/assets/styles.css?v=e22603bd77">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=314a151ce2"></script>
-<script src="/assets/app.js?v=33c0fc9946"></script>
+<script src="/assets/app.js?v=5919c37cb1"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -138,7 +138,10 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (m.kind === 'product' && m.product) body += `<div class="pcard stretch">${plogo(m.product, 40)}<a class="grow stretch-link" href="/products/${m.product.slug}" style="min-width:0"><p class="t-label row gap-6">${esc(m.product.name)}${m.product.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-2 truncate" style="font-weight:400">${esc(m.product.tagline)}</p></a>${D.upBtn(m.product)}</div>`;
     if (m.kind === 'voice') body += `<div><div class="voice" data-audio="${esc(m.attachment_url || '')}" data-dur="${m.duration || 0}"><button class="voice__play" type="button" aria-label="Play voice note">${icon('play')}</button><span class="wave">${wave(m.id, 0)}</span><span class="mono t-body-sm">${Math.floor((m.duration || 0) / 60)}:${String((m.duration || 0) % 60).padStart(2, '0')}</span></div>${m.transcript ? `<p class="t-caption c-2" style="margin-top:6px;font-weight:400"><button class="link" type="button" data-tr>Show transcript</button><span class="c-3"> · auto transcript</span></p><p class="t-body-sm c-2" hidden style="margin-top:4px">${esc(m.transcript)}</p>` : ''}</div>`;
     if (m.kind === 'image' && m.attachment_url) body += `<a href="${esc(m.attachment_url)}" target="_blank" rel="noopener"><img src="${esc(m.attachment_url)}" alt="Image from ${esc(nameOf(m))}" style="max-width:320px;max-height:260px;border-radius:12px;margin-top:8px;border:1px solid var(--color-border-default)"></a>`;
-    const replies = !opts.inThread && m.reply_count ? `<div class="replies"><span class="stackav">${(m._replyUsers || []).slice(0, 3).map(x => avatar(x, 24)).join('')}</span><button class="link link--accent" type="button" data-thread="${m.id}" style="font-size:13px">${m.reply_count} ${m.reply_count === 1 ? 'reply' : 'replies'}</button><span class="t-caption c-3" style="font-weight:400">Last reply ${H.ago(m.last_reply_at || m.created_at)}</span></div>` : '';
+    // Replies sit under the message they answer: the latest few inline, the rest one tap away in the thread
+    const rs = m._replies || [];
+    const replies = !opts.inThread && m.reply_count ? `<div class="inreplies">${rs.map(r => `<div class="inreply" data-mid="${r.id}">${avatar(r.user || {}, 20)}<div class="grow" style="min-width:0"><p class="inreply__meta"><b>${esc(nameOf(r))}</b><time datetime="${r.created_at}">${H.hhmm(r.created_at)}</time></p>${r.deleted ? '<p class="inreply__body c-3" style="font-style:italic">This reply was deleted.</p>' : r.kind === 'voice' ? '<p class="inreply__body c-2">🎤 Voice note</p>' : r.kind === 'image' ? '<p class="inreply__body c-2">📷 Photo</p>' : `<p class="inreply__body">${linkify(esc(r.body || ''))}</p>`}</div></div>`).join('')}
+      <button class="inreplies__more" type="button" data-thread="${m.id}">${icon('reply', 'ic-14')}${m.reply_count > rs.length ? `View all ${m.reply_count} replies` : 'Reply'}</button></div>` : '';
     return `<div class="msg${opts.fresh ? ' is-new' : ''}${thread && thread.id === m.id && !opts.inThread ? ' is-hl' : ''}" data-mid="${m.id}">
       <a href="/makers/${esc(u.username || '')}" tabindex="-1">${avatar(u, null)}</a>
       <div class="grow" style="min-width:0">
@@ -152,8 +155,8 @@ H.mount({ active: 'chats', tab: 'chats' });
   function dayLabel(ts) { const d = new Date(ts), t = new Date(); const y = new Date(t - 864e5); return d.toDateString() === t.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }); }
   async function hydrateReplies(list) {
     const ids = list.filter(m => m.reply_count).map(m => m.id); if (!ids.length) return;
-    const { data } = await API.sb.from('messages').select('parent_id,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('parent_id', ids).order('created_at', { ascending: false }).limit(100);
-    list.forEach(m => { const seen = new Set(); m._replyUsers = (data || []).filter(r => r.parent_id === m.id && r.user && !seen.has(r.user.id) && seen.add(r.user.id)).map(r => r.user); });
+    const { data } = await API.sb.from('messages').select('id,parent_id,body,kind,deleted,created_at,user_id,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('parent_id', ids).order('created_at', { ascending: false }).limit(300);
+    list.forEach(m => { m._replies = (data || []).filter(r => r.parent_id === m.id).slice(0, 3).reverse(); });
   }
   function renderMsgs(scroll) {
     const box = qs('#cscroll'); const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
@@ -306,7 +309,7 @@ H.mount({ active: 'chats', tab: 'chats' });
         const full = await API.message(id); if (!full) return;
         if (full.product) { D.remember([Object.assign({ effective_status: 'live' }, full.product)]); }
         if (!full.parent_id || full.also_in_channel) { if (!msgs.some(m => m.id === full.id)) { msgs.push(full); renderMsgs(full.user_id === API.uid); const el = qs(`[data-mid="${full.id}"]`); el && el.classList.add('is-new'); } }
-        if (full.parent_id) { const parent = msgs.find(m => m.id === full.parent_id); if (parent) { parent._seen = parent._seen || new Set(); if (parent._seen.has(full.id)) return; parent._seen.add(full.id); parent.reply_count = (parent.reply_count || 0) + 1; parent.last_reply_at = full.created_at; parent._replyUsers = [full.user, ...(parent._replyUsers || []).filter(u => u && u.id !== full.user_id)]; renderMsgs(); } if (thread && thread.id === full.parent_id) appendThread(full); }
+        if (full.parent_id) { const parent = msgs.find(m => m.id === full.parent_id); if (parent) { parent._seen = parent._seen || new Set(); if (parent._seen.has(full.id)) return; parent._seen.add(full.id); parent.reply_count = (parent.reply_count || 0) + 1; parent.last_reply_at = full.created_at; parent._replies = [...(parent._replies || []).filter(r => r.id !== full.id), full].slice(-3); renderMsgs(); } if (thread && thread.id === full.parent_id) appendThread(full); }
   }
   qs('#composer').addEventListener('submit', async e => {
     e.preventDefault(); if (!cur) return; const v = ta.value.trim(); if (!v && !attach && !shareProduct) return;

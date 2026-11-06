@@ -204,7 +204,7 @@
     if (['insights', 'saved'].includes(page) && items.some(([k]) => k === page)) active = page;
     return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
       ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
-      : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s && counts.chats ? `<span class="tab-badge">${counts.chats}</span>` : ''}</a>`).join('')}</nav>`;
+      : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s ? `<span class="tab-badge"${counts.chats ? '' : ' hidden'}>${counts.chats || ''}</span>` : ''}</a>`).join('')}</nav>`;
   }
   function setCount(key, n) {
     counts[key] = n; store.set('count.' + key, n);
@@ -353,7 +353,10 @@
         setCount('chats', Object.values(b.by_channel || {}).reduce((a, n) => a + n, 0));
       } catch (e) {}
     }
-    API.ready.then(() => { renderShell(); refreshCounts(); if (API.session) stopN = API.live('notif', 'notifications', 'user_id=eq.' + API.uid, () => refreshCounts()); });
+    // New chat messages and notifications update the badges on every page, not just Chats
+    let rt; const soonRefresh = () => { clearTimeout(rt); rt = setTimeout(refreshCounts, 800); };
+    API.ready.then(() => { renderShell(); refreshCounts(); if (API.session) { stopN = API.live('notif', 'notifications', 'user_id=eq.' + API.uid, soonRefresh); if (!/^\/chats/.test(location.pathname)) API.live('chat-badge', 'messages', null, ({ new: n }) => { if (n && n.user_id !== API.uid) soonRefresh(); }); } });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCounts(); });
     API.onAuth((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT' || ev === 'USER_UPDATED' || ev === 'PROFILE_REFRESHED') renderShell(); });
   }
 

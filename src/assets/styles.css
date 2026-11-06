@@ -159,6 +159,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .chip[aria-pressed="true"] .ic,.chip.is-selected .ic{display:block}
 .chip--lg{height:36px;padding:0 15px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips>*,.filters>*{flex-shrink:0}
 
 /* badges */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--radius-sm);font-size:12px;line-height:16px;font-weight:500;background:var(--color-bg-muted);color:var(--color-text-secondary);white-space:nowrap}
@@ -642,6 +643,13 @@ body.chat-page{overflow:hidden}
 .react:active{transform:scale(.9)}
 .react .ic{width:12px;height:12px}
 .react.is-mine{border-color:var(--color-accent-default);color:var(--color-accent-default);background:var(--color-accent-subtle)}
+.inreplies{margin-top:8px;padding-left:12px;border-left:2px solid var(--color-border-default);display:flex;flex-direction:column;gap:8px}
+.inreply{display:flex;gap:8px;align-items:flex-start}
+.inreply .avatar{flex:none;margin-top:1px;width:24px;height:24px;font-size:9px}
+.inreply__meta{display:flex;gap:6px;align-items:baseline;font-size:12.5px;line-height:16px}
+.inreply__meta b{font-weight:500}.inreply__meta time{color:var(--color-text-tertiary);font-size:11px}
+.inreply__body{font-size:14px;line-height:20px;word-break:break-word}
+.inreplies__more{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:13px;font-weight:500;color:var(--color-accent-default);padding:4px 0}
 .replies{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
 .replies .stackav{display:flex}.replies .stackav .avatar{width:18px;height:18px;font-size:7px;margin-right:-5px;border:1.5px solid var(--color-bg-canvas)}
 .pcard{display:flex;align-items:center;gap:12px;max-width:480px;padding:12px 14px;margin-top:8px;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);background:var(--color-bg-canvas)}
