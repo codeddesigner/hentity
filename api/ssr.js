@@ -99,7 +99,7 @@ async function build(type, slug) {
     const cname = cc ? COUNTRY[cc] : '';
     const h1 = cat ? `${cat} products and startups from Africa` : cc ? `Startups and products built in ${cname}` : 'Directory of products built across Africa';
     const title = cat ? `Best ${cat} startups and products in Africa (${new Date().getFullYear()}) | Hentity` : cc ? `Best startups and products from ${cname} (${new Date().getFullYear()}) | Hentity` : 'African startup and product directory | Hentity';
-    const lead = cat ? `${rows.length} ${cat.toLowerCase()} product${rows.length === 1 ? '' : 's'} launched by makers across Africa, ranked by the Hentity community. Compare features, payment methods and countries served.`
+    const lead = cat ? `${rows.length} ${cat} product${rows.length === 1 ? '' : 's'} launched by makers across Africa, ranked by the Hentity community. Compare features, payment methods and countries served.`
       : cc ? `${rows.length} product${rows.length === 1 ? '' : 's'} built by founders in ${cname}, ranked by the Hentity community. Find tools that work with local payments and languages.`
       : `${rows.length} products built by makers across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage and sector.`;
     const path = cat ? S.catUrl(cat) : cc ? S.countryUrl(cc) : '/directory';
