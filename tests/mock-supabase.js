@@ -108,6 +108,7 @@
     contains(c, v) { this.f.push(r => v.every(x => (r[c] || []).includes(x))); return this; }
     overlaps(c, v) { this.f.push(r => v.some(x => (r[c] || []).includes(x))); return this; }
     order(c, o) { this.ord.push([c, !o || o.ascending !== false]); return this; }
+    range(a, b) { this.lim = b - a + 1; return this; }
     limit(n) { this.lim = n; return this; }
     maybeSingle() { this.one = 'maybe'; return this; } single() { this.one = 'single'; return this; }
     insert(v) { this.op = 'insert'; this.val = v; return this; } upsert(v) { this.op = 'upsert'; this.val = v; return this; }

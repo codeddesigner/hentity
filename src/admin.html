@@ -254,7 +254,7 @@ H.mount();
     const srcs = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean));
     return [
       [!!r.country, r.country ? `Built in Africa: HQ ${esc([r.city, H.COUNTRY[r.country] || r.country].filter(Boolean).join(', '))}` : 'Country unknown'],
-      [!!r.website, r.website ? `Real product: ${esc(domainOf(r.website))}` : 'No website found'],
+      [!!r.website && !(r.checks && r.checks.dns === false), !r.website ? 'No website found' : r.checks && r.checks.dns === false ? `${esc(domainOf(r.website))} doesn’t resolve. The site may be gone.` : r.checks && r.checks.dns ? `Real product: ${esc(domainOf(r.website))} resolves` : `Real product: ${esc(domainOf(r.website))}`],
       [!dupe, dupe ? `Possible duplicate of <a class="link" href="/products/${esc(dupe.slug)}" target="_blank">${esc(dupe.name)}</a>` : 'Not already on Hentity (no domain or name match)'],
       [!(r.facts || []).some(f => personal.test(f.value || '')), (r.facts || []).some(f => personal.test(f.value || '')) ? 'A fact looks like a personal phone or email. Remove it.' : 'Only business information: no personal phone numbers or emails'],
       [srcs.size >= 2, `${srcs.size} independent source${srcs.size === 1 ? '' : 's'}${srcs.size < 2 ? ': find one more before publishing' : ''}`]];
@@ -262,6 +262,7 @@ H.mount();
   const conf = r => { const n = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(x => x.source)].filter(Boolean)).size; return Math.min(95, 25 + n * 15 + (r.website ? 10 : 0) + (r.country ? 5 : 0)); };
   const lines = (arr, keys) => (arr || []).map(o => keys.map(k => o[k] || '').join(' | ')).join('\n');
   const unlines = (txt, keys) => String(txt || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const p = l.split('|').map(x => x.trim()); const o = {}; keys.forEach((k, i) => { if (p[i]) o[k] = p[i]; }); return o; });
+  const RCC = Object.assign({ EG: 'Egypt', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', SN: 'Senegal', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', BJ: 'Benin', TG: 'Togo', BF: 'Burkina Faso', CD: 'DR Congo', SL: 'Sierra Leone', GN: 'Guinea', SO: 'Somalia', SD: 'Sudan' }, H.COUNTRY);
   const FACT_KEYS = ['label', 'value', 'source', 'url', 'date'], NEWS_KEYS = ['title', 'source', 'url', 'date'];
   function radarForm(r, done) {
     drawer(r ? 'Edit ' + r.name : 'Add a startup by URL', [
@@ -281,18 +282,35 @@ H.mount();
   }
   V.radar = async (arg) => {
     nav('radar');
-    const tab = ['review', 'published', 'rejected', 'merged'].includes(arg) ? arg : 'review';
-    const [rows, counts] = await Promise.all([API.radar(tab), API.radarCounts()]);
+    const tab = ['review', 'published', 'rejected', 'merged'].includes(String(arg || '').split('?')[0]) ? String(arg).split('?')[0] : 'review';
+    const F = V.radar.f || (V.radar.f = { q: '', cc: '' });
+    let rows, counts;
+    try { [rows, counts] = await Promise.all([API.radar(tab, F), API.radarCounts()]); } catch (e) { H.fail(e); return; }
     let sel = rows[0] || null;
     const bar = n => `<span class="row" style="gap:3px">${[0, 1, 2, 3, 4].map(i => `<i style="width:14px;height:5px;border-radius:3px;background:${i < n ? 'var(--color-text-primary)' : 'var(--color-bg-muted)'}"></i>`).join('')}</span>`;
     const pct = c => `<span class="badge" style="background:${c >= 75 ? '#e9f8ee;color:#15803d' : c >= 50 ? '#fff6e5;color:#b45309' : '#fdecec;color:#b91c1c'}">${c}%</span>`;
     const nsrc = r => new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean)).size;
     qs('#main').innerHTML = head('Radar', 'Startups found in public sources. Nothing goes public until someone here approves it.', `<button class="btn btn--secondary btn--sm" id="add">${icon('link', 'ic-14')}Add a startup by URL</button>`)
-      + `<div class="chips" style="margin-bottom:16px">${[['review', 'To review'], ['published', 'Published'], ['rejected', 'Rejected'], ['merged', 'Merged']].map(([k, l]) => `<a class="chip" href="#radar/${k}" aria-pressed="${k === tab}">${k === tab ? icon('check') : ''}${l} · ${counts[k] || 0}</a>`).join('')}</div>
+      + `<div class="chips" style="margin-bottom:12px">${[['review', 'To review'], ['published', 'Published'], ['rejected', 'Rejected'], ['merged', 'Merged']].map(([k, l]) => `<a class="chip" href="#radar/${k}" aria-pressed="${k === tab}">${k === tab ? icon('check') : ''}${l} · ${D.fmt ? D.fmt(counts[k] || 0) : counts[k] || 0}</a>`).join('')}</div>
+      <div class="row gap-8 wrap" style="margin-bottom:16px"><input class="input" id="rd-q" placeholder="Search name or domain" value="${esc(F.q)}" style="max-width:260px;height:36px"><select class="input" id="rd-cc" style="max-width:200px;height:36px"><option value="">All countries</option>${Object.entries(RCC).map(([k, v]) => `<option value="${k}"${F.cc === k ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>
+        <span class="t-caption c-3" style="font-weight:400">Showing ${rows.length}${rows.length === 200 ? '+' : ''}</span>${tab === 'review' ? `<button class="btn btn--secondary btn--sm" id="rd-bulk" style="margin-left:auto">${icon('check', 'ic-14')}Publish the ones that pass</button>` : ''}</div>
       <div style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start" class="rd-grid">
         <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th></tr></thead><tbody>${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555' }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${r.confidence < 50 ? '<span class="badge" style="background:#fff6e5;color:#b45309">Low signal</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td></tr>`).join('')}</tbody></table>` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
         <div id="rd-detail"></div></div><style>@media(max-width:1100px){.rd-grid{grid-template-columns:1fr!important}}</style>`;
     qs('#add').onclick = () => radarForm(null, () => V.radar('review'));
+    let tq; qs('#rd-q').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { F.q = e.target.value.trim(); V.radar(tab); }, 350); };
+    qs('#rd-cc').onchange = e => { F.cc = e.target.value; V.radar(tab); };
+    // Bulk: publish every row shown here whose website resolves, that isn't already on Hentity and has no personal details
+    qs('#rd-bulk') && (qs('#rd-bulk').onclick = async () => {
+      const ok = rows.filter(r => r.website && r.checks && r.checks.dns === true && !(r.facts || []).some(f => personal.test(f.value || '')));
+      if (!ok.length) { toast('Nothing shown here has a verified website yet', 'error'); return; }
+      if (!confirm(`Publish ${ok.length} of the ${rows.length} shown as unclaimed profiles? Each one’s website resolves. Possible duplicates are skipped.`)) return;
+      const b = qs('#rd-bulk'); b.disabled = true; let done = 0, skipped = 0;
+      for (const r of ok) {
+        try { if (await API.radarDupe(r.id)) { skipped++; continue; } await API.radarPublish(r.id, false); done++; b.textContent = `Publishing… ${done}/${ok.length}`; } catch (e) { skipped++; }
+      }
+      toast(`Published ${done}${skipped ? `, skipped ${skipped} (possible duplicates or errors)` : ''}`); V.radar(tab);
+    });
     async function detail(r) {
       const box = qs('#rd-detail'); if (!r) { box.innerHTML = ''; return; }
       const dupeId = r.status === 'review' ? await API.radarDupe(r.id).catch(() => null) : null;
