@@ -179,7 +179,7 @@
           : `<div class="grid-2" style="gap:8px"><a class="btn btn--secondary btn--sm" href="/signin">Sign in</a><a class="btn btn--primary btn--sm" href="/signup">Join</a></div>`}
       </div>
     </aside>
-    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4"><button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
+    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4"><a class="nav__icon" href="/insights" aria-label="Insights"${active === 'insights' ? ' aria-current="page"' : ''}>${icon('bar-chart', 'ic-20')}</a><button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
   }
   function tabbar(active) {
     const s = session();
