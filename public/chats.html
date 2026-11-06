@@ -18,8 +18,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d1c5db7c3f"></script>
-<script src="/assets/app.js?v=8648ab500a"></script>
+<script src="/assets/api.js?v=8fd54c222e"></script>
+<script src="/assets/app.js?v=06a985ae0d"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Chats · Hentity</title>
 <meta name="description" content="Talk to African makers in real time: launch-week channels, product rooms where makers answer first, and direct messages.">
@@ -87,9 +87,7 @@ H.mount({ active: 'chats', tab: 'chats' });
 
   // ---------- list
   async function loadList() {
-    channels = await API.channels();
-    const mem = await API.myMemberships();
-    unread = API.uid ? await API.unreadByChannel(mem) : {};
+    [channels, unread] = await Promise.all([API.channels(), API.uid ? API.unreadByChannel() : {}]);
     const dmIds = channels.filter(c => c.kind === 'dm').map(c => c.id);
     const partners = await API.dmPartners(dmIds);
     dms = channels.filter(c => c.kind === 'dm').map(c => Object.assign(c, { other: (partners.find(x => x.channel_id === c.id) || {}).user }));

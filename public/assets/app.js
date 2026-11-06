@@ -307,9 +307,9 @@
     async function refreshCounts() {
       if (!API.session) return;
       try {
-        setCount('notifs', await API.unreadCount());
-        const mem = await API.myMemberships(); const un = await API.unreadByChannel(mem);
-        setCount('chats', Object.values(un).reduce((a, b) => a + b, 0));
+        const b = await API.badges();
+        setCount('notifs', b.notifications || 0);
+        setCount('chats', Object.values(b.by_channel || {}).reduce((a, n) => a + n, 0));
       } catch (e) {}
     }
     API.ready.then(() => { renderShell(); refreshCounts(); if (API.session) stopN = API.live('notif', 'notifications', 'user_id=eq.' + API.uid, () => refreshCounts()); });

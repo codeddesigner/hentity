@@ -57,9 +57,7 @@ H.mount({ active: 'chats', tab: 'chats' });
 
   // ---------- list
   async function loadList() {
-    channels = await API.channels();
-    const mem = await API.myMemberships();
-    unread = API.uid ? await API.unreadByChannel(mem) : {};
+    [channels, unread] = await Promise.all([API.channels(), API.uid ? API.unreadByChannel() : {}]);
     const dmIds = channels.filter(c => c.kind === 'dm').map(c => c.id);
     const partners = await API.dmPartners(dmIds);
     dms = channels.filter(c => c.kind === 'dm').map(c => Object.assign(c, { other: (partners.find(x => x.channel_id === c.id) || {}).user }));

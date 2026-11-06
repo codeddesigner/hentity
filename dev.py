@@ -11,7 +11,7 @@ class H(http.server.SimpleHTTPRequestHandler):
         for rx, dst in RW:
             if rx.match(p):
                 # SSR rewrites serve the static template locally (the function only adds meta tags)
-                m = re.match(r'/api/ssr\?type=(\w+)', dst); p = '/' + m.group(1) if m else dst; break
+                m = re.match(r'/api/ssr\?type=(\w+)', dst); p = {'home': '/home', 'news': '/news-index'}.get(m.group(1), '/' + m.group(1)) if m else dst; break
         if p == '/': p = '/index'
         f = PUB / p.lstrip('/')
         if not f.exists() and (PUB / (p.lstrip('/') + '.html')).exists(): return str(PUB / (p.lstrip('/') + '.html'))

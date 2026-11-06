@@ -184,7 +184,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     const ul = qs('#live'); fresh ? ul.prepend(li) : ul.append(li); while (ul.children.length > 5) ul.lastElementChild.remove();
   }
   (async () => {
-    const { data: recent } = await API.sb.from('comments').select('created_at,product:products(name),article:articles(title),user:profiles!comments_user_id_fkey(name,city,username,avatar_url,avatar_color)').eq('deleted', false).order('created_at', { ascending: false }).limit(5);
+    const recent = await API.recentComments();
     (recent || []).forEach(c => c.user && liveItem({ n: c.user.name.split(' ')[0], u: c.user }, `${c.user.name.split(' ')[0]} commented on ${c.product ? c.product.name : c.article ? 'a story' : 'a launch'}`, `${H.ago(c.created_at)}${c.user.city ? ' · ' + c.user.city : ''}`));
     if (!(recent || []).length) qs('#live').innerHTML = '<li class="t-body-sm c-3">Quiet right now. Upvotes and comments show up here live.</li>';
   })().catch(() => {});

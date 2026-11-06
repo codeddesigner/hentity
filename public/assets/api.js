@@ -12,6 +12,16 @@
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
+  // Server-rendered pages (api/ssr.js) embed the public data they need as window.__PRELOAD__, keyed like
+  // the calls below. Each entry is used once, then the normal network path takes over (filters, refreshes).
+  // After this member changes something (comment, vote, follow...), skip preloads for a minute so a cached
+  // page can never hide their own change.
+  let freshAt = 0; try { freshAt = +sessionStorage.getItem('hentity.fresh') || 0; } catch (e) {}
+  const PRE = Date.now() - freshAt < 60000 ? {} : (window.__PRELOAD__ || {});
+  let weekReq = null;
+  const touched = () => { try { sessionStorage.setItem('hentity.fresh', String(Date.now())); } catch (e) {} };
+  const pre = (key, fetcher) => { if (Object.prototype.hasOwnProperty.call(PRE, key)) { const v = PRE[key]; delete PRE[key]; return Promise.resolve(v); } return fetcher(); };
+
   const PROFILE_KEY = 'hentity.profile.cache';
   let session = null, profile = null;
   try { profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch (e) {}
@@ -83,33 +93,38 @@
     async updateProfile(patch) { err((await sb.from('profiles').update(patch).eq('id', uid())).error); const r = await loadProfile(); try { localStorage.setItem(PROFILE_KEY, JSON.stringify(r)); } catch (e) {} return r; },
     async usernameAvailable(u) { const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle(); return !data || data.id === uid(); },
     workEmailOk: async e => { const { data, error } = await sb.rpc('work_email_ok', { e }); err(error); return !!data; },
-    profileByUsername: u => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle()),
-    profilesByIds: ids => ids.length ? q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,is_verified').in('id', ids)) : Promise.resolve([]),
+    profileByUsername: u => pre('maker:' + u, () => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle())),
+    profilesByIds: ids => ids.length ? pre('profiles:' + ids.join(','), () => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,is_verified').in('id', ids))) : Promise.resolve([]),
     searchProfiles: (term) => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country').or(`username.ilike.%${term}%,name.ilike.%${term}%`).limit(8)),
 
     // ---------------- weeks & board
-    weekSlots: () => q(sb.rpc('week_slots')),
+    weekSlots: () => pre('slots', () => q(sb.rpc('week_slots'))),
     // The live week only changes on Monday 06:00 WAT, so keep it until it ends instead of asking on every page.
     async currentWeek() {
+      if (PRE.week) { const w = PRE.week; delete PRE.week; try { localStorage.setItem('hentity.week', JSON.stringify(w)); } catch (e) {} return w; }
       try { const c = JSON.parse(localStorage.getItem('hentity.week') || 'null'); if (c && new Date(c.starts_at) <= new Date() && new Date(c.ends_at) > new Date()) return c; } catch (e) {}
-      const now = new Date().toISOString(); const r = await q(sb.from('weeks').select('*').lte('starts_at', now).gt('ends_at', now).maybeSingle());
-      try { if (r) localStorage.setItem('hentity.week', JSON.stringify(r)); } catch (e) {}
-      return r;
+      // share one request between callers that ask at the same time
+      return weekReq || (weekReq = (async () => {
+        const now = new Date().toISOString(); const r = await q(sb.from('weeks').select('*').lte('starts_at', now).gt('ends_at', now).maybeSingle());
+        try { if (r) localStorage.setItem('hentity.week', JSON.stringify(r)); } catch (e) {}
+        return r;
+      })().finally(() => setTimeout(() => { weekReq = null; }, 0)));
     },
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     async board({ week, country, pay, limit } = {}) {
+      const key = `board:${week}:${country || 'all'}:${pay || ''}:${limit || 60}`; if (Object.prototype.hasOwnProperty.call(PRE, key)) return pre(key);
       let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).in('status', ['scheduled', 'live']);
       if (country && country !== 'all') s = s.eq('country', country);
       if (pay) s = s.contains('pay_methods', [pay]);
       const rows = await q(s.order('upvote_count', { ascending: false }).limit(limit || 60));
       return rows;
     },
-    upcoming: (week) => q(sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('status', 'scheduled').order('verified', { ascending: false }).limit(20)),
+    upcoming: (week) => pre('upcoming:' + week, () => q(sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('status', 'scheduled').order('verified', { ascending: false }).limit(20))),
     wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
-    product: slug => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle()),
-    productsByIds: ids => ids.length ? q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids)) : Promise.resolve([]),
-    company: id => id ? q(sb.from('companies').select('*').eq('id', id).maybeSingle()) : Promise.resolve(null),
-    makers: pid => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid)),
+    product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at').eq('slug', slug).maybeSingle())),
+    productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
+    company: id => id ? pre('company:' + id, () => q(sb.from('companies').select('*').eq('id', id).maybeSingle())) : Promise.resolve(null),
+    makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid))),
     async directory({ countries, pay, stages, sectors, langs, term, sort, scope }) {
       let s = sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']);
       if (scope === 'local') s = s.eq('country', 'NG'); else if (countries && countries.length) s = s.in('country', countries);
@@ -121,32 +136,35 @@
       const order = sort === 'az' ? ['name', true] : sort === 'new' ? ['created_at', false] : sort === 'votes' ? ['upvote_count', false] : ['follower_count', false];
       return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(100));
     },
-    alternatives: (p) => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3)),
+    alternatives: (p) => pre('alts:' + p.id, () => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3))),
 
     // ---------------- votes, follows, bookmarks
     async myVotes(ids) { if (!uid() || !ids.length) return new Set(); const r = await q(sb.from('upvotes').select('product_id').eq('user_id', uid()).in('product_id', ids)); return new Set(r.map(x => x.product_id)); },
-    async vote(pid, on) { requireAuth(); if (on) err((await sb.from('upvotes').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('upvotes').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
+    async vote(pid, on) { requireAuth(); touched(); if (on) err((await sb.from('upvotes').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('upvotes').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
     async following(type, ids) { if (!uid() || !ids.length) return new Set(); const r = await q(sb.from('follows').select('target_id').eq('follower_id', uid()).eq('target_type', type).in('target_id', ids)); return new Set(r.map(x => x.target_id)); },
-    async follow(type, id, on) { requireAuth(); if (on) err((await sb.from('follows').insert({ follower_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('follows').delete().eq('follower_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
-    followCounts: async (id) => ({
-      followers: await q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('target_type', 'user').eq('target_id', id)),
-      following: await q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id)),
-      upvotes: await q(sb.from('upvotes').select('*', { count: 'exact', head: true }).eq('user_id', id))
-    }),
+    async follow(type, id, on) { requireAuth(); touched(); if (on) err((await sb.from('follows').insert({ follower_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('follows').delete().eq('follower_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
+    async followCounts(id) {
+      const [followers, following, upvotes] = await Promise.all([
+        q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('target_type', 'user').eq('target_id', id)),
+        q(sb.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id)),
+        q(sb.from('upvotes').select('*', { count: 'exact', head: true }).eq('user_id', id))]);
+      return { followers, following, upvotes };
+    },
     async bookmarks(type) { if (!uid()) return []; return q(sb.from('bookmarks').select('target_id,created_at').eq('user_id', uid()).eq('target_type', type).order('created_at', { ascending: false })); },
-    async bookmark(type, id, on) { requireAuth(); if (on) err((await sb.from('bookmarks').insert({ user_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('bookmarks').delete().eq('user_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
+    async bookmark(type, id, on) { requireAuth(); touched(); if (on) err((await sb.from('bookmarks').insert({ user_id: uid(), target_type: type, target_id: id })).error); else err((await sb.from('bookmarks').delete().eq('user_id', uid()).eq('target_type', type).eq('target_id', id)).error); },
     async isBookmarked(type, id) { if (!uid()) return false; const r = await q(sb.from('bookmarks').select('target_id').eq('user_id', uid()).eq('target_type', type).eq('target_id', id).maybeSingle()); return !!r; },
     async notifyRequests() { if (!uid()) return new Set(); const r = await q(sb.from('notify_requests').select('product_id').eq('user_id', uid())); return new Set(r.map(x => x.product_id)); },
-    async notifyMe(pid, on) { requireAuth(); if (on) err((await sb.from('notify_requests').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('notify_requests').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
+    async notifyMe(pid, on) { requireAuth(); touched(); if (on) err((await sb.from('notify_requests').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('notify_requests').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
     trackClick: pid => sb.rpc('track_click', { p: pid }),
     trackView: pid => sb.rpc('track_view', { p: pid }),
     upvotedBy: (userId) => q(sb.from('upvotes').select('product_id,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(30)),
     votesByDay: (pid) => q(sb.from('upvotes').select('created_at').eq('product_id', pid).gte('created_at', new Date(Date.now() - 8 * 864e5).toISOString())),
 
     // ---------------- comments
-    comments: ({ product, article }) => q(sb.from('comments').select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').eq(product ? 'product_id' : 'article_id', product || article).order('created_at')),
-    async comment({ product, article, parent, body }) { requireAuth(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').single()); },
-    deleteComment: id => q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id)),
+    comments: ({ product, article }) => pre(product ? 'comments:p:' + product : 'comments:a:' + article, () => q(sb.from('comments').select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').eq(product ? 'product_id' : 'article_id', product || article).order('created_at'))),
+    recentComments: () => pre('recent', () => q(sb.from('comments').select('created_at,product:products(name),article:articles(title),user:profiles!comments_user_id_fkey(name,city,username,avatar_url,avatar_color)').eq('deleted', false).order('created_at', { ascending: false }).limit(5))),
+    async comment({ product, article, parent, body }) { requireAuth(); touched(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').single()); },
+    deleteComment: id => (touched(), q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id))),
     async report(type, id, reason) { requireAuth(); err((await sb.from('reports').insert({ reporter_id: uid(), target_type: type, target_id: id, reason })).error); },
 
     // ---------------- notifications
@@ -195,11 +213,9 @@
       return q(s.order('created_at', { ascending: !!parent }).limit(parent ? 200 : 80));
     },
     message: id => q(sb.from('messages').select('*,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('id', id).maybeSingle()),
-    async unreadByChannel(memberships) {
-      const out = {};
-      await Promise.all(memberships.map(async m => { out[m.channel_id] = await q(sb.from('messages').select('*', { count: 'exact', head: true }).eq('channel_id', m.channel_id).is('parent_id', null).gt('created_at', m.last_read_at).neq('user_id', uid())); }));
-      return out;
-    },
+    // All badge counts in one round trip (rpc my_badges) instead of one query per chat channel
+    async badges() { if (!uid()) return { notifications: 0, by_channel: {} }; return q(sb.rpc('my_badges')); },
+    async unreadByChannel() { return (await API.badges()).by_channel || {}; },
     lastMessages: (ids) => q(sb.from('messages').select('channel_id,body,kind,created_at,user:profiles!messages_user_id_fkey(name)').in('channel_id', ids).is('parent_id', null).order('created_at', { ascending: false }).limit(200)),
     async send({ channel, body, parent, kind, product, attachment, duration, transcript, alsoInChannel }) {
       requireAuth();
@@ -211,11 +227,11 @@
     dmPartners: async (cids) => { if (!cids.length) return []; return q(sb.from('channel_members').select('channel_id,user:profiles!channel_members_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('channel_id', cids).neq('user_id', uid())); },
 
     // ---------------- news
-    articles: ({ topic, limit } = {}) => { let s = sb.from('articles').select('*').eq('status', 'published'); if (topic && topic !== 'All') s = s.eq('topic', topic); return q(s.order('is_lead', { ascending: false }).order('published_at', { ascending: false }).limit(limit || 30)); },
-    article: slug => q(sb.from('articles').select('*').eq('slug', slug).maybeSingle()),
+    articles: ({ topic, limit } = {}) => { const key = `articles:${topic || 'All'}:${limit || 30}`; if (Object.prototype.hasOwnProperty.call(PRE, key)) return pre(key); let s = sb.from('articles').select('*').eq('status', 'published'); if (topic && topic !== 'All') s = s.eq('topic', topic); return q(s.order('is_lead', { ascending: false }).order('published_at', { ascending: false }).limit(limit || 30)); },
+    article: slug => pre('article:' + slug, () => q(sb.from('articles').select('*').eq('slug', slug).maybeSingle())),
     subscribe: (email) => q(sb.from('newsletter').upsert({ email: email.toLowerCase(), user_id: uid() || null }, { onConflict: 'email', ignoreDuplicates: true })),
     suggestStory: (url, note) => { requireAuth(); return q(sb.from('story_suggestions').insert({ url, note, user_id: uid() })); },
-    settings: async (key) => { const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
+    settings: async (key) => { if (Object.prototype.hasOwnProperty.call(PRE, 'settings:' + key)) return pre('settings:' + key); const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
 
     // ---------------- realtime
     live(name, table, filter, cb) {
@@ -233,7 +249,7 @@
   };
 
   // ---------------- admin
-  API.admin = {
+  API.admin = new Proxy({
     stats: () => q(sb.rpc('admin_stats')),
     review: (p, decision, note, items, wk) => q(sb.rpc('admin_review', { p, decision, note: note || null, items: items || [], wk: wk || null })),
     setUser: (u, patch) => q(sb.rpc('admin_set_user', { u, new_role: patch.role ?? null, verified: patch.verified ?? null, is_banned: patch.banned ?? null })),
@@ -271,7 +287,7 @@
     updateCompany: (id, patch) => q(sb.from('companies').update(patch).eq('id', id)),
     makers: (pid) => q(sb.from('product_makers').select('*,user:profiles!product_makers_user_id_fkey(name,username)').eq('product_id', pid)),
     notifyRequests: (pid) => q(sb.from('notify_requests').select('*', { count: 'exact', head: true }).eq('product_id', pid))
-  };
+  }, { get: (t, k) => typeof t[k] === 'function' ? (...a) => { touched(); return t[k](...a); } : t[k] });  // admin edits skip preloads too
 
   window.API = API;
 })();

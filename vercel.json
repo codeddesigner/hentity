@@ -6,6 +6,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/news",
+      "destination": "/api/ssr?type=news"
+    },
+    {
+      "source": "/",
+      "destination": "/api/ssr?type=home"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },
@@ -126,7 +134,7 @@
   ],
   "functions": {
     "api/ssr.js": {
-      "includeFiles": "public/{product,maker,article,404}.html",
+      "includeFiles": "public/{product,maker,article,404,home,news-index}.html",
       "maxDuration": 10
     },
     "api/sitemap.js": {

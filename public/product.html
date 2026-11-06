@@ -18,8 +18,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d1c5db7c3f"></script>
-<script src="/assets/app.js?v=8648ab500a"></script>
+<script src="/assets/api.js?v=8fd54c222e"></script>
+<script src="/assets/app.js?v=06a985ae0d"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Product · Hentity</title>
 <meta name="description" content="A product launched on Hentity, the weekly board for what’s being built in Africa.">
@@ -84,15 +84,15 @@ H.mount({ active: 'products', tab: 'products' });
   if (!p) { document.title = 'Product not found · Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
   document.title = `${p.name} · ${p.tagline} · Hentity`;
   D.remember([p]);
-  const [makers, company, cur, alts, isSaved, comments] = await Promise.all([API.makers(p.id), API.company(p.company_id), API.currentWeek(), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id), API.comments({ product: p.id })]);
-  await D.loadVotes([p]);
-  const owner = p.owner_id ? (await API.profilesByIds([p.owner_id]))[0] : null;
+  // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own
+  // state (votes, follows) is a second parallel batch instead of a chain of round trips.
+  const [makers, company, cur, alts, isSaved, comments, ownerRows, rankRows] = await Promise.all([API.makers(p.id), API.company(p.company_id), API.currentWeek(), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id), API.comments({ product: p.id }), p.owner_id ? API.profilesByIds([p.owner_id]) : [], D.isLive(p) ? API.board({ week: p.week_id }) : []]);
+  const owner = ownerRows[0] || null;
   const team = [owner && { user: owner, role: 'Founder' }, ...makers.filter(m => !owner || m.user.id !== owner.id)].filter(Boolean);
   const makerIds = new Set(team.map(m => m.user.id));
-  const following = await API.following('user', [...makerIds]);
-  const followingProduct = await API.following('product', [p.id]);
+  const [following, followingProduct] = await Promise.all([API.following('user', [...makerIds]), API.following('product', [p.id]), D.loadVotes([p])]);
   let rank = 0;
-  if (D.isLive(p)) { const b = await API.board({ week: p.week_id }); rank = b.filter(x => !x.promoted).findIndex(x => x.id === p.id) + 1; }
+  if (D.isLive(p)) rank = rankRows.filter(x => !x.promoted).findIndex(x => x.id === p.id) + 1;
   const live = D.isLive(p);
   const media = (p.media && p.media.length ? p.media : [{ color: p.color }]).slice(0, 5);
   const mediaStyle = m => m.url ? `background-image:url('${esc(m.url)}')` : `background:${esc(m.color || '#000')}`;

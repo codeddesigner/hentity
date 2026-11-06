@@ -84,7 +84,7 @@
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_stats: () => ({ users: 42, users_week: 9, products: T.products.length, live: 13, review: T.products.filter(p => p.status === 'review').length, scheduled: 3, upvotes_week: 5210, comments_week: 230, messages_week: 410, reports_open: 2, subscribers: 312, suggestions: 3, signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 2 + (i * 7) % 9 })), votes_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 200 + (i * 53) % 400 })) }),
-    work_email_ok: (a) => !/@(gmail|yahoo|outlook|hotmail)\./.test(a.e) || a.e === 'encircode@gmail.com', my_profile: () => localStorage.getItem('mock.signedIn') ? T.profiles.filter(p => p.id === ME) : [], admin_users: (a) => T.profiles.filter(p => !a.ids || a.ids.includes(p.id)).filter(p => !a.term || (p.name + p.username).toLowerCase().includes(a.term.toLowerCase())), open_dm: () => T.channels[0].id, export_my_data: () => ({ profile: {} }), admin_broadcast: () => 42
+    work_email_ok: (a) => !/@(gmail|yahoo|outlook|hotmail)\./.test(a.e) || a.e === 'encircode@gmail.com', my_badges: () => ({ notifications: 2, by_channel: {} }), my_profile: () => localStorage.getItem('mock.signedIn') ? T.profiles.filter(p => p.id === ME) : [], admin_users: (a) => T.profiles.filter(p => !a.ids || a.ids.includes(p.id)).filter(p => !a.term || (p.name + p.username).toLowerCase().includes(a.term.toLowerCase())), open_dm: () => T.channels[0].id, export_my_data: () => ({ profile: {} }), admin_broadcast: () => 42
   };
   window.supabase = {
     createClient() {

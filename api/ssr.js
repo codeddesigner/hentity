@@ -61,9 +61,17 @@ const fs = require('fs'), path = require('path');
 const TPL = {};
 function template(p) { return TPL[p] || (TPL[p] = fs.readFileSync(path.join(process.cwd(), 'public', p.replace(/^\//, '') + '.html'), 'utf8')); }
 
+const PRELOAD = require('./_preload');
+// Embed the page's public data before the page's own scripts run (api.js reads window.__PRELOAD__ on load).
+function withPreload(page, data) {
+  if (!data || !Object.keys(data).length) return page;
+  const json = JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+  return page.replace(/<head>/i, `<head>\n<script>window.__PRELOAD__=${json}</script>`);
+}
+
 module.exports = async (req, res) => {
   const { type, slug } = req.query;
-  const tpl = { product: '/product', maker: '/maker', article: '/article' }[type];
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
@@ -73,9 +81,20 @@ module.exports = async (req, res) => {
     try { const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } }); page = await r.text(); }
     catch (e2) { res.statusCode = 502; return res.end('Template unavailable'); }
   }
-  let meta = null;
-  try { meta = slug && tpl ? await build(type, String(slug).toLowerCase()) : null; } catch (e) { /* fall through: the client renders it */ }
+  const key = slug ? String(slug).toLowerCase() : '';
+  // Short edge cache: repeat visits are served instantly, and nothing is more than ~a minute old
+  const CACHE = 'public, s-maxage=30, stale-while-revalidate=60';
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  if (type === 'home' || type === 'news') {
+    const data = await PRELOAD[type]().catch(() => null);
+    res.setHeader('Cache-Control', CACHE);
+    return res.end(withPreload(page, data));
+  }
+  let meta = null, data = null;
+  [meta, data] = await Promise.all([
+    key && tpl ? build(type, key).catch(() => null) : null,
+    key && PRELOAD[type] ? PRELOAD[type](key).catch(() => null) : null
+  ]);
   if (!meta) {
     // Unknown or unpublished: let the client render its own "not found" state, but keep it out of the index.
     res.setHeader('Cache-Control', 'public, s-maxage=60');
@@ -105,6 +124,6 @@ module.exports = async (req, res) => {
     .replace(/<link rel="canonical"[^>]*>/g, '')
     .replace('</head>', tags + '\n</head>')
     .replace(/<body([^>]*)>/, `<body$1>\n<noscript><div style="max-width:720px;margin:40px auto;padding:0 16px">${meta.body}</div></noscript>`);
-  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
-  res.end(page);
+  res.setHeader('Cache-Control', CACHE);
+  res.end(withPreload(page, data));
 };

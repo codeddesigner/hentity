@@ -45,10 +45,22 @@ def seo(page: str, rel: pathlib.Path) -> str:
 
 # Cache busting: every /assets/* reference gets ?v=<content hash>, so a changed file has a new URL and
 # browsers can't keep running a stale copy (Cloudflare tells browsers to keep scripts for hours).
-import hashlib
+import hashlib, json
+# Serve the Supabase library from our own domain when it's installed (Vercel runs `npm install` from
+# package.json before this script). Saves a separate connection to jsDelivr on every first visit.
+SB_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js'
+SB_LOCAL = ROOT / 'node_modules/@supabase/supabase-js/dist/umd/supabase.js'
+if SB_LOCAL.exists():
+    (SRC / 'assets' / 'supabase.js').write_bytes(SB_LOCAL.read_bytes())
+    head = head.replace(f'<script src="{SB_CDN}"></script>', '<script src="/assets/supabase.js"></script>').replace('<link rel="preconnect" href="https://cdn.jsdelivr.net">\n', '')
+    print('supabase-js served from /assets/supabase.js')
 ASSET_V = {f.name: hashlib.sha256(f.read_bytes()).hexdigest()[:10] for f in (SRC / 'assets').iterdir() if f.is_file()}
 def bust(page: str) -> str:
     return re.sub(r'((?:src|href)=")/assets/([\w.-]+)"', lambda m: f'{m.group(1)}/assets/{m.group(2)}?v={ASSET_V[m.group(2)]}"' if m.group(2) in ASSET_V else m.group(0), page)
+
+# The home and news pages are served by api/ssr.js (which embeds their data), so their templates are written
+# under other names; a static /index.html or /news.html would otherwise take priority over the rewrite.
+SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html'}
 
 if OUT.exists(): shutil.rmtree(OUT)
 public_paths = []
@@ -58,11 +70,16 @@ for p in sorted(SRC.rglob('*')):
     dst = OUT / rel; dst.parent.mkdir(parents=True, exist_ok=True)
     if p.suffix == '.html':
         page, path = seo(bust(p.read_text().replace('<!--#head-->', head.strip())), rel)
+        if rel.as_posix() in SERVED_BY_SSR: dst = OUT / SERVED_BY_SSR[rel.as_posix()]
         dst.write_text(page)
         if path and path not in ('/signin', '/signup'): public_paths.append(path)
     else:
         shutil.copy2(p, dst)
 # Static page list for the sitemap function (dynamic URLs are added at request time)
 (ROOT / 'api').mkdir(exist_ok=True)
-(ROOT / 'api' / '_static-paths.json').write_text(__import__('json').dumps(sorted(public_paths)))
+(ROOT / 'api' / '_static-paths.json').write_text(json.dumps(sorted(public_paths)))
+# Column list shared with the server-side preloader, so both sides always ask for the same fields
+cols = re.search(r"const PRODUCT_COLS = '([^']+)'", (SRC / 'assets' / 'api.js').read_text()).group(1)
+(ROOT / 'api' / '_cols.json').write_text(json.dumps({'PRODUCT_COLS': cols}))
+if (SRC / 'assets' / 'supabase.js').exists() and not SB_LOCAL.exists(): (SRC / 'assets' / 'supabase.js').unlink()
 print('built', sum(1 for _ in OUT.rglob('*.html')), 'pages ·', len(public_paths), 'indexable')
