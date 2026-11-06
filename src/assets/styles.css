@@ -1099,3 +1099,9 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .lsheet a.hl .ib{background:var(--color-accent-default);color:#fff}
 .lsheet b{display:block;font-size:15px;font-weight:500;color:var(--color-text-primary)}.lsheet small{display:block;font-size:13px;line-height:18px;color:var(--color-text-secondary);margin-top:2px}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+/* Feature switches (Admin -> Features) */
+.feat-off{max-width:440px;margin:18vh auto;padding:0 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.feat-off .btn{margin-top:8px}
+.feat-off-bar{position:sticky;top:0;z-index:60;padding:10px 16px;background:#fff6e5;color:#7c4a03;font-size:13px;line-height:18px;text-align:center;border-bottom:1px solid #f5d9a8}
+.feat-off-bar a{text-decoration:underline;font-weight:500;margin-left:4px}
+:root[data-theme="dark"] .feat-off-bar{background:#2b1d05;color:#fcd38d;border-color:#4a3206}

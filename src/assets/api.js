@@ -36,7 +36,37 @@
   }
   // Pages render as soon as the session is known. If this browser already has the signed-in member's
   // profile cached, use it straight away and refresh it in the background instead of waiting on the network.
-  const ready = (async () => {
+  // Feature switches (Admin -> Features). Missing key = on. The cached copy renders the shell instantly;
+  // the fresh copy arrives a moment later and redraws the shell if anything changed.
+  const FEAT_KEY = 'hentity.features';
+  let features = {}, featCached = false;
+  try { const c = localStorage.getItem(FEAT_KEY); if (c) { features = JSON.parse(c) || {}; featCached = true; } } catch (e) {}
+  const featuresReady = (async () => {
+    try {
+      const { data } = await sb.from('site_settings').select('value').eq('key', 'features').maybeSingle();
+      const f = (data && data.value) || {}; const changed = JSON.stringify(f) !== JSON.stringify(features);
+      features = f; try { localStorage.setItem(FEAT_KEY, JSON.stringify(f)); } catch (e) {}
+      if (changed && window.H && H.renderShell) setTimeout(() => H.renderShell(), 0);
+    } catch (e) {}
+    return features;
+  })();
+  // Which feature each page belongs to. A page whose feature is off shows a notice instead (admins still see it).
+  const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
+    [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar']];
+  function gate(r) {
+    const hit = PAGE_FEATURE.find(([re]) => re.test(location.pathname));
+    if (!hit || features[hit[1]] !== false) return r;
+    const admin = r.profile && ['admin', 'moderator'].includes(r.profile.role);
+    const show = () => {
+      if (admin) { const b = document.createElement('div'); b.className = 'feat-off-bar'; b.innerHTML = `${hit[2]} is turned off for everyone else. You can see it because you’re an admin. <a href="/admin#features">Turn it back on</a>`; document.body.prepend(b); return; }
+      const m = document.querySelector('#main') || document.querySelector('main');
+      if (m) m.innerHTML = `<div class="feat-off"><h1 class="t-h3">${hit[2]} is off right now</h1><p class="t-body-sm c-2">We’ve paused this part of Hentity for a while. Everything else works as usual.</p><a class="btn btn--secondary btn--sm" href="/">Back to Hentity</a></div>`;
+      window.H && H.contentShown && H.contentShown();
+    };
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', show) : show();
+    return admin ? r : new Promise(() => {});
+  }
+  const core = (async () => {
     const { data } = await sb.auth.getSession();
     session = data.session;
     if (!session) { profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} }
@@ -47,6 +77,7 @@
     try { performance.mark('hentity:ready'); } catch (e) {}
     return { session, profile };
   })();
+  const ready = Promise.all([core, featCached ? Promise.race([featuresReady, new Promise(r => setTimeout(r, 1500))]) : featuresReady]).then(([r]) => gate(r));
   // Supabase runs this callback while holding its auth lock. Awaiting another Supabase call in here
   // deadlocks every later request (pages hang while signed in), so the follow-up work is deferred
   // until the callback has returned — the pattern Supabase's docs prescribe.
@@ -74,6 +105,7 @@
     sb, ready, url: SUPABASE_URL,
     get session() { return session; }, get profile() { return profile; }, get uid() { return uid(); },
     get isAdmin() { return !!profile && ['admin', 'moderator'].includes(profile.role); },
+    get features() { return features; }, on: k => features[k] !== false, featuresReady,
     onAuth(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     requireAuth,
     refreshProfile: loadProfile,

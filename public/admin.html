@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=0656fae4ba">
+<link rel="stylesheet" href="/assets/styles.css?v=fd3c53ed28">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f10bcfa34d"></script>
-<script src="/assets/app.js?v=bbdafec784"></script>
+<script src="/assets/api.js?v=e0fd3f0fb3"></script>
+<script src="/assets/app.js?v=e1eb4b9d02"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -63,7 +63,7 @@ H.mount();
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
     ['Community', [['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
-    ['System', [['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
+    ['System', [['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
   let stats = {};
   function nav(cur) {
@@ -526,6 +526,35 @@ H.mount();
         toast(`Saved · ${add.length} added, ${del.length} removed`); V.settings();
       } catch (err) { H.fail(err); }
     });
+  };
+
+  // ---- Features: switch parts of Hentity off. Off = hidden from the site and blocked in the database for everyone but admins.
+  const FEATURES = [
+    ['Discover', [['insights', 'Insights', 'bar-chart', 'The Insights page, its tab, the mobile icon and the teaser on the board.'], ['news', 'News', 'newspaper', 'The News pages, the tab and story suggestions.'], ['radar', 'On the radar page', 'compass', 'The public list of unclaimed startups at /radar. Their profile pages stay up.']]],
+    ['Makers', [['submissions', 'Submitting products', 'rocket', 'The Submit button and new submissions. Products already on Hentity are untouched.'], ['validate', 'Validate an idea', 'sparkles', 'The idea checker, its sidebar item and its spot in the Launch sheet.'], ['studio', 'Beta tests', 'flask', 'Studio, new betas and new beta applications. Running betas keep their data.'], ['claims', 'Claiming profiles', 'shield', 'New claims on unclaimed profiles. Claims already in review still finish.']]],
+    ['Community', [['chats', 'Chats', 'chats', 'The Chats tab and sending new messages.'], ['comments', 'Comments', 'comment', 'Posting new comments. Existing comments stay visible.'], ['upvotes', 'Upvoting', 'upvote', 'New upvotes. Counts so far stay as they are.']]]
+  ];
+  V.features = async () => {
+    nav('features');
+    const { data } = await API.sb.from('site_settings').select('value').eq('key', 'features').maybeSingle();
+    const cur = Object.assign({}, (data && data.value) || {});
+    const offN = () => Object.values(cur).filter(v => v === false).length;
+    const draw = () => {
+      qs('#main').innerHTML = head('Features', 'Turn parts of Hentity off and on. When a feature is off it disappears from the site, and the database refuses it for everyone except admins. Changes apply on members’ next page load.')
+        + `<p class="t-body-sm" style="margin-bottom:16px" id="ft-sum">${offN() ? `<span class="badge" style="background:#fff6e5;color:#b45309">${offN()} off</span>` : '<span class="badge" style="background:#e9f8ee;color:#15803d">Everything is on</span>'}</p>`
+        + FEATURES.map(([g, items]) => `<section class="card" style="margin-bottom:16px;overflow:hidden"><p class="t-eyebrow c-3" style="padding:14px 20px 4px">${g}</p>${items.map(([k, l, ic, d]) => `<label class="row gap-12" style="padding:14px 20px;border-top:1px solid var(--color-border-default);cursor:pointer;align-items:center"><span class="icon-tile" style="width:32px;height:32px;flex:none">${icon(ic, 'ic-16')}</span><span class="grow"><span class="t-label row gap-8">${l}${cur[k] === false ? '<span class="badge" style="background:#fdecec;color:#b91c1c">Off</span>' : ''}</span><span class="t-caption c-3" style="font-weight:400;display:block;margin-top:2px">${d}</span></span><span class="toggle"><input type="checkbox" data-f="${k}" ${cur[k] === false ? '' : 'checked'} aria-label="${esc(l)}"><span class="toggle__track"></span></span></label>`).join('')}</section>`).join('');
+      qsa('[data-f]').forEach(c => c.addEventListener('change', async () => {
+        const k = c.dataset.f, label = FEATURES.flatMap(x => x[1]).find(x => x[0] === k)[1];
+        if (!c.checked && !confirm(`Turn off ${label} for everyone? Admins will still see it.`)) { c.checked = true; return; }
+        const prev = cur[k]; if (c.checked) delete cur[k]; else cur[k] = false;
+        try {
+          const { error } = await API.sb.from('site_settings').upsert({ key: 'features', value: cur, updated_at: new Date().toISOString() }); if (error) throw error;
+          try { localStorage.setItem('hentity.features', JSON.stringify(cur)); } catch (e) {}
+          toast(`${label} is ${c.checked ? 'on' : 'off'}`); draw();
+        } catch (e) { if (prev === undefined) delete cur[k]; else cur[k] = prev; c.checked = !c.checked; H.fail(e); }
+      }));
+    };
+    draw();
   };
 
   // ---- audit

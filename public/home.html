@@ -18,10 +18,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=0656fae4ba">
+<link rel="stylesheet" href="/assets/styles.css?v=fd3c53ed28">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=f10bcfa34d"></script>
-<script src="/assets/app.js?v=bbdafec784"></script>
+<script src="/assets/api.js?v=e0fd3f0fb3"></script>
+<script src="/assets/app.js?v=e1eb4b9d02"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -170,7 +170,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   let INS = null;
   API.ready.then(() => API.insights('', 30)).then(d => { INS = d; if (rows.length > 1) render(); }).catch(() => {});
   function teaser() {
-    if (!INS || !INS.live) return '';
+    if (!INS || !INS.live || !H.on('insights')) return '';
     const L = (INS.industries || []).slice().sort((a, b) => b.n - a.n), tot = L.reduce((a, i) => a + i.n, 0) || 1;
     const keyed = L.filter(i => H.CAT_COLOR[i.name]), other = L.filter(i => !H.CAT_COLOR[i.name]).reduce((a, i) => a + i.n, 0);
     const segs = keyed.map(i => [i.n, H.catColor(i.name)]).concat(other ? [[other, '#A3A3A3']] : []);

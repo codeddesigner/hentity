@@ -158,6 +158,8 @@
 
   // ---------- App shell: sidebar (Figma "App sidebar" 62:497) + tab bar (62:798) ----------
   const counts = { chats: store.get('count.chats', 0), notifs: store.get('count.notifs', 0) };
+  // Feature switches: hidden for everyone when off, still shown to admins so they can check them
+  const on = k => !window.API || !API.on || API.on(k) || API.isAdmin;
   function sidebar(active) {
     const s = session(); const u = user();
     const item = (key, label, href, ic, count, accentCount) => `<a class="sb-item" href="${href}"${key === active ? ' aria-current="page"' : ''}>${icon(ic, 'ic-20')}<span>${label}</span>${count ? `<span class="sb-count${accentCount || key === active ? ' is-accent' : ''}" data-count="${key}">${count}</span>` : `<span class="sb-count" data-count="${key}" hidden></span>`}</a>`;
@@ -166,28 +168,29 @@
       <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
       <nav class="sb-nav" aria-label="Primary">
         ${item('products', 'Products', '/', 'package')}
-        ${item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true)}
-        ${item('news', 'News', '/news', 'newspaper')}
-        ${item('insights', 'Insights', '/insights', 'bar-chart')}
+        ${on('chats') ? item('chats', 'Chats', '/chats', 'chats', s ? counts.chats : 0, true) : ''}
+        ${on('news') ? item('news', 'News', '/news', 'newspaper') : ''}
+        ${on('insights') ? item('insights', 'Insights', '/insights', 'bar-chart') : ''}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
-        ${item('validate', 'Validate an idea', '/validate', 'sparkles')}
+        ${on('validate') ? item('validate', 'Validate an idea', '/validate', 'sparkles') : ''}
         ${item('my-products', 'My products', '/my-products', 'rocket')}
         ${item('notifications', 'Notifications', '/notifications', 'bell', counts.notifs)}
         ${item('saved', 'Saved', '/saved', 'bookmark')}
         ${window.API && API.isAdmin ? item('admin', 'Admin', '/admin', 'shield') : ''}
       </nav>` : ''}
       <div class="sb-bottom">
-        <a class="btn btn--accent btn--block" href="/submit">${icon('plus')}Submit a product</a>
+        ${on('submissions') ? `<a class="btn btn--accent btn--block" href="/submit">${icon('plus')}Submit a product</a>` : ''}
         ${s ? `<div class="sb-user"><button class="sb-me" type="button" data-account-btn aria-haspopup="menu" aria-expanded="false">${avatar(u, 32)}<span class="stack" style="min-width:0;text-align:left"><span class="t-label truncate">${esc(u.name)}</span><span class="t-caption c-3 truncate" style="font-weight:400">@${esc(u.username)}</span></span></button><a class="nav__icon" href="/settings/profile" aria-label="Settings">${icon('settings', 'ic-18')}</a></div>`
           : `<div class="grid-2" style="gap:8px"><a class="btn btn--secondary btn--sm" href="/signin">Sign in</a><a class="btn btn--primary btn--sm" href="/signup">Join</a></div>`}
       </div>
     </aside>
-    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4"><a class="nav__icon" href="/insights" aria-label="Insights"${active === 'insights' ? ' aria-current="page"' : ''}>${icon('bar-chart', 'ic-20')}</a><button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
+    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4">${on('insights') ? `<a class="nav__icon" href="/insights" aria-label="Insights"${active === 'insights' ? ' aria-current="page"' : ''}>${icon('bar-chart', 'ic-20')}</a>` : ''}<button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
   }
   function tabbar(active) {
     const s = session();
-    const items = [['products', 'Products', '/', 'package'], ['chats', 'Chats', '/chats', 'chats'], ['launch', 'Launch', '/submit', 'plus'], ['news', 'News', '/news', 'newspaper'], ['you', 'You', s ? '/me' : '/signin', 'user']];
+    const items = [['products', 'Products', '/', 'package'], ['chats', 'Chats', '/chats', 'chats'], ['launch', 'Launch', '/submit', 'plus'], ['news', 'News', '/news', 'newspaper'], ['you', 'You', s ? '/me' : '/signin', 'user']]
+      .filter(([k]) => k === 'chats' ? on('chats') : k === 'news' ? on('news') : k === 'launch' ? (on('submissions') || on('validate') || on('studio')) : true);
     return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
       ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
       : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s && counts.chats ? `<span class="tab-badge">${counts.chats}</span>` : ''}</a>`).join('')}</nav>`;
@@ -288,7 +291,7 @@
     if (document.querySelector('.lsheet')) return;
     const bg = document.createElement('div'); bg.className = 'scrim'; bg.style.alignItems = 'end'; bg.style.padding = '0';
     bg.innerHTML = `<div class="lsheet" role="dialog" aria-modal="true" aria-label="What do you want to do?"><div class="grab"></div><h2>What do you want to do?</h2>
-      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta']].map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
+      ${[['/validate', 'sparkles', 'Validate an idea', 'Check if it’s new, who’s closest and what to test', true, 'validate'], ['/submit', 'rocket', 'Submit a product', 'Pick a launch date and go on the leaderboard', false, 'submissions'], ['/studio', 'flask', 'Find beta testers', 'Share a form link and run a beta', false, 'studio']].filter(x => on(x[5])).map(([h, i, t, d, hl]) => `<a href="${h}" class="${hl ? 'hl' : ''}"><span class="ib">${icon(i, 'ic-20')}</span><span class="grow"><b>${t}</b><small>${d}</small></span>${icon('arrow-right', 'ic-16')}</a>`).join('')}</div>`;
     document.body.appendChild(bg);
     bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
   }
@@ -378,7 +381,7 @@
   // Header gets a soft shadow once the page scrolls
   addEventListener('scroll', () => document.body.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
   function productTabs(active) {
-    const t = [['week', 'This week', '/'], ['directory', 'Directory', '/directory'], ['insights', 'Insights', '/insights']];
+    const t = [['week', 'This week', '/'], ['directory', 'Directory', '/directory'], ['insights', 'Insights', '/insights']].filter(([k]) => k !== 'insights' || on('insights'));
     setTimeout(() => { if (window.API && API.betaStats) API.betaStats().then(s => qsa('[data-beta-n]').forEach(e => { if (s && s.open) { e.textContent = s.open; e.hidden = false; } })).catch(() => {}); }, 0);
     return `<nav class="tabs ptabs" aria-label="Products">${t.map(([k, l, h]) => `<a class="tab" href="${h}" aria-selected="${k === active}"${k === active ? ' aria-current="page"' : ''}>${k === 'insights' ? icon('bar-chart', 'ic-14') : ''}${k === 'week' ? '<span class="d-only">This week</span><span class="m-only">Launches</span>' : l}${k === 'betas' ? '<span class="n" data-beta-n hidden></span>' : ''}</a>`).join('')}</nav>`;
   }
@@ -387,5 +390,5 @@
   const CAT_DARK_TEXT = { Commerce: 1, Education: 1, AI: 1, 'Energy & Climate': 1 };
   const catColor = c => CAT_COLOR[c] || '#A3A3A3';
   const catInk = c => CAT_COLOR[c] && !CAT_DARK_TEXT[c] ? '#fff' : '#0a0a0a';
-  window.H = { CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { on, CAT_COLOR, catColor, catInk, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
