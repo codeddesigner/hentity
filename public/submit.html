@@ -344,7 +344,7 @@ H.mount({ active: '', tab: 'launch' });
   }
   function update() {
     if (!ready) return;
-    qsa('[data-count]').forEach(c => { const f = qs('#' + c.dataset.count); c.textContent = f.value.length + ' / ' + f.maxLength; });
+    qsa('#form [data-count]').forEach(c => { const f = qs('#' + c.dataset.count); if (!f) return; c.textContent = f.value.length + ' / ' + f.maxLength; });
     qs('#cat-count').textContent = s.categories.length + ' / 3';
     const d = done(); const req = ['basics', 'media', 'makers', 'week', 'intro']; const n = req.filter(k => d[k]).length;
     qs('#idx').innerHTML = SECS.map(([k, l, opt]) => `<li><a href="#${k}" class="${d[k] ? 'is-done' : ''}"${k === current ? ' aria-current="true"' : ''}><span class="st">${d[k] ? icon('check') : ''}</span>${l.replace('&', '&amp;')}${opt ? '<span class="opt">Optional</span>' : ''}</a></li>`).join('');

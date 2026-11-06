@@ -137,7 +137,7 @@ H.mount({ active: '', tab: 'you' });
     qs('#photo-slot').innerHTML = avatar(u, 104);
     counts(); dirty();
   }
-  function counts() { qsa('[data-count]').forEach(c => { const f = form[c.dataset.count]; c.textContent = f.value.length + ' / ' + f.maxLength; }); }
+  function counts() { form.querySelectorAll('[data-count]').forEach(c => { const f = form[c.dataset.count]; if (!f) return; c.textContent = f.value.length + ' / ' + f.maxLength; }); }
   function dirty() { const d = fields.some(f => (form[f].value || '') !== (saved[f] || '')) || pendingPhoto !== undefined; qs('#savebar').hidden = !d; return d; }
   form.addEventListener('input', e => {
     if (e.target === form.username) {

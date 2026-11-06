@@ -32,11 +32,16 @@
     else await loadProfile();
     return { session, profile };
   })();
-  sb.auth.onAuthStateChange(async (event, s) => {
+  // Supabase runs this callback while holding its auth lock. Awaiting another Supabase call in here
+  // deadlocks every later request (pages hang while signed in), so the follow-up work is deferred
+  // until the callback has returned — the pattern Supabase's docs prescribe.
+  sb.auth.onAuthStateChange((event, s) => {
     const changed = (s && s.user && s.user.id) !== (session && session.user && session.user.id);
     session = s;
-    if (changed || event === 'USER_UPDATED') await loadProfile();
-    listeners.forEach(fn => fn(event, session, profile));
+    setTimeout(async () => {
+      if (changed || event === 'USER_UPDATED') { try { await loadProfile(); } catch (e) {} }
+      listeners.forEach(fn => fn(event, session, profile));
+    }, 0);
   });
 
   function err(e) { if (e) { const m = e.message || String(e); const x = new Error(m === 'WEEK_FULL' ? 'WEEK_FULL' : m); x.code = e.code; throw x; } }

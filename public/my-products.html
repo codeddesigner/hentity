@@ -88,7 +88,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   await API.ready;
   if (!API.uid) { location.replace('/signin?next=/my-products'); return; }
   const cur = await API.currentWeek();
-  if (cur) qs('#week-sub').textContent = `Week ${cur.id} · board resets Monday 06:00 WAT`;
+  if (cur && qs('#week-sub')) qs('#week-sub').textContent = `Week ${cur.id} · board resets Monday 06:00 WAT`;
   let rows = [];
   const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft', rejected: 'Not approved' };
   const A = {
