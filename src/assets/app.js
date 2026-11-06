@@ -190,12 +190,18 @@
           : `<div class="grid-2" style="gap:8px"><a class="btn btn--secondary btn--sm" href="/signin">Sign in</a><a class="btn btn--primary btn--sm" href="/signup">Join</a></div>`}
       </div>
     </aside>
-    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4">${on('insights') ? `<a class="nav__icon" href="/insights" aria-label="Insights"${active === 'insights' ? ' aria-current="page"' : ''}>${icon('bar-chart', 'ic-20')}</a>` : ''}<button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
+    <header class="mtop"><a class="logo" href="/" aria-label="Hentity home">${logo()}</a><div class="row gap-4">${on('insights') && (on('news') && on('chats')) ? `<a class="nav__icon" href="/insights" aria-label="Insights"${active === 'insights' ? ' aria-current="page"' : ''}>${icon('bar-chart', 'ic-20')}</a>` : ''}<button class="nav__icon" type="button" data-open-search aria-label="Search">${icon('search', 'ic-20')}</button>${s ? `<a class="nav__icon" href="/notifications" aria-label="Notifications">${icon('bell', 'ic-20')}<span class="dot-badge" data-count-dot="notifs"${counts.notifs ? '' : ' hidden'}></span></a>` : `<a class="btn btn--primary btn--sm" href="/signin">Sign in</a>`}</div></header>`;
   }
-  function tabbar(active) {
+  function tabbar(active, page) {
     const s = session();
-    const items = [['products', 'Products', '/', 'package'], ['chats', 'Chats', '/chats', 'chats'], ['launch', 'Launch', '/submit', 'plus'], ['news', 'News', '/news', 'newspaper'], ['you', 'You', s ? '/me' : '/signin', 'user']]
-      .filter(([k]) => k === 'chats' ? on('chats') : k === 'news' ? on('news') : k === 'launch' ? (on('submissions') || on('validate') || on('studio') || on('find')) : true);
+    // Launch stays in the middle: when News or Chats is switched off, Insights (then Saved) takes the empty slot
+    const pool = [['insights', 'Insights', '/insights', 'bar-chart'], ['saved', 'Saved', s ? '/saved' : '/signin', 'bookmark']].filter(([k]) => k !== 'insights' || on('insights'));
+    const fill = item => item || pool.shift() || null;
+    const left = [['products', 'Products', '/', 'package'], fill(on('chats') ? ['chats', 'Chats', '/chats', 'chats'] : null)];
+    const right = [fill(on('news') ? ['news', 'News', '/news', 'newspaper'] : null), ['you', 'You', s ? '/me' : '/signin', 'user']];
+    const mid = (on('submissions') || on('validate') || on('studio') || on('find')) ? [['launch', 'Launch', '/submit', 'plus']] : [];
+    const items = [...left, ...mid, ...right].filter(Boolean);
+    if (['insights', 'saved'].includes(page) && items.some(([k]) => k === page)) active = page;
     return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
       ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
       : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s && counts.chats ? `<span class="tab-badge">${counts.chats}</span>` : ''}</a>`).join('')}</nav>`;
@@ -321,14 +327,14 @@
   function renderShell() {
     const sb = document.querySelector('.sidebar'); const mt = document.querySelector('.mtop'); const tb = document.querySelector('.tabbar');
     if (sb) { const tmp = document.createElement('div'); tmp.innerHTML = sidebar(mountOpts.active); sb.replaceWith(tmp.children[0]); mt && mt.replaceWith(tmp.children[0]); }
-    if (tb) { const tmp = document.createElement('div'); tmp.innerHTML = tabbar(mountOpts.tab); tb.replaceWith(tmp.firstElementChild); }
+    if (tb) { const tmp = document.createElement('div'); tmp.innerHTML = tabbar(mountOpts.tab, mountOpts.active); tb.replaceWith(tmp.firstElementChild); }
   }
   function mount(opts) {
     mountOpts = opts = opts || mountOpts || {};
     const h = document.querySelector('[data-header]');
     if (h) { h.outerHTML = sidebar(opts.active); document.body.classList.add('has-sidebar'); }
     const t = document.querySelector('[data-tabbar]');
-    if (t) t.outerHTML = tabbar(opts.tab);
+    if (t) t.outerHTML = tabbar(opts.tab, opts.active);
     document.querySelectorAll('[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon, el.dataset.cls); });
     document.querySelectorAll('[data-logo]').forEach(el => { el.innerHTML = logo(); });
     document.querySelectorAll('[data-flag]').forEach(el => { el.outerHTML = flag(el.dataset.flag); });
