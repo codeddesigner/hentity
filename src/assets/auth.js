@@ -60,7 +60,7 @@
   function codeStep(form, opts) {
     const wrap = document.createElement('form'); wrap.className = 'auth__form reveal'; wrap.noValidate = true; wrap.id = 'code-form';
     wrap.innerHTML = `<div class="icon-badge">${icon('mail')}</div>
-      <div class="auth__heading"><h1 class="t-h2">${H.esc(opts.title || 'Check your email')}</h1><p class="c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${H.esc(opts.email)}</b>. Enter it below to continue.</p></div>
+      <div class="auth__heading"><h1 class="t-h2">${H.esc(opts.title || 'Check your email')}</h1><p class="c-2">We sent a sign-in code to <b style="color:var(--color-text-primary)">${H.esc(opts.email)}</b>. Enter it below to continue.</p></div>
       <div class="alert alert--error" id="code-err" role="alert" hidden>${icon('alert-circle')}<div><p class="alert__title" id="code-err-t"></p><p class="alert__body" id="code-err-b"></p></div></div>
       <div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="••••••" style="letter-spacing:.4em;font-size:22px;text-align:center"></div>
       <button class="btn btn--primary btn--block" type="submit" id="code-go" disabled>Continue</button>
@@ -68,11 +68,14 @@
       <p class="t-caption c-3" style="font-weight:400;text-align:center">Can’t find it? Check spam, or search your inbox for “Hentity”.</p>`;
     form.replaceWith(wrap);
     const inp = wrap.querySelector('#code'), go = wrap.querySelector('#code-go'), rs = wrap.querySelector('#code-resend');
+    let autoT;
     inp.focus();
     let t; const cool = () => { let n = 60; rs.disabled = true; clearInterval(t); const tick = () => { rs.textContent = n > 0 ? `Resend code (0:${String(n).padStart(2, '0')})` : 'Resend code'; rs.disabled = n > 0; n--; if (n < -1) clearInterval(t); }; tick(); t = setInterval(tick, 1000); };
     cool();
     const showErr = ([a, b]) => { wrap.querySelector('#code-err-t').textContent = a; wrap.querySelector('#code-err-b').textContent = b; wrap.querySelector('#code-err').hidden = false; wrap.querySelector('#f-code').classList.add('is-error'); };
-    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 8); go.disabled = inp.value.length < 6; wrap.querySelector('#code-err').hidden = true; wrap.querySelector('#f-code').classList.remove('is-error'); if (inp.value.length === 6 && !inp.dataset.auto) { inp.dataset.auto = 1; wrap.requestSubmit(); } });
+    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 8); go.disabled = inp.value.length < 6; wrap.querySelector('#code-err').hidden = true; wrap.querySelector('#f-code').classList.remove('is-error'); clearTimeout(autoT); const n = inp.value.length;
+      // Codes are 6 digits (or 8 if the project is set that way): submit at 8 at once, or at 6 after a short pause in typing
+      if (!inp.dataset.auto && (n === 8 || n === 6)) autoT = setTimeout(() => { if (inp.value.length === n && !inp.dataset.auto) { inp.dataset.auto = 1; wrap.requestSubmit(); } }, n === 8 ? 0 : 900); });
     wrap.addEventListener('submit', async e => {
       e.preventDefault(); if (inp.value.length < 6) return;
       go.disabled = true; go.innerHTML = icon('clock', 'spin') + 'Checking';
