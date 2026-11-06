@@ -44,6 +44,7 @@
       loadProfile().then(p => listeners.forEach(fn => fn('PROFILE_REFRESHED', session, p))).catch(() => {});
     }
     else await loadProfile();
+    try { performance.mark('hentity:ready'); } catch (e) {}
     return { session, profile };
   })();
   // Supabase runs this callback while holding its auth lock. Awaiting another Supabase call in here

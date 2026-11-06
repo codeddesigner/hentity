@@ -18,8 +18,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=8fd54c222e"></script>
-<script src="/assets/app.js?v=06a985ae0d"></script>
+<script src="/assets/api.js?v=d8deec9415"></script>
+<script src="/assets/app.js?v=71a79854b9"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Product · Hentity</title>
 <meta name="description" content="A product launched on Hentity, the weekly board for what’s being built in Africa.">
@@ -150,7 +150,7 @@ H.mount({ active: 'products', tab: 'products' });
       ${alts.length ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${alts.map(a => `<a class="row gap-12" href="/products/${a.slug}">${plogo(a, 32)}<div><p class="t-label row gap-6">${esc(a.name)}${flag(a.country)}</p><p class="t-caption c-3" style="font-weight:400">${esc(a.tagline)}</p></div></a>`).join('')}</div></section>` : ''}
     </aside>
   </div>`;
-  M.scroll(); M.countUp();
+  M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
   qs('#getit').addEventListener('click', () => API.trackClick(p.id));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));

@@ -120,7 +120,7 @@ H.mount({ active: 'products', tab: 'products' });
       ${alts.length ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${alts.map(a => `<a class="row gap-12" href="/products/${a.slug}">${plogo(a, 32)}<div><p class="t-label row gap-6">${esc(a.name)}${flag(a.country)}</p><p class="t-caption c-3" style="font-weight:400">${esc(a.tagline)}</p></div></a>`).join('')}</div></section>` : ''}
     </aside>
   </div>`;
-  M.scroll(); M.countUp();
+  M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
   qs('#getit').addEventListener('click', () => API.trackClick(p.id));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));

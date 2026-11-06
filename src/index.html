@@ -124,7 +124,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
-      render(true);
+      render(true); H.contentShown();
       if (API.uid) { await D.loadVotes(rows); render(false); }
     } catch (e) { qs('#feed').innerHTML = `<div class="empty"><p>Couldn’t load the board. <button class="link link--accent" onclick="location.reload()">Try again</button></p></div>`; H.fail(e); }
   }

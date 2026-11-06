@@ -70,7 +70,12 @@ function withPreload(page, data) {
   return page.replace(/(<meta charset="utf-8">)/i, `$1\n<script>window.__PRELOAD__=${json}</script>`);
 }
 
+let warm = false;  // false only on the first request after a cold start
 module.exports = async (req, res) => {
+  const t0 = Date.now(), cold = !warm; warm = true;
+  // Server-Timing is visible in the browser's performance data (and in the perf beacons)
+  const end = res.end.bind(res);
+  res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
   const { type, slug } = req.query;
   const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;

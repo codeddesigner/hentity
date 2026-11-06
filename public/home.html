@@ -18,8 +18,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=8fd54c222e"></script>
-<script src="/assets/app.js?v=06a985ae0d"></script>
+<script src="/assets/api.js?v=d8deec9415"></script>
+<script src="/assets/app.js?v=71a79854b9"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Hentity · Discover what’s being built in Africa</title>
 <meta name="description" content="This week’s new products from founders across Africa, ranked by the community. Upvote, comment and follow makers from Lagos to Nairobi.">
@@ -153,7 +153,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
-      render(true);
+      render(true); H.contentShown();
       if (API.uid) { await D.loadVotes(rows); render(false); }
     } catch (e) { qs('#feed').innerHTML = `<div class="empty"><p>Couldn’t load the board. <button class="link link--accent" onclick="location.reload()">Try again</button></p></div>`; H.fail(e); }
   }

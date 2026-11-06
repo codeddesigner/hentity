@@ -18,8 +18,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=8fd54c222e"></script>
-<script src="/assets/app.js?v=06a985ae0d"></script>
+<script src="/assets/api.js?v=d8deec9415"></script>
+<script src="/assets/app.js?v=71a79854b9"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>News · African tech, startups and launches · Hentity</title>
 <meta name="description" content="Daily African tech news for makers: funding rounds, policy, fintech and launches from Lagos to Nairobi, with a 3-minute morning brief.">
@@ -78,7 +78,7 @@ H.mount({ active: 'news', tab: 'news' });
     const lead = list[0], rest = list.slice(1);
     qs('#lead').innerHTML = lead ? `<a class="stack gap-16 reveal" href="/news/${lead.slug}" style="gap:16px">${img(lead, 'art-img')}<p class="kicker">${esc(lead.topic)}</p><h2 class="t-h2" style="margin-top:-6px">${esc(lead.title)}</h2><p class="body c-2">${esc(lead.dek)}</p>${meta(lead)}</a>` : `<div class="empty"><p class="t-h4">Nothing in ${esc(topic)} yet</p><p class="t-body-sm c-2">Check back tomorrow morning.</p></div>`;
     qs('#latest').innerHTML = rest.map(a => `<a class="art-row" data-scroll-reveal href="/news/${a.slug}"><div class="grow stack gap-8" style="min-width:0"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4">${esc(a.title)}</h3><p class="t-body-sm c-2 hide-sm">${esc(a.dek)}</p>${meta(a)}</div>${img(a, 'art-thumb')}</a>`).join('') || (lead ? '<p class="t-body-sm c-3" style="padding:20px 0">That’s everything for now.</p>' : '');
-    M.scroll(document);
+    M.scroll(document); H.contentShown();
     // discussed
     const top = [...list].sort((a, b) => b.comment_count - a.comment_count).slice(0, 3);
     qs('#discussed').innerHTML = top.map(a => `<a class="row gap-10" style="gap:10px;align-items:flex-start" href="${a.channel_slug ? '/chats/' + a.channel_slug : '/news/' + a.slug}"><span class="icon-badge" style="width:28px;height:28px;flex:none">${icon('hash', 'ic-14')}</span><span><span class="t-label" style="display:block">${esc(a.title)}</span><span class="t-caption c-3" style="font-weight:400">${a.comment_count} comments${a.channel_slug ? ' · #' + esc(a.channel_slug) : ''}</span></span></a>`).join('') || '<p class="t-caption c-3">Quiet so far today.</p>';

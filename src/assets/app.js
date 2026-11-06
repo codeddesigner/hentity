@@ -329,5 +329,23 @@
   }
   function params() { return new URLSearchParams(location.search); }
 
-  window.H = { icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+
+  // Real-user timings: a few seconds after each page load, send where the time went (no personal data).
+  // Read in Supabase table perf_beacons; this is how slowness on visitors' own connections gets diagnosed.
+  const contentShown = () => { try { if (!performance.getEntriesByName('hentity:content').length) performance.mark('hentity:content'); } catch (e) {} };
+  window.addEventListener('load', () => setTimeout(() => {
+    try {
+      const r = Math.round, n = performance.getEntriesByType('navigation')[0], c = navigator.connection || {};
+      const res = performance.getEntriesByType('resource').map(e => ({ n: e.name.replace(/\?.*$/, '').replace(location.origin, '').slice(-70), t: e.initiatorType, s: r(e.startTime), d: r(e.duration), b: e.transferSize || 0, p: e.nextHopProtocol || '' }))
+        .sort((a, b) => b.d - a.d).slice(0, 16);
+      const data = {
+        nav: n ? { redirect: r(n.redirectEnd - n.redirectStart), dns: r(n.domainLookupEnd - n.domainLookupStart), connect: r(n.connectEnd - n.connectStart), tls: n.secureConnectionStart ? r(n.connectEnd - n.secureConnectionStart) : 0, ttfb: r(n.responseStart - n.requestStart), htmlDownload: r(n.responseEnd - n.responseStart), domInteractive: r(n.domInteractive), domContentLoaded: r(n.domContentLoadedEventEnd), load: r(n.loadEventEnd), bytes: n.transferSize, proto: n.nextHopProtocol, server: (n.serverTiming || []).map(t => [t.name, r(t.duration)]) } : null,
+        marks: performance.getEntriesByType('mark').filter(m => m.name.startsWith('hentity:')).map(m => [m.name.slice(8), r(m.startTime)]),
+        res, conn: { type: c.effectiveType, rtt: c.rtt, down: c.downlink, saveData: c.saveData }, signedIn: !!(window.API && API.uid), preloaded: !!window.__PRELOAD__,
+        ua: navigator.userAgent.slice(0, 140)
+      };
+      API.sb.from('perf_beacons').insert({ path: location.pathname.slice(0, 200), data }).then(() => {}, () => {});
+    } catch (e) {}
+  }, 4000));
+  window.H = { contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
