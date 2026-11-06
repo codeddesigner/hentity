@@ -127,7 +127,9 @@
     upcoming: () => pre('upcoming', () => q(sb.from('product_feed').select(PRODUCT_COLS).eq('status', 'scheduled').neq('effective_status', 'live').order('launch_date', { ascending: true }).order('verified', { ascending: false }).limit(20))),
     daySlots: (d1, d2) => q(sb.rpc('day_slots', { d1, d2 })),
     launchingToday: () => pre('today', () => q(sb.from('product_feed').select('id', { count: 'exact', head: true }).eq('launch_date', new Date(Date.now() + 3600e3).toISOString().slice(0, 10)).in('status', ['scheduled', 'live']))),
-    wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
+    // Recent: newest products on Hentity, launched or not yet claimed (Figma: Products feed · Recent)
+    recent: ({ country, pay } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS).in('status', ['live', 'unclaimed']); if (country && country !== 'all') s = s.eq('country', country); if (pay) s = s.contains('pay_methods', [pay]); return q(s.order('created_at', { ascending: false }).order('upvote_count', { ascending: false }).limit(60)); },
+    wallOfFame: () => q(sb.from('product_feed').select(PRODUCT_COLS).in('status', ['scheduled', 'live', 'unclaimed']).gt('upvote_count', 0).order('upvote_count', { ascending: false }).limit(12)),
     product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at,claim,claimed_at').eq('slug', slug).maybeSingle())),
     productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
     company: id => id ? pre('company:' + id, () => q(sb.from('companies').select('*').eq('id', id).maybeSingle())) : Promise.resolve(null),

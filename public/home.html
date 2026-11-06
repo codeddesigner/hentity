@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=00861b64dd">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=6ce7997c04"></script>
+<script src="/assets/api.js?v=89b43d5677"></script>
 <script src="/assets/app.js?v=29a0ba8130"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -98,6 +98,7 @@
           <span class="seg-ind" aria-hidden="true"></span>
           <button role="tab" aria-selected="true" data-board="this">This week</button>
           <button role="tab" aria-selected="false" data-board="last">Last week</button>
+          <button role="tab" aria-selected="false" data-board="recent">Recent</button>
           <button role="tab" aria-selected="false" data-board="upcoming">Upcoming</button>
           <button role="tab" aria-selected="false" data-board="fame">Wall of fame</button>
         </div>
@@ -126,7 +127,7 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=d3cbe3db04"></script>
+<script src="/assets/data.js?v=746cd36043"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 H.qs('#ptabs').innerHTML = H.productTabs('week');
@@ -157,6 +158,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       const pay = qs('#pays').value;
       if (board === 'upcoming') rows = await API.upcoming();
       else if (board === 'fame') rows = await API.wallOfFame();
+      else if (board === 'recent') rows = await API.recent({ country, pay });
       else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
@@ -182,11 +184,12 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     let rank = 0; const shown = expanded ? rows : rows.slice(0, 7);
     qs('#feed').innerHTML = shown.length ? shown.map((p, i) => {
       if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
+      if (board === 'recent') return D.row(p, 0, { noRank: true, badge: p.status === 'unclaimed' ? '' : `<span class="badge">${esc(H.ago(p.created_at))}</span>` });
       return D.row(p, p.promoted ? 0 : ++rank) + (i === 1 && board === 'this' ? teaser() : '');
     }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
     const more = qs('#more'); more.hidden = rows.length <= 7; more.textContent = expanded ? 'Show fewer' : `Show all ${rows.length} launches`;
-    qs('#feed-title').textContent = { this: 'This week’s launches', last: 'Last week’s results', upcoming: 'Launching soon', fame: 'Wall of fame' }[board];
+    qs('#feed-title').textContent = { this: 'This week’s launches', last: 'Last week’s results', recent: 'Recently added', upcoming: 'Launching soon', fame: 'Wall of fame' }[board];
     bindNotify();
   }
   // Re-rank live when votes change

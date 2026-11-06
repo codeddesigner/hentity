@@ -13,6 +13,8 @@
     document.querySelectorAll('[data-vote]').forEach(syncBtn);
   }
   function isLive(p) { return (p.effective_status || p.status) === 'live'; }
+  // Unclaimed profiles can be upvoted too (they never enter the weekly ranking, which goes by launch week)
+  function canVote(p) { return ['live', 'unclaimed'].includes(p.effective_status || p.status); }
   function upBtn(p, extra) {
     const on = voted.has(p.id);
     const mine = API.uid && p.owner_id === API.uid;
@@ -30,12 +32,12 @@
     const r = rank && !p.promoted ? `<span class="prow__rank${rank <= 3 ? ' prow__rank--' + rank : ''}" aria-label="Rank ${rank}">${rank}</span>` : (opts.noRank ? '' : '<span class="prow__rank" aria-hidden="true"></span>');
     const cat = (p.categories || [])[0] || '';
     const rails = (p.pay_methods || []).join(' · ');
-    const up = (p.promoted || !isLive(p) || opts.noVote) ? (opts.trailing || '<span style="width:56px" class="hide-sm"></span>') : upBtn(p);
+    const up = (p.promoted || !canVote(p) || opts.noVote) ? (opts.trailing || '<span style="width:56px" class="hide-sm"></span>') : upBtn(p);
     return `<article class="prow" data-key="${p.id}">
       ${p.promoted ? '' : r}
       <a href="/products/${p.slug}" tabindex="-1" aria-hidden="true">${plogo(p)}</a>
       <div class="prow__info">
-        <div class="prow__name"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? verified() : ''}${p.featured ? '<span class="badge badge--featured">Featured</span>' : ''}${p.promoted ? '<span class="badge">Promoted</span>' : ''}${opts.badge || ''}</div>
+        <div class="prow__name"><a href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? verified() : ''}${p.featured ? '<span class="badge badge--featured">Featured</span>' : ''}${p.promoted ? '<span class="badge">Promoted</span>' : ''}${p.status === 'unclaimed' ? '<span class="uc-tag">Unclaimed</span>' : ''}${opts.badge || ''}</div>
         <p class="prow__tag">${esc(p.tagline)}</p>
         <div class="prow__meta">
           ${cat ? `<span class="badge">${esc(cat)}</span>` : ''}
@@ -76,5 +78,5 @@
       onChange && onChange(p);
     });
   }
-  window.D = { row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, liveCounts };
+  window.D = { row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, canVote, liveCounts };
 })();

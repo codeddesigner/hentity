@@ -161,14 +161,14 @@ H.mount({ active: 'products', tab: 'products' });
         <p class="t-body-lg c-2 row gap-8 wrap" style="margin-top:6px">${esc(p.tagline)}${dom ? `<span class="src d-only">${icon('link', 'ic-12')}${esc(dom)}</span>` : ''}</p>
         <p class="row gap-8 wrap t-body-sm c-2 uc-meta" style="margin-top:8px">${meta.join('<span class="c-3">·</span>')}</p>
       </div>
-      <div class="row gap-8 uc-cta">${p.website ? `<a class="btn btn--secondary" href="${esc(p.website)}" target="_blank" rel="noopener nofollow" id="getit">${icon('arrow-up-right')}<span class="d-only">Visit website</span><span class="m-only">Website</span></a>` : ''}<button class="btn btn--primary" type="button" id="uc-follow"></button></div>
+      <div class="row gap-8 uc-cta">${p.website ? `<a class="btn btn--secondary" href="${esc(p.website)}" target="_blank" rel="noopener nofollow" id="getit">${icon('arrow-up-right')}<span class="d-only">Visit website</span><span class="m-only">Website</span></a>` : ''}<button class="btn btn--primary" type="button" id="uc-follow"></button><button class="btn btn--accent" type="button" id="vote" data-vote-big></button></div>
     </div>
     <div class="pp-body" style="margin-top:28px">
       <div class="stack gap-20">
         ${list.length ? `<section class="card uc-know" data-scroll-reveal><div class="row between gap-12" style="padding:20px 20px 4px"><h2 class="t-h4">What we know</h2><span class="t-caption c-3 d-only" style="font-weight:400">Every fact links to its source</span></div>
           ${list.map(f => `<div class="uc-row"><span class="t-body-sm c-2">${esc(f.label || f.key)}</span><div class="stack gap-6" style="align-items:flex-start;min-width:0"><span>${esc(f.value)}</span>${src(f)}</div></div>`).join('')}</section>` : ''}
         ${news.length ? `<section class="card card--pad d-only" data-scroll-reveal><h2 class="t-h4" style="margin-bottom:14px">In the news</h2><div class="stack gap-12">${news.map(n => `<a class="row gap-12 uc-news" href="${esc(n.url)}" target="_blank" rel="noopener nofollow"><span class="uc-thumb" style="background:linear-gradient(135deg,${esc(p.color || '#111')},#0a0a0a)"></span><span class="grow" style="min-width:0"><span class="t-body-sm" style="font-weight:500;display:block">${esc(n.title)}</span><span class="t-caption c-3" style="font-weight:400">${esc([n.source, n.date ? new Date(n.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''].filter(Boolean).join(' · '))}</span></span>${icon('arrow-up-right', 'ic-16')}</a>`).join('')}</div></section>` : ''}
-        <section class="card card--pad row gap-16 wrap" data-scroll-reveal id="uc-ask-card"><div class="grow" style="min-width:220px"><p class="t-body-sm" style="font-weight:500" id="uc-want"></p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">We tell the team every time someone asks. Upvotes and comments open once it’s claimed.</p></div><button class="btn btn--secondary btn--sm" type="button" id="uc-ask"></button></section>
+        <section class="card card--pad row gap-16 wrap" data-scroll-reveal id="uc-ask-card"><div class="grow" style="min-width:220px"><p class="t-body-sm" style="font-weight:500" id="uc-want"></p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">We tell the team every time someone asks. Comments open once it’s claimed.</p></div><button class="btn btn--secondary btn--sm" type="button" id="uc-ask"></button></section>
       </div>
       <aside class="stack gap-20 d-only-b">
         <section class="uc-dark" data-scroll-reveal><p class="t-eyebrow">Work at ${esc(p.name)}?</p><h2 class="t-h3" style="margin:6px 0 14px;color:#fff">Claim this profile</h2>
@@ -192,7 +192,7 @@ H.mount({ active: 'products', tab: 'products' });
       .uc-know{padding-bottom:6px}.uc-news:hover{color:var(--color-accent-default)}
       .uc-thumb{width:72px;height:48px;border-radius:8px;flex:none}
       .m-only,.m-only-f{display:none}
-      @media (max-width:768px){.uc-head{grid-template-columns:56px minmax(0,1fr);margin-top:18px;gap:12px 14px}.uc-head>.grow{display:contents}.uc-head>.grow>p{grid-column:1/-1;margin-top:0!important}.uc-head h1{align-self:center}.uc-head .plogo{width:56px;height:56px}.uc-cta{grid-column:1/-1}.uc-cta>*{flex:1}
+      @media (max-width:768px){.uc-head{grid-template-columns:56px minmax(0,1fr);margin-top:18px;gap:12px 14px}.uc-head>.grow{display:contents}.uc-head>.grow>p{grid-column:1/-1;margin-top:0!important}.uc-head h1{align-self:center}.uc-head .plogo{width:56px;height:56px}.uc-cta{grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;gap:8px}.uc-cta>#vote{grid-column:1/-1}
         .uc-head h1{font-size:30px!important;line-height:36px!important}.d-only{display:none!important}.d-only-b{display:none!important}.m-only{display:inline}
         .uc-row{grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px}.uc-row>span:first-child{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary)}
         .uc-banner{padding:12px 14px}.m-only-f{display:flex}
@@ -202,6 +202,10 @@ H.mount({ active: 'products', tab: 'products' });
     const setF = () => { qs('#uc-follow').innerHTML = fol ? icon('check') + 'Following' : icon('plus') + 'Follow'; qs('#uc-follow').className = 'btn ' + (fol ? 'btn--secondary' : 'btn--primary'); const f = qs('#uc-followers'); if (f) f.textContent = D.fmt(followers); };
     const setA = () => { qs('#uc-ask').innerHTML = ask ? icon('check', 'ic-14') + 'You asked' : icon('bell', 'ic-14') + 'Ask them to join'; qs('#uc-want').textContent = want() ? `${D.fmt(want())} ${want() === 1 ? 'person wants' : 'people want'} ${p.name} on Hentity` : `Want ${p.name} on Hentity?`; };
     setF(); setA();
+    // Upvotes are open on unclaimed pages too
+    D.remember([p]); await D.loadVotes([p]);
+    const vb = qs('#vote'), vlabel = () => { vb.className = 'btn ' + (D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'); vb.innerHTML = icon('upvote') + (D.voted.has(p.id) ? 'Upvoted · ' : 'Upvote · ') + D.fmt(p.upvote_count); };
+    vb.dataset.vote = p.id; vlabel(); vb.addEventListener('click', () => setTimeout(vlabel, 30)); D.liveCounts && D.liveCounts(vlabel);
     qs('#uc-follow').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } fol = !fol; followers += fol ? 1 : -1; setF(); setA(); try { await API.follow('product', p.id, fol); } catch (e) { fol = !fol; followers += fol ? 1 : -1; setF(); setA(); H.fail(e); } };
     qs('#uc-ask').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } ask = !ask; nAsk += ask ? 1 : -1; setA(); try { await API.notifyMe(p.id, ask); toast(ask ? `We’ll tell the ${p.name} team you asked` : 'Request removed'); } catch (e) { ask = !ask; nAsk += ask ? 1 : -1; setA(); H.fail(e); } };
     qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
