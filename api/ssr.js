@@ -19,6 +19,7 @@ const PCOLS = 'id,slug,name,tagline,description,website,logo_url,media,categorie
 const LIST = 'slug,name,tagline,city,country,categories,logo_url,upvote_count';
 
 // Unclaimed profiles: the public facts Hentity collected, each with its source (hidden facts never reach the view)
+const TEAM_COLS = 'name,username,headline,bio,city,country,website,x,linkedin,avatar_url,settings,banned';
 function unclaimedBlock(p) {
   if (p.effective_status !== 'unclaimed') return '';
   const f = (p.claim && p.claim.facts) || [], n = (p.claim && p.claim.news) || [];
@@ -29,8 +30,14 @@ function unclaimedBlock(p) {
 
 async function build(type, slug) {
   if (type === 'product') {
-    const [p] = await rest(`product_feed?slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live,unclaimed)&select=${PCOLS},claim,company_id,owner:profiles!products_owner_id_fkey(name,username)`);
+    const [p] = await rest(`product_feed?slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live,unclaimed)&select=${PCOLS},claim,company_id,owner:profiles!products_owner_id_fkey(${TEAM_COLS})`);
     if (!p) return null;
+    // The founders and makers behind it, with their bios (unless a maker opted out of search engines)
+    const mk = await rest(`product_makers?product_id=eq.${p.id}&accepted=eq.true&select=role,user:profiles!product_makers_user_id_fkey(${TEAM_COLS})`).catch(() => []);
+    const team = [p.owner && !p.owner.banned && { u: p.owner, role: 'Founder' }, ...mk.filter(m => m.user && !m.user.banned && (!p.owner || m.user.username !== p.owner.username)).map(m => ({ u: m.user, role: m.role || 'Maker' }))].filter(Boolean);
+    const open = u => !u.settings || u.settings.indexable !== false;
+    const person = ({ u, role }) => ({ '@type': 'Person', name: u.name, url: `${SITE}/makers/${u.username}`, jobTitle: role, ...(open(u) ? { ...(u.headline ? { description: u.headline } : {}), ...(u.avatar_url ? { image: u.avatar_url } : {}), ...(u.city || u.country ? { homeLocation: { '@type': 'Place', name: [u.city, COUNTRY[u.country] || u.country].filter(Boolean).join(', ') } } : {}), sameAs: [u.website, u.x && 'https://x.com/' + u.x.replace(/^@/, ''), u.linkedin && (u.linkedin.startsWith('http') ? u.linkedin : 'https://' + u.linkedin)].filter(Boolean) } : {}) });
+    const teamHtml = team.length ? `<h2>The team behind ${esc(p.name)}</h2>` + team.map(({ u, role }) => `<section><h3><a href="/makers/${esc(u.username)}">${esc(u.name)}</a>, ${esc(role)}</h3>${open(u) ? `${u.headline ? `<p><strong>${esc(u.headline)}</strong></p>` : ''}${u.city || u.country ? `<p>Based in ${esc([u.city, COUNTRY[u.country] || u.country].filter(Boolean).join(', '))}</p>` : ''}${u.bio ? `<p>${esc(u.bio)}</p>` : ''}` : ''}</section>`).join('') : '';
     if (p.company_id) p.company = (await rest(`companies?id=eq.${p.company_id}&select=name,city,country,verified,founded`).catch(() => []))[0] || null;
     const where = [p.city, COUNTRY[p.country] || p.country].filter(Boolean).join(', ');
     const cats = p.categories || [];
@@ -46,7 +53,7 @@ async function build(type, slug) {
       ...(p.logo_url || shot ? { image: [shot && shot.url, p.logo_url].filter(Boolean) } : {}), ...(shot ? { screenshot: shot.url } : {}),
       ...(p.website ? { sameAs: [p.website], installUrl: p.website } : {}), ...(launched ? { datePublished: launched } : {}),
       ...(p.countries && p.countries.length ? { areaServed: p.countries.map(c => ({ '@type': 'Country', name: COUNTRY[c] || c })) } : {}),
-      ...(p.owner ? { author: { '@type': 'Person', name: p.owner.name, url: `${SITE}/makers/${p.owner.username}` } } : {}),
+      ...(team.length ? { author: team.map(person) } : {}),
       ...(p.company ? { publisher: { '@type': 'Organization', name: p.company.name, ...(p.company.founded ? { foundingDate: String(p.company.founded) } : {}) } } : {}),
       interactionStatistic: [{ '@type': 'InteractionCounter', interactionType: 'https://schema.org/LikeAction', userInteractionCount: p.upvote_count }, { '@type': 'InteractionCounter', interactionType: 'https://schema.org/CommentAction', userInteractionCount: p.comment_count }, { '@type': 'InteractionCounter', interactionType: 'https://schema.org/FollowAction', userInteractionCount: p.follower_count }] };
     const facts = [['Category', cats.map(c => `<a href="${S.catUrl(c)}">${esc(c)}</a>`).join(', ')], ['Based in', p.country && S.countryUrl(p.country) ? `${esc(p.city ? p.city + ', ' : '')}<a href="${S.countryUrl(p.country)}">${esc(COUNTRY[p.country] || p.country)}</a>` : esc(where)], ['Available in', esc((p.countries || []).map(c => COUNTRY[c] || c).join(', '))], ['Pay with', esc((p.pay_methods || []).join(', '))], ['Platforms', esc(p.platforms || '')], ['Languages', esc(p.languages || '')], ['Stage', esc(p.stage || '')], ['Launched on Hentity', esc(launched || '')]].filter(f => f[1]);
@@ -60,7 +67,7 @@ async function build(type, slug) {
         <dl>${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
         <p>${p.upvote_count} upvotes · ${p.comment_count} comments · ${p.follower_count} followers on Hentity</p>
         ${p.website ? `<p><a href="${esc(p.website)}" rel="noopener">Visit ${esc(p.name)}</a></p>` : ''}
-        ${p.owner ? `<p>Made by <a href="/makers/${esc(p.owner.username)}">${esc(p.owner.name)}</a>${p.company ? ` at ${esc(p.company.name)}` : ''}</p>` : ''}
+        ${teamHtml}${p.company ? `<p>Company: ${esc(p.company.name)}</p>` : ''}
         ${unclaimedBlock(p)}
         ${S.list(alts, `Alternatives to ${p.name}`)}${S.nav()}`
     };
@@ -69,7 +76,9 @@ async function build(type, slug) {
     const [u] = await rest(`profiles?username=eq.${encodeURIComponent(slug)}&banned=eq.false&select=id,username,name,headline,bio,country,city,avatar_url,website,x,linkedin,settings`);
     if (!u) return null;
     const indexable = !u.settings || u.settings.indexable !== false;
-    const prods = await rest(`products?owner_id=eq.${u.id}&status=in.(scheduled,live)&select=name,slug,tagline,city,country&limit=20`).catch(() => []);
+    const [own, made] = await Promise.all([rest(`products?owner_id=eq.${u.id}&status=in.(scheduled,live)&select=name,slug,tagline,city,country&limit=20`).catch(() => []),
+      rest(`product_makers?user_id=eq.${u.id}&accepted=eq.true&select=product:products(name,slug,tagline,city,country,status)`).catch(() => [])]);
+    const prods = own.concat(made.map(m => m.product).filter(x => x && ['scheduled', 'live'].includes(x.status) && !own.some(o => o.slug === x.slug)));
     const where = [u.city, COUNTRY[u.country] || u.country].filter(Boolean).join(', ');
     return {
       title: `${u.name} (@${u.username})${u.headline ? ' — ' + u.headline : ''} | Hentity`,

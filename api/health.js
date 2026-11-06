@@ -6,7 +6,7 @@ const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,me
 const Q = {
   board: ['product_feed', PRODUCT_COLS, 'status=in.(scheduled,live)&limit=3'],
   weeks: ['weeks', '*', 'limit=1'],
-  makers: ['product_makers', 'role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)', 'limit=3'],
+  makers: ['product_makers', 'role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline,bio)', 'limit=3'],
   comments: ['comments', 'id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)', 'limit=3'],
   live_comments: ['comments', 'created_at,product:products(name),article:articles(title),user:profiles!comments_user_id_fkey(name,city,username,avatar_url,avatar_color)', 'limit=3'],
   channels: ['channels', 'id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)', 'limit=3'],
@@ -15,7 +15,7 @@ const Q = {
   last_messages: ['messages', 'channel_id,body,kind,created_at,user:profiles!messages_user_id_fkey(name)', 'limit=3'],
   thread_users: ['messages', 'parent_id,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color)', 'limit=3'],
   articles: ['articles', '*', 'limit=1'],
-  profiles: ['profiles', 'id,username,name,avatar_url,avatar_color,city,country,headline,is_verified', 'limit=1'],
+  profiles: ['profiles', 'id,username,name,avatar_url,avatar_color,city,country,headline,bio,is_verified', 'limit=1'],
   settings: ['site_settings', 'value', 'key=eq.stats']
 };
 module.exports = async (req, res) => {

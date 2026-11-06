@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=172c5f3c9c">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=a95841aeaa"></script>
+<script src="/assets/api.js?v=c5275385e1"></script>
 <script src="/assets/app.js?v=2366c70bf4"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -49,6 +49,7 @@
 .kpi b{display:block;font-size:20px;line-height:26px;font-weight:600;letter-spacing:-0.015em}
 .kv{display:flex;justify-content:space-between;font-size:13px;line-height:18px;padding:6px 0}
 .kv span:first-child{color:var(--color-text-secondary)}
+.mk-bio{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .badge--founder{background:#000;color:#fff}
 :root[data-theme="dark"] .badge--founder{background:#fff;color:#000}
 .share{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500}
@@ -155,7 +156,7 @@ H.mount({ active: 'products', tab: 'products' });
       ${company ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Company</h2>
         <div class="row gap-12" style="margin-bottom:14px">${plogo({ name: company.name, color: p.color }, 32)}<div><p class="t-label">${esc(company.name)}</p>${company.verified ? `<p class="t-caption c-success row gap-4" style="font-weight:400">${icon('check', 'ic-12')}Verified startup${company.registration ? ' · ' + esc(company.registration) : ''}</p>` : ''}</div></div>
         <div class="kv"><span>Stage</span><span>${esc(company.stage || p.stage)}</span></div><div class="kv"><span>HQ</span><span>${esc(company.city)}, ${H.COUNTRY[company.country] || company.country}</span></div><div class="kv"><span>Team</span><span>${company.team_size} people</span></div>${company.founded ? `<div class="kv"><span>Founded</span><span>${company.founded}</span></div>` : ''}<div class="kv"><span>Raised</span><span>${esc(company.raised || 'Undisclosed')}</span></div></section>` : ''}
-      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-12">${team.map(m => `<div class="row gap-12">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p></a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div></section>
+      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-16">${team.map(m => `<div class="row gap-12" style="align-items:flex-start">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}" style="min-width:0"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p>${m.user.headline ? `<p class="t-caption c-2" style="font-weight:400;margin-top:4px">${esc(m.user.headline)}</p>` : ''}${m.user.bio ? `<p class="t-caption c-2 mk-bio" style="font-weight:400;margin-top:4px">${esc(m.user.bio)}</p>` : ''}</a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div></section>
       ${alts.length ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Alternatives</h2><div class="stack gap-12">${alts.map(a => `<a class="row gap-12" href="/products/${a.slug}">${plogo(a, 32)}<div><p class="t-label row gap-6">${esc(a.name)}${flag(a.country)}</p><p class="t-caption c-3" style="font-weight:400">${esc(a.tagline)}</p></div></a>`).join('')}</div></section>` : ''}
     </aside>
   </div>`;

@@ -133,7 +133,7 @@
     async usernameAvailable(u) { const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle(); return !data || data.id === uid(); },
     workEmailOk: async e => { const { data, error } = await sb.rpc('work_email_ok', { e }); err(error); return !!data; },
     profileByUsername: u => pre('maker:' + u, () => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle())),
-    profilesByIds: ids => ids.length ? pre('profiles:' + ids.join(','), () => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,is_verified').in('id', ids))) : Promise.resolve([]),
+    profilesByIds: ids => ids.length ? pre('profiles:' + ids.join(','), () => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,bio,is_verified').in('id', ids))) : Promise.resolve([]),
     searchProfiles: (term) => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country').or(`username.ilike.%${term}%,name.ilike.%${term}%`).limit(8)),
 
     // ---------------- weeks & board
@@ -168,7 +168,7 @@
     product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at,claim,claimed_at').eq('slug', slug).maybeSingle())),
     productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
     company: id => id ? pre('company:' + id, () => q(sb.from('companies').select('*').eq('id', id).maybeSingle())) : Promise.resolve(null),
-    makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)').eq('product_id', pid))),
+    makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline,bio)').eq('product_id', pid))),
     async directory({ countries, pay, stages, sectors, langs, term, sort, scope, profile }) {
       // profile: which pages to include: ['claimed','unclaimed'] (default both)
       const prof = profile && profile.length ? profile : ['claimed', 'unclaimed'];

@@ -5,11 +5,11 @@ const SB = 'https://sislzikhjapilksictxd.supabase.co';
 const KEY = 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz';
 const { PRODUCT_COLS } = require('./_cols.json');   // written by build.py from src/assets/api.js
 
-const MAKERS = 'role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline)';
+const MAKERS = 'role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline,bio)';
 const COMMENTS = 'id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)';
 const RECENT = 'created_at,product:products(name),article:articles(title),user:profiles!comments_user_id_fkey(name,city,username,avatar_url,avatar_color)';
 const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
-const PROFILE_SHORT = 'id,username,name,avatar_url,avatar_color,city,country,headline,is_verified';
+const PROFILE_SHORT = 'id,username,name,avatar_url,avatar_color,city,country,headline,bio,is_verified';
 
 async function get(path) {
   const r = await fetch(`${SB}/rest/v1/${path}`, { headers: { apikey: KEY, Accept: 'application/json' } });
