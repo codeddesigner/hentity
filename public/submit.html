@@ -308,9 +308,10 @@ H.mount({ active: '', tab: 'launch' });
     const V = [['domain', 'Domain', `Add a TXT record hentity-verify=${(p && p.id || '').slice(0, 8) || 'xxxx'} to ${dom}`, 'globe'], ['company', 'Company registration', 'CAC, RC or equivalent number · needed for the Verified stamp', 'link'], ['founder', 'Founder profile', 'Link a LinkedIn or X profile', 'link']];
     qs('#vlist').innerHTML = V.map(([k, t, d, ic]) => `<div class="vrow"><span class="${s.verify[k] ? 'c-success' : 'c-2'}">${icon(s.verify[k] ? 'check' : ic, 'ic-18')}</span><div class="grow"><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400">${s.verify[k] && typeof s.verify[k] === 'string' ? esc(s.verify[k]) : d}</p></div>${s.verify[k] ? `<span class="badge">${s.verified ? 'Verified' : k === 'company' ? 'Checked by Hentity' : 'Added'}</span>` : `<button class="btn btn--secondary btn--sm" type="button" data-v="${k}">${k === 'domain' ? 'I’ve added it' : 'Add'}</button>`}</div>`).join('');
   }
+  qs('#vlist').addEventListener('keydown', e => { const i = e.target.closest('[data-vi]'); if (!i) return; if (e.key === 'Enter') { e.preventDefault(); qs(`[data-vs="${i.dataset.vi}"]`).click(); } if (e.key === 'Escape') { e.preventDefault(); renderV(); } });
   qs('#vlist').addEventListener('click', e => {
     const b = e.target.closest('[data-v]'); if (b) { const k = b.dataset.v; if (k === 'domain') { s.verify.domain = 'TXT record added · checked during review'; renderV(); scheduleSave(); return; } const row = b.closest('.vrow'); b.outerHTML = `<input class="input" style="max-width:220px;height:32px" placeholder="${k === 'company' ? 'RC 1234567' : 'linkedin.com/in/…'}" data-vi="${k}" aria-label="${k}"><button class="btn btn--primary btn--sm" type="button" data-vs="${k}">Save</button>`; row.querySelector('input').focus(); return; }
-    const sv = e.target.closest('[data-vs]'); if (sv) { const v = qs(`[data-vi="${sv.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${sv.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[sv.dataset.vs] = v; renderV(); update(); toast('Added for verification'); }
+    const sv = e.target.closest('[data-vs]'); if (sv) { const v = qs(`[data-vi="${sv.dataset.vs}"]`).value.trim(); if (v.length < 4) { qs(`[data-vi="${sv.dataset.vs}"]`).classList.add('is-error'); return; } s.verify[sv.dataset.vs] = v; renderV(); update(); scheduleSave(); toast('Added for verification'); }
   });
 
   // ---- Persistence
@@ -354,11 +355,13 @@ H.mount({ active: '', tab: 'launch' });
     qs('#idx-name').textContent = form.name.value || 'Untitled product';
     qs('#ready-n').textContent = n + ' / 5'; qs('#ready-bar').style.width = (n / 5 * 100) + '%';
     const missing = req.filter(k => !d[k]).map(k => SECS.find(x => x[0] === k)[1]);
-    qs('#ready-hint').textContent = missing.length ? 'Finish ' + missing.join(' and ').replace(/ and (?=.* and )/g, ', ') + ' to submit.' : qs('#support').checked ? 'Ready when you are.' : 'Tick the box above to submit.';
+    const introLeft = INTRO_MIN - qs('#intro-t').value.trim().length;
+    const why = { basics: 'Basics', media: 'Media (add at least one image)', makers: 'Makers', week: 'Launch week (pick one)', intro: introLeft > 0 ? `Introduction (${introLeft} more character${introLeft === 1 ? '' : 's'}, minimum ${INTRO_MIN})` : 'Introduction' };
+    qs('#ready-hint').innerHTML = missing.length ? 'To submit, finish: ' + req.filter(k => !d[k]).map(k => `<a class="link" href="#${k}">${esc(why[k])}</a>`).join(', ') + '.' : qs('#support').checked ? 'Ready when you are.' : 'Tick the box above to submit.';
     qs('#submit').disabled = !(n === 5 && qs('#support').checked);
     const preview = Object.assign({}, s, payload(), { logo_url: s.logo_url });
     qs('#preview').innerHTML = L.card(preview, { flag: true }).replace('class="card lcard"', 'class="card lcard" style="padding:20px 16px"');
-    renderV();
+    if (!qs('#vlist [data-vi]')) renderV();   // never redraw while a verification box is open (it would wipe what's being typed)
   }
   form.addEventListener('input', () => { update(); scheduleSave(); }); form.addEventListener('change', () => { update(); scheduleSave(); }); qs('#support').addEventListener('change', update);
   qsa('#cats, #pay, #weeks').forEach(el => el.addEventListener('click', scheduleSave));
