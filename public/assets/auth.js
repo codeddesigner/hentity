@@ -60,7 +60,7 @@
   function codeStep(form, opts) {
     const wrap = document.createElement('form'); wrap.className = 'auth__form reveal'; wrap.noValidate = true; wrap.id = 'code-form';
     wrap.innerHTML = `<div class="icon-badge">${icon('mail')}</div>
-      <div class="auth__heading"><h1 class="t-h2">${H.esc(opts.title || 'Check your email')}</h1><p class="c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${H.esc(opts.email)}</b>. Enter it below, or tap the link in the email.</p></div>
+      <div class="auth__heading"><h1 class="t-h2">${H.esc(opts.title || 'Check your email')}</h1><p class="c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${H.esc(opts.email)}</b>. Enter it below to continue.</p></div>
       <div class="alert alert--error" id="code-err" role="alert" hidden>${icon('alert-circle')}<div><p class="alert__title" id="code-err-t"></p><p class="alert__body" id="code-err-b"></p></div></div>
       <div class="field" id="f-code"><label class="field__label" for="code">Code</label><input class="input mono" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="••••••" style="letter-spacing:.4em;font-size:22px;text-align:center"></div>
       <button class="btn btn--primary btn--block" type="submit" id="code-go" disabled>Continue</button>

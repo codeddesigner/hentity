@@ -59,7 +59,7 @@
 
     // ---------------- auth
     auth: {
-      // Passwordless: a 6-digit code (and a link) is emailed; create=true also registers the account.
+      // Passwordless: a 6-digit code is emailed; create=true also registers the account.
       async sendCode(email, opts) {
         opts = opts || {};
         const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: !!opts.create, data: opts.create ? { name: opts.name, username: opts.username } : undefined, emailRedirectTo: location.origin + (opts.next || '/') } });

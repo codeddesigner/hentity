@@ -66,12 +66,12 @@ H.mount();
   const { qs, toast } = H;
   let form = qs('#form');
   const err = qs('#err');
-  // A sign-in link from the email that has expired or been used lands here with an error in the URL
+  // Old sign-in links from earlier emails land here with an error in the URL
   const h = new URLSearchParams(location.hash.slice(1));
   await API.ready;
   if (API.uid && !H.params().get('force')) { if (await needsMfa()) showMfa(); else { location.replace(Auth.next()); return; } }
   const pre = H.params().get('email'); if (pre) form.email.value = pre;
-  if (h.get('error') || H.params().get('expired')) fail(['That sign-in link has expired', 'Links and codes work once, for one hour. Send yourself a new code below.']);
+  if (h.get('error') || H.params().get('expired')) fail(['That code has expired', 'Codes work once, for one hour. Send yourself a new one below.']);
 
   function fail([title, body], html) { qs('#err-title').textContent = title; qs('#err-body').innerHTML = html || H.esc(body); err.hidden = false; err.classList.remove('reveal'); void err.offsetWidth; err.classList.add('reveal'); qs('#f-email').classList.add('is-error'); }
   form.addEventListener('input', () => { err.hidden = true; qs('#f-email').classList.remove('is-error'); });
