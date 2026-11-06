@@ -27,7 +27,7 @@ H.mount();
     ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell']]],
     ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users']]],
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
-    ['Community', [['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
+    ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
     ['System', [['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
@@ -158,6 +158,36 @@ H.mount();
     stampField(d, reg, 'reg');
     H.bindChips(d.querySelector('#decision'), () => { const dec = (d.querySelector('#decision [aria-pressed="true"]') || {}).dataset.d; d.querySelector('[name=day]').closest('.field').hidden = dec !== 'scheduled'; d.querySelector('[name=items]').closest('.field').hidden = dec !== 'changes'; });
     d.querySelector('[name=items]').closest('.field').hidden = true;
+  }
+
+  // ---- Find roles: postings from startups without a verified product wait here
+  const FKIND = { cofounder: 'Co-founder', fulltime: 'Full-time', parttime: 'Part-time', contract: 'Contract', internship: 'Internship' };
+  V.findroles = async (st) => {
+    st = st || 'review'; nav('findroles');
+    const rows = await A.findRoles(st);
+    qs('#main').innerHTML = head('Find roles', 'Roles from startups without a verified product need your approval before they go on the board. Verified products go live straight away.')
+      + `<div class="chips" style="margin-bottom:16px">${[['review', 'Waiting'], ['open', 'Live'], ['rejected', 'Not approved'], ['all', 'All']].map(([k, l]) => `<a class="chip" href="#findroles/${k}" aria-pressed="${k === st}">${l}</a>`).join('')}</div>`
+      + tbl(['Role', 'Startup', 'Posted by', 'Updated', ''], rows.map(r => `<tr><td><b>${esc(r.title)}</b><br><span class="c-3">${FKIND[r.kind] || r.kind} · ${esc(r.visibility)}${r.city ? ' · ' + esc(r.city) : ''}</span></td><td>${r.product ? `<span class="row gap-6"><a class="link" href="/products/${esc(r.product.slug)}" target="_blank">${esc(r.product.name)}</a>${r.product.verified ? H.verified('verified--sm') : '<span class="badge">unverified</span>'}</span>` : `${esc(r.startup_name || '—')}<br><span class="c-3">not on Hentity</span>`}</td><td>${r.owner ? `${esc(r.owner.name)}${r.owner.is_verified ? ' ' + H.verified('verified--sm') : ''}<br><span class="c-3">${esc(r.owner.email || '@' + r.owner.username)}</span>` : '—'}</td><td>${when(r.updated_at)}</td><td style="text-align:right">${r.status === 'review' ? `<button class="btn btn--primary btn--sm" data-open="${r.id}">Review</button>` : `<span class="row gap-8" style="justify-content:flex-end">${badge({ open: 'live', rejected: 'rejected', closed: 'archived' }[r.status] || r.status).replace(/>[^<]*</, '>' + r.status + '<')}<button class="btn btn--ghost btn--sm" data-open="${r.id}">View</button></span>`}</td></tr>`), st === 'review' ? 'No roles waiting' : 'Nothing here');
+    qs('#main').onclick = e => { const b = e.target.closest('[data-open]'); if (b) openRole(rows.find(x => x.id === b.dataset.open)); };
+  };
+  function openRole(r) {
+    const pay = r.kind === 'cofounder' ? [r.equity_min != null ? `${r.equity_min}–${r.equity_max}% equity` : '', r.vesting, r.pay !== 'equity' ? r.pay : ''].filter(Boolean).join(' · ') : [r.salary, r.equity_max ? r.equity_max + '% equity' : '', r.duration].filter(Boolean).join(' · ');
+    const row = (k, v) => v ? `<dt class="c-3">${k}</dt><dd style="margin:0;white-space:pre-wrap">${v}</dd>` : '';
+    const top = `<p class="t-h3">${esc(r.title)}</p><p class="t-caption c-3" style="font-weight:400;margin:4px 0 14px">${FKIND[r.kind] || r.kind} · ${esc(r.status)} · <a class="link" href="/find/roles/${r.id}" target="_blank">open page</a></p>
+      <dl class="t-body-sm" style="display:grid;grid-template-columns:110px 1fr;gap:8px 12px;margin:0 0 18px">
+        ${row('Startup', r.product ? `<a class="link" href="/products/${esc(r.product.slug)}" target="_blank">${esc(r.product.name)}</a> · ${r.product.verified ? 'verified' : 'not verified'}` : esc(r.startup_name || '—') + ' · not on Hentity')}
+        ${row('About it', esc(r.startup_line))}${row('Posted by', r.owner ? `${esc(r.owner.name)} · ${esc(r.owner.email || '')}${r.owner.is_verified ? ' · verified member' : ''}` : '')}
+        ${row('Industry', esc([r.category, r.stage].filter(Boolean).join(' · ')))}${row('Pay', esc(pay))}${row('Where', esc([r.city, r.country, r.working].filter(Boolean).join(' · ')))}
+        ${row('Visibility', esc(r.visibility + (r.nda ? ' · NDA' : '') + (r.verified_only ? ' · verified members only' : '')))}
+        ${row('They’ll own', esc(r.owns))}${row('Looking for', esc(r.looking_for))}${row('Traction', esc(r.traction))}${row('Skills', esc((r.skills || []).join(', ')))}
+        ${row('Questions', esc((r.questions || []).join('\n')))}
+      </dl>`;
+    const live = r.status === 'open';
+    drawer('Find role · ' + r.title, [['why', live ? 'Note to the poster (required to take it down)' : 'Note to the poster (required if you reject)', 'textarea', { rows: 3 }]], { why: r.review_note || '' }, live || r.status === 'review' || r.status === 'rejected' ? async (v) => {
+      if (live) { if (!(v.why || '').trim()) throw new Error('Add a short note so they know why'); await A.reviewFindRole(r.id, false, v.why); toast('Taken off the board · poster notified'); }
+      else { await A.reviewFindRole(r.id, true, v.why); toast('Approved · it’s on the board'); }
+      stats = await A.stats().catch(() => stats); V.findroles();
+    } : null, { top, saveLabel: live ? 'Take it down' : 'Approve', danger: r.status === 'review' ? { label: 'Reject', confirm: 'Reject this role? The poster sees your note and can edit and resend it.', run: async () => { const why = qs('#dform [name=why]').value.trim(); if (!why) throw new Error('Add a short note so they know what to change'); await A.reviewFindRole(r.id, false, why); toast('Rejected · poster notified'); stats = await A.stats().catch(() => stats); V.findroles(); } } : null });
   }
 
   // ---- edit requests from makers of live and scheduled products

@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=88a42d4d6f">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=aff6b0d933"></script>
+<script src="/assets/api.js?v=e3bd69782b"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -91,7 +91,8 @@ H.mount({ active: 'find', tab: 'chats' });
     <aside class="fside"><p class="t-eyebrow c-3">Preview · how others see it</p><div id="prev"></div>
       <section class="card" id="hidden-box"></section>
       <div class="f2" style="gap:10px"><button class="btn btn--secondary" type="button" id="draft">Save draft</button><button class="btn btn--accent" type="button" id="post">${editId && r.status === 'open' ? 'Save' : 'Post role'}</button></div>
-      ${editId ? `<button class="btn btn--ghost btn--sm" type="button" id="close" style="align-self:center">${r.status === 'closed' ? 'Reopen role' : 'Close role'}</button>` : ''}
+      <div id="post-hint"></div>
+      ${editId && ['open', 'closed'].includes(r.status) ? `<button class="btn btn--ghost btn--sm" type="button" id="close" style="align-self:center">${r.status === 'closed' ? 'Reopen role' : 'Close role'}</button>` : ''}
     </aside></div></div>`;
   const hide = F.tagList(root, '#hide', r.hide_from, 'Add company', 'Company name or email domain (e.g. Nexa Bank or nexabank.com)');
   qsa('[data-g]').forEach(g => H.bindChips(g, () => { if (!g.querySelector('[aria-pressed="true"]')) g.querySelector('[data-v]').setAttribute('aria-pressed', 'true'); if (g.dataset.g === 'kind') { const was = r.kind === 'cofounder', v = read(); r.kind = F.readChips(root, 'kind')[0]; if (was !== (r.kind === 'cofounder')) { r.equity_min = r.kind === 'cofounder' ? 10 : null; r.equity_max = r.kind === 'cofounder' ? 25 : null; } else { r.equity_min = v.equity_min; r.equity_max = v.equity_max; } r.apply_with = v.apply_with; deal(); } preview(); }));
@@ -136,7 +137,18 @@ H.mount({ active: 'find', tab: 'chats' });
     const hid = v.visibility === 'public' ? [] : ['Startup name and logo', 'Your name and photo', v.traction ? 'Traction details' : ''].filter(Boolean);
     qs('#hidden-box').innerHTML = v.visibility === 'invite' ? `<p class="t-label">Invite only</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Not on the board. Invite people from People open to work.</p>` : hid.length ? `<p class="t-label">Hidden until you both say yes</p><div class="stack gap-6" style="margin-top:10px">${hid.map(h => `<p class="row gap-8 t-caption c-2" style="font-weight:400">${icon('eye', 'ic-14')}${h}</p>`).join('')}</div>` : `<p class="t-label">Public</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Everyone on Hentity sees your startup and name.</p>`;
   }
+  // Roles from startups without a verified product are checked by Hentity before they go live
+  function postHint() {
+    const p = pub.find(x => x.id === qs('#prod').value), ok = !!r.approved_at || !!(p && p.verified);
+    const box = qs('#post-hint'), btn = qs('#post');
+    if (r.status === 'rejected') box.innerHTML = `<p class="alert alert--warning" style="padding:10px 12px;font-size:13px">${icon('alert-circle', 'ic-14')}<span><b style="font-weight:500">Not approved.</b> ${esc(r.review_note || 'Edit it and send it again.')}</span></p>`;
+    else if (r.status === 'review') box.innerHTML = `<p class="fnote-box">${icon('clock', 'ic-14')}<span>Waiting for review. Hentity checks roles from startups without a verified product, usually within a day.</span></p>`;
+    else box.innerHTML = ok ? '' : `<p class="fnote-box">${icon('shield', 'ic-14')}<span>${p ? esc(p.name) + ' isn’t verified yet, so' : 'Startups without a verified product on Hentity are'} checked by our team before the role goes live, usually within a day.</span></p>`;
+    if (!(editId && r.status === 'open')) btn.textContent = ok ? 'Post role' : r.status === 'review' ? 'Save' : 'Send for review';
+  }
+  postHint();
   qs('#f').addEventListener('input', preview);
+  qs('#prod').addEventListener('change', postHint);
   qs('#prod').addEventListener('change', () => { const p = pub.find(x => x.id === qs('#prod').value); if (p) { qs('#sname').value = p.name; qs('#sline').value = p.tagline || ''; if (!qs('#cat').value && (p.categories || [])[0]) qs('#cat').value = p.categories[0]; } preview(); });
   preview();
   async function save(status) {
@@ -147,7 +159,7 @@ H.mount({ active: 'find', tab: 'chats' });
       if (!v.product_id && !v.startup_name) return toast('Name your startup (it stays hidden in stealth)', 'error');
       if (!v.category) return toast('Pick an industry', 'error');
     }
-    try { const out = await API.saveFindRole(editId, Object.assign(v, { status })); toast(status === 'open' ? (editId ? 'Saved' : 'Your role is live') : 'Draft saved'); setTimeout(() => location.href = status === 'open' ? '/find/roles/' + out.id : '/find/post?edit=' + out.id, 400); }
+    try { const out = await API.saveFindRole(editId, Object.assign(v, { status })); toast(status === 'draft' ? 'Draft saved' : out.status === 'review' ? 'Sent for review. We’ll tell you when it’s live.' : editId ? 'Saved' : 'Your role is live'); setTimeout(() => location.href = status === 'open' ? '/find/roles/' + out.id : '/find/post?edit=' + out.id, 400); }
     catch (e) { H.fail(e); }
   }
   qs('#post').onclick = () => save('open');

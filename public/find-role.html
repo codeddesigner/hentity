@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=88a42d4d6f">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=aff6b0d933"></script>
+<script src="/assets/api.js?v=e3bd69782b"></script>
 <script src="/assets/app.js?v=ad345a5164"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -103,6 +103,13 @@ H.mount({ active: 'find', tab: 'chats' });
     const box = qs('#panel'), grab = '<span class="fr-grab" aria-hidden="true"></span>';
     const verb = job ? 'Apply' : 'Say you’re interested';
     bar.innerHTML = `<div class="grow" style="min-width:0"><p class="t-body-sm truncate" style="font-weight:500">${esc(r.title)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc([s.name, k[0], r.city].filter(Boolean).join(' · '))}</p></div><button class="btn btn--accent" type="button" data-sheet>${r.mine ? 'Your role' : r.my_interest ? (r.my_interest.status === 'accepted' ? 'Matched' : 'Sent') : verb}</button>`;
+    if (r.mine && ['review', 'rejected', 'draft'].includes(r.status)) {
+      box.innerHTML = grab + (r.status === 'review' ? `<span class="fpill">${icon('clock', 'ic-12')}In review</span><h2 class="t-h3" style="margin-top:10px">Waiting for approval</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Hentity checks roles from startups without a verified product before they go on the board, usually within a day. We’ll notify you.</p>`
+        : r.status === 'rejected' ? `<span class="fpill" style="color:var(--color-danger)">Not approved</span><h2 class="t-h3" style="margin-top:10px">Needs changes</h2><p class="t-body-sm c-2" style="margin:8px 0 16px" id="rnote">Edit the role and send it again.</p>`
+        : `<span class="fpill">Draft</span><h2 class="t-h3" style="margin-top:10px">Not posted yet</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Only you can see this.</p>`) + `<a class="btn btn--primary btn--block" href="/find/post?edit=${r.id}">Edit role</a>`;
+      if (r.status === 'rejected') API.myFindRole(r.id).then(x => { if (x && x.review_note) qs('#rnote').textContent = x.review_note; }).catch(() => {});
+      return;
+    }
     if (r.mine) { box.innerHTML = grab + `<h2 class="t-h3">Your role</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${r.interest_count} ${job ? 'applied' : 'interested'} so far. Answer them in My matches.</p><div class="stack gap-8"><a class="btn btn--primary btn--block" href="/find/matches">My matches</a><a class="btn btn--secondary btn--block" href="/find/post?edit=${r.id}">Edit role</a></div>`; return; }
     if (r.my_interest) {
       const mi = r.my_interest, done = mi.status === 'accepted';
