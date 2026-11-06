@@ -86,6 +86,8 @@
         err(error);
       },
       async verifyCode(email, token) { const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' }); err(error); await loadProfile(); },
+      // Email change by code: one code goes to the new address (and, with "Secure email change" on, one to the current address too).
+      async verifyEmailChange(email, token) { const { error } = await sb.auth.verifyOtp({ email, token, type: 'email_change' }); err(error); const { data } = await sb.auth.refreshSession(); await loadProfile(); return data && data.user || (await sb.auth.getUser()).data.user; },
       async changeEmail(email) { const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + '/settings/account' }); err(error); },
       async signOut(scope) { await sb.auth.signOut(scope ? { scope } : undefined); profile = null; try { localStorage.removeItem(PROFILE_KEY); } catch (e) {} },
     },
