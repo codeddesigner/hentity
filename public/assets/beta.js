@@ -70,7 +70,7 @@
   function card(b, opts) {
     opts = opts || {};
     const p = b.product || {}, app = opts.app, ph = phase(b);
-    const href = opts.preview ? '#' : `/betas/${b.id}`;
+    const href = opts.preview ? '#' : b.slug ? `/b/${b.slug}` : `/betas/${b.id}`;
     let cta;
     if (opts.preview) cta = `<span class="btn btn--accent btn--sm">${icon('flask', 'ic-14')}Apply to test</span>`;
     else if (app && app.status === 'accepted') cta = `<a class="btn btn--primary btn--sm" href="${href}">${icon('arrow-right', 'ic-14')}Open your beta</a>`;
@@ -92,5 +92,70 @@
     </article>`;
   }
 
-  window.B = { NETWORKS, FEE, naira, perkText, budget, COUNTRIES, PLATFORMS, TIMES, ACCESS, phase, canApply, pill, card, closesIn, who, countryText, filled, match, platformOf, fmtDay };
+
+  // ---------------------------------------------------------------- Studio: agreement, form, links
+  const LAWS = { NG: 'Nigeria', GH: 'Ghana', KE: 'Kenya', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', UG: 'Uganda', TZ: 'Tanzania', SN: 'Senegal', CI: 'Côte d’Ivoire', ET: 'Ethiopia' };
+  const DP_ACT = { Nigeria: 'the Nigeria Data Protection Act 2023', Ghana: 'Ghana’s Data Protection Act 2012', Kenya: 'Kenya’s Data Protection Act 2019', 'South Africa': 'South Africa’s POPIA', Rwanda: 'Rwanda’s data protection law (2021)', Egypt: 'Egypt’s Personal Data Protection Law', Uganda: 'Uganda’s Data Protection and Privacy Act 2019' };
+  // key, title, summary for the maker, always on?
+  const CLAUSES = [
+    ['confidentiality', 'Confidentiality', 'Keep the beta private until public launch or 90 days, whichever comes first.'],
+    ['feedback', 'Feedback', 'We may use feedback to improve the product. Testers don’t gain rights to features.'],
+    ['data', 'Your data', 'Testers’ data stays on their account and is deleted on request.', true],
+    ['perk', 'Perk terms', 'The perk is released by Hentity when feedback is submitted.'],
+    ['novote', 'No voting conditions', 'Joining, staying in or getting the perk never depends on upvotes or reviews.', true],
+    ['software', 'Beta software', 'Things may break. Keep your own records while testing.'],
+    ['leaving', 'Leaving', 'Testers can leave at any time; access ends the same day.', true]
+  ];
+  const clauseOn = (b, k) => { const c = CLAUSES.find(x => x[0] === k); if (c && c[3]) return true; const v = ((b.agreement || {}).clauses || {})[k]; return v !== false; };
+  // Full agreement text: [{h, p}] in order
+  function agreementText(b, productName, tester) {
+    const a = b.agreement || {}, co = a.legal_name || productName || 'The company', law = a.law || 'Nigeria', pn = productName || 'the product';
+    const perk = perkText(b);
+    const out = [];
+    if (clauseOn(b, 'confidentiality')) out.push(['Confidentiality', `You agree not to share screenshots, recordings or details of the beta until ${pn} launches it publicly, or 90 days from signing, whichever is sooner.`]);
+    if (clauseOn(b, 'feedback')) out.push(['Feedback', `${co} may use your feedback to improve its products. You keep no rights to features built from it.`]);
+    out.push(['Your data', `Anything you put into the beta stays in your account. ${co} processes it only to provide the beta, under ${DP_ACT[law] || 'the data protection law of ' + law}. Ask ${a.contact || co} to delete it any time.`]);
+    if (perk && clauseOn(b, 'perk')) out.push(['Perk', `${perk}${b.airtime_amount > 0 ? ', paid by Hentity on ' + co + '’s behalf' : ''} once you submit feedback.`]);
+    out.push(['No voting conditions', 'Nothing here depends on upvotes, reviews or ratings on Hentity or anywhere else.']);
+    if (clauseOn(b, 'software')) out.push(['Beta software', 'The beta may have bugs or lose data. Keep your own records while testing. It is provided as is.']);
+    out.push(['Leaving', 'You can leave at any time. Your access ends the same day and this agreement’s confidentiality still applies.']);
+    out.push(['Governing law', `This agreement is governed by the laws of ${law}.`]);
+    return { parties: `${co}${a.rc ? ' (' + a.rc + ')' : ''}${a.city ? ', ' + a.city : ''}, and ${tester || 'the tester named below'}`, sections: out };
+  }
+  function agreementShort(b, productName) {
+    const perk = perkText(b), pn = productName || 'The maker';
+    return [
+      clauseOn(b, 'confidentiality') && ['lock', 'Keep the beta private until it launches (max 90 days).'],
+      clauseOn(b, 'feedback') && ['chats', `${pn} can use your feedback to improve the app.`],
+      ['shield', 'Your data stays yours. Ask and it’s deleted.'],
+      perk && clauseOn(b, 'perk') && ['sparkles', `Perk ${b.airtime_amount > 0 ? 'is paid by Hentity' : 'is unlocked'} after you send feedback.`],
+      ['upvote', 'You never have to upvote or review anything.'],
+      ['arrow-left', 'You can leave any time.']
+    ].filter(Boolean);
+  }
+  function agreementHTML(b, productName, tester, signed) {
+    const t = agreementText(b, productName, tester);
+    return `<p class="st-label">Beta tester agreement</p><p style="font-size:16px;font-weight:600;line-height:22px;margin-top:12px">${esc(t.parties)}</p>
+      ${t.sections.map((s, i) => `<h4>${i + 1}. ${esc(s[0])}</h4><p>${esc(s[1])}</p>`).join('')}
+      ${signed ? `<div class="row gap-24" style="margin-top:24px;flex-wrap:wrap"><div style="border-top:1px solid var(--color-border-default);padding-top:8px;min-width:200px"><p class="t-label">For ${esc((b.agreement || {}).legal_name || productName)}</p><p class="t-caption c-3" style="font-weight:400">${esc((b.agreement || {}).signer || 'Authorised on Hentity')}</p></div><div style="border-top:1px solid var(--color-border-default);padding-top:8px;min-width:200px"><p class="t-label" style="font-family:cursive;font-size:18px">${esc(signed.name)}</p><p class="t-caption c-3" style="font-weight:400">Signed on Hentity · ${esc(signed.when)}</p></div></div>` : ''}`;
+  }
+  // Question types for the application form
+  const QTYPES = { short: ['Short answer', 'text'], choice: ['Single choice', 'check'], multi: ['Multiple choice', 'list'], email: ['Email', 'mail'], file: ['File upload', 'paperclip'], voice: ['Voice note', 'mic'] };
+  const lagosTime = d => new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }) + ' WAT';
+  const betaUrl = (b, src) => location.origin + '/b/' + b.slug + (src ? '?s=' + encodeURIComponent(src) : '');
+  // Device from the browser (best effort; the tester can change it)
+  function detectDevice() {
+    const ua = navigator.userAgent || '';
+    let os = '', device = '';
+    const and = ua.match(/Android (\d+)/); if (and) { os = 'Android ' + (+and[1] >= 14 ? '14' : and[1] <= 11 ? '11 or older' : and[1]); const m = ua.match(/Android [^;]+; ([^;)]+?)(?: Build|\))/); device = m && !/^K$/.test(m[1]) ? m[1].trim() : 'Android phone'; }
+    else if (/iPhone|iPad/.test(ua)) { const v = ua.match(/OS (\d+)_/); os = v && +v[1] >= 17 ? 'iOS 17+' : 'iOS 16 or older'; device = /iPad/.test(ua) ? 'iPad' : 'iPhone'; }
+    else if (/Windows/.test(ua)) { os = 'Windows'; device = 'Laptop / PC'; }
+    else if (/Mac OS X/.test(ua)) { os = 'macOS'; device = 'Mac'; }
+    else if (/CrOS/.test(ua)) { os = 'ChromeOS'; device = 'Chromebook'; }
+    else if (/Linux/.test(ua)) { os = 'Linux'; device = 'Laptop / PC'; }
+    return { os, device };
+  }
+
+  const copy = t => { try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {} };
+  window.B = { copy, LAWS, CLAUSES, clauseOn, agreementText, agreementShort, agreementHTML, QTYPES, lagosTime, betaUrl, detectDevice, NETWORKS, FEE, naira, perkText, budget, COUNTRIES, PLATFORMS, TIMES, ACCESS, phase, canApply, pill, card, closesIn, who, countryText, filled, match, platformOf, fmtDay };
 })();

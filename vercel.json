@@ -6,8 +6,20 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/betas/new",
-      "destination": "/beta-new"
+      "source": "/b/:slug",
+      "destination": "/api/ssr?type=beta&slug=:slug"
+    },
+    {
+      "source": "/go/b/:token",
+      "destination": "/api/go?t=:token"
+    },
+    {
+      "source": "/studio/:product/:beta",
+      "destination": "/studio"
+    },
+    {
+      "source": "/studio/:product",
+      "destination": "/studio"
     },
     {
       "source": "/betas/:id/manage",
@@ -102,6 +114,16 @@
       "source": "/link-expired",
       "destination": "/signin?expired=1",
       "permanent": true
+    },
+    {
+      "source": "/betas",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/betas/new",
+      "destination": "/studio",
+      "permanent": false
     }
   ],
   "headers": [
@@ -141,7 +163,7 @@
   ],
   "functions": {
     "api/ssr.js": {
-      "includeFiles": "public/{product,maker,article,404,home,news-index}.html",
+      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply}.html",
       "maxDuration": 10
     },
     "api/sitemap.js": {

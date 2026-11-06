@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
+<link rel="stylesheet" href="/assets/styles.css?v=efdc6a7fee">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d268323bc3"></script>
-<script src="/assets/app.js?v=d32b850796"></script>
+<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/app.js?v=28eab8e794"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -74,7 +74,8 @@
   <div class="stack gap-16" aria-hidden="true"><span class="skel" style="width:200px;height:14px"></span><div class="pp-top"><span class="skel" style="aspect-ratio:672/394;border-radius:20px"></span><div class="stack gap-16"><span class="skel" style="width:64px;height:64px;border-radius:14px"></span><span class="skel" style="width:70%;height:44px"></span><span class="skel" style="width:90%;height:20px"></span></div></div></div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=91b9906d2a"></script>
+<script src="/assets/beta.js?v=1c75cc3bd6"></script>
+<script src="/assets/data.js?v=d3cbe3db04"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -115,6 +116,7 @@ H.mount({ active: 'products', tab: 'products' });
         ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
+      <div id="beta-callout"></div>
       <span class="here" id="here" hidden><i></i><span id="here-n"></span></span>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
         <a href="https://wa.me/?text=${encodeURIComponent(p.name + ' on Hentity ' + location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}WhatsApp</a>
@@ -135,6 +137,7 @@ H.mount({ active: 'products', tab: 'products' });
     <div>
       <p class="t-eyebrow c-3" style="margin-bottom:12px">About this launch</p>
       <p class="c-2" style="max-width:68ch;white-space:pre-line">${esc(p.description || p.tagline)}</p>
+      <div id="beta"></div>
       <div class="kpis">
         <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.upvote_count}" id="kpi-votes">0</b><span class="t-caption c-2" style="font-weight:400">upvotes</span></div>
         <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.comment_count}" id="kpi-comments">0</b><span class="t-caption c-2" style="font-weight:400">comments</span></div>
@@ -155,6 +158,27 @@ H.mount({ active: 'products', tab: 'products' });
   </div>`;
   M.scroll(); M.countUp(); H.contentShown();
   API.trackView(p.id);
+  if (p.testers_wanted || (API.uid && p.owner_id === API.uid)) API.openBetaOf(p.id).then(betaBits).catch(() => {});
+  // Beta program (Figma: Product · with beta): callout by the buttons, card under "About this launch"
+  function betaBits(b) {
+    if (!b || (b.settings && b.settings.show_on_product === false && p.owner_id !== API.uid)) return;
+    const left = Math.max(0, b.spots - (b.accepted_count || 0)), perk = B.perkText(b);
+    const href = `/b/${esc(b.slug)}?s=product`;
+    qs('#beta-callout').innerHTML = `<div class="bcall" data-scroll-reveal><div class="row gap-12" style="align-items:flex-start"><span class="bcall__i">${icon('flask', 'ic-16')}</span><div class="grow" style="min-width:0"><p class="t-label">Testers wanted: ${esc(b.title)}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${left} of ${b.spots} spots left${b.time_needed ? ' · ' + esc(b.time_needed) : ''}${perk ? ' · perk: ' + esc(perk) : ''}</p></div><a class="btn btn--primary btn--sm" href="${href}">${icon('flask', 'ic-14')}Test the beta</a></div><p class="row gap-6 t-caption c-3" style="font-weight:400;margin-top:10px">${icon('shield', 'ic-12')}Testing is separate from voting. You never need to upvote to join or get the perk.</p></div>`;
+    const ag = b.agreement || {}, cl = ag.clauses || {};
+    const who = [b.countries.length ? 'People in ' + B.countryText(b.countries) : 'People anywhere in Africa', b.platforms.length ? 'on ' + b.platforms.join(' or ') : ''].filter(Boolean).join(' ');
+    const tiles = [['users', 'Who', who], ['list', 'What you’ll do', (b.steps || []).slice(0, 3).join(', ') || 'Try it and send a short feedback form'], ['signature', 'Agreement', 'A short beta agreement: ' + [cl.confidentiality !== false ? 'keep it private' : '', 'feedback terms', 'your data'].filter(Boolean).join(', ')], ['sparkles', 'Perk', perk ? perk + (b.airtime_amount > 0 ? ', paid by Hentity after feedback' : ', after feedback') : 'Early access and a direct line to the makers']];
+    qs('#beta').innerHTML = `<section class="card bprog" id="beta-card" data-scroll-reveal>
+      <div class="row between gap-12" style="align-items:flex-start"><div><p class="t-eyebrow" style="color:var(--color-info)">Beta program</p><h2 class="t-h3" style="margin-top:4px">${esc(b.title)}</h2></div><div class="row gap-6 wrap">${[...b.platforms, b.time_needed].filter(Boolean).map(t => `<span class="btag">${esc(t)}</span>`).join('')}</div></div>
+      ${b.why ? `<p class="c-2" style="margin-top:12px">${esc(b.why)}</p>` : ''}
+      <div class="bprog__tiles">${tiles.map(([i, t, d]) => `<div><span class="c-2">${icon(i, 'ic-14')}</span><p class="t-label" style="margin-top:8px">${t}</p><p class="t-caption c-2" style="font-weight:400;margin-top:4px">${esc(d)}</p></div>`).join('')}</div>
+      <div class="row gap-16 wrap" style="margin-top:18px;align-items:center"><div class="grow" style="min-width:200px"><div class="bcard__bar"><i style="width:${B.filled(b)}%"></i></div><div class="row between t-caption c-3" style="font-weight:400;margin-top:8px"><span>${b.accepted_count} of ${b.spots} spots filled</span><span>Applications close ${esc(B.fmtDay(b.closes_at))}</span></div></div>
+        <button class="btn btn--ghost btn--sm" type="button" id="beta-share">${icon('share', 'ic-14')}Share beta</button><a class="btn btn--primary btn--sm" href="${href}">${icon('flask', 'ic-14')}Apply to test</a></div>
+    </section>`;
+    M.scroll(qs('#pp'));
+    qs('#beta-share').onclick = () => { const u = location.origin + '/b/' + b.slug; if (navigator.share) navigator.share({ title: b.title, url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Beta link copied'); } };
+    if (location.hash === '#beta') setTimeout(() => qs('#beta-card').scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+  }
   qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));
   const vb = qs('#vote');

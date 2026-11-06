@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Studio · Hentity</title>
+<meta name="description" content="Run beta programs for your product: application form, tester agreement, access and results.">
+<script src="/assets/beta.js"></script>
+</head>
+<body>
+<div data-header></div>
+<div id="studio"><div class="st"><div class="skel" style="height:480px;border-radius:16px"></div></div></div>
+<div data-tabbar></div>
+<script>
+H.mount({ active: 'my-products', tab: 'me' });
+(async function () {
+  const { qs, qsa, esc, icon, toast, plogo, verified, avatar } = H;
+  const parts = location.pathname.split('/').filter(Boolean);   // studio / <product> / <beta>
+  const root = qs('#studio');
+  await API.ready;
+  if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+  const isAdmin = API.profile && API.profile.role === 'admin';
+  const fail = (t, m) => { root.innerHTML = `<div class="st" style="text-align:center;padding-top:96px"><h1 class="t-h2">${esc(t)}</h1><p class="c-2" style="margin:8px 0 20px">${esc(m)}</p><a class="btn btn--secondary btn--sm" href="/my-products">My products</a></div>`; H.contentShown(); };
+
+  // /studio → pick a product
+  if (!parts[1]) {
+    const mine = (await API.myProducts().catch(() => [])).filter(p => p.status !== 'archived');
+    if (mine.length === 1) { location.replace('/studio/' + mine[0].slug + location.search); return; }
+    root.innerHTML = `<div class="st"><h1 class="t-h2" style="margin:12px 0 6px">Beta programs</h1><p class="c-2" style="margin-bottom:20px">Pick the product you want testers for.</p><div class="st-list">${mine.map(p => `<a class="st-bp" href="/studio/${esc(p.slug)}">${plogo(p, 40)}<div class="grow"><p class="t-label">${esc(p.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(p.tagline)}</p></div>${icon('arrow-right', 'ic-16')}</a>`).join('') || `<div class="st-box" style="text-align:center;padding:40px"><p class="t-h4">Add your product first</p><p class="c-2 t-body-sm" style="margin:6px 0 16px">Beta programs live inside your product on Hentity.</p><a class="btn btn--accent btn--sm" href="/submit">${icon('plus', 'ic-14')}Submit a product</a></div>`}</div></div>`;
+    H.contentShown(); return;
+  }
+  const p = await API.product(parts[1]).catch(() => null);
+  if (!p) return fail('We couldn’t find that product', 'Check the link, or open it from My products.');
+  if (p.owner_id !== API.uid && !isAdmin) return fail('This isn’t your product', 'Only the makers of a product can run its beta programs.');
+  document.title = `${p.name} · Beta programs · Hentity`;
+  const header = cur => `<div class="st-head"><div class="st-head__in">
+      <nav class="st-crumbs" aria-label="Breadcrumb"><a href="/my-products">My products</a><span>/</span><a href="/studio/${esc(p.slug)}">${esc(p.name)}</a><span>/</span><b>Beta programs</b></nav>
+      <div class="row between gap-12"><div class="st-prod">${plogo(p, 32)}${esc(p.name)}${p.verified ? verified() : ''}</div><a class="row gap-6 t-body-sm" style="white-space:nowrap" href="/products/${esc(p.slug)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-14')}View public page</a></div>
+      <nav class="st-tabs" aria-label="Product"><a href="/products/${esc(p.slug)}">Overview</a><a href="/my-products">Launches</a><a href="/studio/${esc(p.slug)}" aria-current="page">Beta programs</a>${cur && cur.status !== 'draft' ? `<a href="/betas/${cur.id}/manage?tab=feedback">Feedback</a>` : ''}</nav>
+    </div></div>`;
+
+  // /studio/<product> → the product's beta programs
+  if (!parts[2]) {
+    const list = await API.productBetas(p.id).catch(() => []);
+    const line = b => { const ph = B.phase(b); const pill = b.status === 'draft' ? '<span class="st-pill">Draft</span>' : b.status === 'awaiting_payment' ? '<span class="st-pill st-pill--warn">Awaiting payment</span>' : ph.k === 'closed' ? `<span class="st-pill">${b.completed_at ? 'Completed · ' + B.fmtDay(b.completed_at) : 'Closed'}</span>` : `<span class="st-pill st-pill--live">${esc(ph.label)}</span>`; return `<a class="st-bp lift" href="/studio/${esc(p.slug)}/${b.id}"><span class="icon-badge">${icon('flask')}</span><div class="grow" style="min-width:0"><p class="t-label row gap-8 wrap">${esc(b.title)}${pill}</p><p class="t-caption c-3" style="font-weight:400;margin-top:3px">${b.spots} testers · ${b.applied_count} applied · ${b.accepted_count} accepted · ${b.signed_count || 0} signed · ${b.feedback_count} feedback</p></div>${icon('arrow-right', 'ic-16')}</a>`; };
+    root.innerHTML = header() + `<div class="st"><div class="st-title"><div><h1>Beta programs</h1><p class="t-body-sm c-2" style="margin-top:4px">Get real people to try ${esc(p.name)} before everyone else: one link, a short form, a signed agreement, private access.</p></div><button class="btn btn--accent" type="button" id="new">${icon('plus', 'ic-14')}New beta program</button></div>
+      <div class="st-list">${list.map(line).join('') || `<div class="st-box" style="text-align:center;padding:48px 24px"><span class="icon-badge icon-badge--accent" style="margin:0 auto 12px">${icon('flask')}</span><p class="t-h4">No beta programs yet</p><p class="t-body-sm c-2" style="margin:6px auto 18px;max-width:440px">Set one up in five steps. Share the link on WhatsApp, and ${esc(p.name)}’s page shows “Testers wanted” while it’s open.</p><button class="btn btn--accent btn--sm" type="button" data-new>${icon('plus', 'ic-14')}New beta program</button></div>`}</div></div>`;
+    H.contentShown();
+    const mk = async e => { const btn = e.currentTarget; btn.disabled = true; try { const b = await API.createBetaDraft(p.id, 'Help test ' + p.name); location.href = `/studio/${p.slug}/${b.id}`; } catch (err) { btn.disabled = false; H.fail(err); } };
+    qs('#new').onclick = mk; qsa('[data-new]').forEach(x => x.onclick = mk);
+    if (H.params().get('new') === '1' && !list.length) qs('#new').click();
+    return;
+  }
+
+  // /studio/<product>/<beta> → the wizard and results
+  let b = await API.beta(parts[2]).catch(() => null);
+  if (!b || b.product_id !== p.id) return fail('We couldn’t find that beta program', 'It may have been deleted.');
+  const STEPS = [['details', 'Details', 'Goal, platforms, dates, perk'], ['form', 'Application form', ''], ['agreement', 'Agreement', 'Beta tester agreement'], ['access', 'Access', 'Play testing + web links'], ['share', 'Share', 'Link, WhatsApp, QR']];
+  const live = () => b.status !== 'draft';
+  let step = H.params().get('step') || (b.status === 'closed' ? 'results' : live() ? 'share' : 'details');
+  let cfg = (await API.betaAccessConfig(b.id).catch(() => null)) || {}; cfg = cfg.config || {};
+  let saveT = null, pending = {};
+  const save = (patch, now) => { Object.assign(b, patch); Object.assign(pending, patch); clearTimeout(saveT); const go = async () => { const pt = pending; pending = {}; try { const nb = await API.updateBeta(b.id, pt); ['slug', 'status', 'funding'].forEach(k => b[k] = nb[k]); qs('#saved') && (qs('#saved').textContent = 'Saved'); } catch (e) { H.fail(e); } }; if (now) return go(); saveT = setTimeout(go, 600); qs('#saved') && (qs('#saved').textContent = 'Saving…'); };
+  const sub = () => [`${b.spots} testers`, B.countryText(b.countries), b.platforms.join(' + ') || 'Any device', b.test_start ? 'testing ' + B.fmtDay(b.test_start) + '–' + B.fmtDay(b.test_end || b.test_start) : ''].filter(Boolean).join(' · ');
+  const statusPill = () => { const ph = B.phase(b); if (b.status === 'draft') return '<span class="st-pill">Draft</span>'; if (b.status === 'awaiting_payment') return '<span class="st-pill st-pill--warn">Awaiting payment</span>'; if (ph.k === 'closed') return `<span class="st-pill st-pill--live">${icon('check', 'ic-12')}${b.completed_at ? 'Completed · ' + esc(B.fmtDay(b.completed_at)) : 'Closed'}</span>`; return `<span class="st-pill st-pill--live">${esc(ph.label)}</span>`; };
+  const isDone = k => ({ details: b.title.length >= 8 && b.why.length > 10, form: true, agreement: !!(b.agreement || {}).legal_name, access: Object.values(b.access || {}).some(Boolean), share: live() })[k];
+  function frame() {
+    const steps = STEPS.map(([k, t, s], i) => `<button type="button" class="st-step ${isDone(k) && step !== k ? 'is-done' : ''}" data-step="${k}"${step === k ? ' aria-current="step"' : ''}><span class="st-step__n">${isDone(k) && step !== k ? icon('check', 'ic-12') : i + 1}</span><span><p>${t}</p><span class="s">${k === 'form' ? (b.form || []).length + ' question' + ((b.form || []).length === 1 ? '' : 's') : s}</span></span></button>`).join('')
+      + (live() ? `<div class="hr" style="margin:8px 0"></div><button type="button" class="st-step" data-step="results"${step === 'results' ? ' aria-current="step"' : ''}><span class="st-step__n">${icon('bar-chart', 'ic-12')}</span><span><p>Results</p><span class="s">Funnel, signatures, perks</span></span></button><a class="st-step" href="/betas/${b.id}/manage"><span class="st-step__n">${icon('users', 'ic-12')}</span><span><p>Applicants &amp; testers</p><span class="s">${b.applied_count} applied · ${b.accepted_count} in</span></span></a>` : '');
+    const actions = b.status === 'closed' ? `<button class="btn btn--secondary btn--sm" type="button" id="csv">${icon('download', 'ic-14')}Export CSV</button><button class="btn btn--primary btn--sm" type="button" id="again">${icon('flask', 'ic-14')}Run another beta</button>`
+      : `<a class="btn btn--secondary btn--sm" href="/b/${esc(b.slug)}?view=preview" target="_blank" rel="noopener">${icon('eye', 'ic-14')}Preview as tester</a>${b.status === 'draft' ? `<button class="btn btn--accent btn--sm" type="button" id="publish">${icon('flask', 'ic-14')}Publish beta</button>` : `<button class="btn btn--ghost btn--sm" type="button" id="close">Close beta</button>`}`;
+    root.innerHTML = header(b) + `<div class="st"><div class="st-title"><div><h1>${esc(b.title)} ${statusPill()}</h1><p class="t-body-sm c-2" style="margin-top:4px">${esc(sub())} <span class="c-3" id="saved" style="margin-left:6px"></span></p></div><div class="row gap-8 wrap">${actions}</div></div>
+      ${b.status === 'awaiting_payment' ? `<div class="alert alert--accent" style="margin-bottom:20px"><span>${icon('clock')}</span><div><p class="alert__title">Waiting for payment · ${B.naira(B.budget(b).total)}</p><p class="alert__body">Hentity emailed you how to pay for the airtime. The link goes live once the money is in.</p></div></div>` : ''}
+      <div class="st-grid${step === 'results' ? ' st-grid--wide' : ''}" id="grid"><nav class="st-steps" aria-label="Steps">${steps}</nav><section class="st-main" id="main"></section><aside class="st-aside" id="aside"></aside></div></div>`;
+    qsa('[data-step]').forEach(x => x.onclick = () => go(x.dataset.step));
+    qs('#publish') && (qs('#publish').onclick = publish);
+    qs('#close') && (qs('#close').onclick = async () => { if (!confirm('Close this beta? New applications stop, personal links stop working, and results stay here.')) return; try { await API.completeBeta(b.id); b = await API.beta(b.id); step = 'results'; frame(); toast('Beta closed'); } catch (e) { H.fail(e); } });
+    qs('#csv') && (qs('#csv').onclick = exportCsv);
+    qs('#again') && (qs('#again').onclick = async () => { try { const nb = await API.createBetaDraft(p.id, b.title.slice(0, 70)); const copy = { why: b.why, countries: b.countries, platforms: b.platforms, steps: b.steps, form: b.form, agreement: b.agreement, access: b.access, settings: b.settings, time_needed: b.time_needed, perk: b.perk, perk_type: b.perk_type, spots: b.spots }; await API.updateBeta(nb.id, copy); await API.saveBetaAccessConfig(nb.id, cfg); location.href = `/studio/${p.slug}/${nb.id}`; } catch (e) { H.fail(e); } });
+    VIEWS[step](); H.mount(); H.contentShown();
+  }
+  function go(k) { if (!VIEWS[k]) return; step = k; history.replaceState(null, '', '?step=' + k); frame(); window.scrollTo({ top: 0 }); }
+  const main = () => qs('#main'), aside = () => qs('#aside');
+  const tog = (id, on, dis) => `<label class="toggle"><input type="checkbox" id="${id}"${on ? ' checked' : ''}${dis ? ' disabled' : ''}><span class="toggle__track"></span></label>`;
+  const next = k => `<div class="row between" style="margin-top:20px"><span></span><button class="btn btn--primary" type="button" data-next="${k}">Next: ${STEPS.find(s => s[0] === k)[1]}${icon('arrow-right', 'ic-14')}</button></div>`;
+  const bindNext = () => qsa('[data-next]').forEach(x => x.onclick = () => go(x.dataset.next));
+
+  async function publish() {
+    const miss = [];
+    if (b.title.length < 8) miss.push(['details', 'Give the beta a title of at least 8 characters']);
+    if (b.why.length < 10) miss.push(['details', 'Say why you need testers']);
+    if (new Date(b.closes_at) <= new Date()) miss.push(['details', 'Pick an application closing date in the future']);
+    if (!(b.agreement || {}).legal_name) miss.push(['agreement', 'Add your company’s legal name to the agreement']);
+    if (!Object.values(b.access || {}).some(Boolean)) miss.push(['access', 'Turn on at least one way for testers to get the beta']);
+    if ((b.access || {}).web && !cfg.web_url) miss.push(['access', 'Add the web address for private invite links']);
+    if (miss.length) { go(miss[0][0]); toast(miss[0][1], 'error'); return; }
+    const total = B.budget(b).total;
+    if (b.airtime_amount > 0 && !confirm(`Publish and pay ${B.naira(total)}? Hentity will email you how to pay. The link goes live once the money is in.`)) return;
+    try { await save({ status: 'open' }, true); b = await API.beta(b.id); step = 'share'; frame(); toast(b.status === 'open' ? 'Your beta is live. Share the link!' : 'Saved. Waiting for payment'); if (b.status === 'open') M.burst(qs('.st-title h1')); } catch (e) { H.fail(e); }
+  }
+
+  // ------------------------------------------------------------------ 1 · Details
+  const VIEWS = {};
+  VIEWS.details = () => {
+    const d = s => s ? String(s).slice(0, 10) : '';
+    main().innerHTML = `<h2>Details</h2><p class="sub">What you’re testing, with whom, and what testers get.</p>
+      <div class="st-box"><div class="field"><div class="field__row"><label class="field__label" for="t">Title</label><span class="field__counter" id="tc">${b.title.length} / 70</span></div><input class="input" id="t" maxlength="70" value="${esc(b.title)}" placeholder="Test our Moniepoint CSV import before launch"></div>
+        <div class="field" style="margin-top:14px"><div class="field__row"><label class="field__label" for="w">Why you need testers</label><span class="field__counter" id="wc">${b.why.length} / 400</span></div><textarea class="input" id="w" rows="3" maxlength="400" style="height:auto;padding:10px 12px" placeholder="Half our customers moved to Moniepoint this year. We want 50 traders to try statement import on real data before everyone gets it.">${esc(b.why)}</textarea></div></div>
+      <div class="st-box"><p class="field__label">Countries <span class="c-3" style="font-weight:400">(none = anywhere in Africa)</span></p><div class="chips" id="cs" style="margin-top:8px">${Object.entries(B.COUNTRIES).map(([k, v]) => `<button class="chip" type="button" data-chip data-v="${k}" aria-pressed="${b.countries.includes(k)}">${icon('check')}${esc(v)}</button>`).join('')}</div>
+        <p class="field__label" style="margin-top:16px">Platforms</p><div class="chips" id="ps" style="margin-top:8px">${B.PLATFORMS.map(x => `<button class="chip" type="button" data-chip data-v="${esc(x)}" aria-pressed="${b.platforms.includes(x)}">${icon('check')}${esc(x)}</button>`).join('')}</div></div>
+      <div class="st-box"><div class="grid-2" style="gap:12px"><div class="field"><label class="field__label" for="sp">Testers you need</label><input class="input" id="sp" type="number" min="1" max="2000" value="${b.spots}"></div><div class="field"><label class="field__label" for="tn">Time it takes</label><select class="input" id="tn">${B.TIMES.map(x => `<option${x === b.time_needed ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label class="field__label" for="cl">Applications close</label><input class="input" id="cl" type="date" value="${d(b.closes_at)}"></div><div></div>
+        <div class="field"><label class="field__label" for="ts">Testing starts</label><input class="input" id="ts" type="date" value="${d(b.test_start)}"></div><div class="field"><label class="field__label" for="te">Testing ends</label><input class="input" id="te" type="date" value="${d(b.test_end)}"></div></div>
+        <p class="field__hint" style="margin-top:8px">Personal links stop working the day after testing ends.</p></div>
+      <div class="st-box"><p class="field__label">What testers will do <span class="c-3" style="font-weight:400">(up to 6 tasks, they tick them off)</span></p><div id="tasks" class="stack gap-8" style="margin-top:8px"></div><button class="link link--accent t-body-sm" type="button" id="addt" style="margin-top:10px">${icon('plus', 'ic-12')} Add a task</button></div>
+      <div class="st-box"><div class="field"><label class="field__label" for="pk">Product perk <span class="c-3" style="font-weight:400">(optional)</span></label><input class="input" id="pk" maxlength="120" value="${esc(b.perk)}" placeholder="3 months of Pro"></div>
+        <div class="field" style="margin-top:14px"><label class="field__label" for="air">Airtime per tester (₦) <span class="c-3" style="font-weight:400">(optional, paid by Hentity after feedback)</span></label><input class="input" id="air" type="number" min="0" max="100000" step="100" value="${b.airtime_amount || ''}" placeholder="0" ${b.funding === 'held' ? 'disabled' : ''}></div>
+        <div id="cost" class="t-body-sm c-2" style="margin-top:10px"></div></div>
+      ${next('form')}`;
+    const cost = () => { const bu = B.budget(b); qs('#cost').innerHTML = b.airtime_amount > 0 ? `${b.spots} × ${B.naira(b.airtime_amount)} + 5% Hentity fee = <b style="color:var(--color-text-primary)">${B.naira(bu.total)}</b>. You pay before the link goes live; unused airtime is refunded.` : ''; };
+    cost();
+    const tasks = () => { qs('#tasks').innerHTML = (b.steps || []).map((s, i) => `<div class="row gap-8"><span class="bstep__n" style="flex:none">${i + 1}</span><input class="input" data-ti="${i}" maxlength="120" value="${esc(s)}"><button type="button" class="btn btn--ghost btn--sm" data-tx="${i}" aria-label="Remove task">${icon('x', 'ic-14')}</button></div>`).join(''); qs('#addt').hidden = (b.steps || []).length >= 6; };
+    tasks();
+    qs('#tasks').addEventListener('input', e => { const i = e.target.dataset.ti; if (i == null) return; const st = [...b.steps]; st[+i] = e.target.value; save({ steps: st.filter((x, j) => x.trim() || j === +i) }); });
+    qs('#tasks').addEventListener('click', e => { const x = e.target.closest('[data-tx]'); if (!x) return; const st = [...b.steps]; st.splice(+x.dataset.tx, 1); save({ steps: st }); tasks(); });
+    qs('#addt').onclick = () => { save({ steps: [...(b.steps || []), ''] }); tasks(); qs(`[data-ti="${b.steps.length - 1}"]`).focus(); };
+    qs('#t').oninput = e => { qs('#tc').textContent = e.target.value.length + ' / 70'; if (e.target.value.trim().length >= 3) save({ title: e.target.value.trim() }); };
+    qs('#w').oninput = e => { qs('#wc').textContent = e.target.value.length + ' / 400'; save({ why: e.target.value.trim() }); };
+    H.bindChips(qs('#cs'), () => save({ countries: qsa('#cs [aria-pressed="true"]').map(x => x.dataset.v) }));
+    H.bindChips(qs('#ps'), () => { const pl = qsa('#ps [aria-pressed="true"]').map(x => x.dataset.v); const acc = Object.assign({}, b.access); if (pl.includes('Android') && acc.android == null) acc.android = true; if (pl.includes('Web') && acc.web == null) acc.web = true; if (pl.includes('iOS') && acc.ios == null) acc.ios = true; save({ platforms: pl, access: acc }); });
+    qs('#sp').oninput = e => { const n = Math.max(1, Math.min(2000, +e.target.value || 1)); save({ spots: n }); cost(); };
+    qs('#tn').onchange = e => save({ time_needed: e.target.value });
+    qs('#cl').onchange = e => { if (e.target.value) save({ closes_at: new Date(e.target.value + 'T23:59:00+01:00').toISOString() }); };
+    qs('#ts').onchange = e => save({ test_start: e.target.value || null });
+    qs('#te').onchange = e => { if (b.test_start && e.target.value && e.target.value < b.test_start) { toast('Testing ends after it starts', 'error'); return; } save({ test_end: e.target.value || null }); };
+    qs('#pk').oninput = e => save({ perk: e.target.value.trim(), perk_type: e.target.value.trim() ? 'product' : 'none' });
+    qs('#air').oninput = e => { save({ airtime_amount: Math.max(0, Math.min(100000, Math.round(+e.target.value || 0))) }); cost(); };
+    aside().innerHTML = `<p class="st-label">How it works</p><div class="st-box st-box--muted t-body-sm c-2" style="line-height:20px"><ol style="margin:0;padding-left:18px" class="stack gap-8"><li>Set up the form, agreement and access.</li><li>Publish and share one link on WhatsApp, LinkedIn or a QR code.</li><li>People apply and sign. You accept the best fits.</li><li>Hentity gives each accepted, signed tester personal access, and takes it back when the beta ends.</li><li>Feedback and results land here.</li></ol></div>`;
+    bindNext();
+  };
+
+  // ------------------------------------------------------------------ 2 · Application form
+  const uid8 = () => Math.random().toString(36).slice(2, 8);
+  const GMAIL = { id: 'gmail', type: 'email', q: 'Gmail address for Google Play testing', required: true, access: 'android' };
+  VIEWS.form = () => {
+    let form = (b.form || []).map(q => Object.assign({ options: [], must: [] }, q));
+    const ensureGmail = () => { const has = form.some(q => q.id === 'gmail'); if ((b.access || {}).android && !has) form.splice(Math.min(2, form.length), 0, Object.assign({}, GMAIL)); if (!(b.access || {}).android && has) form = form.filter(q => q.id !== 'gmail'); };
+    ensureGmail();
+    const commit = () => save({ form: form.map(q => { const o = { id: q.id, type: q.type, q: q.q, required: !!q.required }; if (['choice', 'multi'].includes(q.type)) { o.options = q.options.filter(Boolean); o.must = (q.must || []).filter(m => o.options.includes(m)); } if (q.access) o.access = q.access; return o; }) });
+    if (JSON.stringify(form.map(q => q.id)) !== JSON.stringify((b.form || []).map(q => q.id))) commit();
+    const card = (q, i) => { const [label, ic] = B.QTYPES[q.type] || ['Short answer', 'text']; const choice = ['choice', 'multi'].includes(q.type);
+      return `<div class="st-box ${q.must && q.must.length ? 'st-box--on' : ''}" data-i="${i}"><div class="st-q"><span class="st-q__grip">${icon('grip', 'ic-14')}</span><span class="st-q__i">${icon(ic, 'ic-14')}</span><div class="grow" style="min-width:0">
+        <div class="row gap-8" style="align-items:flex-start"><input class="q" data-f="q" value="${esc(q.q)}" placeholder="Your question" maxlength="160"${q.access ? ' readonly' : ''}><select class="st-chip" data-f="type" aria-label="Question type"${q.access ? ' disabled' : ''}>${Object.entries(B.QTYPES).map(([k, [l]]) => `<option value="${k}"${k === q.type ? ' selected' : ''}>${l}</option>`).join('')}</select>${q.access ? `<span class="st-tag st-tag--info">${icon('link', 'ic-12')}Added by Access · Android</span>` : ''}</div>
+        ${choice ? `<div class="st-opts">${q.options.map((o, j) => `<span class="st-opt ${q.must.includes(o) ? 'is-must' : ''}"><input data-o="${j}" value="${esc(o)}" aria-label="Option ${j + 1}"><button type="button" data-must="${j}" title="${q.must.includes(o) ? 'Required pick: click to remove' : 'Flag applicants who don’t pick this'}">${icon(q.must.includes(o) ? 'check' : 'flag', 'ic-12')}</button><button type="button" data-ox="${j}" aria-label="Remove option">${icon('x', 'ic-12')}</button></span>`).join('')}<button class="st-chip" type="button" data-oadd style="height:26px">${icon('plus', 'ic-12')}Option</button></div>` : ''}
+        <div class="row between gap-12" style="margin-top:10px"><span class="t-caption c-3" style="font-weight:400">${choice ? (q.must.length ? `<span style="color:var(--color-success)">${icon('check', 'ic-12')} Screening: auto-flag applicants who don’t pick ${esc(q.must.join(' or '))}</span>` : 'Tap ' + icon('flag', 'ic-12') + ' on an option to flag applicants who don’t pick it') : q.access ? 'Needed to give Android testers access' : q.type === 'voice' ? 'Great for people who prefer talking' : q.type === 'file' ? 'Image, PDF or CSV, up to 10 MB' : 'Free text'}</span>
+          <span class="row gap-12">${i > 0 ? `<button type="button" class="link t-caption" data-up>${icon('arrow-up-right', 'ic-12')}Up</button>` : ''}${q.access ? '' : `<button type="button" class="link t-caption" data-del>Delete</button>`}<span class="row gap-8 t-caption c-2">Required${tog('rq' + i, q.required, !!q.access)}</span></span></div></div></div></div>`; };
+    const draw = () => {
+      main().innerHTML = `<h2>Application form</h2><p class="sub">One form for everyone: people who find the beta on Hentity and people you send the link to on WhatsApp.</p>
+        <div class="st-box st-box--muted"><p class="row gap-8 t-label">${icon('lock', 'ic-14')}Always asked <span class="t-caption c-3" style="font-weight:400">Filled from the tester’s Hentity profile when they have one</span></p><div class="row gap-6 wrap" style="margin-top:10px">${['Full name', 'WhatsApp number', 'Country & city', 'Device (auto-detected)'].concat(b.airtime_amount > 0 ? ['Network for airtime'] : []).map(x => `<span class="st-chip">${x}</span>`).join('')}</div></div>
+        <div id="qs">${form.map(card).join('')}</div>
+        <div class="st-box st-box--dashed row gap-8 wrap"><span class="row gap-6 t-label">${icon('plus', 'ic-14')}Add question</span>${Object.entries(B.QTYPES).filter(([k]) => k !== 'choice').map(([k, [l]]) => `<button class="st-chip" type="button" data-add="${k}">${l === 'Multiple choice' ? 'Choice' : l}</button>`).join('')}</div>
+        ${next('agreement')}`;
+      bindNext(); preview();
+    };
+    const preview = () => { aside().innerHTML = `<p class="st-label truncate">Preview · hentity.com/b/${esc(b.slug)}</p><div class="st-phone"><div class="row gap-8">${plogo(p, 24)}<p class="t-label row gap-6">${esc(p.name)} beta${p.verified ? verified('verified--sm') : ''}</p></div><p style="font-size:20px;line-height:26px;font-weight:600;margin:16px 0 12px;letter-spacing:-.01em">${esc(b.title)}</p>${B.perkText(b) ? `<div class="tp-perk" style="margin:0 0 14px">${icon('sparkles', 'ic-14')}<p class="t-caption">${esc(B.perkText(b))}</p></div>` : ''}${form.map(q => ['choice', 'multi'].includes(q.type) ? `<p class="t-label" style="margin:12px 0 6px">${esc(q.q)}</p><div class="tp-pills">${q.options.filter(Boolean).map(o => `<span class="tp-pill" style="height:30px;font-size:13px">${esc(o)}</span>`).join('')}</div>` : q.type === 'voice' ? `<span class="rec-btn" style="margin-top:12px;height:38px;font-size:13px"><i style="width:26px;height:26px">${icon('mic', 'ic-12')}</i>${esc(q.q)}</span>` : `<p class="t-label" style="margin:12px 0 6px">${esc(q.q)}</p><span class="input" style="display:block;height:36px"></span>`).join('')}<span class="btn btn--accent btn--block" style="margin-top:16px">Continue to agreement</span></div>`; };
+    draw();
+    const at = el => form[+el.closest('[data-i]').dataset.i];
+    main().addEventListener('input', e => { const q = e.target.closest('[data-i]') && at(e.target); if (!q) return; if (e.target.dataset.f === 'q') { q.q = e.target.value; commit(); preview(); } if (e.target.dataset.o != null) { const j = +e.target.dataset.o, old = q.options[j]; q.options[j] = e.target.value; q.must = q.must.map(m => m === old ? e.target.value : m); commit(); preview(); } });
+    main().addEventListener('change', e => { const box = e.target.closest('[data-i]'); if (!box) return; const q = at(e.target); if (e.target.dataset.f === 'type') { q.type = e.target.value; if (['choice', 'multi'].includes(q.type) && !q.options.length) q.options = ['Option 1', 'Option 2']; commit(); draw(); } else if (e.target.type === 'checkbox') { q.required = e.target.checked; commit(); } });
+    main().addEventListener('click', e => {
+      const add = e.target.closest('[data-add]'); if (add) { const t = add.dataset.add; form.push({ id: 'q' + uid8(), type: t === 'multi' ? 'multi' : t, q: { short: 'How do you do this today?', multi: 'Which of these do you use?', email: 'Email address', file: 'Upload a sample', voice: 'Tell us about yourself in 30 seconds' }[t] || 'Question', options: t === 'multi' ? ['Option 1', 'Option 2'] : [], must: [], required: t !== 'voice' }); commit(); draw(); qsa('#qs [data-f="q"]').pop().select(); return; }
+      const box = e.target.closest('[data-i]'); if (!box) return; const i = +box.dataset.i, q = form[i];
+      if (e.target.closest('[data-del]')) { form.splice(i, 1); commit(); draw(); }
+      else if (e.target.closest('[data-up]')) { [form[i - 1], form[i]] = [form[i], form[i - 1]]; commit(); draw(); }
+      else if (e.target.closest('[data-oadd]')) { q.options.push('Option ' + (q.options.length + 1)); commit(); draw(); }
+      else if (e.target.closest('[data-ox]')) { const j = +e.target.closest('[data-ox]').dataset.ox; q.must = q.must.filter(m => m !== q.options[j]); q.options.splice(j, 1); commit(); draw(); }
+      else if (e.target.closest('[data-must]')) { const o = q.options[+e.target.closest('[data-must]').dataset.must]; q.must = q.must.includes(o) ? q.must.filter(m => m !== o) : [...q.must, o]; commit(); draw(); }
+    });
+  };
+
+  // ------------------------------------------------------------------ 3 · Agreement
+  VIEWS.agreement = () => {
+    const a = Object.assign({ law: 'Nigeria', clauses: {} }, b.agreement || {});
+    if (!a.legal_name && p.company_id) API.company(p.company_id).then(c => { if (c && !a.legal_name) { a.legal_name = c.name; a.city = c.city || ''; if (c.registration_number || c.rc_number) a.rc = c.registration_number || c.rc_number; commitA(); VIEWS.agreement(); } }).catch(() => {});
+    const commitA = () => { save({ agreement: Object.assign({}, a) }); drawPaper(); };
+    main().innerHTML = `<h2>Beta tester agreement</h2><p class="sub">Testers read a plain-language summary, then sign. Nobody gets access until they have signed.</p>
+      <div class="st-box row gap-12">${icon('log', 'ic-16')}<div class="grow"><p class="t-label">Hentity beta tester agreement · v1</p><p class="t-caption c-3" style="font-weight:400">Standard template, filled in with your details below</p></div></div>
+      <div class="st-box"><p class="t-label" style="margin-bottom:12px">Your company</p><div class="grid-2" style="gap:12px">
+        <div class="field"><label class="field__label" for="ln">Legal name</label><input class="input" id="ln" data-a="legal_name" value="${esc(a.legal_name || '')}" placeholder="Ledgerline Technologies Ltd" maxlength="120"></div>
+        <div class="field"><label class="field__label" for="rc">Registration number</label><input class="input" id="rc" data-a="rc" value="${esc(a.rc || '')}" placeholder="RC 1849302" maxlength="40"></div>
+        <div class="field"><label class="field__label" for="lw">Governing law</label><select class="input" id="lw" data-a="law">${Object.values(B.LAWS).map(x => `<option${x === a.law ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label class="field__label" for="ct">Contact for testers</label><input class="input" id="ct" data-a="contact" value="${esc(a.contact || '')}" placeholder="beta@yourcompany.com" maxlength="120"></div>
+        <div class="field"><label class="field__label" for="cy">City</label><input class="input" id="cy" data-a="city" value="${esc(a.city || '')}" placeholder="Lagos" maxlength="60"></div>
+        <div class="field"><label class="field__label" for="sg">Signing for the company</label><input class="input" id="sg" data-a="signer" value="${esc(a.signer || ((API.profile || {}).name ? API.profile.name + ', Founder' : ''))}" placeholder="Ada Okafor, CEO" maxlength="80"></div></div></div>
+      <div class="st-box"><p class="t-label" style="margin-bottom:4px">Clauses</p>${B.CLAUSES.map(([k, t, s, always]) => `<div class="st-clause st-sw"><div><p class="t-label">${t}${always ? `<span class="st-lock">${icon('lock', 'ic-12')}Always on</span>` : ''}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${esc(k === 'perk' && B.perkText(b) ? B.perkText(b) + ', released by Hentity when feedback is submitted.' : s)}</p></div>${tog('cl-' + k, B.clauseOn(b, k), always)}</div>`).join('')}</div>
+      <p class="row gap-8 t-caption c-3" style="font-weight:400;align-items:flex-start">${icon('info', 'ic-14')}<span>Hentity’s template is a starting point, not legal advice. Have a lawyer review it for your product.</span></p>
+      ${next('access')}`;
+    qsa('[data-a]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => { a[el.dataset.a] = el.value.trim(); commitA(); }));
+    if (!a.signer && (API.profile || {}).name) { a.signer = API.profile.name + ', Founder'; }
+    B.CLAUSES.forEach(([k]) => { const el = qs('#cl-' + k); el && el.addEventListener('change', () => { a.clauses = Object.assign({}, a.clauses, { [k]: el.checked }); commitA(); }); });
+    const drawPaper = () => { aside().innerHTML = `<p class="st-label">Preview</p><article class="st-paper" style="padding:22px">${B.agreementHTML(Object.assign({}, b, { agreement: a }), p.name, '').replace('<h4>', `<div class="st-short"><p class="t-label" style="color:var(--color-info)">In short</p><ul style="list-style:none;margin:6px 0 0;padding:0">${B.agreementShort(Object.assign({}, b, { agreement: a }), p.name).map(([i, t]) => `<li>${icon('check', 'ic-12')}<span>${esc(t)}</span></li>`).join('')}</ul></div><h4>`)}</article>`; };
+    drawPaper(); bindNext();
+  };
+
+  // ------------------------------------------------------------------ 4 · Access
+  VIEWS.access = () => {
+    const acc = Object.assign({}, b.access || {});
+    const saveCfg = H.debounce ? H.debounce(() => API.saveBetaAccessConfig(b.id, cfg).then(() => qs('#saved') && (qs('#saved').textContent = 'Saved')).catch(H.fail), 600) : (() => { let t; return () => { clearTimeout(t); t = setTimeout(() => API.saveBetaAccessConfig(b.id, cfg).catch(H.fail), 600); }; })();
+    const box = (k, tag, title, body, extra) => `<div class="st-box"><div class="st-sw"><p class="row gap-8 t-label"><span class="st-chip mono" style="height:22px;font-size:11px">${tag}</span>${title}</p>${tog('ac-' + k, acc[k])}</div><p class="t-caption c-2" style="font-weight:400;margin-top:8px;line-height:18px">${body}</p>${acc[k] ? `<div style="margin-top:12px">${extra}</div>` : ''}</div>`;
+    main().innerHTML = `<h2>How testers get access</h2><p class="sub">Pick one method per platform. Hentity hands out access only to testers you accepted who have signed the agreement, and takes it back when the beta ends.</p>
+      ${box('android', 'ANDROID', 'Google Play internal testing', 'Testers give their Gmail on the form. Add those addresses to the Google Group (or email list) linked to your Play testing track, then paste the opt-in link here. Testers see it only after signing.', `<div class="grid-2" style="gap:10px"><div class="field"><label class="field__label" for="gg">Google Group</label><input class="input" id="gg" data-c="group_email" value="${esc(cfg.group_email || '')}" placeholder="yourapp-beta@googlegroups.com"></div><div class="field"><label class="field__label" for="oi">Opt-in link</label><input class="input" id="oi" data-c="optin_url" value="${esc(cfg.optin_url || '')}" placeholder="https://play.google.com/apps/testing/…"></div></div>${cfg.group_email ? `<p class="row gap-6 t-caption" style="color:var(--color-success);margin-top:10px">${icon('check', 'ic-12')}Linked · ${esc(cfg.group_email)}</p>` : ''}<button class="link link--accent t-caption" type="button" id="gm" style="margin-top:8px">${icon('copy', 'ic-12')} Copy accepted testers’ Gmail addresses</button>`)}
+      ${box('web', 'WEB', 'Private invite links', 'One link per tester, tied to them. It stops working when the beta ends, after 2 devices, or when you revoke it. You can see when it was opened.', `<div class="field"><label class="field__label" for="wu">Your web beta address</label><input class="input" id="wu" data-c="web_url" value="${esc(cfg.web_url || '')}" placeholder="https://app.yourproduct.com/beta"></div><div class="st-link" style="margin-top:10px;color:var(--color-text-secondary)">${icon('link', 'ic-14')}<span class="truncate">${esc((cfg.web_url || 'https://app.yourproduct.com/beta') + '?invite=…')}</span></div><p class="t-caption c-3" style="font-weight:400;margin-top:8px">Optional: your app can check a link with <span class="mono">GET hentity.com/api/beta-invite?t=&lt;invite&gt;</span> → <span class="mono">{"ok":true,"tester":"Ngozi"}</span></p>`)}
+      ${box('ios', 'IOS', 'TestFlight', 'Paste a public TestFlight link. Testers see it only after signing.', `<div class="field"><label class="field__label" for="tf">TestFlight link</label><input class="input" id="tf" data-c="testflight_url" value="${esc(cfg.testflight_url || '')}" placeholder="https://testflight.apple.com/join/…"></div>`)}
+      ${box('codes', 'ANY', 'Promo or licence codes', 'Paste codes, one per line. Each accepted tester receives one.', `<textarea class="input" id="cd" rows="4" style="height:auto;padding:10px 12px;font-family:var(--font-mono);font-size:13px" placeholder="BETA-7F3K\nBETA-2Q9X"></textarea><div class="row between" style="margin-top:8px"><span class="t-caption c-3" id="cdn" style="font-weight:400"></span><button class="btn btn--secondary btn--sm" type="button" id="cds">Add codes</button></div>`)}
+      <div class="st-box st-box--dark"><p class="t-label" style="margin-bottom:10px">Access rules</p><p class="row gap-8 t-body-sm" style="margin-top:8px">${icon('check', 'ic-14')}Released when: accepted + agreement signed</p><p class="row gap-8 t-body-sm" style="margin-top:8px">${icon('clock', 'ic-14')}Ends: ${b.test_end ? esc(B.fmtDay(b.test_end)) + ' at 23:59 WAT' : 'when testing ends'}, or when a tester leaves</p><p class="row gap-8 t-body-sm" style="margin-top:8px;align-items:flex-start">${icon('x', 'ic-14')}<span>Revoked automatically if a tester shares their link (opened on 3+ devices)</span></p></div>
+      ${next('share')}`;
+    ['android', 'web', 'ios', 'codes'].forEach(k => qs('#ac-' + k).addEventListener('change', e => { acc[k] = e.target.checked; save({ access: acc }); VIEWS.access(); }));
+    qsa('[data-c]').forEach(el => el.addEventListener('input', () => { cfg[el.dataset.c] = el.value.trim(); saveCfg(); }));
+    if (qs('#cd')) { const cnt = async () => { const c = await API.betaCodes(b.id).catch(() => []); qs('#cdn').textContent = c.length ? `${c.length} codes · ${c.filter(x => x.application_id).length} given out` : 'No codes yet'; }; cnt(); qs('#cds').onclick = async () => { const list = [...new Set(qs('#cd').value.split(/[\n,;]+/).map(x => x.trim()).filter(Boolean))].slice(0, 2000); if (!list.length) return; try { await API.addBetaCodes(b.id, list); qs('#cd').value = ''; toast(list.length + ' codes added'); cnt(); } catch (e) { H.fail(e); } }; }
+    qs('#gm') && (qs('#gm').onclick = async () => { const L = await API.betaApplicants(b.id).catch(() => []); const g = L.filter(a => a.status === 'accepted' && a.signed_at).map(a => ((a.answers || []).find(x => x.id === 'gmail' || x.type === 'email') || {}).a).filter(Boolean); if (!g.length) { toast('No signed, accepted testers with a Gmail yet'); return; } B.copy(g.join(', ')); toast(g.length + ' addresses copied'); });
+    whoHasAccess();
+  };
+  async function whoHasAccess() {
+    aside().innerHTML = `<p class="st-label">Who has access</p><div class="st-box" id="who"><div class="skel" style="height:120px"></div></div>`;
+    const L = (await API.betaApplicants(b.id).catch(() => [])).filter(a => a.status === 'accepted');
+    const unsigned = L.filter(a => !a.signed_at).length;
+    const acc = b.access || {};
+    qs('#who').innerHTML = L.length ? L.map(a => {
+      const tags = [a.signed_at ? `<span class="st-tag st-tag--ok">${icon('signature', 'ic-12')}Signed</span>` : `<span class="st-tag st-tag--warn">${icon('clock', 'ic-12')}Not signed</span>`];
+      if (!a.signed_at) tags.push('<span class="st-tag st-tag--warn">Locked until signed</span>');
+      else if (a.revoked) tags.push(`<span class="st-tag st-tag--bad">${esc(a.revoked_reason || 'Revoked')}</span>`);
+      else tags.push(`<span class="st-tag st-tag--info">${[acc.android ? 'Play' : '', acc.web ? (a.invite_opens ? `Web opened ${a.invite_opens}×` : 'Web not opened') : '', a.code ? 'Code ' + esc(a.code) : ''].filter(Boolean).join(' · ') || 'Ready'}</span>`);
+      return `<div class="st-who">${avatar({ name: a.name, avatar_url: a.avatar_url, avatar_color: a.avatar_color }, 32)}<div class="grow" style="min-width:0"><p class="t-label truncate">${esc(a.name)}</p><div class="row gap-4 wrap" style="margin-top:4px">${tags.join('')}</div></div>${a.signed_at ? `<button class="btn btn--ghost btn--sm" type="button" data-rv="${a.id}" data-on="${a.revoked ? 1 : 0}" title="${a.revoked ? 'Restore access' : 'Revoke access'}">${a.revoked ? 'Restore' : 'Revoke'}</button>` : ''}</div>`;
+    }).join('') : `<p class="t-body-sm c-2">Nobody yet. Testers you accept appear here with their signature and access status.</p>`;
+    if (unsigned) aside().insertAdjacentHTML('beforeend', `<button class="btn btn--secondary btn--block btn--sm" type="button" id="remind">${icon('bell', 'ic-14')}Remind ${unsigned} to sign</button>`);
+    qs('#remind') && (qs('#remind').onclick = async () => { try { const n = await API.remindSign(b.id); toast(`Reminder sent to ${n} tester${n === 1 ? '' : 's'} by email and notification`); } catch (e) { H.fail(e); } });
+    qsa('[data-rv]').forEach(x => x.onclick = async () => { const on = x.dataset.on === '1'; if (!on && !confirm('Revoke this tester’s access? Their personal link stops working now.')) return; try { await API.setTesterAccess(x.dataset.rv, on); toast(on ? 'Access restored' : 'Access revoked'); whoHasAccess(); } catch (e) { H.fail(e); } });
+  }
+
+  // ------------------------------------------------------------------ 5 · Share
+  VIEWS.share = async () => {
+    const url = B.betaUrl(b), short = url.replace(/^https?:\/\//, '');
+    const left = Math.max(0, b.spots - b.accepted_count);
+    const defMsg = `Hi! We’re looking for ${b.spots} people to test ${b.title.replace(/^(help )?test /i, '').replace(/\.$/, '')} before launch.${b.time_needed ? ' It takes ' + b.time_needed + (/min|hour/.test(b.time_needed) ? '' : '') : ''}${B.perkText(b) ? ' and you get ' + B.perkText(b) : ''}. Apply here 👇`;
+    const st = Object.assign({ show_on_product: true, close_when_full: true, auto_accept: false }, b.settings || {});
+    const msg = st.wa_message || defMsg;
+    const wa = (src, text) => `https://wa.me/?text=${encodeURIComponent((text || msg) + '\n' + B.betaUrl(b, src))}`;
+    main().innerHTML = `<h2>Share your beta</h2><p class="sub">Send the link to your customers on WhatsApp, post it anywhere, or let Hentity show it on your product page. Every application lands in one list.</p>
+      ${!live() ? `<div class="alert alert--accent" style="margin-bottom:12px"><span>${icon('info')}</span><div><p class="alert__title">Publish to open the link</p><p class="alert__body">Until then, only you can see it.</p></div><button class="link alert__action" type="button" id="pub2">Publish beta</button></div>` : ''}
+      <div class="st-box"><div class="st-link"><span>${icon('link', 'ic-14')}</span><span class="grow truncate">${esc(short)}</span><button class="btn btn--primary btn--sm" type="button" data-copy="${esc(url)}">${icon('copy', 'ic-14')}Copy link</button></div>
+        <div class="row gap-8 wrap" style="margin-top:12px"><a class="btn btn--secondary btn--sm" href="${wa('whatsapp')}" target="_blank" rel="noopener">${icon('chats', 'ic-14')}WhatsApp</a><a class="btn btn--secondary btn--sm" href="${wa('status')}" target="_blank" rel="noopener">${icon('image', 'ic-14')}WhatsApp status</a><a class="btn btn--secondary btn--sm" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(B.betaUrl(b, 'linkedin'))}" target="_blank" rel="noopener">${icon('link', 'ic-14')}LinkedIn</a><a class="btn btn--secondary btn--sm" href="https://x.com/intent/post?url=${encodeURIComponent(B.betaUrl(b, 'x'))}&text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}X</a><button class="btn btn--secondary btn--sm" type="button" id="qr-jump">${icon('qr', 'ic-14')}QR code</button></div>
+        <div class="field" style="margin-top:14px"><label class="field__label" for="slug">Link name</label><div class="row gap-8"><span class="t-body-sm c-3 mono">hentity.com/b/</span><input class="input mono" id="slug" value="${esc(b.slug)}" maxlength="60" style="flex:1"><button class="btn btn--ghost btn--sm" type="button" id="slug-s">Save</button></div></div></div>
+      <div class="st-box"><div class="row between"><p class="t-label">Message for WhatsApp</p><span class="t-caption c-3" style="font-weight:400">Edit it in your own words, Pidgin, Yoruba or Hausa</span></div>
+        <div class="st-wa" style="margin-top:10px"><textarea id="msg" rows="3" maxlength="600" style="width:100%;border:0;background:none;font:inherit;resize:vertical;outline:none;color:inherit">${esc(msg)}</textarea><div class="st-wa__card">${plogo(p, 36)}<div style="min-width:0"><p class="t-label truncate">${esc(p.name)} beta · Testers wanted</p><p class="t-caption" style="font-weight:400;opacity:.75">${left} spots left${B.perkText(b) ? ' · perk: ' + esc(B.perkText(b)) : ''}</p><p class="t-caption" style="font-weight:400;opacity:.6">hentity.com</p></div></div></div>
+        <div class="row gap-8" style="margin-top:10px"><a class="btn btn--secondary btn--sm" id="wa-send" href="${wa('whatsapp')}" target="_blank" rel="noopener">${icon('send', 'ic-14')}Send on WhatsApp</a><button class="btn btn--ghost btn--sm" type="button" id="msg-copy">${icon('copy', 'ic-14')}Copy message</button></div></div>
+      <div class="st-box"><div class="row between"><p class="t-label">Where applicants come from</p><button class="link link--accent t-caption" type="button" id="addl" style="white-space:nowrap">${icon('plus', 'ic-12')} Tracked link for a group</button></div><div id="srcs" style="margin-top:8px"><div class="skel" style="height:80px"></div></div></div>`;
+    aside().innerHTML = `<div class="st-box" style="text-align:center" id="qr-box"><div id="qr" style="width:180px;height:180px;margin:4px auto 10px;display:grid;place-items:center"><div class="skel" style="width:160px;height:160px"></div></div><p class="t-caption c-3" style="font-weight:400">Print it for your shop, market stall or event</p><button class="btn btn--secondary btn--sm btn--block" type="button" id="poster" style="margin-top:12px">${icon('download', 'ic-14')}Download QR poster</button></div>
+      <div class="st-box">${[['show_on_product', 'Show on your product page', `Adds “Testers wanted” to ${esc(p.name)} on Hentity`], ['close_when_full', 'Close when full', `Stop new applications at ${b.spots} accepted`], ['auto_accept', 'Accept full matches automatically', 'No screening flags, right country and device. Still need a signed agreement']].map(([k, t, s], i) => `<div class="st-sw" style="${i ? 'margin-top:14px' : ''}"><div><p class="t-label">${t}</p><p class="t-caption c-3" style="font-weight:400;margin-top:2px">${s}</p></div>${tog('set-' + k, st[k])}</div>`).join('')}</div>`;
+    qs('#pub2') && (qs('#pub2').onclick = publish);
+    qsa('[data-copy]').forEach(x => x.onclick = () => { B.copy(x.dataset.copy); toast('Link copied'); });
+    qs('#qr-jump').onclick = () => qs('#qr-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    qs('#slug-s').onclick = async () => { const v = qs('#slug').value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, ''); if (v.length < 3) { toast('At least 3 letters', 'error'); return; } try { await save({ slug: v }, true); b = await API.beta(b.id); toast('Link updated'); VIEWS.share(); } catch (e) { H.fail(e); } };
+    qs('#msg').addEventListener('input', e => { st.wa_message = e.target.value; save({ settings: Object.assign({}, st) }); qs('#wa-send').href = wa('whatsapp', e.target.value); });
+    qs('#msg-copy').onclick = () => { B.copy(qs('#msg').value + '\n' + B.betaUrl(b, 'whatsapp')); toast('Message copied'); };
+    ['show_on_product', 'close_when_full', 'auto_accept'].forEach(k => qs('#set-' + k).addEventListener('change', e => { st[k] = e.target.checked; save({ settings: Object.assign({}, st) }); }));
+    qs('#addl').onclick = async () => { const label = prompt('Name this link, e.g. “WhatsApp · Balogun traders group” or “QR at Ikeja market”'); if (!label || !label.trim()) return; const code = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20) || 'link'; try { const l = await API.addBetaLink(b.id, code + (Math.random() * 90 + 10 | 0), label.trim().slice(0, 60)); B.copy(B.betaUrl(b, l.code)); toast('Tracked link copied'); sources(); } catch (e) { H.fail(e); } };
+    async function sources() {
+      const [S, links] = await Promise.all([API.betaSources(b.id).catch(() => []), API.betaLinks(b.id).catch(() => [])]);
+      const builtin = { product: 'Hentity product page', whatsapp: 'WhatsApp', status: 'WhatsApp status', linkedin: 'LinkedIn', x: 'X', qr: 'QR code', '': 'Direct link' };
+      const rows = S.map(s => ({ ...s, label: links.find(l => l.code === s.code) ? s.label : (builtin[s.code] != null ? builtin[s.code] : s.label) }));
+      qs('#srcs').innerHTML = rows.length ? rows.map(s => { const l = links.find(x => x.code === s.code); return `<div class="st-src"><span class="grow">${esc(s.label)}${l ? ` <button class="link t-caption c-3" type="button" data-cp="${esc(s.code)}">${icon('copy', 'ic-12')}</button>` : ''}</span>${s.opens != null ? `<span class="t-caption c-3" style="font-weight:400">${s.opens} opens</span>` : ''}<b>${s.applied} applied</b></div>`; }).join('') + `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">${b.opens} link opens in total</p>` : `<p class="t-body-sm c-2">Applications will show here by where they came from. Make a tracked link for each WhatsApp group to see which one works.</p>`;
+      qsa('[data-cp]').forEach(x => x.onclick = () => { B.copy(B.betaUrl(b, x.dataset.cp)); toast('Tracked link copied'); });
+    }
+    sources();
+    // QR code (qrcode-generator, loaded on demand)
+    const load = () => window.qrcode ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; s.onload = ok; s.onerror = no; document.head.append(s); });
+    try {
+      await load(); const qr = qrcode(0, 'M'); qr.addData(B.betaUrl(b, 'qr')); qr.make();
+      qs('#qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); qs('#qr svg').setAttribute('width', '170'); qs('#qr svg').setAttribute('height', '170');
+      qs('#poster').onclick = () => poster(qr);
+    } catch (e) { qs('#qr').innerHTML = `<p class="t-caption c-3">QR code unavailable offline</p>`; }
+  };
+  function poster(qr) {
+    const W = 1240, Hh = 1754, c = document.createElement('canvas'); c.width = W; c.height = Hh; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, Hh); x.fillStyle = '#FF5A1F'; x.fillRect(0, 0, W, 24);
+    x.fillStyle = '#0a0a0a'; x.font = '600 44px Geist, Arial'; x.fillText(p.name + ' · Beta program', 100, 170);
+    const wrap = (t, y, size, color, max) => { x.font = `600 ${size}px Geist, Arial`; x.fillStyle = color; const words = t.split(' '); let line = ''; for (const w of words) { if (x.measureText(line + w).width > (max || W - 200)) { x.fillText(line, 100, y); y += size * 1.15; line = ''; } line += w + ' '; } x.fillText(line, 100, y); return y + size * 1.4; };
+    let y = wrap(b.title, 290, 84, '#0a0a0a');
+    if (B.perkText(b)) y = wrap('Perk: ' + B.perkText(b), y, 40, '#FF5A1F');
+    const n = qr.getModuleCount(), size = 760, cell = size / n, ox = (W - size) / 2, oy = Math.max(y + 40, 720);
+    x.fillStyle = '#0a0a0a'; for (let r = 0; r < n; r++) for (let col = 0; col < n; col++) if (qr.isDark(r, col)) x.fillRect(ox + col * cell, oy + r * cell, Math.ceil(cell), Math.ceil(cell));
+    x.font = '500 36px Geist, Arial'; x.fillStyle = '#555'; x.textAlign = 'center'; x.fillText('Scan to apply · ' + B.betaUrl(b).replace(/^https?:\/\//, ''), W / 2, oy + size + 80);
+    x.font = '400 28px Geist, Arial'; x.fillText('Testing is free. You never need to upvote anything. Runs on Hentity.', W / 2, oy + size + 130);
+    const a = document.createElement('a'); a.download = `${b.slug}-qr-poster.png`; a.href = c.toDataURL('image/png'); a.click();
+  }
+
+  // ------------------------------------------------------------------ Results
+  VIEWS.results = async () => {
+    main().innerHTML = '<div class="skel" style="height:420px;border-radius:14px"></div>';
+    const r = await API.betaResults(b.id).catch(() => null) || {};
+    const F = [['Link opens', r.opens], ['Applied', r.applied], ['Accepted', r.accepted], ['Signed', r.signed, 1], ['Used the beta', r.used, 1], ['Feedback', r.feedback, 1]];
+    const max = Math.max(1, ...F.map(f => f[1] || 0));
+    main().innerHTML = `<div class="st-box"><p class="t-label">From link to feedback</p><div class="st-funnel">${F.map(([l, v, hot]) => `<div class="${hot ? 'is-hot' : ''}"><b>${(v || 0).toLocaleString('en-US')}</b><i style="height:${Math.max(4, Math.round(Math.sqrt((v || 0) / max) * 100))}%"></i><span>${l}</span></div>`).join('')}</div></div>
+      <div class="st-kpi"><div class="st-box" style="margin:0"><p class="row gap-8 t-label">${icon('signature', 'ic-14')}Agreements</p><p style="margin-top:10px"><b style="font-size:30px;font-weight:600">${r.signed || 0}</b> <span class="t-body-sm c-2">signed of ${r.accepted || 0} accepted</span></p><p class="t-caption c-3" style="font-weight:400;margin-top:6px">${(r.accepted || 0) - (r.signed || 0) > 0 ? `${r.accepted - r.signed} never signed, so they never got access.` : 'Everyone you accepted signed.'}</p></div>
+        <div class="st-box" style="margin:0"><p class="row gap-8 t-label">${icon('sparkles', 'ic-14')}Perks</p><p style="margin-top:10px">${b.airtime_amount > 0 ? `<b style="font-size:30px;font-weight:600">${B.naira(r.paid)}</b> <span class="t-body-sm c-2">paid to ${r.paid_n} testers</span>` : `<b style="font-size:30px;font-weight:600">${r.feedback || 0}</b> <span class="t-body-sm c-2">perks unlocked</span>`}</p><p class="t-caption c-3" style="font-weight:400;margin-top:6px">${b.airtime_amount > 0 && r.unused ? B.naira(r.unused) + ' to refund for unused spots.' : B.perkText(b) ? esc(B.perkText(b)) : 'No perk on this beta.'}</p></div>
+        <div class="st-box" style="margin:0"><p class="row gap-8 t-label">${icon('check', 'ic-14')}Ease of use</p><p style="margin-top:10px"><b style="font-size:30px;font-weight:600">${r.ease || '–'}</b> <span class="t-body-sm c-2">/ 5 · ${r.worked || 0}% said it worked</span></p><p class="t-caption c-3" style="font-weight:400;margin-top:6px">${r.top_tag ? `Top issue: ${esc(r.top_tag)} (${r.top_tag_n} testers).` : 'Tag feedback to see the top issue.'}${r.fixed ? ` ${r.fixed} marked fixed.` : ''}</p></div></div>
+      <div class="st-report"><div class="st-report__doc"><span class="mono" style="font-size:8px;color:#888;letter-spacing:.08em">BETA REPORT</span><i></i><i></i><i style="width:60%"></i><div style="display:flex;gap:3px;align-items:flex-end;height:30px;margin-top:auto">${[40, 70, 55, 90, 65].map(h => `<span style="flex:1;height:${h}%;background:#FF5A1F"></span>`).join('')}</div></div>
+        <div class="grow"><p style="font-size:18px;font-weight:600">Beta report</p><p class="t-body-sm" style="color:rgba(255,255,255,.65);margin-top:6px">Who tested, what they said, what you fixed, signed agreements and perks paid. Investors read this as proof of real users.</p></div>
+        <button class="btn btn--accent" type="button" id="report">${icon('download', 'ic-14')}Save report as PDF</button></div>`;
+    aside().innerHTML = `<p class="st-label">Next</p><div class="st-box"><a class="row gap-8 t-label" href="/betas/${b.id}/manage">${icon('users', 'ic-16')}Applicants &amp; testers</a><a class="row gap-8 t-label" style="margin-top:12px" href="/betas/${b.id}/manage?tab=feedback">${icon('comment', 'ic-16')}Read feedback (${b.feedback_count})</a><button class="row gap-8 t-label" style="margin-top:12px" type="button" id="csv2">${icon('download', 'ic-16')}Export CSV</button></div>`;
+    qs('#csv2').onclick = exportCsv;
+    qs('#report').onclick = () => print();
+  };
+
+  async function exportCsv() {
+    const [L, F] = await Promise.all([API.betaApplicants(b.id).catch(() => []), API.betaFeedback(b.id).catch(() => [])]);
+    const fb = new Map(F.map(f => [f.user_id, f]));
+    const qsx = (b.form || []).map(q => q.q);
+    const head = ['Name', 'Status', 'Country', 'City', 'Device', 'System', 'Phone', 'Email', 'Source', 'Flags', 'Signed', ...qsx, 'Ease', 'Verdict', 'Feedback', 'Applied'];
+    const cell = v => `"${String(v == null ? '' : Array.isArray(v) ? v.join('; ') : v).replace(/"/g, '""')}"`;
+    const rows = L.map(a => { const f = fb.get(a.user_id) || {}; return [a.name, a.status, a.country, a.city, a.device, a.device_os, a.phone, a.email, a.source, a.flags, a.signed_at ? B.lagosTime(a.signed_at) : '', ...(b.form || []).map(q => ((a.answers || []).find(x => x.id === q.id) || {}).a), f.ease, f.verdict, f.details, new Date(a.created_at).toISOString().slice(0, 10)]; });
+    const csv = [head, ...rows].map(r => r.map(cell).join(',')).join('\n');
+    const el = document.createElement('a'); el.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); el.download = `${b.slug}-testers.csv`; el.click();
+  }
+
+  frame();
+})();
+</script>
+</body>
+</html>

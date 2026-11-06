@@ -39,6 +39,7 @@
         <p class="prow__tag">${esc(p.tagline)}</p>
         <div class="prow__meta">
           ${cat ? `<span class="badge">${esc(cat)}</span>` : ''}
+          ${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}
           <span class="row hide-sm">${icon('comment', 'ic-14')}<span data-ccount="${p.id}">${fmt(p.comment_count)}</span></span>
           <span class="row loc">${flag(p.country)}${esc(p.city)}</span>
           ${rails && !opts.noRails ? `<span class="badge badge--outline hide-sm">${esc(rails)}</span>` : ''}

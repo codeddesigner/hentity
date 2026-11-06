@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
+<link rel="stylesheet" href="/assets/styles.css?v=efdc6a7fee">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d268323bc3"></script>
-<script src="/assets/app.js?v=d32b850796"></script>
+<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/app.js?v=28eab8e794"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -72,9 +72,9 @@
 <div data-header></div>
 <main class="bd" id="bd"><div class="skel" style="height:420px;border-radius:20px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/beta.js?v=7c2e49ae4a"></script>
+<script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script>
-H.mount({ active: 'betas', tab: 'products' });
+H.mount({ active: 'products', tab: 'products' });
 (async function () {
   const { qs, qsa, esc, icon, toast, avatar, plogo, verified } = H;
   const id = location.pathname.split('/').filter(Boolean)[1];
@@ -95,8 +95,10 @@ H.mount({ active: 'betas', tab: 'products' });
 
   const OSES = ['Android 14', 'Android 13', 'Android 12', 'Android 11 or older', 'iOS 17+', 'iOS 16 or older', 'Windows', 'macOS', 'Linux', 'ChromeOS', 'Feature phone (USSD)'];
   let sheet;
-  if (app && app.status === 'accepted') return testerView();
-  detailView();
+  if (app && app.status === 'accepted' && app.signed_at) return testerView();
+  // Everything else lives on the beta's link page (apply, sign, wait) or in the maker's Studio
+  location.replace(mine ? `/studio/${p.slug}/${b.id}` : `/b/${b.slug}` + location.search);
+  return;
 
   // ------------------------------------------------------------------ detail + apply
   function detailView() {
@@ -238,8 +240,8 @@ H.mount({ active: 'betas', tab: 'products' });
 
   // ------------------------------------------------------------------ tester: you're in
   async function testerView() {
-    const [access, fb, room, payout] = await Promise.all([API.betaAccess(b.id).catch(() => null), API.myFeedback(app.id).catch(() => null), b.room_id ? API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data) : null, b.airtime_amount > 0 ? API.myPayout(app.id).catch(() => null) : null]);
-    const links = (access && access.links) || [];
+    const [acc, fb, room, payout] = await Promise.all([API.myBetaAccess(b.id).catch(() => null), API.myFeedback(app.id).catch(() => null), b.room_id ? API.sb.from('channels').select('slug').eq('id', b.room_id).maybeSingle().then(r => r.data) : null, b.airtime_amount > 0 ? API.myPayout(app.id).catch(() => null) : null]);
+    const a2 = acc || {}; const links = [a2.android && a2.android.optin ? { label: 'Join on Google Play', url: a2.android.optin } : null, a2.web ? { label: 'Open web beta', url: a2.web.url } : null, a2.ios && a2.ios.url ? { label: 'Join on TestFlight', url: a2.ios.url } : null, ...(a2.links || [])].filter(Boolean);
     const ts = b.test_start && new Date(b.test_start + 'T00:00:00'), te = b.test_end && new Date(b.test_end + 'T23:59:59');
     const dayN = ts && Date.now() >= ts ? Math.floor((Date.now() - ts) / 864e5) + 1 : 0;
     const runs = b.test_start ? `Testing runs ${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}${dayN && (!te || Date.now() <= te) ? ` · you’re on day ${dayN}` : ''}` : 'Testing starts soon';

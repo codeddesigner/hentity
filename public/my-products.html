@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
+<link rel="stylesheet" href="/assets/styles.css?v=efdc6a7fee">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d268323bc3"></script>
-<script src="/assets/app.js?v=d32b850796"></script>
+<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/app.js?v=28eab8e794"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -83,8 +83,8 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=91b9906d2a"></script>
-<script src="/assets/beta.js?v=7c2e49ae4a"></script>
+<script src="/assets/data.js?v=d3cbe3db04"></script>
+<script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script>
 H.mount({ active: 'my-products', tab: 'you' });
 (async function () {
@@ -152,8 +152,8 @@ H.mount({ active: 'my-products', tab: 'you' });
     const betas = await API.betasOfProducts(rows.map(r => r.id)).catch(() => []);
     box.hidden = false;
     const ph = b => { const k = { open: 'live', full: 'scheduled', picking: 'review', testing: 'review', closed: 'draft', draft: 'draft' }[B.phase(b).k]; return `<span class="status status--${k}">${esc(B.phase(b).label)}</span>`; };
-    box.innerHTML = `<div class="row between wrap gap-12"><div><p class="t-h4 row gap-8">${icon('flask', 'ic-18')}Beta tests</p><p class="t-body-sm c-2" style="margin-top:4px">Get real users to try something before launch. They apply, you pick, they send feedback.</p></div><a class="btn btn--accent btn--sm" href="/betas/new">${icon('flask', 'ic-14')}Request beta testers</a></div>`
-      + (betas.length ? `<div class="stack" style="margin-top:14px">${betas.map(b => `<a class="row gap-12 between" style="padding:12px 0;border-top:1px solid var(--color-border-default)" href="/betas/${b.id}/manage"><span class="row gap-12" style="min-width:0">${plogo(b.product || {}, 28)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(b.title)}</span><span class="t-caption c-3" style="font-weight:400">${b.applied_count} applied · ${b.accepted_count}/${b.spots} accepted · ${b.feedback_count} feedback</span></span></span>${ph(b)}</a>`).join('')}</div>` : '');
+    box.innerHTML = `<div class="row between wrap gap-12"><div><p class="t-h4 row gap-8">${icon('flask', 'ic-18')}Beta programs</p><p class="t-body-sm c-2" style="margin-top:4px">Get real users to try something before launch: one link, a short form, a signed agreement, private access.</p></div><a class="btn btn--accent btn--sm" href="/studio?new=1">${icon('flask', 'ic-14')}New beta program</a></div>`
+      + (betas.length ? `<div class="stack" style="margin-top:14px">${betas.map(b => `<a class="row gap-12 between" style="padding:12px 0;border-top:1px solid var(--color-border-default)" href="/studio/${esc((b.product || {}).slug)}/${b.id}"><span class="row gap-12" style="min-width:0">${plogo(b.product || {}, 28)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(b.title)}</span><span class="t-caption c-3" style="font-weight:400">${b.applied_count} applied · ${b.accepted_count}/${b.spots} accepted · ${b.feedback_count} feedback</span></span></span>${ph(b)}</a>`).join('')}</div>` : '');
   })();
 })();
 </script>

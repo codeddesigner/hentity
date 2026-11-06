@@ -33,8 +33,19 @@
     ];
     T.beta_feedback = [{ id: 'f1', beta_id: 'b0000004-0000-4000-8000-000000000004', application_id: 'a4', user_id: others[2].id, ease: 4, verdict: 'mostly', details: 'Two transfers on 3 Oct came in as one. Reversal on 14 Oct shows as income.', extra: 'Please add Kuda next!', media: [], voice_url: null, quote_ok: true, tag: '', fixed: false, created_at: day(0).toISOString() }];
   })();
+  // ---- beta studio (local tests only)
+  (function studio() {
+    T.betas.forEach((b, i) => Object.assign(b, { slug: ['moniepoint-csv', 'voice-models', 'clinic-queue', 'ussd-flow'][i] || 'beta-' + i, form: [], agreement: { legal_name: 'Demo Ltd', law: 'Nigeria', clauses: {} }, access: { web: true }, settings: { show_on_product: true, close_when_full: true, auto_accept: false }, opens: 120 + i, signed_count: 0 }));
+    const b1 = T.betas[0]; b1.form = [{ id: 'q1', type: 'multi', q: 'Which mobile money apps do you use for business?', options: ['Moniepoint', 'OPay', 'PalmPay', 'MTN MoMo'], must: ['Moniepoint'], required: true }, { id: 'q2', type: 'choice', q: 'Roughly how many transactions a day?', options: ['Under 10', '10–50', '50+'], required: true }, { id: 'q3', type: 'short', q: 'How do you keep your books today?', required: false }, { id: 'q4', type: 'voice', q: 'Tell us about your business in 30 seconds', required: false }];
+    T.beta_applications.forEach(a => { if (a.status === 'accepted') { a.signed_at = new Date(Date.now() - 864e5).toISOString(); a.signed_name = 'Signed Name'; a.full_name = a.full_name || ''; } });
+    T.beta_links = [{ id: 'l1', beta_id: T.betas[3].id, code: 'balogun', label: 'WhatsApp · Balogun traders group', opens: 312 }];
+    T.betas.push({ id: 'b0000005-0000-4000-8000-000000000005', product_id: T.betas[3].product_id, owner_id: ME, title: 'Help test Momo', why: '', steps: [], countries: [], platforms: [], requirements: [], questions: [], spots: 20, closes_at: new Date(Date.now() + 14 * 864e5).toISOString(), test_start: null, test_end: null, time_needed: '20 min', access_methods: [], nda: false, perk_type: 'none', perk: '', airtime_amount: 0, funding: 'none', status: 'draft', applied_count: 0, accepted_count: 0, feedback_count: 0, slug: 'momo-beta', form: [], agreement: {}, access: {}, settings: { show_on_product: true, close_when_full: true }, opens: 0, signed_count: 0, created_at: new Date().toISOString() });
+    T.beta_access.push({ beta_id: 'b0000005-0000-4000-8000-000000000005', links: [], config: {} });
+    T.beta_codes = [];
+    T.beta_access.forEach(x => x.config = { web_url: 'https://app.example.com/beta' });
+  })();
   const weekOf = id => T.weeks.find(w => w.id === id);
-  function feed() { return T.products.map(p => { const w = weekOf(p.week_id); return Object.assign({}, p, { effective_status: p.status === 'scheduled' && (p.launch_date ? new Date(p.launch_date + 'T05:00:00Z') <= new Date() : w && new Date(w.starts_at) <= new Date()) ? 'live' : p.status, week_starts_at: w && w.starts_at, week_ends_at: w && w.ends_at }); }); }
+  function feed() { return T.products.map(p => { const w = weekOf(p.week_id); return Object.assign({}, p, { testers_wanted: (T.betas || []).some(b => b.product_id === p.id && b.status === 'open' && new Date(b.closes_at) > new Date()), effective_status: p.status === 'scheduled' && (p.launch_date ? new Date(p.launch_date + 'T05:00:00Z') <= new Date() : w && new Date(w.starts_at) <= new Date()) ? 'live' : p.status, week_starts_at: w && w.starts_at, week_ends_at: w && w.ends_at }); }); }
   const FK = { user: 'user_id', product: 'product_id', owner: 'owner_id', actor: 'actor_id', channel: 'channel_id', reporter: 'reporter_id', article: 'article_id', blocked: 'blocked_id' };
   function parseEmbeds(sel) {
     const out = []; const re = /(\w+):(\w+)(?:!(\w+))?\(([^()]*)\)|(\w+)\(([^()]*)\)/g; let m;
@@ -84,6 +95,7 @@
       if (this.op === 'insert' || this.op === 'upsert') {
         const vals = (Array.isArray(this.val) ? this.val : [this.val]).map(v => Object.assign({ id: crypto.randomUUID(), created_at: new Date().toISOString() }, v));
         if (this.t === 'products') vals.forEach(v => Object.assign(v, { status: v.status || 'draft', upvote_count: 0, comment_count: 0, follower_count: 0, media: v.media || [], categories: v.categories || [], pay_methods: v.pay_methods || [] }));
+        if (this.t === 'betas') vals.forEach(v => Object.assign(v, Object.assign({ why: '', steps: [], countries: [], platforms: [], requirements: [], questions: [], form: [], agreement: {}, access: {}, settings: { show_on_product: true, close_when_full: true }, opens: 0, signed_count: 0, applied_count: 0, accepted_count: 0, feedback_count: 0, airtime_amount: 0, perk: '', time_needed: '20 min', owner_id: ME, slug: 'new-beta-' + (T.betas.length + 1) }, v)));
         if (this.t === 'beta_applications') vals.forEach(v => Object.assign(v, { status: 'applied', match_score: 3, match_total: 3, tasks_done: [] }));
         if (this.t === 'upvotes') vals.forEach(v => { const p = T.products.find(x => x.id === v.product_id); if (p) p.upvote_count++; });
         if (this.t === 'messages') vals.forEach(v => { v.reply_count = 0; if (v.parent_id) { const pm = T.messages.find(m => m.id === v.parent_id); if (pm) { pm.reply_count++; pm.last_reply_at = v.created_at; } } });
@@ -103,7 +115,7 @@
     }
   }
   const authListeners = [];
-  const sess = () => signedIn ? { user: { id: ME, email: 'encircode@gmail.com', identities: [{ provider: 'email' }] }, access_token: 'x' } : null;
+  const sess = () => localStorage.getItem('mock.signedIn') === '1' ? { user: { id: ME, email: 'encircode@gmail.com', identities: [{ provider: 'email' }] }, access_token: 'x' } : null;
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_stats: () => ({ users: 42, users_week: 9, products: T.products.length, live: 13, review: T.products.filter(p => p.status === 'review').length, scheduled: 3, upvotes_week: 5210, comments_week: 230, messages_week: 410, reports_open: 2, subscribers: 312, suggestions: 3, signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 2 + (i * 7) % 9 })), votes_by_day: Array.from({ length: 14 }, (_, i) => ({ d: i, n: 200 + (i * 53) % 400 })) }),
@@ -111,6 +123,13 @@
     beta_set_payout: a => { T.beta_payouts = T.beta_payouts || []; T.beta_payouts.push({ application_id: a.app, phone: a.phone, network: a.network, status: 'pending' }); return null; },
     my_beta_payout: a => { const o = (T.beta_payouts || []).find(x => x.application_id === a.app); return o ? { masked: o.phone.slice(0, 7) + ' ••• ' + o.phone.slice(-4), network: o.network, amount: 1000, status: o.status } : null; },
     beta_nudge: () => 1,
+    beta_track: a => { const b = T.betas.find(x => x.slug === a.s); if (b) b.opens++; return null; },
+    beta_apply: a => { const b = T.betas.find(x => x.id === a.b); if (T.beta_applications.some(x => x.beta_id === a.b && x.user_id === ME)) throw new Error('You’ve already applied to this beta'); if (a.signed_name.toLowerCase() !== a.full_name.toLowerCase()) throw new Error('Type your full name exactly as above to sign'); const flags = (b.form || []).filter(q => (q.must || []).length && !(a.answers.find(x => x.id === q.id) || {}).a?.includes?.(q.must[0])).map(q => 'Didn’t pick ' + q.must.join(' or ')); const r = { id: crypto.randomUUID(), beta_id: a.b, user_id: ME, answers: a.answers, confirmed: [], device: a.device, device_os: a.device_os, status: b.settings.auto_accept && !flags.length ? 'accepted' : 'applied', flags, full_name: a.full_name, city: a.city, country: a.country, source: a.source, signed_at: new Date().toISOString(), signed_name: a.signed_name, sign_meta: { phone_tail: a.phone.slice(-4), agreement: b.agreement, product: 'Demo' }, match_score: 2, match_total: 2, tasks_done: [], created_at: new Date().toISOString() }; T.beta_applications.push(r); b.applied_count++; window.__applied = r; return { id: r.id, status: r.status, flags, signed_at: r.signed_at }; },
+    beta_sign: a => { const r = T.beta_applications.find(x => x.id === a.app); r.signed_at = new Date().toISOString(); r.signed_name = a.signed_name; return r.signed_at; },
+    my_beta_access: a => { const r = T.beta_applications.find(x => x.beta_id === a.b && x.user_id === ME); if (!r) return null; if (r.status !== 'accepted') return { state: r.status }; if (!r.signed_at) return { state: 'unsigned' }; const b = T.betas.find(x => x.id === a.b); return { state: 'ready', expires: b.test_end, web: b.access.web ? { url: 'https://hentity.com/go/b/abc123' } : undefined, android: b.access.android ? { optin: 'https://play.google.com/apps/testing/x', gmail: 'me@gmail.com' } : undefined, links: [] }; },
+    beta_sources: a => [{ code: 'balogun', label: 'WhatsApp · Balogun traders group', opens: 312, applied: 2 }, { code: 'product', label: 'product', opens: null, applied: 1 }],
+    beta_results: a => ({ opens: 1036, applied: 184, accepted: 50, signed: 48, used: 44, feedback: 41, ease: 4.2, worked: 89, top_tag: 'POS transfers merged', top_tag_n: 9, fixed: 3, paid: 205000, paid_n: 41, unused: 0 }),
+    beta_remind_sign: () => 2, beta_set_access: () => null, beta_complete: a => { const b = T.betas.find(x => x.id === a.b); b.status = 'closed'; b.completed_at = new Date().toISOString(); return null; },
     admin_beta_payouts: () => [{ application_id: 'a1', beta_id: 'b0000002-0000-4000-8000-000000000002', beta_title: 'Help us test', product: 'Swahili Speech Kit', tester: 'Chidera Okeke', username: 'chidera', phone: '+2348030000000', network: 'MTN', amount: 1000, status: 'due' }],
     admin_mark_payout: () => null, admin_beta_funded: () => null,
     beta_stats: () => ({ paid: 5000, open: T.betas.filter(b => b.status === 'open').length, match: 2, testers_month: T.beta_applications.filter(a => a.status === 'accepted').length, perks: T.beta_feedback.length }),
@@ -124,7 +143,7 @@
     createClient() {
       return {
         from: t => new Q(t),
-        rpc: (n, a) => Promise.resolve({ data: RPC[n] ? RPC[n](a) : null, error: null }),
+        rpc: (n, a) => { try { return Promise.resolve({ data: RPC[n] ? RPC[n](a) : null, error: null }); } catch (e) { return Promise.resolve({ data: null, error: { message: e.message } }); } },
         auth: {
           getSession: async () => ({ data: { session: sess() } }),
           onAuthStateChange: fn => { authListeners.push(fn); return { data: { subscription: { unsubscribe() {} } } }; },

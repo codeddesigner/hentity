@@ -67,8 +67,8 @@
   }
 
   const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
-  const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,airtime_amount,funding,nudged_at,status,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
-  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date';
+  const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,airtime_amount,funding,nudged_at,status,slug,form,agreement,access,settings,opens,signed_count,completed_at,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
+  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date,testers_wanted';
 
   const API = {
     sb, ready, url: SUPABASE_URL,
@@ -83,7 +83,7 @@
       // Passwordless: a 6-digit code is emailed; create=true also registers the account.
       async sendCode(email, opts) {
         opts = opts || {};
-        const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: !!opts.create, data: opts.create ? { name: opts.name, username: opts.username } : undefined, emailRedirectTo: location.origin + (opts.next || '/') } });
+        const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: !!opts.create, data: opts.create ? Object.assign({ name: opts.name, username: opts.username }, opts.via ? { via: opts.via } : {}) : undefined, emailRedirectTo: location.origin + (opts.next || '/') } });
         err(error);
       },
       async verifyCode(email, token) { const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' }); err(error); await loadProfile(); },
@@ -236,6 +236,33 @@
     setPayout: (app, phone, network) => q(sb.rpc('beta_set_payout', { app, phone, network })),
     myPayout: app => q(sb.rpc('my_beta_payout', { app })),
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
+    // Beta Studio
+    betaBySlug: slug => q(sb.from('betas').select(BETA_COLS).eq('slug', slug).maybeSingle()),
+    productBetas: pid => q(sb.from('betas').select(BETA_COLS).eq('product_id', pid).order('created_at', { ascending: false })),
+    openBetaOf: pid => q(sb.from('betas').select(BETA_COLS).eq('product_id', pid).eq('status', 'open').gt('closes_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(1).maybeSingle()),
+    betaApply: a => { touched(); return q(sb.rpc('beta_apply', a)); },
+    betaSign: (app, name) => q(sb.rpc('beta_sign', { app, signed_name: name, ua: navigator.userAgent })),
+    myBetaAccess: b => q(sb.rpc('my_beta_access', { b })),
+    betaTrack: (s, src) => sb.rpc('beta_track', { s, src: src || '' }).then(() => {}, () => {}),
+    betaSources: b => q(sb.rpc('beta_sources', { b })),
+    betaResults: b => q(sb.rpc('beta_results', { b })),
+    remindSign: b => q(sb.rpc('beta_remind_sign', { b })),
+    setTesterAccess: (app, on) => q(sb.rpc('beta_set_access', { app, on_: on })),
+    completeBeta: b => q(sb.rpc('beta_complete', { b })),
+    betaLinks: b => q(sb.from('beta_links').select('*').eq('beta_id', b).order('created_at')),
+    addBetaLink: (b, code, label) => q(sb.from('beta_links').insert({ beta_id: b, code, label }).select().single()),
+    deleteBetaLink: id => q(sb.from('beta_links').delete().eq('id', id)),
+    betaCodes: b => q(sb.from('beta_codes').select('id,code,application_id').eq('beta_id', b).order('code')),
+    addBetaCodes: (b, codes) => q(sb.from('beta_codes').upsert(codes.map(code => ({ beta_id: b, code })), { onConflict: 'beta_id,code', ignoreDuplicates: true })),
+    clearBetaCodes: b => q(sb.from('beta_codes').delete().eq('beta_id', b).is('application_id', null)),
+    betaAccessConfig: b => q(sb.from('beta_access').select('links,config').eq('beta_id', b).maybeSingle()),
+    saveBetaAccessConfig: (b, config) => q(sb.from('beta_access').upsert({ beta_id: b, config })),
+    async createBetaDraft(product_id, title) {
+      requireAuth(); touched();
+      const closes = new Date(Date.now() + 14 * 864e5).toISOString();
+      return q(sb.from('betas').insert({ product_id, title: title || 'New beta', status: 'draft', closes_at: closes, spots: 20, perk_type: 'none' }).select('id,slug').single());
+    },
+    updateBeta: (id, patch) => { touched(); return q(sb.from('betas').update(patch).eq('id', id).select(BETA_COLS).single()); },
     productRoom: pid => q(sb.from('channels').select('slug').eq('product_id', pid).eq('kind', 'product').limit(1).maybeSingle()),
 
     // ---------------- chats

@@ -16,10 +16,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=74b79dc162">
+<link rel="stylesheet" href="/assets/styles.css?v=efdc6a7fee">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d268323bc3"></script>
-<script src="/assets/app.js?v=d32b850796"></script>
+<script src="/assets/api.js?v=f3f7f3f9d9"></script>
+<script src="/assets/app.js?v=28eab8e794"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -83,7 +83,7 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=91b9906d2a"></script>
+<script src="/assets/data.js?v=d3cbe3db04"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 H.qs('#ptabs').innerHTML = H.productTabs('directory');
@@ -118,7 +118,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
       qs('#title').firstChild.textContent = term ? `Results for “${term}” ` : scope === 'local' ? 'Built near you ' : 'Built across Africa ';
       qs('#title-flag').innerHTML = scope === 'local' && !term ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
       qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;
-      qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
+      qs('#list').innerHTML = L.length ? L.map(p => `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? `<span class="row gap-4 c-success t-caption">${icon('check', 'ic-12')}Verified</span>` : ''}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
         : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">No products match these filters</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Remove a filter or switch to Pan-African.</p><button class="btn btn--secondary btn--sm" type="button" onclick="document.getElementById('clear').click()">Clear all filters</button></div>`;
       M.stagger(qs('#list'));
     } catch (e) { H.fail(e); }

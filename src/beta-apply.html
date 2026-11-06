@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Beta program · Hentity</title>
+<meta name="description" content="Test a new product from an African maker before it launches, and get a perk for honest feedback.">
+<script src="/assets/auth.js"></script>
+<script src="/assets/beta.js"></script>
+</head>
+<body class="no-tabbar" style="background:var(--color-bg-subtle)">
+<header class="tp-top"><div class="tp-top__in"><a href="/" aria-label="Hentity home" style="width:120px;display:block" data-logo></a><span class="t-caption c-3" style="font-weight:400">Beta programs run on Hentity</span></div></header>
+<main id="tp"><div class="tp"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
+<script>
+H.mount({});
+(async function () {
+  const { qs, qsa, esc, icon, toast, plogo, verified } = H;
+  const slug = location.pathname.split('/').filter(Boolean)[1] || H.params().get('slug');
+  const src = (H.params().get('s') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24);
+  const view = H.params().get('view');   // 'agreement' prints the signed agreement; 'preview' = maker preview
+  await API.ready;
+  const b = slug && await API.betaBySlug(slug).catch(() => null);
+  const root = qs('#tp');
+  if (!b) { root.innerHTML = `<div class="tp" style="text-align:center;padding-top:96px"><h1>We couldn’t find that beta</h1><p class="tp-lead">The link may be wrong, or the beta was removed.</p><a class="btn btn--secondary" style="margin-top:20px" href="/">Go to Hentity</a></div>`; H.contentShown(); return; }
+  const p = b.product || {}, pn = p.name || 'This product';
+  document.title = `${b.title} · ${pn} beta · Hentity`;
+  const mine = API.uid && b.owner_id === API.uid, staff = API.uid && API.profile && API.profile.role === 'admin';
+  const preview = (mine && !H.params().has('as-tester')) || (staff && (view === 'preview' || b.status === 'draft'));
+  try { if (!preview && !sessionStorage.getItem('bt:' + b.id)) { sessionStorage.setItem('bt:' + b.id, '1'); API.betaTrack(b.slug, src); } } catch (e) {}
+  const ph = B.phase(b);
+  let app = API.uid ? await API.myBetaApp(b.id).catch(() => null) : null;
+  const prof = API.profile || {};
+  const state = { answers: {}, blobs: {}, name: app ? app.full_name : (prof.name || ''), phone: '', email: (API.session && API.session.user.email) || '', country: prof.country || (b.countries || [])[0] || 'NG', city: prof.city || '', dev: prof.device ? { device: prof.device, os: prof.device_os } : (() => { const d = B.detectDevice(); return { device: d.device, os: d.os }; })(), net: '' };
+  try { Object.assign(state, JSON.parse(sessionStorage.getItem('bt-form:' + b.id) || '{}')); } catch (e) {}
+  const keep = () => { try { const { blobs, ...rest } = state; sessionStorage.setItem('bt-form:' + b.id, JSON.stringify(rest)); } catch (e) {} };
+  const first = s => (s || '').trim().split(/\s+/)[0] || '';
+  const brand = () => `<div class="row gap-12">${plogo(p, 40)}<div><p class="t-label row gap-6">${esc(pn)}${p.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-3" style="font-weight:400">Beta program · on Hentity</p></div></div>`;
+  const steps = n => `<div class="tp-steps">${['Apply', 'Sign', 'Get access'].map((t, i) => `<span class="${i + 1 < n ? 'done' : i + 1 === n ? 'on' : ''}"><b>${i + 1 < n ? icon('check', 'ic-12') : i + 1}</b>${t}</span>`).join('<i></i>')}</div>`;
+  const perkBox = () => B.perkText(b) ? `<div class="tp-perk">${icon('sparkles', 'ic-16')}<div><p class="t-label" style="font-weight:500">${esc(B.perkText(b))}</p><p class="t-caption c-2" style="font-weight:400">${b.airtime_amount > 0 ? 'Held by Hentity, paid when you send feedback' : 'Unlocked when you send feedback'}</p></div></div>` : '';
+  const previewBar = () => preview ? `<div class="alert alert--accent no-print" style="margin-bottom:18px"><span>${icon('eye')}</span><div><p class="alert__title">Preview as tester</p><p class="alert__body">${b.status === 'draft' ? 'This beta is a draft. Testers can’t see it until you publish.' : 'This is what testers see. Applying is turned off for you.'}</p></div><a class="link alert__action" href="/studio/${esc(p.slug)}/${b.id}">Back to Studio</a></div>` : '';
+  const show = html => { root.innerHTML = html; H.mount(); window.scrollTo(0, 0); H.contentShown(); };
+
+  if (view === 'agreement') return agreementPage();
+  if (preview) return applyStep();
+  if (app) {
+    if (app.status === 'accepted' && app.signed_at) return accessStep();
+    if (app.status === 'accepted') return signStep(true);
+    if (['applied', 'waitlist'].includes(app.status)) return waitStep();
+    return closedStep(app.status === 'declined' ? `${pn} filled this beta` : 'You left this beta', app.status === 'declined' ? 'Thanks for applying. You keep your place for their next beta.' : 'Thanks for trying it.');
+  }
+  if (!B.canApply(b)) return closedStep(b.status === 'draft' ? 'This beta isn’t open yet' : 'Applications are closed', ph.k === 'testing' ? 'Testing is under way.' : ph.k === 'picking' ? `${pn} is picking testers now.` : 'This beta has finished. Follow the product to hear about the next one.');
+  applyStep();
+
+  // ------------------------------------------------------------------ 1 · Apply
+  function qHTML(q) {
+    const v = state.answers[q.id], req = q.required ? '' : ' <span class="c-3" style="font-weight:400">(optional)</span>';
+    if (q.type === 'choice' || q.type === 'multi') return `<div class="tp-f" data-q="${esc(q.id)}"><p class="field__label">${esc(q.q)}${req}</p><div class="tp-pills" ${q.type === 'choice' ? 'data-single' : ''}>${(q.options || []).map(o => `<button type="button" class="tp-pill" data-o="${esc(o)}" aria-pressed="${Array.isArray(v) ? v.includes(o) : v === o}">${icon('check', 'ic-14')}${esc(o)}</button>`).join('')}</div></div>`;
+    if (q.type === 'voice') return `<div class="tp-f" data-q="${esc(q.id)}"><button type="button" class="rec-btn" data-rec><i>${icon('mic', 'ic-14')}</i><span>${state.blobs[q.id] ? 'Voice note recorded ✓ · record again' : esc(q.q) + (q.required ? '' : ' (optional)')}</span></button></div>`;
+    if (q.type === 'file') return `<div class="tp-f" data-q="${esc(q.id)}"><p class="field__label">${esc(q.q)}${req}</p><input class="input" type="file" data-file accept="image/*,application/pdf,.csv" style="padding:8px"></div>`;
+    const isEmail = q.type === 'email';
+    return `<div class="tp-f" data-q="${esc(q.id)}"><label class="field__label" for="q-${esc(q.id)}">${esc(q.q)}${req}</label><input class="input" id="q-${esc(q.id)}" data-text ${isEmail ? 'type="email" inputmode="email" placeholder="you@gmail.com"' : 'maxlength="300"'} value="${esc(v || '')}">${q.access === 'android' ? `<p class="field__hint">${esc(pn)} adds this to their Play testing list after you sign.</p>` : ''}</div>`;
+  }
+  function applyStep() {
+    const signedIn = !!API.uid && !preview;
+    show(`<div class="tp">${previewBar()}${brand()}${steps(1)}
+      <h1>${esc(b.title)}</h1>${b.why ? `<p class="tp-lead">${esc(b.why)}</p>` : ''}${perkBox()}
+      <form class="tp-card" id="f" novalidate>
+        ${signedIn ? `<div class="row gap-8 t-body-sm" style="margin-bottom:14px">${H.avatar(H.user(), 28)}<span class="grow">Applying as <b>${esc(prof.name || state.email)}</b></span><button class="link t-caption" type="button" id="not-me">Not you?</button></div>` : `<p class="t-caption c-3" style="font-weight:400;margin-bottom:14px">No account needed. You’ll confirm your email with a 6-digit code when you sign. Already on Hentity? <a class="link" href="/signin?next=${encodeURIComponent(location.pathname + location.search)}">Sign in</a> to fill this from your profile.</p>`}
+        <div class="grid-2" style="gap:12px"><div class="tp-f"><label class="field__label" for="nm">Full name</label><input class="input" id="nm" autocomplete="name" value="${esc(state.name)}" maxlength="80"></div>
+          <div class="tp-f"><label class="field__label" for="ph">WhatsApp number</label><input class="input" id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="+234 803 000 0000" value="${esc(state.phone)}"></div></div>
+        ${signedIn ? '' : `<div class="tp-f"><label class="field__label" for="em">Email</label><input class="input" id="em" type="email" inputmode="email" autocomplete="email" placeholder="you@gmail.com" value="${esc(state.email)}"><p class="field__hint">For your sign-in code and a copy of the agreement.</p></div>`}
+        <div class="grid-2" style="gap:12px;grid-template-columns:1fr 1fr"><div class="tp-f"><label class="field__label" for="co">Country</label><select class="input" id="co">${Object.entries(B.COUNTRIES).map(([k, v]) => `<option value="${k}"${k === state.country ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></div>
+          <div class="tp-f"><label class="field__label" for="ci">City</label><input class="input" id="ci" autocomplete="address-level2" value="${esc(state.city)}" maxlength="60"></div></div>
+        ${(b.form || []).map(qHTML).join('')}
+        <div class="tp-f"><p class="field__label">Testing on</p><div class="dev" id="dev-row">${icon('check', 'ic-14')}<div class="grow"><p class="t-label" id="dev-l">${esc(state.dev.device || 'Your device')}${state.dev.os ? ' · ' + esc(state.dev.os) : ''}</p><p class="t-caption c-3" style="font-weight:400">Detected from this phone or computer</p></div><button class="link link--accent t-body-sm" type="button" id="dev-c">Change</button></div>
+          <div class="grid-2" id="dev-e" hidden style="gap:8px"><input class="input" id="dev" placeholder="e.g. Tecno Spark 20" value="${esc(state.dev.device)}" maxlength="60" aria-label="Device"><select class="input" id="os" aria-label="System">${['Android 14', 'Android 13', 'Android 12', 'Android 11 or older', 'iOS 17+', 'iOS 16 or older', 'Windows', 'macOS', 'Linux', 'ChromeOS', 'Feature phone (USSD)'].map(o => `<option${o === state.dev.os ? ' selected' : ''}>${o}</option>`).join('')}</select></div></div>
+        ${b.airtime_amount > 0 ? `<div class="tp-f"><label class="field__label" for="net">Network for your ${B.naira(b.airtime_amount)} airtime</label><select class="input" id="net"><option value="">Pick your network…</option>${B.NETWORKS.map(n => `<option${n === state.net ? ' selected' : ''}>${n}</option>`).join('')}</select><p class="field__hint">Sent to your WhatsApp number above. Only Hentity sees it.</p></div>` : ''}
+        <button class="btn btn--accent btn--block btn--lg" type="submit">Continue to agreement</button>
+      </form>
+      <p class="row gap-8 t-caption c-3" style="font-weight:400;margin-top:14px;align-items:flex-start">${icon('shield', 'ic-14')}<span>${esc(pn)} sees your answers and first name. Your phone number is only shared if you’re accepted. Applying never requires an upvote.</span></p>
+    </div>`);
+    const f = qs('#f');
+    qsa('.tp-pills', f).forEach(g => g.addEventListener('click', e => { const x = e.target.closest('.tp-pill'); if (!x) return; if (g.hasAttribute('data-single')) qsa('.tp-pill', g).forEach(o => o.setAttribute('aria-pressed', String(o === x))); else x.setAttribute('aria-pressed', String(x.getAttribute('aria-pressed') !== 'true')); }));
+    qs('#dev-c').onclick = () => { qs('#dev-row').hidden = true; qs('#dev-e').hidden = false; qs('#dev').focus(); };
+    qs('#not-me') && (qs('#not-me').onclick = async () => { await API.auth.signOut(); location.reload(); });
+    qsa('[data-rec]', f).forEach(btn => recorder(btn, btn.closest('[data-q]').dataset.q));
+    qsa('[data-file]', f).forEach(inp => inp.addEventListener('change', () => { const file = inp.files[0]; if (file && file.size > 10e6) { toast('Files up to 10 MB', 'error'); inp.value = ''; return; } state.blobs[inp.closest('[data-q]').dataset.q] = file; }));
+    f.addEventListener('submit', e => {
+      e.preventDefault();
+      const bad = (el, msg) => { el.classList.add('is-error'); el.focus(); toast(msg, 'error'); return true; };
+      qsa('.is-error', f).forEach(x => x.classList.remove('is-error'));
+      state.name = qs('#nm').value.trim().replace(/\s+/g, ' '); state.phone = qs('#ph').value.trim(); state.city = qs('#ci').value.trim(); state.country = qs('#co').value;
+      if (qs('#em')) state.email = qs('#em').value.trim();
+      state.dev = { device: qs('#dev').value.trim() || state.dev.device, os: qs('#os').value || state.dev.os };
+      if (state.name.split(' ').length < 2 && bad(qs('#nm'), 'Enter your first and last name')) return;
+      if (!/^\+?[0-9 ()-]{8,18}$/.test(state.phone) && bad(qs('#ph'), 'Enter your WhatsApp number with country code')) return;
+      if (qs('#em') && !Auth.emailOk(state.email) && bad(qs('#em'), 'Enter your email')) return;
+      for (const q of b.form || []) {
+        const box = qs(`[data-q="${CSS.escape(q.id)}"]`, f); let v;
+        if (q.type === 'choice' || q.type === 'multi') { const on = qsa('.tp-pill[aria-pressed="true"]', box).map(x => x.dataset.o); v = q.type === 'choice' ? (on[0] || '') : on; }
+        else if (q.type === 'voice' || q.type === 'file') v = state.blobs[q.id] ? '(attached)' : '';
+        else v = qs('[data-text]', box).value.trim();
+        state.answers[q.id] = v;
+        const empty = Array.isArray(v) ? !v.length : !v;
+        if (q.required && empty) { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Answer “' + q.q + '”', 'error'); return; }
+        if (q.type === 'email' && v && !Auth.emailOk(v) && bad(qs('[data-text]', box), 'Check the email address')) return;
+      }
+      if (!state.dev.device || !state.dev.os) { qs('#dev-c').click(); toast('Tell us what you’ll test on', 'error'); return; }
+      if (b.airtime_amount > 0) { state.net = qs('#net').value; if (!state.net && bad(qs('#net'), 'Pick your network for the airtime')) return; }
+      keep(); signStep(false);
+    });
+  }
+  function recorder(btn, qid) {
+    let rec = null, chunks = [];
+    btn.addEventListener('click', async () => {
+      if (rec && rec.state === 'recording') { rec.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) { toast('Voice notes aren’t supported in this browser', 'error'); return; }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); chunks = []; rec = new MediaRecorder(stream); const t0 = Date.now();
+        rec.ondataavailable = ev => chunks.push(ev.data);
+        rec.onstop = () => { stream.getTracks().forEach(t => t.stop()); btn.classList.remove('is-rec'); const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' }); state.blobs[qid] = new File([blob], 'voice.' + (blob.type.includes('mp4') ? 'mp4' : 'webm'), { type: blob.type.split(';')[0] }); btn.querySelector('span').textContent = `Voice note · 0:${String(Math.round((Date.now() - t0) / 1000)).padStart(2, '0')} ✓`; };
+        rec.start(); btn.classList.add('is-rec'); btn.querySelector('span').textContent = 'Recording… tap to stop';
+        setTimeout(() => rec && rec.state === 'recording' && rec.stop(), 60000);
+      } catch (err) { toast('Allow the microphone to record a voice note', 'error'); }
+    });
+  }
+
+  // ------------------------------------------------------------------ 2 · Sign (and apply)
+  function signStep(existing) {
+    const name = existing ? (app.full_name || prof.name || '') : state.name;
+    const now = B.lagosTime(Date.now());
+    const tail = (existing ? '' : state.phone.replace(/\D/g, '').slice(-4));
+    show(`<div class="tp tp--wide" style="max-width:820px">${previewBar()}${brand()}${steps(2)}
+      <h1>Beta tester agreement</h1>
+      ${existing ? `<p class="tp-lead" style="margin-bottom:18px">${esc(pn)} accepted you. Sign this short agreement to get your access.</p>` : ''}
+      <div class="tp-sign">
+        <article class="st-paper" id="paper">${B.agreementHTML(b, pn, name)}</article>
+        <aside class="stack gap-12">
+          <ul class="st-short" style="list-style:none;margin:0">${B.agreementShort(b, pn).map(([i, t]) => `<li>${icon(i, 'ic-14')}<span>${esc(t)}</span></li>`).join('')}</ul>
+          <form id="sf" novalidate><label class="field__label" for="sig">Type your full name to sign</label><div class="tp-sigbox"><input id="sig" autocomplete="off" placeholder="${esc(name)}" aria-describedby="sig-h"></div>
+            <label class="check" style="display:flex;margin:12px 0"><input type="checkbox" id="agree"><span class="check__box">${icon('check')}</span>I have read and agree</label>
+            <button class="btn btn--accent btn--block btn--lg" type="submit" id="sgo"${preview ? ' disabled' : ''}>${icon('signature', 'ic-16')}${existing ? 'Sign and get access' : 'Sign and apply'}</button>
+            <p class="t-caption c-3" style="font-weight:400;margin-top:10px" id="sig-h">${tail ? `Signed with +${esc(state.phone.replace(/\D/g, '').slice(0, 3))} ••• ${esc(tail)} · ` : ''}${esc(now)} · a copy is sent to your email</p>
+            ${existing ? '' : `<button class="link t-caption" type="button" id="back" style="margin-top:6px">${icon('arrow-left', 'ic-12')} Edit my answers</button>`}</form>
+        </aside>
+      </div></div>`);
+    const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
+    qs('#back') && (qs('#back').onclick = applyStep);
+    qs('#sf').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (preview) return;
+      const sig = qs('#sig').value.trim().replace(/\s+/g, ' ');
+      if (norm(sig) !== norm(name)) { qs('.tp-sigbox').style.borderColor = 'var(--color-error)'; toast(`Type your name exactly: ${name}`, 'error'); return; }
+      if (!qs('#agree').checked) { toast('Tick “I have read and agree”', 'error'); return; }
+      const btn = qs('#sgo'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Signing';
+      if (existing) {
+        try { await API.betaSign(app.id, sig); app = await API.myBetaApp(b.id); toast('Signed. Your access is ready'); accessStep(true); }
+        catch (err) { btn.disabled = false; btn.innerHTML = icon('signature', 'ic-16') + 'Sign and get access'; H.fail(err); }
+        return;
+      }
+      if (API.uid) return submit(sig, btn);
+      // confirm the email with a code, then apply
+      try {
+        await API.auth.sendCode(state.email, { create: true, name: state.name, via: 'beta', next: location.pathname });
+        const holder = document.createElement('form'); qs('#sf').replaceWith(holder);
+        Auth.codeStep(holder, { email: state.email, title: 'Confirm your email', resend: () => API.auth.sendCode(state.email, { create: true, name: state.name, via: 'beta', next: location.pathname }), verified: () => submit(sig), back: () => signStep(false) });
+        const cf = qs('#code-form'); cf.classList.remove('auth__form'); cf.style.cssText = 'display:flex;flex-direction:column;gap:12px';
+      } catch (err) { btn.disabled = false; btn.innerHTML = icon('signature', 'ic-16') + 'Sign and apply'; const [t, m] = Auth.friendly(err.message); toast(t + '. ' + m, 'error'); }
+    });
+  }
+  async function submit(sig, btn) {
+    try {
+      const answers = [];
+      for (const q of b.form || []) {
+        let a = state.answers[q.id];
+        if ((q.type === 'voice' || q.type === 'file') && state.blobs[q.id]) a = await API.upload(state.blobs[q.id], 'beta').catch(() => '');
+        answers.push({ id: q.id, q: q.q, type: q.type, a: a == null ? '' : a });
+      }
+      const r = await API.betaApply({ b: b.id, full_name: state.name, phone: state.phone, city: state.city, country: state.country, answers, device: state.dev.device, device_os: state.dev.os, source: src, signed_name: sig, share_email: true, ua: navigator.userAgent });
+      if (b.airtime_amount > 0 && state.net) await API.setPayout(r.id, state.phone, state.net).catch(() => {});
+      try { sessionStorage.removeItem('bt-form:' + b.id); } catch (e) {}
+      app = await API.myBetaApp(b.id).catch(() => null) || { id: r.id, status: r.status, signed_at: r.signed_at, full_name: state.name, tasks_done: [] };
+      if (app.status === 'accepted') accessStep(true); else waitStep(true);
+    } catch (err) {
+      if (btn) { btn.disabled = false; btn.innerHTML = icon('signature', 'ic-16') + 'Sign and apply'; }
+      if (/already applied/i.test(err.message)) { app = await API.myBetaApp(b.id); return app.status === 'accepted' ? accessStep() : waitStep(); }
+      H.fail(err); if (!btn) signStep(false);
+    }
+  }
+
+  // ------------------------------------------------------------------ 3 · Waiting / access
+  function waitStep(fresh) {
+    show(`<div class="tp">${brand()}${steps(3)}
+      <div class="tp-card" style="margin-top:22px;text-align:center;padding:32px 22px"><span class="icon-badge icon-badge--accent" style="margin:0 auto 12px">${icon('check')}</span>
+        <h1 style="font-size:26px;line-height:32px;margin:0 0 8px">${app.status === 'waitlist' ? 'You’re on the waitlist' : fresh ? 'Application sent' : 'Your application is in'}</h1>
+        <p class="tp-lead" style="font-size:15px">${app.signed_at ? 'Your agreement is signed. ' : ''}${esc(pn)} picks testers by ${esc(B.fmtDay(b.closes_at))}. We’ll email you either way${app.signed_at ? ', and your access is ready the moment you’re picked' : ''}.</p>
+        ${perkBox()}
+        ${app.signed_at ? `<a class="btn btn--ghost btn--sm" href="?view=agreement">${icon('signature', 'ic-14')}View the agreement you signed</a>` : ''}
+      </div>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:14px;text-align:center">Changed your mind? <button class="link" type="button" id="wd" style="color:var(--color-text-primary)">Withdraw application</button></p></div>`);
+    if (fresh) M.burst(qs('.icon-badge'));
+    qs('#wd').onclick = async () => { if (!confirm('Withdraw your application?')) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); location.reload(); } catch (e) { H.fail(e); } };
+  }
+  function closedStep(t, m) {
+    show(`<div class="tp">${brand()}<h1>${esc(t)}</h1><p class="tp-lead">${esc(m)}</p><div class="row gap-8" style="margin-top:20px"><a class="btn btn--secondary" href="/products/${esc(p.slug)}">See ${esc(pn)}</a></div></div>`);
+  }
+  async function accessStep(fresh) {
+    const acc = await API.myBetaAccess(b.id).catch(() => null) || {};
+    const fb = await API.myFeedback(app.id).catch(() => null);
+    if (acc.state === 'revoked') return closedStep('Your access was turned off', (acc.reason || 'Your access ended') + `. If this is a mistake, reply to ${pn} in the testers’ room or ask ${(b.agreement || {}).contact || 'the makers'}.`);
+    const runs = b.test_start ? `Testing runs ${B.fmtDay(b.test_start)}–${B.fmtDay(b.test_end || b.test_start)}.` : '';
+    const btns = [];
+    if (acc.android && acc.android.optin) btns.push(`<a class="btn btn--primary btn--block btn--lg" href="${esc(acc.android.optin)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-16')}Join on Google Play</a>`);
+    if (acc.web) btns.push(`<a class="btn ${btns.length ? 'btn--secondary' : 'btn--primary'} btn--block btn--lg" href="${esc(acc.web.url)}" target="_blank" rel="noopener">${icon('globe', 'ic-16')}Open web beta</a>`);
+    if (acc.ios && acc.ios.url) btns.push(`<a class="btn ${btns.length ? 'btn--secondary' : 'btn--primary'} btn--block btn--lg" href="${esc(acc.ios.url)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-16')}Join on TestFlight</a>`);
+    (acc.links || []).forEach(l => btns.push(`<a class="btn btn--secondary btn--block btn--lg" href="${esc(l.url)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-16')}${esc(l.label)}</a>`));
+    const tasks = (b.steps && b.steps.length ? b.steps : ['Install the beta', 'Try it on your own data']).map((t, i) => ({ t, i: i + 1, on: (app.tasks_done || []).includes(i + 1) }));
+    tasks.push({ t: 'Send feedback' + (B.perkText(b) ? ' (releases your perk)' : ''), fb: true, on: !!fb });
+    show(`<div class="tp">${brand()}${steps(4)}
+      <div class="tp-in" style="margin-top:18px"><span class="tp-in__ok">${icon('check', 'ic-20')}</span><h1>You’re in, ${esc(first(app.full_name || prof.name))}</h1><p class="t-body-sm" style="color:rgba(255,255,255,.65)">${esc(pn)} accepted you and your agreement is signed. ${esc(runs)}</p></div>
+      <p class="st-label" style="margin:22px 0 10px">Get the beta</p>
+      <div class="stack gap-8">${btns.join('') || `<p class="tp-card t-body-sm c-2">${esc(pn)} is setting up access. We’ll email you the moment it’s ready.</p>`}</div>
+      ${acc.android && !acc.android.optin ? `<p class="t-caption c-2" style="font-weight:400;margin-top:8px">${esc(pn)} is adding ${esc(acc.android.gmail || 'your Gmail')} to their Google Play testers. You’ll get the Play link by email.</p>` : ''}
+      ${acc.code ? `<div class="tp-key" style="margin-top:10px">${icon('key', 'ic-14')}<span class="grow">Your code: <b style="color:var(--color-text-primary)">${esc(acc.code)}</b></span><button class="link t-caption" type="button" data-copy="${esc(acc.code)}">Copy</button></div>` : ''}
+      ${acc.web ? `<div class="tp-key" style="margin-top:10px">${icon('key', 'ic-14')}<span class="grow truncate">Personal link${acc.expires ? ' · expires ' + esc(B.fmtDay(acc.expires)) : ''}</span></div>` : ''}
+      <p class="st-label" style="margin:22px 0 4px">Your tasks · <span id="tc"></span></p>
+      <div id="tasks"></div>
+      <div class="tp-note" style="background:var(--color-success-subtle);margin-top:16px">${icon('signature', 'ic-16')}<div class="grow"><p class="t-label">Agreement signed · ${esc(B.lagosTime(app.signed_at))}</p><p class="t-caption c-2" style="font-weight:400">Copy sent to your email</p></div><a class="link" style="color:var(--color-accent-default);font-weight:500" href="?view=agreement">View</a></div>
+      ${prof.kind === 'tester' ? `<div class="tp-note" style="background:var(--color-accent-subtle);margin-top:10px">${icon('user', 'ic-16')}<p class="t-caption" style="font-weight:400">This beta is saved to your free Hentity account (${esc(state.email || (API.session && API.session.user.email) || '')}). Sign in any time to find it and join other betas in one tap.</p></div>` : ''}
+      <p class="t-caption c-3" style="font-weight:400;margin-top:18px;text-align:center">Can’t continue? <button class="link" type="button" id="leave" style="color:var(--color-text-primary)">Leave this beta</button></p></div>`);
+    if (fresh) M.burst(qs('.tp-in__ok'));
+    const draw = () => { qs('#tasks').innerHTML = tasks.map(x => `<button type="button" class="tp-task ${x.on ? 'is-done' : ''}" ${x.fb ? 'data-fb' : `data-t="${x.i}"`}><i>${x.on ? icon('check', 'ic-12') : ''}</i><span>${esc(x.t)}</span>${x.fb && !x.on ? `<b class="link" style="margin-left:auto;color:var(--color-accent-default);font-weight:500">Send</b>` : ''}</button>`).join(''); qs('#tc').textContent = `${tasks.filter(x => x.on).length} of ${tasks.length}`; };
+    draw();
+    qs('#tasks').addEventListener('click', async e => {
+      if (e.target.closest('[data-fb]')) { location.href = `/betas/${b.id}#fb`; return; }
+      const t = e.target.closest('[data-t]'); if (!t || fb) return;
+      const x = tasks.find(y => y.i === +t.dataset.t); x.on = !x.on; draw();
+      app.tasks_done = tasks.filter(y => !y.fb && y.on).map(y => y.i);
+      try { await API.updateMyApp(app.id, { tasks_done: app.tasks_done }); } catch (err) { H.fail(err); }
+    });
+    qsa('[data-copy]').forEach(x => x.onclick = () => { B.copy(x.dataset.copy); toast('Copied'); });
+    qs('#leave').onclick = async () => { if (!confirm(`Leave the ${pn} beta? Your access ends today.`)) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
+  }
+
+  // ------------------------------------------------------------------ the signed agreement (printable)
+  function agreementPage() {
+    if (!app || !app.signed_at) { if (mine || staff) return show(`<div class="tp tp--wide">${previewBar()}<article class="st-paper">${B.agreementHTML(b, pn, '')}</article></div>`); location.replace(location.pathname); return; }
+    const meta = app.sign_meta || {};
+    const bb = Object.assign({}, b, meta.agreement ? { agreement: meta.agreement } : {});
+    show(`<div class="tp tp--wide"><div class="row between no-print" style="margin-bottom:14px"><a class="link row gap-6 t-body-sm" href="${location.pathname}">${icon('arrow-left', 'ic-14')}Back</a><button class="btn btn--secondary btn--sm" type="button" onclick="print()">${icon('download', 'ic-14')}Save as PDF</button></div>
+      <article class="st-paper">${B.agreementHTML(bb, meta.product || pn, app.full_name || app.signed_name, { name: app.signed_name, when: B.lagosTime(app.signed_at) })}<p class="t-caption c-3" style="font-weight:400;margin-top:20px">Signed electronically on Hentity${meta.phone_tail ? ' · WhatsApp ••• ' + esc(meta.phone_tail) : ''} · reference ${esc(app.id.slice(0, 8).toUpperCase())}</p></article></div>`);
+  }
+})();
+</script>
+</body>
+</html>

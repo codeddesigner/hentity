@@ -52,6 +52,18 @@ async function build(type, slug) {
       body: `<h1>${esc(a.title)}</h1><p>${esc(a.dek)}</p><ul>${(a.bullets || []).map(b => `<li>${esc(b)}</li>`).join('')}</ul>`
     };
   }
+  if (type === 'beta') {
+    const [b] = await rest(`betas?slug=eq.${encodeURIComponent(slug)}&status=in.(open,closed)&select=slug,title,why,spots,accepted_count,perk,airtime_amount,closes_at,product:products(name,slug,logo_url,tagline)`);
+    if (!b) return null;
+    const p = b.product || {};
+    const perk = [b.perk, b.airtime_amount > 0 ? '₦' + Number(b.airtime_amount).toLocaleString('en-US') + ' airtime' : ''].filter(Boolean).join(' + ');
+    const left = Math.max(0, b.spots - b.accepted_count);
+    return {
+      title: `${p.name} beta · Testers wanted | Hentity`, desc: clip(`${b.title}. ${left} spots left${perk ? ' · perk: ' + perk : ''}. ${b.why || ''}`, 200),
+      path: `/b/${b.slug}`, image: p.logo_url, type: 'website', noindex: true, ld: [],
+      body: `<h1>${esc(b.title)}</h1><p>${esc(p.name)} · ${esc(b.why || '')}</p>`
+    };
+  }
   return null;
 }
 function crumbs(items) { return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Hentity', '/'], ...items].map(([n, p], i) => ({ '@type': 'ListItem', position: i + 1, name: n, item: SITE + p })) }; }
@@ -77,7 +89,7 @@ module.exports = async (req, res) => {
   const end = res.end.bind(res);
   res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
   const { type, slug } = req.query;
-  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index' }[type];
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
