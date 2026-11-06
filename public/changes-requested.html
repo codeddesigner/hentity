@@ -73,7 +73,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   qs('#items').innerHTML = (p.review_items || []).map(it => `<div class="list-row" style="padding:16px 0">${icon('alert-circle', 'ic-18 c-warning')}<div class="grow"><p class="list-row__title">${esc(it.title)}</p><p class="list-row__desc">${esc(it.detail || '')}</p></div><a class="btn btn--secondary btn--sm" href="/submit?id=${p.id}#${esc(it.anchor || 'basics')}">Fix</a></div>`).join('') || `<div class="list-row" style="padding:16px 0"><div class="grow"><p class="list-row__desc">Open your submission, make the changes above and resubmit.</p></div><a class="btn btn--secondary btn--sm" href="/submit?id=${p.id}">Edit</a></div>`;
   qs('#title').textContent = (p.review_items || []).length === 1 ? 'One quick fix before approval' : (p.review_items || []).length === 2 ? 'Two quick fixes before approval' : 'A few fixes before approval';
   qs('#resubmit').href = '/submit?id=' + p.id;
-  qs('#tl').innerHTML = L.timeline([['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Changes requested', L.fmtDate(p.reviewed_at)], ['todo', 'Resubmitted', 'Re-reviews usually take under 24 hours'], ['todo', 'Approved & scheduled']]);
+  qs('#tl').innerHTML = L.timeline([['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Changes requested', L.fmtDate(p.reviewed_at)], ['todo', 'Resubmitted', 'Re-reviews usually take about 1 hour'], ['todo', 'Approved & scheduled']]);
   qs('#card').innerHTML = L.card(p);
   qs('#reply').addEventListener('click', () => { qs('#reply-f').hidden = false; qs('#msg').focus(); });
   qs('#reply-x').addEventListener('click', () => qs('#reply-f').hidden = true);

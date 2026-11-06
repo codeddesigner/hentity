@@ -69,7 +69,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   qsa('[data-s="name"]').forEach(el => el.textContent = p.name);
   qsa('[data-s="week"]').forEach(el => el.textContent = p.week_id || '—');
   const at = new Date(p.submitted_at || Date.now());
-  qs('#lead').textContent = `Submitted ${at.toLocaleDateString('en-GB', { weekday: 'long' })} at ${at.toTimeString().slice(0, 5)}. Most reviews finish within 48 hours; we’ll email ${API.session.user.email} either way.`;
+  qs('#lead').textContent = `Submitted ${at.toLocaleDateString('en-GB', { weekday: 'long' })} at ${at.toTimeString().slice(0, 5)}. Most reviews finish within about 1 hour; we’ll email ${API.session.user.email} either way.`;
   qs('#tl').innerHTML = L.timeline([['done', 'Draft created', L.fmtDate(p.created_at)], ['done', 'Submitted for review', L.fmtDate(p.submitted_at)], ['now', 'Moderator review', 'Checking website, media and eligibility'], ['todo', 'Approved & scheduled', 'Your upcoming page goes live so people can follow'], ['todo', `Launch week${p.week_id ? ' · ' + L.range(p) : ''}`, 'Starts Mon 06:00 WAT']]);
   qs('#card').innerHTML = L.card(p);
   const W = ['Tell your team the launch date', 'Draft your launch-week post for WhatsApp and LinkedIn', 'Prepare answers to the three questions you expect', 'Invite early users to follow your upcoming page'];
