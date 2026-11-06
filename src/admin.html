@@ -304,13 +304,12 @@ H.mount();
     qs('#main').innerHTML = head('Site settings', 'Changes go live immediately for every visitor.')
       + card('s-ann', 'Announcement bar', 'A one-line banner across the top of every page.', `<label class="check" style="margin-bottom:12px"><input type="checkbox" name="enabled"${ann.enabled ? ' checked' : ''}><span class="check__box">${icon('check')}</span>Show the banner</label>${fld('text', 'Text', ann.text)}${fld('link', 'Link', ann.link)}`)
       + card('s-board', 'Launch board', 'Default capacity for new weeks and how far ahead makers can book.', `${fld('capacity', 'Default weekly capacity', board.capacity, 'number')}${fld('booking_weeks_ahead', 'Weeks bookable ahead', board.booking_weeks_ahead, 'number')}${fld('reset', 'Reset time label', board.reset)}`)
-      + card('s-brief', 'Morning brief', 'The audio brief on /news. One headline per line; it’s read aloud in the browser.', `${fld('items', 'Headlines', (brief.items || []).join('\n'), 'ta')}${fld('length', 'Length label', brief.length)}${fld('languages', 'Languages label', brief.languages)}`)
-      + card('s-stats', 'Public stats', 'Numbers shown on the sign-in and sign-up screens.', `${fld('products', 'Products', st.products, 'number')}${fld('countries', 'Countries', st.countries, 'number')}${fld('makers', 'Makers', st.makers, 'number')}`);
+      + card('s-brief', 'Morning brief', 'The audio brief on /news. One headline per line; it’s read aloud in the browser. Leave empty to hide it.', `${fld('items', 'Headlines', (brief.items || []).join('\n'), 'ta')}${fld('length', 'Length label', brief.length)}${fld('languages', 'Languages label', brief.languages)}`)
+;
     const save = (id, key, map) => qs('#' + id).addEventListener('submit', async e => { e.preventDefault(); const f = e.target; try { await A.saveSetting(key, map(f)); toast('Saved'); } catch (err) { H.fail(err); } });
     save('s-ann', 'announcement', f => ({ enabled: f.enabled.checked, text: f.text.value.trim(), link: f.link.value.trim() }));
     save('s-board', 'board', f => ({ capacity: +f.capacity.value || 30, booking_weeks_ahead: +f.booking_weeks_ahead.value || 4, reset: f.reset.value }));
     save('s-brief', 'morning_brief', f => ({ items: f.items.value.split('\n').map(s => s.trim()).filter(Boolean), length: f.length.value, languages: f.languages.value }));
-    save('s-stats', 'stats', f => ({ products: +f.products.value, countries: +f.countries.value, makers: +f.makers.value }));
     // Sign-up rules: work emails only. Blocked domains live in their own table; exceptions in site_settings.signup
     const signup = get('signup'); const { data: blocked } = await API.sb.from('blocked_email_domains').select('domain').order('domain');
     qs('#main').insertAdjacentHTML('beforeend', card('s-signup', 'Sign-up rules', 'Accounts need a work email, and sign-in is by a one-time email code. Personal and disposable inbox domains below are rejected at sign-up and on email change. Use <span class="mono">name.*</span> to block every ending (yahoo.com, yahoo.co.uk…).',

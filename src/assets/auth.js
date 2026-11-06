@@ -20,7 +20,8 @@
       const rows = (await API.board({ week: cur.id, limit: 6 })).filter(p => !p.promoted).slice(0, 3);
       const voted = await API.myVotes(rows.map(p => p.id));
       el.innerHTML = rows.map((l, i) => `<a class="mini reveal" style="--i:${i + 3}" href="/products/${l.slug}">${H.plogo(l, 32)}<span class="mini__text"><span>${H.esc(l.name)}</span><span>${H.esc(l.tagline)}</span></span><span class="mini__votes${voted.has(l.id) ? ' is-voted' : ''}">${icon('upvote', 'ic-12')}<span class="t-count">${l.upvote_count.toLocaleString('en-US')}</span></span></a>`).join('');
-      const st = await API.settings('stats') || { products: 1240, countries: 38, makers: 9800 };
+      const st = await API.publicStats().catch(() => null);
+      if (!st || !st.products) return;   // nothing launched yet: show no numbers rather than made-up ones
       qs('#brand-proof').innerHTML = [['products', st.products], ['countries', st.countries], ['makers', st.makers]].map(([l, n], i) => `<div class="reveal" style="--i:${i + 6}"><p class="stat__n" data-count-to="${n}">0</p><p class="stat__l">${l}</p></div>`).join('');
       M.countUp(qs('#brand-proof'));
     } catch (e) { el.innerHTML = ''; }

@@ -1,3 +1,5 @@
+-- NOTE: sample content only. It was removed from production by 010_remove_placeholder_data.sql;
+-- skip this file when setting up a real environment.
 -- Seed content so the board, chats and news are alive on day one. Seed profiles are marked is_seed.
 
 insert into weeks (id, starts_at, ends_at, capacity)

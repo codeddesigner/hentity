@@ -18,11 +18,11 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=3a64cd4490">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d8deec9415"></script>
+<script src="/assets/api.js?v=e7e185a3ed"></script>
 <script src="/assets/app.js?v=71a79854b9"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <title>Directory of African startups and products · Hentity</title>
-<meta name="description" content="Search 1,240+ products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
+<meta name="description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
 <link rel="canonical" href="https://hentity.com/directory">
 <style>
 .dir{max-width:1136px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box}
@@ -42,27 +42,27 @@
 @media (max-width:768px){.dir{padding:16px 16px 32px}.cols{grid-template-columns:1fr 1fr 1fr;overflow-x:auto;grid-template-columns:repeat(3,240px);margin:20px -16px;padding:0 16px}.dir h1{font-size:32px!important;line-height:38px!important}.drow{padding:12px;gap:12px}.drow .plogo{width:40px;height:40px;font-size:18px}}
 </style>
 <meta property="og:title" content="Directory of African startups and products · Hentity">
-<meta property="og:description" content="Search 1,240+ products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
+<meta property="og:description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
 <meta property="og:url" content="https://hentity.com/directory">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hentity.com/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Directory of African startups and products · Hentity">
-<meta name="twitter:description" content="Search 1,240+ products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
+<meta name="twitter:description" content="Search products built across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage, sector and language.">
 <meta name="twitter:image" content="https://hentity.com/og.png">
 </head>
 <body>
 <div data-header></div>
 <main class="dir">
   <div class="row between wrap gap-16" style="align-items:flex-end">
-    <div><p class="t-eyebrow c-3">Directory · 1,240 products</p><h1 class="row gap-16" style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em;margin-top:8px" id="title">Built near you <span id="title-flag"></span></h1></div>
+    <div><p class="t-eyebrow c-3" id="dir-count">Directory</p><h1 class="row gap-16" style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em;margin-top:8px" id="title">Built near you <span id="title-flag"></span></h1></div>
     <div class="seg" role="tablist" aria-label="Scope"><button role="tab" aria-selected="false" data-scope="local">Nigeria</button><button role="tab" aria-selected="true" data-scope="all">Pan-African</button></div>
   </div>
   <div class="cols" id="collections">
-    <a class="card col-card lift" href="?pay=M-Pesa&scope=all"><i style="background:#16a34a"></i><div><p class="t-label">Tools that accept M-Pesa</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Hentity editors · 42 products</p></div></a>
-    <a class="card col-card lift" href="?scope=all&country=GH"><i style="background:#2563eb"></i><div><p class="t-label">Built in Ghana</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Hentity editors · 27 products</p></div></a>
-    <a class="card col-card lift" href="?scope=all&sort=votes"><i style="background:#ff5b14"></i><div><p class="t-label">Most upvoted</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Community · 30 products</p></div></a>
+    <a class="card col-card lift" href="?pay=M-Pesa&scope=all"><i style="background:#16a34a"></i><div><p class="t-label">Tools that accept M-Pesa</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Curated by Hentity</p></div></a>
+    <a class="card col-card lift" href="?scope=all&country=GH"><i style="background:#2563eb"></i><div><p class="t-label">Built in Ghana</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Curated by Hentity</p></div></a>
+    <a class="card col-card lift" href="?scope=all&sort=votes"><i style="background:#ff5b14"></i><div><p class="t-label">Most upvoted</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Ranked by the community</p></div></a>
   </div>
   <div class="dir-grid">
     <div>
@@ -86,6 +86,7 @@ H.mount({ active: 'products', tab: 'products' });
 (async function () {
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();
+  API.publicStats().then(st => { if (st && st.products) qs('#dir-count').textContent = `Directory · ${st.products.toLocaleString('en-US')} product${st.products === 1 ? '' : 's'}`; }).catch(() => {});
   const G = { country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
   const state = Object.assign({ country: [], pay: [], stage: [], lang: [], sector: [] }, store.get('dirFilters2', {}));
   let scope = prm.get('scope') || store.get('dirScope', 'all');

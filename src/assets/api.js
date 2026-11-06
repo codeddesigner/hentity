@@ -232,6 +232,7 @@
     article: slug => pre('article:' + slug, () => q(sb.from('articles').select('*').eq('slug', slug).maybeSingle())),
     subscribe: (email) => q(sb.from('newsletter').upsert({ email: email.toLowerCase(), user_id: uid() || null }, { onConflict: 'email', ignoreDuplicates: true })),
     suggestStory: (url, note) => { requireAuth(); return q(sb.from('story_suggestions').insert({ url, note, user_id: uid() })); },
+    publicStats: () => q(sb.rpc('public_stats')),   // counted from real data
     settings: async (key) => { if (Object.prototype.hasOwnProperty.call(PRE, 'settings:' + key)) return pre('settings:' + key); const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
 
     // ---------------- realtime
