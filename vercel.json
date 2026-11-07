@@ -102,6 +102,18 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/discuss",
+      "destination": "/api/ssr?type=discuss"
+    },
+    {
+      "source": "/d/:comm/:post",
+      "destination": "/api/ssr?type=dthread&slug=:comm&post=:post"
+    },
+    {
+      "source": "/d/:comm",
+      "destination": "/api/ssr?type=dcomm&slug=:comm"
+    },
+    {
       "source": "/products/:slug/analytics",
       "destination": "/analytics"
     },

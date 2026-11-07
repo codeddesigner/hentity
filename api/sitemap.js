@@ -9,22 +9,26 @@ const get = p => fetch(`${SB}/rest/v1/${p}`, { headers: { apikey: KEY } }).then(
 const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 module.exports = async (req, res) => {
-  const [products, articles, makers] = await Promise.all([
+  const [products, articles, makers, threads] = await Promise.all([
     get('product_feed?status=in.(scheduled,live,unclaimed)&select=slug,name,updated_at,effective_status,categories,country,owner_id,logo_url,media&order=updated_at.desc&limit=5000'),
     get('articles?status=eq.published&select=slug,published_at&order=published_at.desc&limit=5000'),
-    get('profiles?banned=eq.false&settings->>indexable=neq.false&select=id,username,created_at,bio,headline&limit=5000')
+    get('profiles?banned=eq.false&settings->>indexable=neq.false&select=id,username,created_at,bio,headline&limit=5000'),
+    get('rpc/d_sitemap')
   ]);
   const owners = new Set(products.map(p => p.owner_id));
   const cats = new Set(), countries = new Set();
   products.forEach(p => { (p.categories || []).forEach(c => S.CAT_BY_SLUG[S.slugify(c)] && cats.add(c)); if (S.countryUrl(p.country)) countries.add(p.country); });
   const newest = products[0] && products[0].updated_at;
-  const prio = { '/': '1.0', '/directory': '0.9', '/news': '0.8', '/launch': '0.7', '/chats': '0.5' };
+  const prio = { '/discuss': '0.7', '/': '1.0', '/directory': '0.9', '/news': '0.8', '/launch': '0.7', '/chats': '0.5' };
   const urls = [
     ...STATIC.map(p => ({ loc: SITE + p, pr: prio[p] || '0.5', cf: p === '/' || p === '/news' ? 'hourly' : 'weekly', mod: p === '/' || p === '/directory' ? newest : null })),
     ...[...cats].map(c => ({ loc: SITE + S.catUrl(c), pr: '0.8', cf: 'daily', mod: newest })),
     ...[...countries].map(c => ({ loc: SITE + S.countryUrl(c), pr: '0.8', cf: 'daily', mod: newest })),
     ...products.map(p => ({ loc: `${SITE}/products/${p.slug}`, mod: p.updated_at, pr: p.effective_status === 'live' ? '0.9' : '0.7', cf: 'daily',
       img: [...(p.media || []).filter(m => m && m.url).map(m => m.url), p.logo_url].filter(Boolean).slice(0, 5), name: p.name })),
+    // Discuss: public threads that have replies or votes (spam and empty threads stay out), and their communities
+    ...[...new Set((threads || []).map(t => t.c))].map(c => ({ loc: `${SITE}/d/${c}`, pr: '0.5', cf: 'daily', mod: (threads.find(t => t.c === c) || {}).mod })),
+    ...(threads || []).map(t => ({ loc: `${SITE}/d/${t.c}/${t.s}`, mod: t.mod, pr: '0.6', cf: 'weekly' })),
     ...articles.map(a => ({ loc: `${SITE}/news/${a.slug}`, mod: a.published_at, pr: '0.6', cf: 'monthly' })),
     ...makers.filter(m => owners.has(m.id) || m.bio || m.headline).map(m => ({ loc: `${SITE}/makers/${m.username}`, mod: m.created_at, pr: '0.4', cf: 'weekly' }))
   ];

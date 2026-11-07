@@ -1,0 +1,3 @@
+-- 064 follow-up: the "active now" count in d_thread read author_id from a join of replies and posts, which
+-- both have that column, so every thread page failed. The fix is already folded into 064_discuss.sql (dc.author_id);
+-- this file records the live change, which re-created d_thread with that one column qualified.

@@ -333,6 +333,25 @@
     // What the founder's deck (or description) says, read in the browser: sectors, keywords, stage, raise, markets
     fundingProfileSave: (pid, row) => q(sb.from('funding_profiles').upsert(Object.assign({ product_id: pid, updated_by: uid(), updated_at: new Date().toISOString() }, row)).select().single()),
     fundingProfileRemove: pid => q(sb.from('funding_profiles').delete().eq('product_id', pid)),
+    // Discuss: communities, posts, threaded replies, votes (writes go through the d_* functions)
+    d: {
+      feed: o => q(sb.rpc('d_feed', { sort: o.sort || 'hot', comm: o.comm || null, flair: o.flair || null, city: o.city || null, period: o.period || 'all', lim: o.lim || 25, off: o.off || 0 })).then(r => r || []),
+      thread: (c, s) => q(sb.rpc('d_thread', { comm: c, post: s })),
+      community: c => q(sb.rpc('d_community', { comm: c })),
+      rail: () => q(sb.rpc('d_rail')),
+      postable: () => q(sb.rpc('d_postable')).then(r => r || []),
+      create: o => { requireAuth(); return q(sb.rpc('d_post_create', { comm: o.comm, flair: o.flair, title: o.title, body: o.body || '', product: o.product || null, link: o.link || null, images: o.images || [] })); },
+      edit: (id, title, body) => q(sb.rpc('d_post_edit', { pid: id, title, body })),
+      remove: id => q(sb.rpc('d_post_delete', { pid: id })),
+      set: (id, o) => q(sb.rpc('d_post_set', { pid: id, pinned: o.pinned == null ? null : o.pinned, status: o.status === undefined ? 'keep' : (o.status || 'none') })),
+      reply: (post, parent, body) => { requireAuth(); return q(sb.rpc('d_comment_create', { pid: post, parent: parent || null, body })); },
+      replyEdit: (id, body) => q(sb.rpc('d_comment_edit', { cid: id, body })),
+      replyRemove: id => q(sb.rpc('d_comment_delete', { cid: id })),
+      vote: (kind, id, val) => { requireAuth(); return q(sb.rpc('d_vote', { kind, target: id, val })); },
+      join: (c, on) => { requireAuth(); return q(sb.rpc('d_join', { comm: c, joining: on })); },
+      save: (id, on) => { requireAuth(); return on ? q(sb.from('d_saves').insert({ user_id: uid(), post_id: id })) : q(sb.from('d_saves').delete().eq('user_id', uid()).eq('post_id', id)); },
+      products: t => q(sb.from('products').select('slug,name,logo_url,color,owner_id').in('status', ['live', 'scheduled', 'unclaimed']).ilike('name', '%' + t + '%').order('upvote_count', { ascending: false }).limit(6))
+    },
     fundingUntrack: oid => q(sb.from('funding_track').delete().eq('user_id', uid()).eq('opp_id', oid)),
     myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
     dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),

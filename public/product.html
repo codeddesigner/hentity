@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=98ff5e55e9">
+<link rel="stylesheet" href="/assets/styles.css?v=f7bb8259d1">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=c64979e893"></script>
-<script src="/assets/app.js?v=a25eadc979"></script>
+<script src="/assets/api.js?v=720004fb78"></script>
+<script src="/assets/app.js?v=3223e6dc13"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -90,6 +90,7 @@
 .pp-alt-m{display:flex;align-items:center;gap:8px;margin-top:6px}.pp-alt-bar{flex:none;width:64px;height:4px;border-radius:99px;background:var(--color-bg-muted);overflow:hidden}.pp-alt-bar i{display:block;height:100%;border-radius:inherit;background:var(--color-text-primary);transform-origin:left;animation:grow-x .7s var(--ease-out,ease) both}
 .pp-alt-n{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}.pp-alt-why{margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .gap-14{gap:14px}
+.pp-disc{display:flex;align-items:center;gap:12px;transition:border-color .15s}.pp-disc:hover{border-color:var(--color-border-strong)}.pp-disc-i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--color-bg-subtle);flex:none}
 </style>
 <meta name="robots" content="noindex, follow">
 <meta property="og:title" content="Product | Hentity">
@@ -203,6 +204,7 @@ H.mount({ active: 'products', tab: 'products' });
         <div class="row gap-12" style="margin-bottom:14px">${plogo({ name: company.name, color: p.color }, 32)}<div><p class="t-label row gap-6">${esc(company.name)}${company.verified ? H.verified('verified--sm') : ''}</p>${company.verified ? `<p class="t-caption c-3" style="font-weight:400">Verified startup${company.registration ? ' · ' + esc(company.registration) : ''}</p>` : ''}</div></div>
         <div class="kv"><span>Stage</span><span>${esc(company.stage || p.stage)}</span></div><div class="kv"><span>HQ</span><span>${esc(company.city)}, ${H.COUNTRY[company.country] || company.country}</span></div><div class="kv"><span>Team</span><span>${company.team_size} people</span></div>${company.founded ? `<div class="kv"><span>Founded</span><span>${company.founded}</span></div>` : ''}<div class="kv"><span>Raised</span><span>${esc(company.raised || 'Undisclosed')}</span></div></section>` : ''}
       <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-16">${team.map(m => `<div class="row gap-12" style="align-items:flex-start">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}" style="min-width:0"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p>${m.user.headline ? `<p class="t-caption c-2" style="font-weight:400;margin-top:4px">${esc(m.user.headline)}</p>` : ''}${m.user.bio ? `<p class="t-caption c-2 mk-bio" style="font-weight:400;margin-top:4px">${esc(m.user.bio)}</p>` : ''}</a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div></section>
+      ${H.on('discuss') && /^[a-z0-9][a-z0-9-]{1,47}$/.test(p.slug) ? `<a class="card card--pad pp-disc" href="/d/${esc(p.slug)}" data-scroll-reveal><span class="pp-disc-i">${icon('hash', 'ic-18')}</span><span style="min-width:0;flex:1"><span class="t-label" style="display:block">h/${esc(p.slug)}</span><span class="t-caption c-3" style="font-weight:400;display:block">Ask the makers, request features and report bugs in public.</span></span>${icon('arrow-right', 'ic-16')}</a>` : ''}
       ${alts.length ? `<section class="card card--pad pp-alts" data-scroll-reveal><h2 class="t-label">Alternatives</h2><p class="t-caption c-3" style="font-weight:400;margin:2px 0 14px">Closest first, by shared tags and what they do</p><div class="stack gap-14">${alts.map((a, i) => { const m = a.score != null, why = [(a.tags || []).join(', '), (a.words || []).length ? 'both mention ' + a.words.slice(0, 3).join(', ') : ''].filter(Boolean).join(' · ');
           return `<a class="pp-alt" href="/products/${a.slug}">${plogo(a, 36)}<div style="min-width:0;flex:1"><p class="t-label row gap-6" style="flex-wrap:wrap">${esc(a.name)}${flag(a.country)}${m && i === 0 && a.score >= 50 ? '<span class="pp-alt-top">Closest</span>' : ''}</p><p class="t-caption c-2 pp-alt-tl" style="font-weight:400">${esc(a.tagline)}</p>${m ? `<div class="pp-alt-m"><span class="pp-alt-bar" aria-hidden="true"><i style="width:${a.score}%"></i></span><span class="pp-alt-n">${a.score}% match</span></div>${why ? `<p class="t-caption c-3 pp-alt-why" style="font-weight:400">${esc(why)}</p>` : ''}` : ''}</div></a>`; }).join('')}</div></section>` : ''}
     </aside>

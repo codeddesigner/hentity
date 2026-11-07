@@ -194,6 +194,7 @@
       <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
       <nav class="sb-nav" aria-label="Primary">
         ${item('products', 'Products', '/', 'package')}
+        ${on('discuss') ? item('discuss', lbl('discuss', 'Discuss'), '/discuss', 'hash') : ''}
         ${on('chats') ? item('chats', lbl('chats', 'Chats'), '/chats', 'chats', s ? counts.chats : 0, true) : ''}
         ${on('news') ? item('news', lbl('news', 'News'), '/news', 'newspaper') : ''}
         ${on('insights') ? item('insights', lbl('insights', 'Insights'), '/insights', 'bar-chart') : ''}
@@ -220,14 +221,17 @@
     // Launch stays in the middle: when News or Chats is switched off, Insights (then Saved) takes the empty slot
     const pool = [['insights', 'Insights', '/insights', 'bar-chart'], ['saved', 'Saved', s ? '/saved' : '/signin', 'bookmark']].filter(([k]) => k !== 'insights' || on('insights'));
     const fill = item => item || pool.shift() || null;
-    const left = [['products', 'Products', '/', 'package'], fill(on('chats') ? ['chats', 'Chats', '/chats', 'chats'] : null)];
+    // With Discuss on, the Chats tab becomes Community: Discuss, Messages and Find behind one tab
+    const comm = on('discuss') ? ['community', 'Community', '/discuss', 'chats'] : on('chats') ? ['chats', 'Chats', '/chats', 'chats'] : null;
+    if (comm && comm[0] === 'community' && ['chats', 'find', 'discuss'].includes(active)) active = 'community';
+    const left = [['products', 'Products', '/', 'package'], fill(comm)];
     const right = [fill(on('news') ? ['news', 'News', '/news', 'newspaper'] : null), ['you', 'You', s ? '/me' : '/signin', 'user']];
     const mid = (on('submissions') || on('validate') || on('studio') || on('find')) ? [['launch', 'Launch', '/submit', 'plus']] : [];
     const items = [...left, ...mid, ...right].filter(Boolean);
     if (['insights', 'saved'].includes(page) && items.some(([k]) => k === page)) active = page;
     return `<nav class="tabbar" aria-label="Tabs">${items.map(([k, l, h, ic]) => k === 'launch'
       ? `<a class="tabbar__launch" href="${h}"${k === active ? ' aria-current="page"' : ''}><span class="pill">${icon(ic)}</span>${l}</a>`
-      : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s ? `<span class="tab-badge"${counts.chats ? '' : ' hidden'}>${counts.chats || ''}</span>` : ''}</a>`).join('')}</nav>`;
+      : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${(k === 'chats' || k === 'community') && s ? `<span class="tab-badge"${counts.chats ? '' : ' hidden'}>${counts.chats || ''}</span>` : ''}</a>`).join('')}</nav>`;
   }
   function setCount(key, n) {
     counts[key] = n; store.set('count.' + key, n); if (key === 'notifs') appBadge(n);
@@ -363,6 +367,10 @@
       document.body.insertAdjacentHTML('beforeend', `<a class="hx-pill" href="/products/hentity#write"><svg viewBox="0 0 416 416" aria-hidden="true"><circle cx="208" cy="208" r="208" fill="#000"/><path fill="#fff" d="M184 90H232V184H326V232A94 94 0 0 0 232 326H184V232H90V184A94 94 0 0 0 184 90Z"/></svg>Leave a review</a>`);
     const t = document.querySelector('[data-tabbar]');
     if (t) t.outerHTML = tabbar(opts.tab, opts.active);
+    // Messages and Find sit under the Community tab with Discuss: show the switch at the top on phones
+    if (['chats', 'find'].includes(opts.active) && on('discuss') && !document.querySelector('.cswitch-wrap')) {
+      const mt = document.querySelector('.mtop'); if (mt) mt.insertAdjacentHTML('afterend', `<div class="cswitch-wrap">${communitySwitch(opts.active)}</div>`); document.body.classList.add('has-cswitch');
+    }
     document.querySelectorAll('[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon, el.dataset.cls); });
     document.querySelectorAll('[data-logo]').forEach(el => { el.innerHTML = logo(); });
     document.querySelectorAll('[data-flag]').forEach(el => { el.outerHTML = flag(el.dataset.flag); });
@@ -422,6 +430,12 @@
   // Products section tabs (This week · Beta tests · Directory). The beta count fills in once the stats arrive.
   // Header gets a soft shadow once the page scrolls
   addEventListener('scroll', () => document.body.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
+  // Phones: Discuss, Messages and Find share the Community tab (Figma: Discuss on mobile)
+  function communitySwitch(active) {
+    if (!on('discuss')) return '';
+    const t = [['discuss', 'Discuss', '/discuss'], on('chats') && ['chats', 'Messages', '/chats'], on('find') && ['find', 'Find', '/find']].filter(Boolean);
+    return `<nav class="cswitch" aria-label="Community">${t.map(([k, l, h]) => `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
+  }
   function productTabs(active) {
     const t = [['week', 'This week', '/'], ['directory', 'Directory', '/directory'], ['insights', 'Insights', '/insights']].filter(([k]) => k !== 'insights' || on('insights'));
     setTimeout(() => { if (window.API && API.betaStats) API.betaStats().then(s => qsa('[data-beta-n]').forEach(e => { if (s && s.open) { e.textContent = s.open; e.hidden = false; } })).catch(() => {}); }, 0);
@@ -517,5 +531,5 @@
   // Unread notifications show as a badge on the installed app's icon where the system supports it
   function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
 
-  window.H = { confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();

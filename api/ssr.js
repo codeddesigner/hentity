@@ -100,6 +100,54 @@ async function build(type, slug) {
       main: `<nav aria-label="Breadcrumb"><a href="/">Hentity</a> / <a href="/news">News</a></nav><h1>${esc(a.title)}</h1><p>${esc(a.dek)}</p><ul>${(a.bullets || []).map(b => `<li>${esc(b)}</li>`).join('')}</ul>${a.source_url ? `<p>Source: <a href="${esc(a.source_url)}" rel="nofollow noopener">${esc(a.source || a.source_url)}</a></p>` : ''}`
     };
   }
+  // Discuss: the feed, a community, and public threads (DiscussionForumPosting with nested replies)
+  if (type === 'discuss' || type === 'dcomm' || type === 'dthread') {
+    const plain = t => esc(String(t || '')).split(/\n{2,}/).map(x => `<p>${x.replace(/\n/g, '<br>')}</p>`).join('');
+    const postItem = p => `<li><a href="/d/${esc(p.community.slug)}/${esc(p.slug)}"><strong>${esc(p.title)}</strong></a> — h/${esc(p.community.slug)} · ${p.comment_count} comments · ${p.score} votes</li>`;
+    const person = a => a ? { '@type': 'Person', name: a.name || a.username, url: `${SITE}/makers/${a.username}` } : { '@type': 'Person', name: 'deleted' };
+    if (type === 'discuss') {
+      const rows = await rest(`rpc/d_feed?sort=hot&lim=30`).catch(() => []);
+      return { title: 'Discuss: talk about African startups and products | Hentity', desc: 'Ask questions, review products and give makers feedback. Communities for African founders, developers and users, and one for every product on Hentity.',
+        path: '/discuss', type: 'website', ld: [crumbs([['Discuss', '/discuss']])],
+        main: `<h1>Discuss</h1><p>Talk about African startups and products. Ask, review, give makers feedback.</p>${rows.length ? `<ul>${rows.map(postItem).join('')}</ul>` : ''}` };
+    }
+    if (type === 'dcomm') {
+      const c = await rest(`rpc/d_community?comm=${encodeURIComponent(slug)}`).catch(() => null);
+      if (!c) return null;
+      const rows = await rest(`rpc/d_feed?sort=new&comm=${encodeURIComponent(c.slug)}&lim=30`).catch(() => []);
+      const about = c.kind === 'product' && c.product ? `Official community for ${c.product.name}: feedback, bugs, feature requests and questions, with replies from the makers.` : c.about;
+      return { title: `h/${c.slug}: ${c.kind === 'product' ? c.product.name + ' community' : c.title} | Hentity Discuss`, desc: clip(about, 160), path: `/d/${c.slug}`, type: 'website',
+        image: c.product && c.product.logo_url, noindex: !rows.length, ld: [crumbs([['Discuss', '/discuss'], ['h/' + c.slug, `/d/${c.slug}`]])],
+        main: `<nav aria-label="Breadcrumb"><a href="/discuss">Discuss</a> / h/${esc(c.slug)}</nav><h1>h/${esc(c.slug)}</h1><p>${esc(about)}</p>${c.product ? `<p><a href="/products/${esc(c.product.slug)}">${esc(c.product.name)} on Hentity</a></p>` : ''}${rows.length ? `<ul>${rows.map(postItem).join('')}</ul>` : ''}` };
+    }
+    const [cs, ps] = String(slug).split('~');
+    const T = await rest(`rpc/d_thread?comm=${encodeURIComponent(cs)}&post=${encodeURIComponent(ps || '')}`).catch(() => null);
+    if (!T || !T.post) return null;
+    const P = T.post, C = T.community, path = `/d/${C.slug}/${P.slug}`;
+    const kids = {}; (T.comments || []).forEach(c => { (kids[c.parent_id || 'root'] = kids[c.parent_id || 'root'] || []).push(c); });
+    const best = list => (list || []).slice().sort((a, b) => b.score - a.score);
+    const ldC = (c, d) => ({ '@type': 'Comment', text: c.deleted ? '[deleted]' : c.body, datePublished: c.created_at, author: person(c.deleted ? null : c.author), upvoteCount: Math.max(0, c.score), url: `${SITE}${path}#c-${c.id}`,
+      ...(d < 3 && kids[c.id] ? { comment: best(kids[c.id]).slice(0, 10).map(x => ldC(x, d + 1)) } : {}) });
+    const htmlC = (c, d) => `<li id="c-${c.id}"><p><strong>${esc(c.deleted ? 'deleted' : 'u/' + c.author.username)}</strong>${c.author && c.author.tag ? ` (${esc(c.author.tag)})` : ''} · ${c.score} points</p>${c.deleted ? '<p>[deleted]</p>' : plain(c.body)}${d < 4 && kids[c.id] ? `<ul>${best(kids[c.id]).map(x => htmlC(x, d + 1)).join('')}</ul>` : ''}</li>`;
+    const top = best(kids.root);
+    const thin = !P.comment_count && P.score < 3 && String(P.body || '').length < 40;
+    return {
+      title: `${P.title} : h/${C.slug} | Hentity`, desc: clip(P.body || `${P.title}. A discussion in h/${C.slug} on Hentity.`, 160), path, type: 'article', published: P.created_at,
+      image: (P.images || [])[0] || (P.product && P.product.logo_url), noindex: thin,
+      ld: [{ '@context': 'https://schema.org', '@type': 'DiscussionForumPosting', headline: clip(P.title, 110), text: P.body || P.title, url: SITE + path, mainEntityOfPage: SITE + path,
+          datePublished: P.created_at, dateModified: P.edited_at || P.last_activity_at || P.created_at, author: person(P.author),
+          ...(P.images && P.images.length ? { image: P.images } : {}),
+          ...(P.product ? { about: { '@type': 'SoftwareApplication', name: P.product.name, url: `${SITE}/products/${P.product.slug}` } } : {}),
+          interactionStatistic: [{ '@type': 'InteractionCounter', interactionType: 'https://schema.org/LikeAction', userInteractionCount: Math.max(0, P.score) },
+                                 { '@type': 'InteractionCounter', interactionType: 'https://schema.org/CommentAction', userInteractionCount: P.comment_count }],
+          isPartOf: { '@type': 'WebPage', name: `h/${C.slug}`, url: `${SITE}/d/${C.slug}` },
+          comment: top.slice(0, 20).map(c => ldC(c, 0)) },
+        crumbs([['Discuss', '/discuss'], ['h/' + C.slug, `/d/${C.slug}`], [P.title, path]])],
+      main: `<nav aria-label="Breadcrumb"><a href="/discuss">Discuss</a> / <a href="/d/${esc(C.slug)}">h/${esc(C.slug)}</a></nav><article><h1>${esc(P.title)}</h1><p>Posted by <a href="/makers/${esc(P.author.username)}">u/${esc(P.author.username)}</a>${P.author.tag ? ` (${esc(P.author.tag)})` : ''} in <a href="/d/${esc(C.slug)}">h/${esc(C.slug)}</a> · ${P.score} votes · ${P.comment_count} comments</p>${plain(P.body)}${P.product ? `<p>About <a href="/products/${esc(P.product.slug)}">${esc(P.product.name)}</a></p>` : ''}</article>
+        ${top.length ? `<h2>${P.comment_count} comments</h2><ul>${top.slice(0, 40).map(c => htmlC(c, 0)).join('')}</ul>` : ''}
+        ${(T.related || []).length ? `<h2>Related discussions</h2><ul>${T.related.map(r => `<li><a href="/d/${esc(r.community)}/${esc(r.slug)}">${esc(r.title)}</a> — h/${esc(r.community)}</li>`).join('')}</ul>` : ''}`
+    };
+  }
   if (type === 'beta') {
     const [b] = await rest(`betas?slug=eq.${encodeURIComponent(slug)}&status=in.(open,closed)&select=slug,title,why,spots,accepted_count,perk,airtime_amount,closes_at,product:products(name,slug,logo_url,tagline)`);
     if (!b) return null;
@@ -155,8 +203,9 @@ module.exports = async (req, res) => {
   // Server-Timing is visible in the browser's performance data (and in the perf beacons)
   const end = res.end.bind(res);
   res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
-  const { type, slug } = req.query;
-  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', category: '/directory-index', country: '/directory-index', directory: '/directory-index' }[type];
+  const { type } = req.query;
+  const slug = req.query.post ? `${req.query.slug}~${req.query.post}` : req.query.slug;
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', country: '/directory-index', directory: '/directory-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
@@ -166,7 +215,7 @@ module.exports = async (req, res) => {
     try { const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } }); page = await r.text(); }
     catch (e2) { res.statusCode = 502; return res.end('Template unavailable'); }
   }
-  const key = slug ? String(slug).toLowerCase() : '';
+  const key = type === 'discuss' ? 'discuss' : slug ? String(slug).toLowerCase() : '';
   // Short edge cache: repeat visits are served instantly, and nothing is more than ~a minute old
   // Browsers always re-check (so a new release shows on the next load); Vercel's edge keeps a 30s copy.
   const CACHE = 'public, max-age=0, must-revalidate';

@@ -61,7 +61,7 @@ def bust(page: str) -> str:
 
 # The home and news pages are served by api/ssr.js (which embeds their data), so their templates are written
 # under other names; a static /index.html or /news.html would otherwise take priority over the rewrite.
-SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html', 'directory.html': 'directory-index.html'}
+SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html', 'directory.html': 'directory-index.html', 'discuss.html': 'discuss-index.html'}
 
 if OUT.exists(): shutil.rmtree(OUT)
 public_paths = []
