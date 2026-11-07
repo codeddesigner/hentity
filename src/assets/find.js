@@ -23,6 +23,27 @@
     if (r.stealth) return `<span class="flock" style="width:${size}px;height:${size}px">${icon('lock', size > 36 ? 'ic-20' : 'ic-16')}</span>`;
     return plogo({ name: s.name || '?', color: s.color || '#111', logo_url: s.logo_url }, size);
   }
+  // Saved roles and people (Figma 223:231 Saved): a bookmark on every card, filled orange when saved
+  const SAVED = { role: new Set(), person: new Set() };
+  async function loadSaved() {
+    if (!API.uid) return;
+    const [r, p] = await Promise.all([API.bookmarks('role').catch(() => []), API.savedPeopleKeys().catch(() => [])]);
+    r.forEach(x => SAVED.role.add(x.target_id)); (p || []).forEach(k => SAVED.person.add(k));
+  }
+  const saveBtn = (kind, id, cls) => { const on = SAVED[kind].has(id); return `<button class="nav__icon fsave ${cls || ''}" type="button" data-fsave="${kind}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${on ? 'Saved' : 'Save'}" title="${on ? 'Saved · tap to remove' : 'Save'}">${icon('bookmark', 'ic-18')}</button>`; };
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-fsave]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+    const kind = b.dataset.fsave, id = b.dataset.id, on = b.getAttribute('aria-pressed') !== 'true';
+    b.disabled = true;
+    try {
+      if (kind === 'person') await API.savePerson(id, on); else await API.bookmark('role', id, on);
+      SAVED[kind][on ? 'add' : 'delete'](id);
+      document.querySelectorAll(`[data-fsave="${kind}"][data-id="${CSS.escape(id)}"]`).forEach(x => { x.setAttribute('aria-pressed', on); x.setAttribute('aria-label', on ? 'Saved' : 'Save'); x.title = on ? 'Saved · tap to remove' : 'Save'; const t = x.querySelector('.fsave__t'); if (t) t.textContent = on ? 'Saved' : 'Save'; });
+      H.toast(on ? 'Saved. Find it any time in Saved' : 'Removed from saved');
+    } catch (err) { H.fail(err); } finally { b.disabled = false; }
+  }, true);
   // Role card (Figma 172:6)
   function roleCard(r) {
     const k = KIND[r.kind] || KIND.cofounder, s = r.startup || {}, p = r.poster || {};
@@ -30,7 +51,7 @@
       : r.my_interest ? `<span class="fpill k-ok">${icon('check', 'ic-12')}${r.my_interest.status === 'accepted' ? 'Matched' : r.my_interest.mine ? 'Interest sent' : 'Invited you'}</span>`
       : `<a class="btn ${r.stealth ? 'btn--primary' : 'btn--secondary'} btn--sm" href="/find/roles/${r.id}">${r.kind === 'cofounder' ? 'I’m interested' : 'Apply'}</a>`;
     return `<article class="card fcard" data-href="/find/roles/${r.id}">
-      <div class="row between gap-12"><span class="row gap-10" style="min-width:0">${startupMark(r, 32)}<span class="t-body-sm c-2 truncate">${esc(s.name)}</span>${s.verified && !r.stealth ? H.verified('ic-14') : ''}</span><span class="t-caption c-3" style="font-weight:400">${esc(H.ago(r.created_at))}</span></div>
+      <div class="row between gap-12"><span class="row gap-10" style="min-width:0">${startupMark(r, 32)}<span class="t-body-sm c-2 truncate">${esc(s.name)}</span>${s.verified && !r.stealth ? H.verified('ic-14') : ''}</span><span class="row gap-4"><span class="t-caption c-3" style="font-weight:400">${esc(H.ago(r.created_at))}</span>${r.mine ? '' : saveBtn('role', r.id)}</span></div>
       <h3 class="fcard__t">${esc(r.title)}</h3>
       <div class="fpills">${pill(k[0], k[1])}${catPill(r.category)}${pill(esc(pay(r)), 'k-pay')}${r.kind === 'cofounder' ? pill(COMMIT[r.commitment] || '') : r.duration ? pill(esc(r.duration)) : pill(k[0])}${r.stage ? pill(esc(r.stage)) : ''}</div>
       ${r.city || r.working ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${icon('pin', 'ic-14')}${esc([r.city, WORK[r.working]].filter(Boolean).join(' · '))}</p>` : ''}
@@ -46,7 +67,7 @@
     const head = u.stealth ? `<span class="flock" style="width:40px;height:40px">${icon('lock', 'ic-16')}</span><span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(u.what || 'Open to work')}</span><span class="t-caption c-3" style="font-weight:400">${esc([u.seniority, u.experience ? u.experience + (/\d$/.test(u.experience) ? ' yrs' : '') : ''].filter(Boolean).join(' · ') || 'Stealth profile')}</span></span>`
       : `${mini(u.name, u.avatar_url)}<span style="min-width:0"><span class="t-label truncate" style="display:block">${esc(u.name)}</span><span class="t-caption c-3" style="font-weight:400">${esc([u.what, u.experience].filter(Boolean).join(' · '))}</span></span>`;
     return `<article class="card fcard fperson">
-      <div class="row gap-12" style="align-items:center">${head}</div>
+      <div class="row gap-12" style="align-items:center">${head}${opts.noInvite || !u.key ? '' : saveBtn('person', u.key, 'fsave--end')}</div>
       ${u.stealth ? `<span class="fpill" style="margin-top:12px;align-self:flex-start">${icon('eye', 'ic-12')}Stealth · name hidden</span>` : ''}
       ${u.city || (u.looking_for || []).length ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${icon('pin', 'ic-14')}${esc([u.city, (u.looking_for || []).map(a => AREA[a]).filter(Boolean)[0]].filter(Boolean).join(' · '))}</p>` : ''}
       ${(u.strengths || []).length ? `<div class="fskills">${u.strengths.slice(0, 4).map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
@@ -125,5 +146,5 @@
   const cvChip = c => c ? `<button class="fpill" type="button" data-open-cv="${H.esc(c.path)}">${H.icon('file-text', 'ic-12')}${H.esc(c.name || 'CV')}</button>` : '';
   const liChip = l => l ? `<a class="fpill" href="${H.esc(/^https?:/.test(l) ? l : 'https://' + l)}" target="_blank" rel="noopener nofollow"><b style="color:#0A66C2">in</b>LinkedIn</a>` : '';
   document.addEventListener('click', e => { const b = e.target.closest('[data-open-cv]'); if (b) { e.preventDefault(); openCv(b.dataset.openCv); } });
-  window.F = { cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
+  window.F = { SAVED, loadSaved, saveBtn, cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
 })();

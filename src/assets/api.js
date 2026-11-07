@@ -285,6 +285,10 @@
     fundingOpp: (oid, pid) => q(sb.rpc('funding_opp', { oid, pid })),
     // Saved / applied tracker (funders take applications on their own sites)
     fundingTrack: (oid, pid, patch) => q(sb.from('funding_track').upsert(Object.assign({ user_id: uid(), opp_id: oid, product_id: pid || null, updated_at: new Date().toISOString() }, patch), { onConflict: 'user_id,opp_id' }).select().single()),
+    // Saved page: roles, people, betas and funding in one call (products and stories come from bookmarks)
+    mySaved: () => uid() ? q(sb.rpc('my_saved')) : Promise.resolve({}),
+    savedPeopleKeys: () => uid() ? q(sb.rpc('my_saved_people_keys')).then(r => r || []) : Promise.resolve([]),
+    savePerson: (key, on) => { requireAuth(); touched(); return q(sb.rpc('find_save_person', { person_key: key, on_: !!on })); },
     fundingUntrack: oid => q(sb.from('funding_track').delete().eq('user_id', uid()).eq('opp_id', oid)),
     myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
     dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),

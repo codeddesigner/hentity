@@ -82,7 +82,7 @@ H.mount({ active: 'find', tab: 'chats' });
     qs('#list').addEventListener('click', e => { if (e.target.closest('a,button')) return; const c = e.target.closest('[data-href]'); if (c) location.href = c.dataset.href; });
     qs('#list').addEventListener('click', e => { const b = e.target.closest('[data-invite]'); if (b) invite(b.dataset.invite); });
   }
-  load();
+  F.loadSaved().finally(load);
 
   // ---- invite a person to one of my roles
   async function invite(key) {

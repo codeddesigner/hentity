@@ -55,6 +55,7 @@ H.mount({ active: 'products', tab: 'products' });
   const mine = API.uid && b.owner_id === API.uid;
   const staff = API.uid && !mine && API.profile && ['admin', 'moderator'].includes(API.profile.role);
   let app = await API.myBetaApp(b.id).catch(() => null);
+  const isSaved = await API.isBookmarked('beta', b.id).catch(() => false);
   const prof = Object.assign({}, API.profile || {});
   const ph = B.phase(b);
   const makerFirst = (owner.name || p.name || 'The maker').split(' ')[0];
@@ -86,7 +87,7 @@ H.mount({ active: 'products', tab: 'products' });
           <a class="link row gap-6 t-body-sm reveal" href="/betas" style="width:max-content">${icon('arrow-left', 'ic-14')}Beta tests</a>
           ${staff ? `<p class="t-caption c-3 reveal" style="font-weight:400">Admin: <a class="link link--accent" href="/betas/${b.id}/manage">open this beta’s dashboard</a></p>` : ''}
           ${mine ? `<div class="alert alert--accent reveal"><span>${icon('flask')}</span><div><p class="alert__title">This is your beta call</p><p class="alert__body">${b.applied_count} applied · ${b.accepted_count} of ${b.spots} accepted</p></div><a class="link alert__action" href="/betas/${b.id}/manage">Open dashboard</a></div>` : ''}
-          <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}" id="prod-room">${icon('arrow-up-right', 'ic-14')}View product</a></div>
+          <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}" id="prod-room">${icon('arrow-up-right', 'ic-14')}View product</a>${mine ? '' : `<button class="nav__icon fsave" type="button" id="bsave" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Saved' : 'Save'}" title="${isSaved ? 'Saved · tap to remove' : 'Save this beta'}">${icon('bookmark', 'ic-18')}</button>`}</div>
           <h1 class="words">${esc(b.title)}</h1>
           <div class="bd-by reveal" style="--i:2"><span class="row gap-10 t-body-sm c-2">${avatar(owner, 28)}<span>Posted by <a class="link" href="/makers/${esc(owner.username || '')}">${esc(owner.name || p.name)}</a> · ${H.ago(b.created_at)}</span></span><span class="row gap-6 wrap">${tags}</span></div>
           ${b.why ? `<section class="card bsec" data-scroll-reveal><h2>Why we need you</h2><p class="body c-2" style="white-space:pre-wrap">${esc(b.why)}</p></section>` : ''}
@@ -104,6 +105,11 @@ H.mount({ active: 'products', tab: 'products' });
         </aside>
       </div>
       <div class="mbar" id="mbar"></div>`;
+  const bs = qs('#bsave');
+  if (bs) bs.onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+    const on = bs.getAttribute('aria-pressed') !== 'true'; bs.disabled = true;
+    try { await API.bookmark('beta', b.id, on); bs.setAttribute('aria-pressed', on); bs.setAttribute('aria-label', on ? 'Saved' : 'Save'); bs.title = on ? 'Saved · tap to remove' : 'Save this beta'; toast(on ? 'Saved. Find it any time in Saved' : 'Removed from saved'); }
+    catch (e) { H.fail(e); } finally { bs.disabled = false; } };
     M.words(qs('#bd .words')); M.scroll(qs('#bd')); H.contentShown();
     renderApply();
     API.productRoom(p.id).then(r => { const el = qs('#prod-room'); if (r && r.slug && el) { el.href = '/chats/' + r.slug; el.innerHTML = icon('chats', 'ic-14') + 'Product room'; } }).catch(() => {});

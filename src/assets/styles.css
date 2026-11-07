@@ -1108,6 +1108,8 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .fcard{padding:20px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .fcard:hover{border-color:var(--color-border-strong)}
 .fperson{cursor:default}
+.fsave{width:30px;height:30px;color:var(--color-text-tertiary);flex:none}.fsave--end{margin-left:auto;align-self:flex-start}
+.fsave[aria-pressed="true"]{color:var(--color-accent-default)}.fsave[aria-pressed="true"] .ic path{fill:currentColor}
 .fcard__t{font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.01em;margin:14px 0 10px}
 .fpills{display:flex;flex-wrap:wrap;gap:6px}
 .fpill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;background:var(--color-bg-muted);color:var(--color-text-secondary);font-size:12.5px;font-weight:500;white-space:nowrap}

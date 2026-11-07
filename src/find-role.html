@@ -40,7 +40,7 @@ H.mount({ active: 'find', tab: 'chats' });
   const root = qs('#main');
   const id = location.pathname.split('/').filter(Boolean)[2];
   await API.ready;
-  const r = id ? await API.findRole(id).catch(() => null) : null;
+  const [r] = await Promise.all([id ? API.findRole(id).catch(() => null) : null, F.loadSaved().catch(() => {})]);
   if (!r) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This role isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be closed, invite-only, or the link is wrong.</p><a class="btn btn--secondary" href="/find">Back to Find</a></div>`; H.contentShown(); return; }
   document.title = `${r.title} | Find | Hentity`;
   const s = r.startup || {}, k = F.KIND[r.kind] || F.KIND.cofounder, pName = r.stealth ? 'The founder' : (r.poster.name || '').split(' ')[0];
@@ -50,7 +50,7 @@ H.mount({ active: 'find', tab: 'chats' });
   root.innerHTML = `<div class="fd">
     <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Open roles</a>
     <div class="fr"><div class="stack gap-16">
-      <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div>${s.slug ? `<a class="t-body-sm" style="font-weight:500" href="/products/${esc(s.slug)}">View product</a>` : ''}</div>
+      <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div><span class="row gap-8">${s.slug ? `<a class="t-body-sm" style="font-weight:500" href="/products/${esc(s.slug)}">View product</a>` : ''}${r.mine ? '' : F.saveBtn('role', r.id)}</span></div>
         <h1>${esc(r.title)}</h1><div class="fpills">${tags}</div>
         ${(r.skills || []).length ? `<div class="fskills">${r.skills.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</section>
       ${blk(job ? 'What you’ll do' : 'What you’ll own', r.owns)}

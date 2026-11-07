@@ -4,40 +4,340 @@
 <!--#head-->
 <title>Saved | Hentity</title>
 <meta name="robots" content="noindex">
-<style>.sv{max-width:820px;margin:0 auto;padding:40px 32px 96px}@media (max-width:768px){.sv{padding:16px 16px 32px}}</style>
+<style>
+/* Saved (Figma 223:231) */
+body{background:var(--color-bg-subtle)}
+.sidebar{background:var(--color-bg-canvas)}
+.sv{max-width:1096px;margin:0 auto;padding:32px 48px 96px;box-sizing:content-box}
+.sv-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.sv-head h1{font-size:40px;line-height:44px;font-weight:600;letter-spacing:-.025em}
+.sv-head p{color:var(--color-text-secondary);font-size:15px;line-height:22px;margin-top:6px}
+.sv-back{display:none}
+.sv-search{position:relative;width:260px;flex:none}
+.sv-search .ic{position:absolute;left:13px;top:10px;width:16px;height:16px;color:var(--color-text-tertiary);pointer-events:none}
+.sv-search input{width:100%;height:36px;padding:0 12px 0 37px;border-radius:10px;border:1px solid var(--color-border-default);background:var(--color-bg-canvas);font-size:14px;color:var(--color-text-primary)}
+.sv-search input:focus{outline:none;border-color:var(--color-text-secondary)}
+.sv-sbtn{display:none}
+.sv-tabs{display:flex;align-items:center;gap:8px;margin-top:20px}
+.sv-chips{display:flex;gap:8px;min-width:0}
+.sv-chips .chip .n{font-variant-numeric:tabular-nums}
+.sv-sort{margin-left:auto;position:relative;display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px 0 13px;border-radius:999px;border:1px solid var(--color-border-default);background:var(--color-bg-canvas);font-size:13px;font-weight:500;white-space:nowrap;flex:none}
+.sv-sort .ic{width:14px;height:14px;color:var(--color-text-tertiary)}
+.sv-sort select{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px}
+.sv-soon{display:flex;align-items:center;gap:12px;margin-top:20px;padding:13px 16px 13px 17px;border-radius:12px;background:#FEF1EC;border:1px solid #FBD5C8}
+.sv-soon>.ic{width:18px;height:18px;color:#C2410C;flex:none}
+.sv-soon .t{font-size:14px;font-weight:500;line-height:16px}
+.sv-soon .d{font-size:13px;line-height:16px;color:var(--color-text-secondary);margin-top:2px}
+.sv-soon .on{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);white-space:nowrap}
+:root[data-theme="dark"] .sv-soon{background:#2c1710;border-color:#5a2a18}:root[data-theme="dark"] .sv-soon>.ic{color:#ff9e7a}
+.sv-body{margin-top:20px}
+.sv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.sv-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sv-card{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:21px}
+.sv-card__head{display:flex;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--color-border-default)}
+.sv-card__head h2{font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.01em}
+.sv-card__head .n{font-size:14px;color:var(--color-text-tertiary);font-variant-numeric:tabular-nums}
+.sv-card__head .all{margin-left:auto;font-size:14px;font-weight:500;color:var(--color-accent-default)}
+.sv-card__head .all:hover{text-decoration:underline}
+.sv-group{font:500 12px/16px var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);padding:14px 0 4px;border-bottom:1px solid var(--color-border-default)}
+.sv-card>.sv-group:first-child{padding-top:0}
+.sv-row{display:flex;align-items:center;gap:12px;padding:11px 0;min-height:55px;border-bottom:1px solid var(--color-border-default);position:relative}
+.sv-row:last-child{border-bottom:0;padding-bottom:0}
+.sv-row__t{flex:1;min-width:0}
+.sv-row__t a,.sv-row__t>b{display:block;font-size:14px;font-weight:500;line-height:16px;color:var(--color-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sv-row__t a:hover{text-decoration:underline}
+.sv-row__t p{font-size:13px;line-height:16px;color:var(--color-text-tertiary);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sv-row__t .fu-chip,.sv-row__t .sv-pill{margin-top:6px}
+.sv-row .plogo,.sv-row .fu-logo{width:32px;height:32px;border-radius:8px;flex:none}
+.sv-row .fav{width:32px;height:32px;flex:none}
+.sv-row .flock{flex:none}
+.sv-bm{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:var(--color-accent-default);flex:none}
+.sv-bm .ic{width:16px;height:16px}
+.sv-bm .ic path{fill:currentColor}
+.sv-bm:hover{background:var(--color-bg-muted)}
+.sv-go{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:var(--color-text-tertiary);flex:none}
+.sv-go:hover{background:var(--color-bg-muted);color:var(--color-text-primary)}
+.sv-up{display:inline-flex;align-items:center;gap:6px;height:28px;min-width:60px;padding:0 9px;border-radius:8px;border:1px solid var(--color-border-default);background:var(--color-bg-canvas);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;flex:none}
+.sv-up .ic{width:12px;height:12px}
+.sv-up.is-voted{border-color:var(--color-accent-default);color:var(--color-accent-default);background:var(--color-accent-subtle)}
+.sv-tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--color-border-default);font-size:12.5px;font-weight:500;white-space:nowrap;flex:none}
+.sv-tag i{width:7px;height:7px;border-radius:50%}
+.sv-pill{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;font-size:12.5px;font-weight:500;white-space:nowrap;background:var(--color-bg-muted);color:var(--color-text-secondary);flex:none}
+.sv-pill .ic{width:12px;height:12px}
+.sv-pill.blue{background:#EAF2FF;color:#1D4ED8}.sv-pill.green{background:#E9F8EE;color:#15803D}.sv-pill.orange{background:#FFF1EA;color:#EA580C}
+:root[data-theme="dark"] .sv-pill.blue{background:#0f2242;color:#93c5fd}:root[data-theme="dark"] .sv-pill.green{background:#0f2a1a;color:#86efac}:root[data-theme="dark"] .sv-pill.orange{background:#3a1d0b;color:#fdba74}
+.sv-row .fu-chip{border-radius:999px;height:22px}
+.sv-row .btn--sm{flex:none}
+.sv-when{font-size:13px;color:var(--color-text-tertiary);white-space:nowrap;flex:none}
+.sv-full .sv-row{min-height:56px}
+.sv-tip{display:flex;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--color-bg-canvas);border:1px solid var(--color-border-default);font-size:13px;line-height:16px;color:var(--color-text-secondary)}
+.sv-tip .ic{width:14px;height:14px;flex:none;margin-top:1px}
+.sv-empty{text-align:center;padding:48px 20px}
+.sv-empty .links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.sv-row.is-gone{transition:opacity .25s,transform .25s;opacity:0;transform:translateX(16px)}
+@media (max-width:900px){.sv-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:768px){
+  .sv{padding:12px 16px 32px}
+  .sv-head{align-items:center}
+  .sv-head h1{font-size:28px;line-height:34px}
+  .sv-head p{display:none}
+  .sv-back{display:grid;width:28px;height:34px;place-items:center;margin-left:-4px}
+  .sv-back .ic{width:20px;height:20px}
+  .sv-title{display:flex;align-items:center;gap:8px;flex:1}
+  .sv-sbtn{display:grid;width:34px;height:34px;place-items:center}
+  .sv-sbtn .ic{width:20px;height:20px}
+  .sv-search{display:none;width:100%;margin-top:12px}
+  .sv-search.is-open{display:block}
+  .sv-tabs{margin:12px -16px 0;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+  .sv-tabs::-webkit-scrollbar{display:none}
+  .sv-sort{display:none}
+  .sv-soon{margin-top:12px}
+  .sv-soon .btn,.sv-soon .on{display:none}
+  .sv-body{margin-top:12px}
+  .sv-grid,.sv-col{gap:12px}
+  .sv-card{padding:15px;border-radius:14px}
+  .sv-card__head h2{font-size:14px;line-height:16px}
+  .sv-card__head .n{font-size:14px}
+  .sv-tag,.hide-m{display:none}
+  .sv-row__t p{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .sv-full .sv-row{flex-wrap:wrap}
+  .sv-full .sv-row .fu-chip.side,.sv-full .sv-row .apply{display:none}
+}
+</style>
 </head>
 <body>
 <div data-header></div>
 <main class="sv">
-  <div class="row between wrap gap-12 reveal"><div><h1 class="t-h2">Saved</h1><p class="c-2" style="margin-top:4px">Products and stories you bookmarked. Only you can see this list.</p></div>
-  <div class="seg" role="tablist" id="tabs"><button role="tab" aria-selected="true" data-t="product">Products</button><button role="tab" aria-selected="false" data-t="article">Stories</button></div></div>
-  <div class="feed" id="list" style="margin-top:24px"></div>
+  <div class="sv-head">
+    <div class="sv-title"><a class="sv-back" href="/me" aria-label="Back"></a><div><h1>Saved</h1><p>Only you can see what you save.</p></div></div>
+    <button class="sv-sbtn" type="button" id="sbtn" aria-label="Search saved"></button>
+    <label class="sv-search" id="search"><span data-icon="search"></span><input type="search" id="q" placeholder="Search saved" aria-label="Search saved" autocomplete="off"></label>
+  </div>
+  <div class="sv-tabs"><div class="sv-chips" id="tabs" role="tablist"></div>
+    <label class="sv-sort" id="sort-l"><span id="sort-t">Sort: Recently saved</span><span data-icon="chevron-down"></span>
+      <select id="sort" aria-label="Sort"><option value="recent">Recently saved</option><option value="deadline">Deadline</option><option value="name">Name</option></select></label></div>
+  <div id="soon"></div>
+  <div class="sv-body" id="body"><div class="sv-grid"><div class="skel" style="height:300px;border-radius:16px"></div><div class="skel" style="height:300px;border-radius:16px"></div></div></div>
 </main>
 <div data-tabbar></div>
 <script src="/assets/data.js"></script>
+<script src="/assets/find.js"></script>
+<script src="/assets/funding.js"></script>
 <script>
 H.mount({ active: 'saved', tab: 'you' });
 (async function () {
-  const { qs, qsa, icon, esc, toast } = H;
+  const { qs, qsa, icon, esc, toast, plogo } = H;
   await API.ready; if (!API.uid) { location.replace('/signin?next=/saved'); return; }
-  let tab = 'product';
-  async function load() {
-    const el = qs('#list'); el.innerHTML = '<div class="skel" style="height:90px;border-radius:14px"></div>';
-    const b = await API.bookmarks(tab);
-    if (tab === 'product') {
-      const ps = await API.productsByIds(b.map(x => x.target_id)); await D.loadVotes(ps);
-      const order = new Map(b.map((x, i) => [x.target_id, i])); ps.sort((a, c) => order.get(a.id) - order.get(c.id));
-      el.innerHTML = ps.length ? ps.map(p => D.row(p, 0, { noRank: true, noRails: true, trailing: `<button class="btn btn--ghost btn--sm" data-unsave="${p.id}">Remove</button>` })).join('') : empty('products', '/');
-    } else {
-      const { data } = b.length ? await API.sb.from('articles').select('slug,title,dek,topic,source,published_at,color,image_url,id').in('id', b.map(x => x.target_id)) : { data: [] };
-      el.innerHTML = (data || []).length ? data.map(a => `<article class="art-row stretch"><div class="grow"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4" style="margin:6px 0"><a class="stretch-link" href="/news/${a.slug}">${esc(a.title)}</a></h3><p class="t-body-sm c-2">${esc(a.dek)}</p><button class="btn btn--ghost btn--sm" style="margin-top:8px;padding-left:0" data-unsave="${a.id}">Remove</button></div><a class="art-thumb" href="/news/${a.slug}" style="--c:${esc(a.color)}" tabindex="-1">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}</a></article>`).join('') : empty('stories', '/news');
-    }
-    M.stagger(el);
+  qs('.sv-back').innerHTML = icon('arrow-left'); qs('#sbtn').innerHTML = icon('search');
+  qsa('[data-icon]').forEach(e => { e.outerHTML = icon(e.dataset.icon); });
+
+  const TABS = [['all', 'All'], ['products', 'Products'], ['funding', 'Funding'], ['find', 'Find'], ['betas', 'Beta tests'], ['stories', 'Stories']];
+  const DAY = 864e5, now = Date.now();
+  const params = H.params();
+  let tab = TABS.some(t => t[0] === params.get('t')) ? params.get('t') : 'all';
+  let sort = params.get('sort') || (tab === 'funding' ? 'deadline' : 'recent'), term = '';
+  let S = { products: [], stories: [], roles: [], people: [], betas: [], funding: [] };
+
+  // ---------------------------------------------------------------- data
+  async function fallback() {   // until the my_saved function is on the database: funding and joined betas straight from their tables
+    const [ft, apps] = await Promise.all([
+      API.sb.from('funding_track').select('status,remind,applied_at,created_at,o:funding_opps(id,name,mode,kind,org,color,logo_url,amount_text,deadline,deadline_note,decision_by,round_note,apply_url,website,active)').eq('user_id', API.uid).then(r => r.data || []),
+      API.sb.from('beta_applications').select('status,created_at,tasks_done,b:betas(id,slug,title,status,spots,accepted_count,applied_count,closes_at,test_start,test_end,steps,product:products(id,slug,name,tagline,logo_url,color))').eq('user_id', API.uid).then(r => r.data || [])]);
+    return {
+      funding: ft.filter(x => x.o).map(x => Object.assign({}, x.o, { status: x.status, remind: x.remind, applied_at: x.applied_at, saved_at: x.created_at })),
+      betas: apps.filter(a => a.b && !['left', 'declined'].includes(a.status)).map(a => Object.assign({}, a.b, { steps: (a.b.steps || []).length, saved: false, saved_at: a.created_at, app: { status: a.status, created_at: a.created_at, tasks_done: a.tasks_done } })),
+      roles: [], people: [] };
   }
-  const empty = (w, h) => `<div class="card card--pad" style="text-align:center;padding:48px 20px"><div class="icon-badge" style="margin:0 auto 14px">${icon('bookmark')}</div><p class="t-h4">No saved ${w} yet</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Tap Save on any ${w === 'products' ? 'product page' : 'story'} to keep it here.</p><a class="btn btn--secondary btn--sm" href="${h}">Browse ${w}</a></div>`;
-  qsa('#tabs [role=tab]').forEach(t => t.addEventListener('click', () => { qsa('#tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); tab = t.dataset.t; load(); }));
-  qs('#list').addEventListener('click', async e => { const b = e.target.closest('[data-unsave]'); if (!b) return; try { await API.bookmark(tab, b.dataset.unsave, false); const row = b.closest('.prow,.art-row'); row.style.transition = 'opacity .25s, transform .25s'; row.style.opacity = 0; row.style.transform = 'translateX(16px)'; setTimeout(load, 260); toast('Removed from saved'); } catch (err) { H.fail(err); } });
-  load();
+  async function fetchAll() {
+    const [bp, ba, rest] = await Promise.all([API.bookmarks('product'), API.bookmarks('article'), API.mySaved().catch(fallback)]);
+    const [ps, arts] = await Promise.all([API.productsByIds(bp.map(x => x.target_id)),
+      ba.length ? API.sb.from('articles').select('id,slug,title,dek,topic,color,image_url,published_at').in('id', ba.map(x => x.target_id)).then(r => r.data || []) : []]);
+    const at = new Map(bp.concat(ba).map(x => [x.target_id, x.created_at]));
+    await D.loadVotes(ps).catch(() => {});
+    S = { products: ps.map(p => Object.assign(p, { saved_at: at.get(p.id) })), stories: arts.map(a => Object.assign(a, { saved_at: at.get(a.id) })),
+      roles: rest.roles || [], people: rest.people || [], betas: rest.betas || [], funding: rest.funding || [] };
+  }
+
+  // ---------------------------------------------------------------- helpers
+  const days = d => d ? Math.ceil((new Date(String(d).length === 10 ? d + 'T23:59:59' : d) - now) / DAY) : null;
+  const fmt = d => FU.fmtDate(String(d).slice(0, 10));
+  const bm = (kind, id, label) => `<button class="sv-bm" type="button" data-unsave="${kind}" data-id="${esc(id)}" aria-label="Remove ${esc(label)} from saved" title="Saved · tap to remove">${icon('bookmark')}</button>`;
+  const fundSaved = () => S.funding.filter(o => o.status !== 'applied'), fundApplied = () => S.funding.filter(o => o.status === 'applied');
+  const fundDue = o => o.deadline && FU.isOpen(o) ? days(o.deadline) : null;
+  const betaPhase = b => { const st = b.test_start && new Date(b.test_start + 'T00:00:00'), te = b.test_end && new Date(b.test_end + 'T23:59:59');
+    if (['closed', 'cancelled'].includes(b.status) || (te && now > te)) return 'closed'; if (st && now >= st) return 'testing'; if (now >= new Date(b.closes_at)) return 'picking'; return b.accepted_count >= b.spots ? 'full' : 'open'; };
+  const betaDue = b => !b.app && ['open', 'full'].includes(betaPhase(b)) ? days(b.closes_at) : null;
+  function betaPill(b) {
+    const a = b.app, ph = betaPhase(b), fl = icon('flask', 'ic-12');
+    if (a && a.status === 'accepted') {
+      if (ph === 'testing') { const n = Math.max(1, Math.round((new Date(b.test_end + 'T23:59:59') - new Date(b.test_start + 'T00:00:00')) / DAY)), d = Math.min(n, Math.floor((now - new Date(b.test_start + 'T00:00:00')) / DAY) + 1);
+        return `<span class="sv-pill green">${fl}You’re in · day ${d} of ${n}</span>`; }
+      return `<span class="sv-pill green">${fl}You’re in${ph === 'closed' ? ' · ended' : b.test_start ? ' · starts ' + fmt(b.test_start) : ''}</span>`;
+    }
+    if (a && a.status === 'waitlist') return `<span class="sv-pill">${fl}Waitlist${a.position ? ' · #' + a.position : ''}</span>`;
+    if (a) return `<span class="sv-pill blue">${fl}Applied · picks by ${fmt(b.closes_at)}</span>`;
+    if (ph === 'open') return `<span class="sv-pill blue">${fl}Open · ${Math.max(0, b.spots - b.accepted_count)} of ${b.spots} spots left</span>`;
+    if (ph === 'full') return `<span class="sv-pill">${fl}Full · waitlist open</span>`;
+    if (ph === 'testing' || ph === 'picking') return `<span class="sv-pill">${fl}${ph === 'testing' ? 'Testing now' : 'Picking testers'}</span>`;
+    return `<span class="sv-pill">${fl}Closed</span>`;
+  }
+  const betaHref = b => b.slug ? '/b/' + b.slug : '/betas/' + b.id;
+  const roleLine = r => [(r.startup || {}).name, r.city].filter(Boolean).join(' · ');
+  const KPILL = { cofounder: 'orange', fulltime: 'blue', parttime: 'blue', internship: 'blue', contract: '' };
+  const OPEN_LBL = { cofounder: 'Open to co-founding', fulltime: 'Open to full-time', parttime: 'Open to part-time', contract: 'Open to contract', internship: 'Open to internships' };
+  const personMark = u => u.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : u.avatar_url ? F.mini(u.name, u.avatar_url) : `<span class="fav">${esc(F.initials(u.name))}</span>`;
+
+  // ---------------------------------------------------------------- rows
+  const R = {
+    products: p => { const c = (p.categories || [])[0];
+      return `<div class="sv-row" data-row>${plogo(p, 32)}<div class="sv-row__t"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a><p>${esc(p.tagline || '')}</p></div>
+        ${c ? `<span class="sv-tag"><i style="background:${H.catColor(c)}"></i>${esc(H.catShort(c))}</span>` : ''}
+        <button class="sv-up${D.voted.has(p.id) ? ' is-voted' : ''}" type="button" data-vote="${p.id}" aria-pressed="${D.voted.has(p.id)}"${API.uid === p.owner_id ? ' disabled' : ''} aria-label="Upvote ${esc(p.name)}">${icon('upvote')}<span data-count>${(p.upvote_count || 0).toLocaleString()}</span></button>${bm('product', p.id, p.name)}</div>`; },
+    stories: a => `<div class="sv-row" data-row><span class="plogo" style="background:${esc(a.color || '#111')};${a.image_url ? `background:url('${esc(a.image_url)}') center/cover` : ''}"></span><div class="sv-row__t"><a href="/news/${esc(a.slug)}">${esc(a.title)}</a><p>${esc(a.topic || '')}${a.dek ? ' · ' + esc(a.dek) : ''}</p></div>${bm('article', a.id, a.title)}</div>`,
+    roles: r => { const k = F.KIND[r.kind] || F.KIND.cofounder;
+      return `<div class="sv-row" data-row>${F.startupMark(r, 32)}<div class="sv-row__t"><a href="/find/roles/${r.id}">${esc(r.title)}</a><p>${esc(roleLine(r))}${r.status && r.status !== 'open' ? ' · Closed' : ''}</p></div><span class="sv-pill ${KPILL[r.kind] || ''}">${k[0]}</span>${bm('role', r.id, r.title)}</div>`; },
+    people: u => { const o = (u.open_to || [])[0];
+      return `<div class="sv-row" data-row>${personMark(u)}<div class="sv-row__t"><b>${esc(u.stealth ? (u.what || 'Stealth profile') : u.name)}</b><p>${esc((u.stealth ? [u.seniority, u.city] : [u.what, u.city]).filter(Boolean).join(' · '))}</p></div>${o ? `<span class="sv-pill hide-m">${OPEN_LBL[o] || 'Open to work'}</span>` : ''}${bm('person', u.key, u.name || 'this person')}</div>`; },
+    funding: (o, full) => {
+      const line = [FU.KIND[o.kind] || (o.mode === 'equity' ? 'Investor' : 'Grant'), o.amount_text].filter(Boolean).join(' · ');
+      const chip = FU.isOpen(o) ? FU.deadlineChip(o) : `<span class="fu-chip">${icon('clock', 'ic-12')}${esc((o.round_note || 'Closed').split('·')[0].trim())}</span>`;
+      const href = '/funding/' + o.id, url = FU.applyUrl(o);
+      if (full) return `<div class="sv-row" data-row>${FU.logo(o, 32)}<div class="sv-row__t"><a href="${href}">${esc(o.name)}</a><p>${esc(line)}</p></div>${chip.replace('fu-chip', 'fu-chip side')}
+        ${url ? `<a class="btn btn--secondary btn--sm apply" href="${esc(url)}" target="_blank" rel="noopener" data-apply="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>` : ''}${bm('funding', o.id, o.name)}</div>`;
+      return `<div class="sv-row" data-row>${FU.logo(o, 32)}<div class="sv-row__t"><a href="${href}">${esc(o.name)}</a><p>${esc(line)}</p>${chip}</div>${bm('funding', o.id, o.name)}</div>`; },
+    applied: o => `<div class="sv-row" data-row>${FU.logo(o, 32)}<div class="sv-row__t"><a href="/funding/${o.id}">${esc(o.name)}</a><p>${esc([FU.KIND[o.kind], o.amount_text].filter(Boolean).join(' · '))}</p></div>
+      <span class="sv-pill green">${icon('check', 'ic-12')}Applied</span><span class="sv-when hide-m">${o.decision_by && days(o.decision_by) >= 0 ? 'Results due ' + fmt(o.decision_by) : o.applied_at ? 'Applied ' + fmt(o.applied_at) : ''}</span></div>`,
+    betas: b => { const p = b.product || {};
+      return `<div class="sv-row" data-row>${plogo(p, 32)}<div class="sv-row__t"><a href="${betaHref(b)}">${esc(p.name)}</a><p>${esc(b.title)}</p>${betaPill(b)}</div>
+        ${b.saved ? bm('beta', b.id, p.name + ' beta') : `<a class="sv-go" href="${betaHref(b)}" aria-label="Open ${esc(p.name)} beta">${icon('arrow-right', 'ic-16')}</a>`}</div>`; }
+  };
+
+  // ---------------------------------------------------------------- filter + sort
+  const TEXT = {
+    products: p => [p.name, p.tagline, (p.categories || []).join(' ')], stories: a => [a.title, a.dek, a.topic],
+    roles: r => [r.title, (r.startup || {}).name, r.city, (r.skills || []).join(' ')], people: u => [u.name, u.what, u.city, (u.strengths || []).join(' ')],
+    funding: o => [o.name, o.org, o.amount_text, FU.KIND[o.kind]], betas: b => [b.title, (b.product || {}).name, (b.product || {}).tagline] };
+  const DUE = { funding: fundDue, betas: betaDue };
+  const NAME = { products: p => p.name, stories: a => a.title, roles: r => r.title, people: u => u.name || u.what, funding: o => o.name, betas: b => (b.product || {}).name };
+  function list(kind, rows) {
+    const t = term.toLowerCase();
+    let out = (rows || S[kind]).filter(x => !t || TEXT[kind](x).filter(Boolean).join(' ').toLowerCase().includes(t));
+    const by = sort === 'name' ? (a, b) => String(NAME[kind](a) || '').localeCompare(String(NAME[kind](b) || ''))
+      : sort === 'deadline' && DUE[kind] ? (a, b) => { const x = DUE[kind](a), y = DUE[kind](b); return (x == null || x < 0 ? 1e9 : x) - (y == null || y < 0 ? 1e9 : y) || (b.saved_at || '').localeCompare(a.saved_at || ''); }
+      : (a, b) => String(b.saved_at || '').localeCompare(String(a.saved_at || ''));
+    return out.slice().sort(by);
+  }
+  const findRows = () => list('roles').map(r => ['roles', r]).concat(list('people').map(u => ['people', u]));
+  const COUNT = { products: () => S.products.length, funding: () => fundSaved().length, find: () => S.roles.length + S.people.length, betas: () => S.betas.length, stories: () => S.stories.length };
+  const total = () => Object.values(COUNT).reduce((n, f) => n + f(), 0);
+
+  // ---------------------------------------------------------------- render
+  function renderTabs() {
+    qs('#tabs').innerHTML = TABS.filter(([k]) => k !== 'stories' || S.stories.length || tab === 'stories').map(([k, l]) => `<button class="chip" type="button" role="tab" data-tab="${k}" aria-pressed="${tab === k}" aria-selected="${tab === k}">${icon('check')}<span>${l} · <span class="n">${k === 'all' ? total() : COUNT[k]()}</span></span></button>`).join('');
+    const on = qs('#tabs [aria-pressed="true"]'); if (on && matchMedia('(max-width:768px)').matches) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+    qs('#sort-t').textContent = 'Sort: ' + qs(`#sort option[value="${sort}"]`).textContent; qs('#sort').value = sort;
+  }
+  function renderSoon() {
+    const items = fundSaved().map(o => [fundDue(o), o.name + ' closes ' + (fundDue(o) <= 0 ? 'today' : 'in ' + fundDue(o) + ' day' + (fundDue(o) === 1 ? '' : 's')), o])
+      .concat(S.betas.map(b => [betaDue(b), (b.product || {}).name + ' beta closes ' + fmt(b.closes_at), null]))
+      .filter(x => x[0] != null && x[0] >= 0 && x[0] <= 14).sort((a, b) => a[0] - b[0]);
+    const el = qs('#soon');
+    if (!items.length || !['all', 'funding', 'betas'].includes(tab)) { el.innerHTML = ''; return; }
+    const fund = items.map(x => x[2]).filter(Boolean), off = fund.filter(o => !o.remind);
+    el.innerHTML = `<div class="sv-soon" role="status">${icon('clock')}<div class="grow" style="min-width:0"><p class="t">Closing soon</p><p class="d">${items.slice(0, 3).map(x => esc(x[1])).join(' · ')}${items.length > 3 ? ` · ${items.length - 3} more` : ''}</p></div>
+      ${off.length ? `<button class="btn btn--secondary btn--sm" type="button" id="remind">Remind me</button>` : fund.length ? `<span class="on">${icon('check', 'ic-14')}Reminders on</span>` : ''}</div>`;
+    const r = qs('#remind'); if (r) r.onclick = async () => { r.disabled = true;
+      try { await Promise.all(off.map(o => API.fundingTrack(o.id, null, { status: o.status || 'saved', remind: true }))); off.forEach(o => o.remind = true); toast('We’ll remind you 3 days and 1 day before each deadline'); renderSoon(); }
+      catch (e) { r.disabled = false; H.fail(e); } };
+  }
+  const card = (key, title, n, rows, more) => `<section class="sv-card" data-group="${key}"><div class="sv-card__head"><h2>${title}</h2><span class="n">${n}</span>${more ? `<a class="all" href="?t=${key}" data-tab="${key}">See all</a>` : ''}</div>${rows}</section>`;
+  const EMPTY = { products: ['No saved products yet', 'Tap Save on any product page to keep it here.', '/', 'Browse products'], funding: ['No saved funding yet', 'Save grants and investors from Funding and their deadlines show up here.', '/funding', 'Browse funding'],
+    find: ['Nothing saved from Find yet', 'Save open roles and people you want to come back to.', '/find', 'Browse Find'], betas: ['No beta tests yet', 'Betas you save or join show up here with their status. Look for “Testers wanted” on product pages.', '/', 'Browse products'], stories: ['No saved stories yet', 'Tap Save on any story to read it later.', '/news', 'Browse stories'] };
+  const emptyCard = k => term ? `<div class="sv-card sv-empty"><p class="t-h4">Nothing matches “${esc(term)}”</p><p class="t-body-sm c-2" style="margin-top:6px">Try another word, or clear the search.</p></div>`
+    : `<div class="sv-card sv-empty"><div class="icon-badge" style="margin:0 auto 14px">${icon('bookmark')}</div><p class="t-h4">${EMPTY[k][0]}</p><p class="t-body-sm c-2" style="margin:6px auto 16px;max-width:44ch">${EMPTY[k][1]}</p><a class="btn btn--secondary btn--sm" href="${EMPTY[k][2]}">${EMPTY[k][3]}</a></div>`;
+
+  function renderAll() {
+    const mob = matchMedia('(max-width:900px)').matches, N = 4;
+    const g = {
+      products: () => { const l = list('products'); return l.length ? card('products', 'Products', l.length, l.slice(0, N).map(p => R.products(p)).join(''), l.length > N || !term) : ''; },
+      find: () => { const l = findRows(); return l.length ? card('find', 'Find', l.length, l.slice(0, N).map(([k, x]) => R[k](x)).join(''), true) : ''; },
+      funding: () => { const l = list('funding', fundSaved()); return l.length ? card('funding', 'Funding', l.length, l.slice(0, N).map(o => R.funding(o)).join(''), true) : ''; },
+      betas: () => { const l = list('betas'); return l.length ? card('betas', 'Beta tests', l.length, l.slice(0, N).map(b => R.betas(b)).join(''), true) : ''; },
+      stories: () => { const l = list('stories'); return l.length ? card('stories', 'Stories', l.length, l.slice(0, N).map(a => R.stories(a)).join(''), l.length > N) : ''; } };
+    if (!total()) return `<div class="sv-card sv-empty"><div class="icon-badge" style="margin:0 auto 14px">${icon('bookmark')}</div><p class="t-h4">Nothing saved yet</p><p class="t-body-sm c-2" style="margin:6px auto 0;max-width:46ch">Tap the bookmark on products, funding, Find roles and people, and beta tests. Everything lands here, and only you can see it.</p>
+      <div class="links"><a class="btn btn--secondary btn--sm" href="/">Products</a><a class="btn btn--secondary btn--sm" href="/funding">Funding</a><a class="btn btn--secondary btn--sm" href="/find">Find</a></div></div>`;
+    // Anything closing soon floats to the top on a phone; on desktop funding and betas sit in the right column
+    const soon = fundSaved().some(o => { const d = fundDue(o); return d != null && d >= 0 && d <= 14; });
+    if (mob) { const order = soon ? ['funding', 'products', 'betas', 'find', 'stories'] : ['products', 'funding', 'betas', 'find', 'stories'];
+      const h = order.map(k => g[k]()).join(''); return h ? `<div class="sv-col">${h}</div>` : emptyCard('products'); }
+    const a = g.products() + g.find() + g.stories(), b = g.funding() + g.betas();
+    return a || b ? `<div class="sv-grid"><div class="sv-col">${a}</div><div class="sv-col">${b}</div></div>` : emptyCard('products');
+  }
+  function renderFunding() {
+    const l = list('funding', fundSaved()), ap = list('funding', fundApplied());
+    if (!l.length && !ap.length) return emptyCard('funding');
+    let html = '';
+    if (l.length) {
+      const bucket = o => { const d = fundDue(o); return d == null ? (o.deadline && !FU.isOpen(o) || (o.deadline && days(o.deadline) < 0) ? 'closed' : 'none') : d < 0 ? 'closed' : d <= 7 ? 'week' : d <= 31 ? 'month' : 'later'; };
+      const LBL = { week: 'This week', month: 'This month', later: 'Later', none: 'No deadline', closed: 'Closed' };
+      if (sort === 'deadline') html = ['week', 'month', 'later', 'none', 'closed'].map(k => { const rs = l.filter(o => bucket(o) === k); return rs.length ? `<p class="sv-group">${LBL[k]}</p>` + rs.map(o => R.funding(o, true)).join('') : ''; }).join('');
+      else html = l.map(o => R.funding(o, true)).join('');
+      html = `<section class="sv-card sv-full" data-group="funding">${html}</section>`;
+    }
+    if (ap.length) html += `<section class="sv-card sv-full" style="margin-top:16px"><div class="sv-card__head"><h2>Marked as applied</h2><span class="n" style="margin-left:auto">${ap.length}</span></div>${ap.map(R.applied).join('')}</section>`;
+    return html;
+  }
+  function renderOne(k) {
+    if (k === 'find') {
+      const r = list('roles'), p = list('people');
+      if (!r.length && !p.length) return emptyCard('find');
+      return `<section class="sv-card sv-full" data-group="find">${r.length ? `<p class="sv-group">Roles · ${r.length}</p>${r.map(R.roles).join('')}` : ''}${p.length ? `<p class="sv-group">People · ${p.length}</p>${p.map(R.people).join('')}` : ''}</section>`;
+    }
+    const l = list(k); if (!l.length) return emptyCard(k);
+    return `<section class="sv-card sv-full" data-group="${k}">${l.map(x => R[k](x)).join('')}</section>${k === 'betas' ? `<p class="sv-tip">${icon('info')}Betas you join stay here until they end, with your next task.</p>` : ''}`;
+  }
+  function render() {
+    renderTabs(); renderSoon();
+    const body = qs('#body');
+    body.innerHTML = tab === 'all' ? renderAll() : tab === 'funding' ? renderFunding() : renderOne(tab);
+  }
+  function go(t) {
+    if (t === tab) return; const prevDefault = tab === 'funding' ? 'deadline' : 'recent';
+    tab = t; if (sort === prevDefault) sort = tab === 'funding' ? 'deadline' : 'recent';
+    const u = new URL(location.href); if (tab === 'all') u.searchParams.delete('t'); else u.searchParams.set('t', tab); history.replaceState(null, '', u);
+    render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ---------------------------------------------------------------- events
+  qs('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
+  qs('#body').addEventListener('click', async e => {
+    const more = e.target.closest('a[data-tab]'); if (more) { e.preventDefault(); go(more.dataset.tab); return; }
+    const ap = e.target.closest('[data-apply]');
+    if (ap) { const o = S.funding.find(x => x.id === ap.dataset.apply); setTimeout(() => toast(`Applied to ${o ? o.name : 'it'}? Open the listing to mark it so we stop reminding you`), 600); return; }
+    const b = e.target.closest('[data-unsave]'); if (!b) return;
+    const kind = b.dataset.unsave, id = b.dataset.id, row = b.closest('[data-row]');
+    b.disabled = true;
+    try {
+      if (kind === 'person') await API.savePerson(id, false);
+      else if (kind === 'funding') await API.fundingUntrack(id);
+      else await API.bookmark(kind, id, false);
+      if (kind === 'product') S.products = S.products.filter(x => x.id !== id);
+      else if (kind === 'article') S.stories = S.stories.filter(x => x.id !== id);
+      else if (kind === 'role') S.roles = S.roles.filter(x => x.id !== id);
+      else if (kind === 'person') S.people = S.people.filter(x => x.key !== id);
+      else if (kind === 'funding') S.funding = S.funding.filter(x => x.id !== id);
+      else if (kind === 'beta') S.betas = S.betas.map(x => x.id === id ? Object.assign({}, x, { saved: false }) : x).filter(x => x.saved || x.app);
+      row.classList.add('is-gone'); setTimeout(render, 260);
+      toast(kind === 'beta' && S.betas.some(x => x.id === id) ? 'Removed. Betas you’ve joined stay here until they end' : 'Removed from saved');
+    } catch (err) { b.disabled = false; H.fail(err); }
+  });
+  let t; qs('#q').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { term = e.target.value.trim(); render(); }, 150); });
+  qs('#sbtn').addEventListener('click', () => { const s = qs('#search'); s.classList.toggle('is-open'); if (s.classList.contains('is-open')) qs('#q').focus(); });
+  qs('#sort').addEventListener('change', e => { sort = e.target.value; render(); });
+  let mq = matchMedia('(max-width:900px)'); mq.addEventListener && mq.addEventListener('change', () => tab === 'all' && render());
+
+  try { await fetchAll(); } catch (e) { H.fail(e); }
+  render();
 })();
 </script>
 </body>
