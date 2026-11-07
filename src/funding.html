@@ -21,7 +21,7 @@
 .fu-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
 .fu-filters .chip{height:34px}
 .fu-grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;align-items:start}
-.fu-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fu-cards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .fu-card{padding:20px;border-radius:14px;display:flex;flex-direction:column;gap:12px;position:relative}
 .fu-amt{font-size:22px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .fu-amt small{font-size:13px;font-weight:400;color:var(--color-text-tertiary);letter-spacing:0}
@@ -122,6 +122,7 @@ H.mount({ active: 'funding', tab: 'you' });
 
   // ------------------------------------------------ board
   let pid = FU.pickPid(products), B = null;
+  const PAGE = 48;   // render in pages: the catalogue runs to hundreds of funders
   async function load() {
     root.style.opacity = B ? .6 : 1;
     try { B = await API.fundingBoard(pid, mode); } catch (e) { H.fail(e); return; }
@@ -148,7 +149,7 @@ H.mount({ active: 'funding', tab: 'you' });
     return L;
   }
   function render() {
-    const p = B.product, L = filtered();
+    const p = B.product, all = filtered(), L = all.slice(0, F.limit || PAGE);
     if (!F.view) F.view = B.opps.some(isBest) ? 'best' : 'all';
     const nBest = B.opps.filter(isBest).length;
     const quick = mode === 'grant' ? [['soon', 'Closing soon'], ['women', 'Women-founded'], ['nondil', 'Non-dilutive'], ['comp', 'Competitions']] : [['form', 'Online form'], ['angel', 'Angels'], ['vc', 'VC funds'], ['acc', 'Accelerators']];
@@ -160,7 +161,7 @@ H.mount({ active: 'funding', tab: 'you' });
       <div class="tabs fu-tabs" role="tablist" aria-label="Which opportunities"><button class="tab" type="button" role="tab" data-view="best" aria-selected="${F.view === 'best'}">Best match <span class="c-3">${nBest}</span></button><button class="tab" type="button" role="tab" data-view="all" aria-selected="${F.view === 'all'}">All opportunities <span class="c-3">${B.opps.length}</span></button></div>
       <div class="fu-filters">${quick.map(([k, l]) => `<button class="chip" type="button" data-q="${k}" aria-pressed="${F.quick === k}">${icon('check')}${l}</button>`).join('')}
         ${sel('cat', 'Category', CATS.map(c => [c, c]))}${sel('cc', 'Country', Object.entries(FU.CN))}${sel('stage', 'Stage', STAGES.map(s => [s, s]))}${sel('amount', 'Amount', [[5000, '$5k+'], [25000, '$25k+'], [100000, '$100k+'], [500000, '$500k+']])}</div>
-      <div class="fu-grid"><div>${L.length ? (mode === 'grant' ? `<div class="fu-cards">${L.map(card).join('')}</div>` : table(L)) : `<div class="card fu-empty">${icon('search', 'ic-20')}<p style="margin-top:8px">${F.view === 'best' && !nBest ? `Nothing fits ${esc(B.product.name)} closely yet.` : 'Nothing matches these filters yet.'}</p><p class="t-body-sm c-3" style="margin-top:4px">${F.view === 'best' ? '<button class="link link--accent" type="button" data-view="all">See all opportunities</button>' : B.opps.length ? 'Try clearing a filter.' : 'Hentity adds new rounds as they open. Check back soon.'}</p></div>`}</div>
+      <div class="fu-grid"><div>${L.length ? (mode === 'grant' ? `<div class="fu-cards">${L.map(card).join('')}</div>` : table(L)) + (all.length > L.length ? `<div style="text-align:center;margin-top:16px"><button class="btn btn--secondary" type="button" id="more">Show more <span class="c-3">${all.length - L.length} left</span></button></div>` : '') : `<div class="card fu-empty">${icon('search', 'ic-20')}<p style="margin-top:8px">${F.view === 'best' && !nBest ? `Nothing fits ${esc(B.product.name)} closely yet.` : 'Nothing matches these filters yet.'}</p><p class="t-body-sm c-3" style="margin-top:4px">${F.view === 'best' ? '<button class="link link--accent" type="button" data-view="all">See all opportunities</button>' : B.opps.length ? 'Try clearing a filter.' : 'Hentity adds new rounds as they open. Check back soon.'}</p></div>`}</div>
         <aside class="fu-side">
           <div class="card"><p class="t-label">Saved and applied</p>${tr.length ? tr.map(a => { const s = FU.TRACK[a.status] || [a.status, '']; const d = FU.daysLeft(a.deadline); return `<a class="fu-app" href="/funding/${a.opp_id}?p=${pid}"><span style="min-width:0"><span class="truncate" style="display:block">${esc(a.name)}</span><span class="t-caption ${a.status === 'saved' && d != null && d >= 0 && d < 10 ? 'fu-red' : 'c-3'}" style="font-weight:400">${esc(FU.deadlineText(a))}</span></span><span class="badge ${a.status === 'applied' && a.closed ? 'badge--success' : 'badge--' + s[1]}">${s[0]}</span></a>`; }).join('') : `<p class="t-body-sm c-3" style="margin-top:8px">Nothing yet. Save ${mode === 'grant' ? 'a grant' : 'an investor'} or mark one as applied to track it here, with reminders before deadlines.</p>`}</div>
         </aside></div>`;
@@ -189,15 +190,16 @@ H.mount({ active: 'funding', tab: 'you' });
           <div class="fu-act" style="text-align:right">${applied ? `<button class="btn btn--sm btn--ghost" type="button" data-inv="${o.id}">${icon('check', 'ic-14')}Applied</button>` : `<a class="btn btn--sm ${f[1] === 'success' ? 'btn--primary' : 'btn--secondary'}" href="${esc(FU.applyUrl(o))}" target="_blank" rel="noopener" data-go="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>`}</div></div>`; }).join('')}</div>`;
   }
   root.addEventListener('click', async e => {
-    const m = e.target.closest('[data-mode]'); if (m) { mode = m.dataset.mode; F.quick = ''; F.view = ''; load(); return; }
-    const v = e.target.closest('[data-view]'); if (v) { F.view = v.dataset.view; render(); return; }
-    const q = e.target.closest('[data-q]'); if (q) { F.quick = F.quick === q.dataset.q ? '' : q.dataset.q; render(); return; }
+    if (e.target.closest('#more')) { F.limit = (F.limit || PAGE) + PAGE; render(); return; }
+    const m = e.target.closest('[data-mode]'); if (m) { mode = m.dataset.mode; F.quick = ''; F.view = ''; F.limit = 0; load(); return; }
+    const v = e.target.closest('[data-view]'); if (v) { F.view = v.dataset.view; F.limit = 0; render(); return; }
+    const q = e.target.closest('[data-q]'); if (q) { F.quick = F.quick === q.dataset.q ? '' : q.dataset.q; F.limit = 0; render(); return; }
     const s = e.target.closest('[data-save]'); if (s) { e.preventDefault(); const o = B.opps.find(x => x.id === s.dataset.save); const on = !o.track; try { if (on) await API.fundingTrack(o.id, pid, { status: 'saved', remind: true }); else await API.fundingUntrack(o.id); toast(on ? 'Saved. We’ll remind you before it closes.' : 'Removed from saved'); load(); } catch (er) { H.fail(er); } return; }
     // Opening a funder's site saves it to the tracker
     const g = e.target.closest('[data-go]'); if (g) { const o = B.opps.find(x => x.id === g.dataset.go); if (o && !o.track) API.fundingTrack(o.id, pid, { status: 'saved', remind: true }).then(load).catch(() => {}); return; }
     const iv = e.target.closest('[data-inv]'); if (iv && !e.target.closest('a')) { const o = B.opps.find(x => x.id === iv.dataset.inv); if (o) FU.investorSheet(o, B.product, pid, load); return; }
   });
-  root.addEventListener('change', e => { const f = e.target.dataset.f; if (f) { F[f] = e.target.value; render(); } if (e.target.id === 'pick') { pid = e.target.value; load(); } });
+  root.addEventListener('change', e => { const f = e.target.dataset.f; if (f) { F[f] = e.target.value; F.limit = 0; render(); } if (e.target.id === 'pick') { pid = e.target.value; load(); } });
   load();
 })();
 </script>

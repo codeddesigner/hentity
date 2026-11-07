@@ -1,0 +1,90 @@
+# name | hq | type | stages | sectors | rounds | domain | source
+Launch Africa|Ebène, Mauritius|vc|Seed, Pre-Seed|Fintech, IT|$200k–$4M|launchafrica.vc|https://shizune.co/investors/vc-funds-africa
+Ventures Platform|Abuja, Nigeria|vc|Seed, Pre-Seed|Fintech, Internet|$100k–$4M|venturesplatform.com|https://shizune.co/investors/vc-funds-africa
+LoftyInc Capital|Lagos, Nigeria|vc|Seed, Pre-Seed, Series A|Fintech, Software|$100k–$5M|loftyinccapital.vc|https://shizune.co/investors/vc-funds-africa
+Flat6Labs|Cairo, Egypt|accelerator|Pre-Seed, Seed|E-Commerce, Software|$62k–$174k|flat6labs.com|https://shizune.co/investors/vc-funds-africa
+54 Collective (Founders Factory Africa)|Johannesburg, South Africa|accelerator|Seed, Pre-Seed|Health Care, IT, Fintech|$40k–$2M|foundersfactory.com|https://shizune.co/investors/vc-funds-africa
+Musha Ventures|New York, United States|vc|Seed, Pre-Seed, Series A|Software, Fintech|$100k–$10M|mushaventures.com|https://shizune.co/investors/vc-funds-africa
+Future Africa|Lagos, Nigeria|vc|Seed, Pre-Seed, Series A|Fintech, IT|$100k–$4M|future.africa|https://shizune.co/investors/vc-funds-africa
+Algerian Startup Fund|Algiers, Algeria|vc|Pre-Seed, Seed, Series A|Apps, E-Commerce, Manufacturing|$35k–$145k|asf.dz|https://shizune.co/investors/vc-funds-africa
+Golden Palm Investments|Accra, Ghana|vc|Seed, Pre-Seed, Series A|IT, Fintech, Payments|$30k–$15M|gpalminvestments.com|https://shizune.co/investors/vc-funds-africa
+Kepple Africa Ventures|Nairobi, Kenya|vc|Seed, Pre-Seed, Series A|Fintech, Software|$100k–$4.5M|kepple-africa-ventures.com|https://shizune.co/investors/vc-funds-africa
+Antler|Singapore|vc|Pre-Seed, Seed|Software, AI|$100k–$600k|antler.co|https://shizune.co/investors/vc-funds-africa
+Ingressive Capital|Lagos, Nigeria|vc|Pre-Seed, Seed, Series A|Fintech, IT|$25k–$2M|ingressivecapital.com|https://shizune.co/investors/vc-funds-africa
+4DX Ventures|New York, United States|vc|Seed, Pre-Seed, Series A|Fintech, Logistics|$50k–$8M|4dxventures.com|https://shizune.co/investors/vc-funds-africa
+British International Investment|London, United Kingdom|dfi|Series B|Financial Services|$2.5M+|bii.co.uk|https://shizune.co/investors/vc-funds-africa
+CRE Venture Capital|New York, United States|vc|Seed, Series A, Pre-Seed|Fintech, Software|$250k–$4M|cre.vc|https://shizune.co/investors/vc-funds-africa
+Consonance Investment Managers|Lagos, Nigeria|vc|Seed, Series A, Pre-Seed|Software, Fintech|$185k–$4M|consonanceinvest.com|https://shizune.co/investors/vc-funds-africa
+Resilience17|Lagos, Nigeria|vc|Seed, Pre-Seed|Fintech, Payments, AI|$100k–$3M|resilience17.com|https://shizune.co/investors/vc-funds-africa
+TLcom Capital|London, United Kingdom|vc|Series A, Seed|Software, Mobile|$1M+|tlcomcapital.com|https://shizune.co/investors/vc-funds-africa
+Enza Capital|Nairobi, Kenya|vc|Seed, Series A|Fintech, E-Commerce|$250k–$5M|enza.capital|https://thecondia.com/active-investors-in-african-startups/
+Kaleo Ventures|Dubai, United Arab Emirates|vc|Pre-Seed, Seed, Series A|Fintech, Software|$25k–$2.7M|kaleo.vc|https://shizune.co/investors/vc-funds-africa
+EchoVC Partners|Lagos, Nigeria|vc|Seed, Pre-Seed, Series A|IT, Fintech|$200k–$4M|echovc.com|https://shizune.co/investors/vc-funds-africa
+Chandaria Capital|Nairobi, Kenya|vc|Seed, Series A, Pre-Seed|E-Commerce, Fintech|$200k–$6M|chandariacapital.com|https://shizune.co/investors/vc-funds-africa
+Proparco|Paris, France|dfi|Series A, Series B|Financial Services, Energy|€500k–€3M (Choose Africa)|proparco.fr|https://launchbaseafrica.com/2026/02/20/fresh-funds-african-tech-firms-can-pitch-to-in-2026/
+BIO (Belgian Investment Company for Developing Countries)|Brussels, Belgium|dfi|Series A|Financial Services|$43k–$9.8M|bio-invest.be|https://shizune.co/investors/climate-vc-funds-africa
+Voltron Capital|Lagos, Nigeria|vc|Pre-Seed, Seed|Fintech, Payments|$120k–$3M|voltron.africa|https://shizune.co/investors/vc-funds-africa
+Lateral Frontiers|New York, United States|vc|Seed, Series A, Pre-Seed|Fintech, Energy|$500k–$15M|latcap.co|https://shizune.co/investors/fintech-vc-funds-africa
+Savannah Fund|Nairobi, Kenya|vc|Seed, Series A, Pre-Seed|Software, E-Commerce, Fintech|$25k–$8M|savannah.vc|https://shizune.co/investors/software-vc-funds-africa
+Partech Africa|Dakar, Senegal|vc|Series A, Series B|Software, AI, E-Commerce, Fintech|$1M+|partechpartners.com|https://thecondia.com/african-vc-firms/
+Acumen|New York, United States|vc|Seed|Agriculture, Solar|$300k–$2.5M|acumen.org|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+E3 Capital|Paris, France|vc|Seed, Series A, Series B|Energy, Solar|$900k–$8M|eavafrica.com|https://shizune.co/investors/climate-vc-funds-africa
+HAVAÍC|Cape Town, South Africa|vc|Seed, Series A|Software, Health Care, Fintech|$83k–$15M|havaic.com|https://shizune.co/investors/software-vc-funds-africa
+International Finance Corporation (IFC)|Washington, United States|dfi|Series A, Series B, Growth|Financial Services|$5M+|ifc.org|https://shizune.co/investors/climate-vc-funds-africa
+Goodwater Capital|Burlingame, United States|vc|Seed, Pre-Seed|Software, Fintech|$125k+|goodwatercap.com|https://shizune.co/investors/vc-funds-kenya
+Silverbacks Holdings|Ebène, Mauritius|vc|Seed, Series A|Fintech|$100k–$32M|silverbacks.holdings|https://shizune.co/investors/fintech-vc-funds-africa
+GreenHouse Capital|Lagos, Nigeria|vc|Seed, Pre-Seed|Fintech, Payments|-|greenhouse.capital|https://shizune.co/investors/venture-capital-vc-funds-nigeria
+Mercy Corps Ventures|Portland, United States|vc|Seed, Pre-Seed, Series A|Fintech, Agriculture, Climate|$100k–$1M|mercycorpsventures.vc|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Everywhere Ventures|New York, United States|vc|Seed, Pre-Seed, Series A|Software, Health Care, AI|$250k+|everywhere.vc|https://shizune.co/investors/software-vc-funds-africa
+Hustle Fund|San Carlos, United States|vc|Pre-Seed, Seed|Software, AI, Fintech|$25k–$150k|hustlefund.vc|https://shizune.co/investors/software-vc-funds-africa
+SOSV|Princeton, United States|vc|Pre-Seed, Seed|Biotech, Health Care, Hardware|$50k–$525k|sosv.com|https://shizune.co/investors/web3-vc-funds-africa
+Knife Capital|Cape Town, South Africa|vc|Series A|Software, IT, Education|$1M–$15M|knifecap.com|https://shizune.co/investors/software-vc-funds-africa
+Pearl Capital Partners|Kampala, Uganda|vc|Seed|Agriculture, Food Processing|$5k–$2.6M|pearlcapital.net|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Injini|Cape Town, South Africa|accelerator|Pre-Seed, Seed|Education, EdTech|$7k–$500k|injini.africa|https://shizune.co/investors/software-vc-funds-africa
+Unpopular Ventures|San Francisco, United States|vc|Seed, Pre-Seed|Software, AI, Fintech|$500k+|unpopular.vc|https://shizune.co/investors/software-vc-funds-africa
+Oui Capital|Lagos, Nigeria|vc|Seed, Pre-Seed|Fintech, Apps|$40k–$4.9M|ouicapital.vc|https://startupmaphub.com/funding/oui-capital
+Flourish Ventures|Redwood City, United States|vc|Seed, Series A, Series B|Fintech|$1.3M+|flourishventures.com|https://shizune.co/investors/fintech-vc-funds-africa
+P1 Ventures|Cairo, Egypt|vc|Pre-Seed, Seed|Fintech, E-Commerce, Health, Logistics|$250k–$2.5M|p1.ventures|https://launchbaseafrica.com/2026/02/20/fresh-funds-african-tech-firms-can-pitch-to-in-2026/
+HoaQ|Nairobi, Kenya|vc|Pre-Seed, Seed|Fintech, Internet|$100k–$3.3M|hoaq.club|https://startupmaphub.com/funding/hoaq-pitch-deck-submission
+Saviu Ventures|Paris, France|vc|Seed, Pre-Seed|Fintech, E-Commerce|$174k–$5M|saviu.vc|https://shizune.co/investors/software-vc-funds-africa
+SAHEL Capital|Lagos, Nigeria|vc|Series B|Agriculture, Food|$500k–$2.4M|sahelcp.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Acumen Resilient Agriculture Fund (ARAF)|Nairobi, Kenya|vc|Seed, Series A|Agriculture, AgTech|$600k–$3M|arafund.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+AgDevCo|London, United Kingdom|vc|Growth|Agriculture|$1.1M–$10M|agdevco.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Alphamundi|Zürich, Switzerland|vc|Series A, Series B|Agriculture, Renewable Energy|$1.7M–$16M|alphamundi.ch|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+VestedWorld|Chicago, United States|vc|Seed, Series A, Series B|Agriculture, Fintech|$1.6M–$20M|vestedworld.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+FMO|The Hague, Netherlands|dfi|Series B|Financial Services, Energy|$1.5M+|fmo.nl|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Iungo Capital|Kampala, Uganda|vc|Seed|Agriculture, AgTech|$100k–$490k|iungocapital.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Equitable Ventures|Calebasses, Mauritius|vc|Seed, Pre-Seed|Fintech, IT|$80k–$2.6M|equitable.ventures|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+University Technology Fund|Stellenbosch, South Africa|vc|Seed|Biotech, AgTech, Medical|$467k–$5M|utfund.co.za|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Hooge Raedt Social Venture|Baarn, Netherlands|vc|Seed|Agriculture, Social Enterprise|$48k–$1.5M|hrsv.info|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+1776 Ventures|Washington, United States|vc|Seed, Series A|Education, Software|$400k+|1776.ventures|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Opes Impact Fund|Milan, Italy|vc|Seed|Agriculture, Energy, Communities|$219k–$910k|opesfund.eu|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+GreenTec Capital Partners|Frankfurt, Germany|vc|Seed, Pre-Seed|Logistics, IT, Retail|$50k–$1M|greentec-capital.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Finnfund|Helsinki, Finland|dfi|Series B|Financial Services, Energy|-|finnfund.fi|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+Harambeans|Kigali, Rwanda|vc|Seed, Angel|IT, B2B, Fintech|$100k–$3.1M|harambeans.com|https://shizune.co/investors/agriculture-agtech-vc-funds-africa
+All On|Lagos, Nigeria|vc|Seed|Renewable Energy, Solar|$50k–$4M|all-on.com|https://shizune.co/investors/climate-vc-funds-africa
+EDFI ElectriFI|Brussels, Belgium|dfi|Series A|Energy, Solar|$114k–$30M|electrifi.eu|https://shizune.co/investors/climate-vc-funds-africa
+Persistent Energy Capital|Zürich, Switzerland|vc|Seed|Energy, Solar|$500k–$1.3M|persistent.energy|https://shizune.co/investors/climate-vc-funds-africa
+Norfund|Oslo, Norway|dfi|Growth|Financial Services, Renewable Energy|$2.2M+|norfund.no|https://shizune.co/investors/climate-vc-funds-africa
+TRINE|Gothenburg, Sweden|vc|Seed|Solar, Energy|$543k–$16M (debt)|trine.com|https://shizune.co/investors/climate-vc-funds-africa
+Aster|Paris, France|vc|Series A, Series B|Energy, Software|$281k–$27M|aster.com|https://shizune.co/investors/climate-vc-funds-africa
+Factor[e] Ventures|Fort Collins, United States|vc|Seed, Series A|Energy, Agriculture|$20k–$4.6M|factore.com|https://shizune.co/investors/climate-vc-funds-africa
+Triodos Investment Management|Zeist, Netherlands|vc|Series A|Financial Services, Energy|$759k+|triodos-im.com|https://shizune.co/investors/climate-vc-funds-africa
+Oikocredit|Amersfoort, Netherlands|vc|Series A, Series B|Financial Services, Fintech|$1.1M–$33M|oikocredit.coop|https://shizune.co/investors/climate-vc-funds-africa
+GAIA Impact Fund|Paris, France|vc|Seed, Series A, Series B|Energy, Solar|$100k–$9M|gaia-impactfund.com|https://shizune.co/investors/climate-vc-funds-africa
+SunFunder (Mirova SunFunder)|Nairobi, Kenya|vc|Growth|Solar, Energy (debt)|$1.2M–$50M|sunfunder.com|https://shizune.co/investors/impact-vc-funds-africa
+Energise Africa|Oxford, United Kingdom|vc|Growth|Renewable Energy, Solar|$200k–$4M|energiseafrica.com|https://shizune.co/investors/impact-vc-funds-africa
+Shell Foundation|London, United Kingdom|grant|Seed, Series A|Energy, Financial Services|$300k–$12M|shellfoundation.org|https://shizune.co/investors/impact-vc-funds-africa
+UNCOVERED FUND|Tokyo, Japan|vc|Seed, Series A, Pre-Seed|Fintech, E-Commerce|$700k+|uncoveredfund.com|https://shizune.co/investors/fintech-vc-funds-africa
+Digital Currency Group|Stamford, United States|vc|Seed, Series A|Blockchain, Fintech|$550k+|dcg.co|https://shizune.co/investors/fintech-vc-funds-africa
+Algebra Ventures|Cairo, Egypt|vc|Pre-Seed, Seed, Series A|Fintech, Education, Consumer|$500k–$4M|algebraventures.com|https://vcbeast.com/vc-firms/city/cairo-egypt
+Sawari Ventures|Cairo, Egypt|vc|Seed, Series A|Internet, Hardware, Education, Climate, Fintech|$3M|sawariventures.com|https://www.failory.com/blog/venture-capital-firms-egypt
+A15|Cairo, Egypt|vc|Seed|Fintech, Consumer, Internet|-|a15.com|https://www.failory.com/blog/venture-capital-firms-egypt
+Chui Ventures|Nairobi, Kenya|vc|Pre-Seed, Seed|Sector-agnostic|Up to $100k+|chuivc.com|https://launchbaseafrica.com/2026/02/20/fresh-funds-african-tech-firms-can-pitch-to-in-2026/
+Norrsken22|Kigali, Rwanda|vc|Series A|Fintech, Education, Health, AI|$1M+|norrsken22.com|https://thecondia.com/african-vc-firms/
+Accion Venture Lab|Washington, United States|vc|Seed, Series A|Fintech|-|accion.org|https://thecondia.com/african-vc-firms/
+Renew Capital|Nairobi, Kenya|vc|Seed, Series A|Sector-agnostic|$50k–$300k|renewcapital.com|https://thecondia.com/african-vc-firms/
+Aruwa Capital Management|Lagos, Nigeria|vc|Growth|Health, Fintech, Energy, Consumer|$500k–$2.5M|aruwacapital.com|https://startupmaphub.com/funding/aruwa-capital-management
+Jobtech Alliance|Nairobi, Kenya|accelerator|Seed|E-commerce, Jobtech|-|jobtechalliance.com|https://thecondia.com/active-investors-in-african-startups/
+Azur Innovation Fund|Casablanca, Morocco|vc|Seed, Series A|Mobility, Software|-|?azur-if.com|https://thecondia.com/active-investors-in-african-startups/
+Cascador|Lagos, Nigeria|accelerator|Growth|Agritech, Clean Energy, Fintech|-|cascador.org|https://thecondia.com/active-investors-in-african-startups/
