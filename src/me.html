@@ -31,6 +31,7 @@
     <a href="/settings/profile"><span data-icon="settings"></span>Settings</a><a href="/admin" id="admin-link" hidden><span data-icon="shield"></span>Admin</a><a href="/news"><span data-icon="newspaper"></span>News</a><a href="/insights"><span data-icon="bar-chart"></span>Insights</a>
     <label><span data-icon="eye"></span>Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle aria-label="Dark mode"><span class="toggle__track"></span></span></label>
     <a href="/guidelines"><span data-icon="info"></span>Help &amp; guidelines</a>
+    <a href="#install" id="pwa-row" data-pwa-install hidden><span data-icon="download"></span>Install the app<span class="meta">Home screen</span></a>
   </nav>
   <button class="btn btn--ghost" type="button" data-signout style="color:var(--color-error);margin-top:16px"><span data-icon="arrow-left"></span>Sign out</button>
 </main>
@@ -44,6 +45,7 @@ H.mount({ tab: 'you' });
   const u = H.user();
   H.qs('#me-av').outerHTML = H.avatar(u, 72); H.qs('#me-name').textContent = u.name; H.qs('#me-handle').textContent = u.username; H.qs('#me-city').innerHTML = H.flag(u.country || 'NG') + ' ' + H.esc(u.city || '');
   H.qs('#pub').href = '/makers/' + u.username;
+  const pr = H.qs('#pwa-row'), showPwa = () => { pr.hidden = !H.pwa.available(); }; showPwa(); window.addEventListener('beforeinstallprompt', () => setTimeout(showPwa)); window.addEventListener('appinstalled', showPwa);
   const c = await API.followCounts(u.id); H.qs('#f1').dataset.countTo = c.followers; H.qs('#f2').dataset.countTo = c.following;
   const mp = await API.myProducts(); H.qs('#f3').dataset.countTo = mp.length; H.qs('#mp-n').textContent = mp.length || ''; M.countUp();
   const b = await API.bookmarks('product'); H.qs('#sv-n').textContent = b.length || '';

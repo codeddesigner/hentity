@@ -76,6 +76,11 @@ for p in sorted(SRC.rglob('*')):
         if path and path not in ('/signin', '/signup'): public_paths.append(path)
     else:
         shutil.copy2(p, dst)
+# Service worker: stamp a build version so each deploy installs a fresh worker and clears old caches
+_sw = OUT / 'sw.js'
+if _sw.exists():
+    _v = hashlib.sha256(json.dumps(ASSET_V, sort_keys=True).encode() + b''.join(f.read_bytes() for f in sorted(OUT.rglob('*.html')))).hexdigest()[:12]
+    _sw.write_text(_sw.read_text().replace('__VERSION__', _v))
 # Static page list for the sitemap function (dynamic URLs are added at request time)
 (ROOT / 'api').mkdir(exist_ok=True)
 (ROOT / 'api' / '_static-paths.json').write_text(json.dumps(sorted(public_paths)))

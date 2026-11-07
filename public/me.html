@@ -9,16 +9,21 @@
 <meta property="og:locale" content="en_GB">
 <link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png?v=3" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hentity">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="application-name" content="Hentity">
 <link rel="shortcut icon" href="/favicon.ico?v=3">
-<link rel="manifest" href="/site.webmanifest">
+<link rel="manifest" href="/site.webmanifest?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=499b51d8d9">
+<link rel="stylesheet" href="/assets/styles.css?v=5e71a791fa">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -36,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=733a088ad0"></script>
+<script src="/assets/app.js?v=424c244de1"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -80,6 +85,7 @@
     <a href="/settings/profile"><span data-icon="settings"></span>Settings</a><a href="/admin" id="admin-link" hidden><span data-icon="shield"></span>Admin</a><a href="/news"><span data-icon="newspaper"></span>News</a><a href="/insights"><span data-icon="bar-chart"></span>Insights</a>
     <label><span data-icon="eye"></span>Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle aria-label="Dark mode"><span class="toggle__track"></span></span></label>
     <a href="/guidelines"><span data-icon="info"></span>Help &amp; guidelines</a>
+    <a href="#install" id="pwa-row" data-pwa-install hidden><span data-icon="download"></span>Install the app<span class="meta">Home screen</span></a>
   </nav>
   <button class="btn btn--ghost" type="button" data-signout style="color:var(--color-error);margin-top:16px"><span data-icon="arrow-left"></span>Sign out</button>
 </main>
@@ -93,6 +99,7 @@ H.mount({ tab: 'you' });
   const u = H.user();
   H.qs('#me-av').outerHTML = H.avatar(u, 72); H.qs('#me-name').textContent = u.name; H.qs('#me-handle').textContent = u.username; H.qs('#me-city').innerHTML = H.flag(u.country || 'NG') + ' ' + H.esc(u.city || '');
   H.qs('#pub').href = '/makers/' + u.username;
+  const pr = H.qs('#pwa-row'), showPwa = () => { pr.hidden = !H.pwa.available(); }; showPwa(); window.addEventListener('beforeinstallprompt', () => setTimeout(showPwa)); window.addEventListener('appinstalled', showPwa);
   const c = await API.followCounts(u.id); H.qs('#f1').dataset.countTo = c.followers; H.qs('#f2').dataset.countTo = c.following;
   const mp = await API.myProducts(); H.qs('#f3').dataset.countTo = mp.length; H.qs('#mp-n').textContent = mp.length || ''; M.countUp();
   const b = await API.bookmarks('product'); H.qs('#sv-n').textContent = b.length || '';

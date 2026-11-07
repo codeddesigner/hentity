@@ -1225,3 +1225,14 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 
 /* While the app starts, keep the plain server-rendered copy out of sight (it stays for crawlers and as a fallback) */
 .js-boot [data-ssr]{visibility:hidden}
+
+/* Installable app */
+.pwa-bar{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 12px;border-radius:16px;background:var(--color-bg-canvas);border:1px solid var(--color-border-default);box-shadow:0 12px 32px -8px rgba(16,24,40,.18);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
+.pwa-bar img{border-radius:9px;flex:none}
+.pwa-sheet{max-width:400px;display:flex;flex-direction:column;gap:18px}
+.pwa-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:20px}
+.pwa-steps li{display:flex;align-items:center;gap:10px}.pwa-steps b{font-weight:600}
+.pwa-steps li>span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-muted);font-size:12px;font-weight:600;flex:none}
+.pwa-steps .ic{display:inline-block;width:18px;height:18px;color:#0A84FF;vertical-align:-3px;margin:0 2px}
+/* Inside the installed app the browser chrome is gone, so pages feel native: no text selection flashes on taps */
+.is-app body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}

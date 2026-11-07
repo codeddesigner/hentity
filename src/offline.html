@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<title>You’re offline | Hentity</title>
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<style>
+:root{--bg:#fafafa;--card:#fff;--t1:#0a0a0a;--t2:#52525b;--line:#e4e4e7;--accent:#ff5b14}
+@media (prefers-color-scheme:dark){:root{--bg:#0a0a0a;--card:#141414;--t1:#fafafa;--t2:#a1a1aa;--line:#27272a}}
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--t1);font:15px/1.5 Geist,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.c{max-width:380px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 28px}
+.c svg{width:48px;height:48px;margin-bottom:18px}
+h1{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.01em}
+p{color:var(--t2);margin-top:8px}
+button{margin-top:22px;height:40px;padding:0 18px;border-radius:10px;border:0;background:var(--t1);color:var(--card);font:500 14px/1 inherit;font-family:inherit;cursor:pointer}
+small{display:block;margin-top:14px;color:var(--t2);font-size:13px}
+</style>
+</head>
+<body>
+<main class="c">
+  <svg viewBox="0 0 416 416" aria-hidden="true"><circle cx="208" cy="208" r="208" fill="currentColor"/><path fill="var(--card)" d="M184 90H232V184H326V232A94 94 0 0 0 232 326H184V232H90V184A94 94 0 0 0 184 90Z"/></svg>
+  <h1>You’re offline</h1>
+  <p>Hentity needs a connection for this page. Pages you’ve opened recently still work.</p>
+  <button type="button" onclick="location.reload()">Try again</button>
+  <small id="s"></small>
+</main>
+<script>addEventListener('online', function () { location.reload(); }); document.getElementById('s').textContent = navigator.onLine ? '' : 'We’ll reload as soon as you’re back online.';</script>
+</body>
+</html>

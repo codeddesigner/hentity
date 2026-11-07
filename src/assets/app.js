@@ -208,7 +208,7 @@
       : `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${icon(ic)}${l}${k === 'chats' && s ? `<span class="tab-badge"${counts.chats ? '' : ' hidden'}>${counts.chats || ''}</span>` : ''}</a>`).join('')}</nav>`;
   }
   function setCount(key, n) {
-    counts[key] = n; store.set('count.' + key, n);
+    counts[key] = n; store.set('count.' + key, n); if (key === 'notifs') appBadge(n);
     document.querySelectorAll(`[data-count="${key}"]`).forEach(el => { el.textContent = n; el.hidden = !n; });
     document.querySelectorAll(`[data-count-dot="${key}"]`).forEach(el => { el.hidden = !n; });
     document.querySelectorAll('.tab-badge').forEach(el => { if (key === 'chats') { el.textContent = n; el.hidden = !n; } });
@@ -231,6 +231,7 @@
       <div class="menu__sep"></div>
       <label class="menu__item" role="menuitemcheckbox" aria-checked="${dark}">${icon('eye')}Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle ${dark ? 'checked' : ''} aria-label="Dark mode"><span class="toggle__track"></span></span></label>
       <a class="menu__item" role="menuitem" href="/guidelines">${icon('info')}Help &amp; guidelines</a>
+      ${pwa.available() ? `<button class="menu__item" role="menuitem" type="button" data-pwa-install>${icon('download')}Install the app</button>` : ''}
       <div class="menu__sep"></div>
       <button class="menu__item menu__item--danger" role="menuitem" type="button" data-signout>${icon('arrow-left')}Sign out</button>`;
     document.body.appendChild(m);
@@ -410,5 +411,53 @@
   const catShort = c => ({ Agriculture: 'Agritech', Education: 'Edtech', 'Energy & Climate': 'Climate' })[c] || c;
   // "Inactive" tag for startups that have shut down, been renamed or acquired
   function inactiveTag(p, lg) { return p && p.active === false ? `<span class="off-tag${lg ? ' off-tag--lg' : ''}" title="${esc(p.inactive_note || 'No longer operating')}">Inactive</span>` : ''; }
-  window.H = { inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  // ---------------------------------------------------------------- Installable app (PWA)
+  const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let deferredInstall = null;
+  if (standalone()) document.documentElement.classList.add('is-app');
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; document.documentElement.classList.add('can-install'); maybeInstallBanner(); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; document.documentElement.classList.remove('can-install'); document.querySelectorAll('.pwa-bar').forEach(b => b.remove()); store.set('pwa.installed', 1); toast('Hentity is on your home screen'); });
+  const pwa = {
+    standalone, isIOS,
+    // Chrome, Edge and Android give us a prompt; Safari on iPhone and iPad installs from the Share menu
+    available: () => !standalone() && (!!deferredInstall || (isIOS && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent))),
+    async install() {
+      if (deferredInstall) { const e = deferredInstall; deferredInstall = null; e.prompt(); const r = await e.userChoice.catch(() => ({})); if (r.outcome !== 'accepted') deferredInstall = e; return; }
+      if (isIOS) iosSheet();
+    }
+  };
+  function iosSheet() {
+    const share = '<svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12.5V2.5M6.67 5.83 10 2.5l3.33 3.33M5.83 9.17H5a1.67 1.67 0 0 0-1.67 1.66v5A1.67 1.67 0 0 0 5 17.5h10a1.67 1.67 0 0 0 1.67-1.67v-5A1.67 1.67 0 0 0 15 9.17h-.83"/></svg>';
+    const sc = document.createElement('div'); sc.className = 'scrim'; sc.style.zIndex = 120;
+    sc.innerHTML = `<div class="modal pwa-sheet" role="dialog" aria-modal="true" aria-label="Add Hentity to your home screen">
+      <div class="row gap-12"><img src="/icons/icon-192.png" alt="" width="48" height="48" style="border-radius:12px"><div><p class="t-h4">Add Hentity to your home screen</p><p class="t-caption c-3" style="font-weight:400">It opens full screen, like an app</p></div></div>
+      <ol class="pwa-steps"><li><span>1</span><p>Tap ${share} <b>Share</b> in Safari’s toolbar</p></li><li><span>2</span><p>Scroll down and tap <b>Add to Home Screen</b></p></li><li><span>3</span><p>Tap <b>Add</b> in the top corner</p></li></ol>
+      <button class="btn btn--primary btn--block" type="button" data-x>Got it</button></div>`;
+    document.body.append(sc);
+    sc.addEventListener('click', e => { if (e.target === sc || e.target.closest('[data-x]')) sc.remove(); });
+  }
+  // A quiet bar on phones after a few visits, once per fortnight at most, never inside the installed app
+  function maybeInstallBanner() {
+    if (!pwa.available() || window.innerWidth > 768 || document.querySelector('.pwa-bar')) return;
+    if (/^\/(signin|signup|welcome|offline|admin)/.test(location.pathname)) return;
+    const visits = store.get('pwa.visits', 0), last = store.get('pwa.dismissed', 0);
+    if (visits < 3 || Date.now() - last < 14 * 864e5) return;
+    const b = document.createElement('div'); b.className = 'pwa-bar'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Install Hentity');
+    b.innerHTML = `<img src="/icons/icon-192.png" alt="" width="36" height="36"><div class="grow" style="min-width:0"><p class="t-label">Get the Hentity app</p><p class="t-caption c-3" style="font-weight:400">Faster, full screen, on your home screen</p></div><button class="btn btn--primary btn--sm" type="button" data-pwa-install>Install</button><button class="nav__icon" type="button" data-pwa-close aria-label="Not now">${icon('x', 'ic-16')}</button>`;
+    document.body.append(b);
+    b.addEventListener('click', e => { if (e.target.closest('[data-pwa-close]')) { store.set('pwa.dismissed', Date.now()); b.remove(); } else if (e.target.closest('[data-pwa-install]')) { b.remove(); pwa.install(); } });
+  }
+  document.addEventListener('click', e => { if (e.target.closest('[data-pwa-install]') && !e.target.closest('.pwa-bar')) { e.preventDefault(); closeMenus(); pwa.install(); } });
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      store.set('pwa.visits', store.get('pwa.visits', 0) + 1);
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      if (isIOS) setTimeout(maybeInstallBanner, 4000);
+    });
+  }
+  // Unread notifications show as a badge on the installed app's icon where the system supports it
+  function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
+
+  window.H = { pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
