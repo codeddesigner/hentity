@@ -7,8 +7,8 @@
   const KIND = { grant: 'Grant', prize: 'Prize', competition: 'Competition', vc: 'VC fund', angel: 'Angel network', accelerator: 'Accelerator', micro_vc: 'Micro-VC' };
   const TRACK = { saved: ['Saved', 'warning'], applied: ['Applied', 'info'] };
   const initials = n => (n || '?').replace(/[^A-Za-z0-9 ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
-  const logo = (o, sz) => o.logo_url ? `<span class="fu-logo" style="width:${sz}px;height:${sz}px;background:#fff url('${esc(o.logo_url)}') center/cover"></span>`
-    : `<span class="fu-logo" style="width:${sz}px;height:${sz}px;background:${esc(o.color || '#111')};font-size:${Math.round(sz * .36)}px">${esc(initials(o.name))}</span>`;
+  // Funder logo over its initials; if the image fails to load the initials show through
+  const logo = (o, sz) => `<span class="fu-logo" style="width:${sz}px;height:${sz}px;background:${esc(o.color || '#111')};font-size:${Math.round(sz * .36)}px;position:relative;overflow:hidden">${esc(initials(o.name))}${o.logo_url ? `<img src="${esc(o.logo_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:${Math.round(sz * .12)}px;box-sizing:border-box;border:1px solid var(--color-border-default);border-radius:inherit">` : ''}</span>`;
   const daysLeft = d => d ? Math.ceil((new Date(d + 'T23:59:59') - new Date()) / 864e5) : null;
   const fmtDate = (d, year) => d ? new Date(d.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-GB', Object.assign({ day: 'numeric', month: 'short' }, year ? { year: 'numeric' } : {})) : '';
   const left = d => d <= 0 ? 'closes today' : d + ' day' + (d === 1 ? '' : 's') + ' left';
