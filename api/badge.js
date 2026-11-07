@@ -26,7 +26,7 @@ function svg(b, theme, scale, name) {
   const css = `.bg{fill:#fff;stroke:#e5e5e5}.fg{fill:#0a0a0a}.sub{fill:#737373}.ci{fill:#0a0a0a}.mk{fill:#fff}.ln{stroke:#e5e5e5}.dark .bg{fill:#0a0a0a;stroke:#0a0a0a}.dark .fg{fill:#fff}.dark .sub{fill:#a3a3a3}.dark .ci{fill:#fff}.dark .mk{fill:#0a0a0a}.dark .ln{stroke:#333}`
     + (theme === 'auto' ? `@media (prefers-color-scheme: dark){.bg{fill:#0a0a0a;stroke:#0a0a0a}.fg{fill:#fff}.sub{fill:#a3a3a3}.ci{fill:#fff}.mk{fill:#0a0a0a}.ln{stroke:#333}}` : '');
   const right = b.medal ? `<circle cx="${W - 30}" cy="27" r="15" fill="${MEDAL[b.medal]}"/><text x="${W - 30}" y="32.5" text-anchor="middle" font-family="Geist,Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="#fff">${b.medal}</text>`
-    : b.count != null ? `<line class="ln" x1="${W - 64}" y1="12" x2="${W - 64}" y2="42"/><path class="fg" d="M${W - 32} 13l7.5 12h-15z"/><text class="fg" x="${W - 32}" y="43" text-anchor="middle" font-family="Geist Mono,Menlo,monospace" font-size="12" font-weight="500">${x(fmt(b.count))}</text>` : '';
+    : b.count != null ? `<line class="ln" x1="${W - 64}" y1="12" x2="${W - 64}" y2="42"/><path class="fg" d="M${W - 32} 13l7.5 12h-15z"/><text class="fg" x="${W - 32}" y="43" text-anchor="middle" font-family="Geist,Inter,Arial,sans-serif" font-size="12" font-weight="500">${x(fmt(b.count))}</text>` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(W * scale)}" height="${Math.round(H * scale)}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${x(name ? name + ' · ' : '')}${x(b.alt || 'Hentity')}">
 <title>${x(name ? name + ' · ' : '')}${x(b.alt || 'Hentity')}</title><style>${css}</style>
 <g class="${theme === 'dark' ? 'dark' : ''}">

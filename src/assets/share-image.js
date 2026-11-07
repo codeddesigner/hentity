@@ -9,7 +9,7 @@
   };
   const ACCENT = '#FF5B14', LIME = '#E2F200', SKY = '#AEE6FB';
   const SANS = '"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
-  const MONO = '"Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+  const MONO = 'Geist, system-ui, sans-serif';
   const fmt = v => (v || 0).toLocaleString('en-US');
   const compact = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + 'm' : v >= 1e4 ? Math.round(v / 1e3) + 'k' : fmt(v);
 
@@ -21,7 +21,7 @@
     return (logoCache[k] = new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }));
   }
   let fontsReady;
-  const fonts = () => fontsReady || (fontsReady = Promise.all(['400 20px Geist', '500 20px Geist', '600 20px Geist', '400 20px "Geist Mono"', '500 20px "Geist Mono"'].map(f => document.fonts && document.fonts.load(f).catch(() => {}))).catch(() => {}));
+  const fonts = () => fontsReady || (fontsReady = Promise.all(['400 20px Geist', '500 20px Geist', '600 20px Geist'].map(f => document.fonts && document.fonts.load(f).catch(() => {}))).catch(() => {}));
 
   // ---------------------------------------------------------------- drawing helpers
   function font(ctx, size, weight, mono) { ctx.font = `${weight || 400} ${size}px ${mono ? MONO : SANS}`; }

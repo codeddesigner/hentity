@@ -19,7 +19,7 @@
   --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-xl:20px; --radius-full:999px;
 
   --font-sans:"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono:"Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono:"Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ring:0 0 0 3px rgba(0,0,0,.08);
   --shadow-pop:0 12px 32px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
   --avatar-ada:linear-gradient(140deg,#f6a26b 0%,#e8662c 45%,#a83a12 100%);
