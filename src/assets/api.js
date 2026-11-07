@@ -181,7 +181,7 @@
       if (langs && langs.length) s = s.or(langs.map(l => `languages.ilike.%${l}%`).join(','));
       if (term) s = s.or(`name.ilike.%${term}%,tagline.ilike.%${term}%,city.ilike.%${term}%`);
       const order = sort === 'az' ? ['name', true] : sort === 'new' ? ['created_at', false] : sort === 'votes' ? ['upvote_count', false] : ['follower_count', false];
-      return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(100));
+      return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(1000));
     },
     alternatives: (p) => pre('alts:' + p.id, () => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3))),
 

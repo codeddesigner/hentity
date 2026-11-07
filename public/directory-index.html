@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=e22603bd77">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=16229434f3"></script>
+<script src="/assets/api.js?v=316a29123d"></script>
 <script src="/assets/app.js?v=5919c37cb1"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -98,10 +98,11 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
 (async function () {
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();
-  API.publicStats().then(st => { if (st && st.products) qs('#dir-count').textContent = `Directory · ${st.products.toLocaleString('en-US')} product${st.products === 1 ? '' : 's'}`; }).catch(() => {});
+  API.publicStats().then(st => { const n = st ? (st.listed || st.products) : 0; if (n) qs('#dir-count').textContent = `Directory · ${n.toLocaleString('en-US')} startup${n === 1 ? '' : 's'}`; }).catch(() => {});
   const G = { profile: [['claimed', 'Claimed by the team'], ['unclaimed', 'Unclaimed (on the radar)']], country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
-  const state = Object.assign({ country: [], pay: [], stage: [], lang: [], sector: [] }, store.get('dirFilters2', {}));
-  if (!Array.isArray(state.profile) || !state.profile.length) state.profile = ['claimed', 'unclaimed'];
+  // Every approved startup shows by default: claimed and unclaimed. Saved filters never hide a whole profile type.
+  const saved = store.get('dirFilters3', {}); delete saved.profile;
+  const state = Object.assign({ country: [], pay: [], stage: [], lang: [], sector: [] }, saved, { profile: ['claimed', 'unclaimed'] });
   let scope = prm.get('scope') || store.get('dirScope', 'all');
   const term = (prm.get('q') || '').replace(/[%,()]/g, '');
   if (prm.get('pay')) Object.assign(state, { pay: [prm.get('pay')], stage: [], sector: [], country: [] });
@@ -127,7 +128,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   qsa('[data-scope]').forEach(t => { t.setAttribute('aria-selected', String(t.dataset.scope === scope)); t.addEventListener('click', () => { scope = t.dataset.scope; store.set('dirScope', scope); qsa('[data-scope]').forEach(o => o.setAttribute('aria-selected', String(o === t))); render(); }); });
   let fol = new Set();
   async function render() {
-    if (!landing) store.set('dirFilters2', state);
+    if (!landing) store.set('dirFilters3', Object.assign({}, state, { profile: undefined }));
     qs('#list').innerHTML = Array.from({ length: 4 }, () => '<div class="drow"><span class="skel" style="width:48px;height:48px;border-radius:10px"></span><span class="grow stack gap-8"><span class="skel" style="width:30%;height:14px"></span><span class="skel" style="width:60%;height:12px"></span></span></div>').join('');
     try {
       const [L, nUc] = await Promise.all([API.directory({ profile: state.profile, countries: state.country, pay: state.pay, stages: state.stage, sectors: state.sector, langs: state.lang, term, sort: qs('#sort').value, scope }), API.unclaimedCount(scope === 'local' ? 'NG' : (state.country.length === 1 ? state.country[0] : null)).catch(() => 0)]);
