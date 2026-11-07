@@ -1,7 +1,7 @@
 // Shared SEO helpers: category and country landing pages, and the server-rendered HTML that search engines
 // (and AI crawlers that don't run JavaScript) read before the page hydrates.
 const SITE = 'https://hentity.com';
-const CATEGORIES = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+const CATEGORIES = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
 const COUNTRY = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' };
 const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const CAT_BY_SLUG = Object.fromEntries(CATEGORIES.map(c => [slugify(c), c]));
@@ -10,7 +10,7 @@ const catUrl = c => `/categories/${slugify(c)}`;
 const countryUrl = cc => COUNTRY[cc] ? `/countries/${slugify(COUNTRY[cc])}` : null;
 
 // schema.org applicationCategory values Google understands
-const APP_CAT = { Fintech: 'FinanceApplication', Commerce: 'ShoppingApplication', Health: 'HealthApplication', Education: 'EducationalApplication', 'Dev Tools': 'DeveloperApplication', Productivity: 'BusinessApplication', SaaS: 'BusinessApplication', Logistics: 'BusinessApplication', Agriculture: 'BusinessApplication', Infrastructure: 'BusinessApplication', AI: 'BusinessApplication', Apps: 'UtilitiesApplication', 'Energy & Climate': 'BusinessApplication' };
+const APP_CAT = { Fintech: 'FinanceApplication', Commerce: 'ShoppingApplication', Health: 'HealthApplication', Education: 'EducationalApplication', 'Dev Tools': 'DeveloperApplication', Productivity: 'BusinessApplication', SaaS: 'BusinessApplication', Logistics: 'BusinessApplication', Agriculture: 'BusinessApplication', Infrastructure: 'BusinessApplication', AI: 'BusinessApplication', Apps: 'UtilitiesApplication', 'Energy & Climate': 'BusinessApplication', Proptech: 'LifestyleApplication' };
 const appCategory = cats => APP_CAT[(cats || [])[0]] || 'BusinessApplication';
 
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

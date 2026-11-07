@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=f0dc03fc07"></script>
+<script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -102,7 +102,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   const listing = st.status === 'live' && st.claimed_at && !st.week_id && !st.launch_date;
   if (!['live', 'scheduled'].includes(st.status) || listing) { location.replace(st.status === 'review' ? '/under-review?p=' + st.slug : '/submit?id=' + st.id); return; }
 
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
   const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Transfer', 'Free'];
   const STAGES = ['Bootstrapped', 'Pre-seed', 'Seed', 'Series A', 'Series B+', 'Profitable'];
   const LABEL = { logo_url: 'Logo', name: 'Name', tagline: 'Tagline', website: 'Website', categories: 'Categories', country: 'Country', city: 'City', pay_methods: 'Payment methods', description: 'About', media: 'Images', video_url: 'Demo video', registration: 'CAC / registration number', founder_link: 'Founder profile', stage: 'Stage', platforms: 'Platforms', languages: 'Languages', currencies: 'Currencies', color: 'Brand colour' };

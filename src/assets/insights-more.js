@@ -213,7 +213,7 @@
     const found = dimWord.filter(([, re]) => re.test(s)).map(d => d[0]);
     q.by = found[0] || 'country'; q.split = found.find(d => d !== q.by) || '';
     if (/wom[ae]n|female|gender|founding team/.test(s)) { if (q.by === 'founding_team') {} else q.split = 'founding_team'; }
-    const catMap = { fintech: 'Fintech', agritech: 'Agriculture', agri: 'Agriculture', farm: 'Agriculture', health: 'Health', edtech: 'Education', education: 'Education', logistics: 'Logistics', commerce: 'Commerce', 'e-commerce': 'Commerce', ai: 'AI', saas: 'SaaS', energy: 'Energy & Climate', climate: 'Energy & Climate', mobility: 'Mobility' };
+    const catMap = { fintech: 'Fintech', agritech: 'Agriculture', agri: 'Agriculture', farm: 'Agriculture', health: 'Health', edtech: 'Education', education: 'Education', logistics: 'Logistics', commerce: 'Commerce', 'e-commerce': 'Commerce', ai: 'AI', saas: 'SaaS', energy: 'Energy & Climate', climate: 'Energy & Climate', proptech: 'Proptech', 'real estate': 'Proptech', property: 'Proptech', housing: 'Proptech', mobility: 'Mobility' };
     for (const [w, c] of Object.entries(catMap)) if (new RegExp('\\b' + w.replace('-', '\\-') + '\\b').test(s)) { q.f.cat = c; break; }
     for (const [code, name] of Object.entries(ctx.CN)) if (s.includes(name.toLowerCase())) { q.f.cc = code; if (q.by === 'country') q.by = 'city'; break; }
     const yrs = s.match(/\b(19|20)\d\d\b/g); if (yrs) { q.f.from = Math.min(...yrs.map(Number)); if (yrs.length > 1) q.f.to = Math.max(...yrs.map(Number)); }

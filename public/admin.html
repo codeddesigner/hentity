@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=f0dc03fc07"></script>
+<script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -454,7 +454,7 @@ H.mount();
   const RCC = Object.assign({ EG: 'Egypt', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', SN: 'Senegal', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', BJ: 'Benin', TG: 'Togo', BF: 'Burkina Faso', CD: 'DR Congo', SL: 'Sierra Leone', GN: 'Guinea', SO: 'Somalia', SD: 'Sudan' }, H.COUNTRY);
   const FACT_KEYS = ['label', 'value', 'source', 'url', 'date'], NEWS_KEYS = ['title', 'source', 'url', 'date'];
   // Radar editor: a pop-up to edit a startup and publish it, with the Verified tick and claim invite
-  const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Media', 'Mobility', 'Real Estate', 'HR & Work', 'Security'];
+  const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Media', 'Mobility', 'HR & Work', 'Security'];
   function radarForm(r, done) {
     const isNew = !r; r = Object.assign({ country: 'NG', categories: [], facts: [], news: [], status: 'review', verified: false, registration: '' }, r || {});
     qsa('.scrim').forEach(x => x.remove());
@@ -822,7 +822,7 @@ H.mount();
     const [rows, cntRaw] = await Promise.all([A.fundingOpps(), A.fundingCounts().catch(() => ({}))]);
     const cnt = cntRaw || {};
     const KIND = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
-    const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+    const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
     const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
     const today = new Date().toISOString().slice(0, 10), stale = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
     const state = o => !o.active ? 'hidden' : o.deadline && o.deadline < today ? 'expired' : o.deadline ? 'open' : o.round_note ? 'closed' : 'rolling';

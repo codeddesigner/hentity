@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=f0dc03fc07"></script>
+<script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -94,7 +94,7 @@
   await API.ready;
   if (!API.uid) { location.replace('/signin?next=/welcome'); return; }
   H.mount();
-  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Hardware'];
+  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Proptech', 'Hardware'];
   const sel = new Set((API.profile.interests || []).length ? API.profile.interests : []);
   qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');
   M.stagger(qs('#interests'));

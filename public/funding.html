@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=f0dc03fc07"></script>
+<script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -139,7 +139,7 @@
 <div data-header></div>
 <main id="main" class="fu"><div class="skel" style="height:560px;border-radius:16px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/funding.js?v=3695191a31"></script>
+<script src="/assets/funding.js?v=2c154c95d5"></script>
 <script>
 H.mount({ active: 'funding', tab: 'you' });
 (async function () {
@@ -150,7 +150,7 @@ H.mount({ active: 'funding', tab: 'you' });
   const F = { view: '', quick: '', cat: '', cc: '', stage: '', amount: '' };
   // A best match meets most of what the funder asks for (60%+). Everyone can still browse every opportunity.
   const isBest = o => o.total ? o.meets / o.total >= 0.6 : false;
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
   const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+'];
   const counts = await (async () => { try { const r = await API.sb.from('funding_opps').select('mode').eq('active', true); return { grant: (r.data || []).filter(x => x.mode === 'grant').length, equity: (r.data || []).filter(x => x.mode === 'equity').length }; } catch (e) { return { grant: 0, equity: 0 }; } })();
   const toggle = c => `<div class="fu-toggle" role="group" aria-label="Grants or equity"><button type="button" data-mode="grant" aria-pressed="${mode === 'grant'}">${icon('star', 'ic-16 ic-star')}Grants <span class="n">${c.grant}</span></button><button type="button" data-mode="equity" aria-pressed="${mode === 'equity'}">${icon('bar-chart', 'ic-16')}Equity <span class="n">${c.equity}</span></button></div>`;

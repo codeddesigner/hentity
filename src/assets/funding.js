@@ -44,7 +44,7 @@
   }
 
   // Admins edit a listing right where founders see it. Saves straight to funding_opps (admin-only RLS).
-  const CATS_ALL = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const CATS_ALL = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
   const STAGES_ALL = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
   const KINDS = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
   function editSheet(o, onSaved) {

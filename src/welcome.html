@@ -39,7 +39,7 @@
   await API.ready;
   if (!API.uid) { location.replace('/signin?next=/welcome'); return; }
   H.mount();
-  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Hardware'];
+  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Proptech', 'Hardware'];
   const sel = new Set((API.profile.interests || []).length ? API.profile.interests : []);
   qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');
   M.stagger(qs('#interests'));

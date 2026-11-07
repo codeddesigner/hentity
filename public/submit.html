@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=f0dc03fc07"></script>
+<script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -219,7 +219,7 @@ H.mount({ active: '', tab: 'launch' });
   qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video_url || '';
   qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   qs('#country').value = s.country;
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
   const PAY = ['Paystack', 'USSD', 'Card', 'Flutterwave', 'M-Pesa', 'MTN MoMo', 'Transfer', 'Free'];
   qs('#cats').innerHTML = CATS.map(c => `<button class="chip" type="button" data-chip data-cat="${c}" aria-pressed="${s.categories.includes(c)}">${icon('check')}${c}</button>`).join('');
   qs('#pay').innerHTML = PAY.map(c => `<button class="chip" type="button" data-chip data-pay="${c}" aria-pressed="${s.pay_methods.includes(c)}">${icon('check')}${c}</button>`).join('');

@@ -53,7 +53,7 @@
     </aside>
   </div>
   <nav class="browse" aria-label="Browse the directory">
-    <p class="t-eyebrow c-3">Browse by category</p><p><a href="/categories/fintech">Fintech</a> · <a href="/categories/saas">SaaS</a> · <a href="/categories/apps">Apps</a> · <a href="/categories/ai">AI</a> · <a href="/categories/commerce">Commerce</a> · <a href="/categories/productivity">Productivity</a> · <a href="/categories/dev-tools">Dev Tools</a> · <a href="/categories/health">Health</a> · <a href="/categories/education">Education</a> · <a href="/categories/agriculture">Agriculture</a> · <a href="/categories/logistics">Logistics</a> · <a href="/categories/infrastructure">Infrastructure</a> · <a href="/categories/energy-and-climate">Energy &amp; Climate</a></p>
+    <p class="t-eyebrow c-3">Browse by category</p><p><a href="/categories/fintech">Fintech</a> · <a href="/categories/saas">SaaS</a> · <a href="/categories/apps">Apps</a> · <a href="/categories/ai">AI</a> · <a href="/categories/commerce">Commerce</a> · <a href="/categories/productivity">Productivity</a> · <a href="/categories/dev-tools">Dev Tools</a> · <a href="/categories/health">Health</a> · <a href="/categories/education">Education</a> · <a href="/categories/agriculture">Agriculture</a> · <a href="/categories/logistics">Logistics</a> · <a href="/categories/infrastructure">Infrastructure</a> · <a href="/categories/energy-and-climate">Energy &amp; Climate</a> · <a href="/categories/proptech">Proptech</a></p>
     <p class="t-eyebrow c-3">Browse by country</p><p><a href="/countries/nigeria">Nigeria</a> · <a href="/countries/kenya">Kenya</a> · <a href="/countries/ghana">Ghana</a> · <a href="/countries/south-africa">South Africa</a> · <a href="/countries/rwanda">Rwanda</a> · <a href="/countries/egypt">Egypt</a> · <a href="/countries/morocco">Morocco</a> · <a href="/countries/uganda">Uganda</a> · <a href="/countries/tanzania">Tanzania</a> · <a href="/countries/senegal">Senegal</a> · <a href="/countries/ethiopia">Ethiopia</a> · <a href="/countries/cote-divoire">Côte d’Ivoire</a></p>
   </nav>
 </main>
@@ -77,7 +77,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   if (prm.get('sector')) Object.assign(state, { sector: [prm.get('sector')], pay: [], stage: [], country: [] });
   // Landing pages: /categories/<slug> and /countries/<slug> (server-rendered for search, filtered here)
   const SLUG = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const ALL_SECTORS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const ALL_SECTORS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
   const seg = location.pathname.split('/').filter(Boolean);
   let landing = null;
   if (seg[0] === 'categories' && seg[1]) { const c = ALL_SECTORS.find(x => SLUG(x) === seg[1]); if (c) { landing = { h: `${c} products from Africa`, sector: c }; Object.assign(state, { sector: [c], pay: [], stage: [], country: [], lang: [] }); } }

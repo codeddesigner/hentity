@@ -20,7 +20,7 @@ H.mount({ active: 'find', tab: 'chats' });
   if (!API.uid) { location.replace('/signin?next=/find/open'); return; }
   const ex = await API.myFindProfile().catch(() => null), me = API.profile;
   const f = Object.assign({ open_to: ['cofounder', 'fulltime'], what: me.headline || '', experience: '', strengths: [], looking_for: [], spaces: [], available: 'now', wants: '', employer: '', city: me.city || '', country: me.country || 'NG', mode: 'stealth', nda: true, reach: 'verified', hide_from: [] }, ex || {});
-  const SPACES = ['Fintech', 'Commerce', 'Energy & Climate', 'Education', 'AI', 'Agriculture', 'Logistics', 'Health', 'SaaS', 'Dev Tools'];
+  const SPACES = ['Fintech', 'Commerce', 'Energy & Climate', 'Education', 'AI', 'Agriculture', 'Logistics', 'Health', 'SaaS', 'Dev Tools', 'Proptech'];
   root.innerHTML = `<div class="fd reveal">
     <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Find</a>
     <h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-.03em">I’m open to work</h1>

@@ -8,7 +8,7 @@
   const AVAIL = { now: 'Now', '3months': 'In 3 months', side: 'Side project' };
   const OPEN = { cofounder: 'co-founding', fulltime: 'full-time', parttime: 'part-time', contract: 'contract', internship: 'internship' };
   const STAGES = ['Idea', 'Pre-seed', 'Building', 'Has users', 'Revenue', 'Seed'];
-  const CATS = ['Fintech', 'Commerce', 'Agriculture', 'Health', 'Logistics', 'Education', 'AI', 'Energy & Climate', 'SaaS', 'Dev Tools', 'Infrastructure', 'Productivity', 'Apps'];
+  const CATS = ['Fintech', 'Commerce', 'Agriculture', 'Health', 'Logistics', 'Education', 'AI', 'Energy & Climate', 'Proptech', 'SaaS', 'Dev Tools', 'Infrastructure', 'Productivity', 'Apps'];
   const pct = n => (n === null || n === undefined || n === '') ? '' : (+n % 1 ? (+n).toFixed(1) : String(+n));
   function pay(r) {
     if (r.kind === 'cofounder' || r.pay === 'equity') return r.equity_min != null && r.equity_max != null ? `${pct(r.equity_min)}–${pct(r.equity_max)}% equity` : r.equity_min != null ? `${pct(r.equity_min)}% equity` : 'Equity';
