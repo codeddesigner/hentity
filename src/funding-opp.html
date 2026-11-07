@@ -5,6 +5,8 @@
 <title>Funding | Hentity</title>
 <meta name="robots" content="noindex">
 <style>
+body{background:var(--color-bg-subtle)}
+.sidebar{background:var(--color-bg-canvas)}
 .fo{max-width:1112px;margin:0 auto;padding:32px 40px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start}
 .fo .card{border-radius:16px}
 .fo-sec{padding:22px 22px 20px;margin-top:16px}
@@ -62,16 +64,13 @@ H.mount({ active: 'funding', tab: 'you' });
     </div>
     <aside class="card fo-panel" id="panel">
       <h2 class="fo-h">Apply on ${isGrant() ? 'the funder’s' : 'their'} site</h2>
-      <p class="t-body-sm c-2" style="margin:12px 0 12px">Applications go through ${esc(who)} directly. Hentity helps you get ready and keeps track.</p>
+      <p class="t-body-sm c-2" style="margin:12px 0 12px">Applications go through ${esc(who)} directly. Everything they ask for is on their page.</p>
       ${FU.linkBox(O)}
       <a class="btn btn--accent btn--block" style="margin-top:12px" href="${esc(FU.applyUrl(O))}" target="_blank" rel="noopener" id="go">${icon('arrow-up-right', 'ic-16')}${open ? 'Go to application' : 'Open their site'}</a>
       <hr>
-      <div class="fo-sub" style="margin-bottom:12px"><p class="t-label">Get ready</p><p class="t-caption c-3" style="font-weight:400">What they usually ask for</p></div>
-      <div id="ready">${FU.readyList(O, p, O.mode, true)}</div>
-      <hr>
       <p class="t-label">Keep track</p>
       ${O.deadline ? `<label class="row between gap-12" style="margin-top:12px;cursor:pointer"><span><span class="t-body-sm" style="display:block">Remind me before it closes</span><span class="t-caption c-3" style="font-weight:400">Email and app, 3 days and 1 day before ${FU.fmtDate(O.deadline)}</span></span><span class="toggle"><input type="checkbox" id="remind"${!t || t.remind ? ' checked' : ''}${t && t.status === 'applied' ? ' disabled' : ''}><span class="toggle__track"></span></span></label>` : ''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px">
         <button class="btn btn--secondary" type="button" id="save" aria-pressed="${!!t}">${icon('bookmark', 'ic-16')}${t ? 'Saved' : 'Save'}</button>
         <button class="btn btn--secondary" type="button" id="applied" aria-pressed="${!!(t && t.status === 'applied')}">${icon('check', 'ic-16')}${t && t.status === 'applied' ? 'Applied' : 'I’ve applied'}</button></div>
       <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${t && t.status === 'applied' ? `Marked applied ${H.ago(t.applied_at)}.${O.decision_by ? ` We’ll remind you when results are due (${FU.fmtDate(O.decision_by)}).` : ''} <button class="link" type="button" id="unapply">Undo</button>` : `Mark it applied to move it to “Applied”${O.decision_by ? ` and get a reminder when results are due (${FU.fmtDate(O.decision_by)})` : ''}.`}</p>
