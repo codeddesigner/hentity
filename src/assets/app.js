@@ -431,14 +431,17 @@
   function iosSheet() {
     const share = '<svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12.5V2.5M6.67 5.83 10 2.5l3.33 3.33M5.83 9.17H5a1.67 1.67 0 0 0-1.67 1.66v5A1.67 1.67 0 0 0 5 17.5h10a1.67 1.67 0 0 0 1.67-1.67v-5A1.67 1.67 0 0 0 15 9.17h-.83"/></svg>';
     const ua = navigator.userAgent, b = /CriOS/.test(ua) ? 'chrome' : /EdgiOS/.test(ua) ? 'edge' : /FxiOS/.test(ua) ? 'firefox' : 'safari';
-    const step1 = `<li><span>1</span><p>${b === 'chrome' ? `Tap ${share} <b>Share</b> at the right of the address bar` : b === 'edge' ? `Tap the <b>•••</b> menu at the bottom, then ${share} <b>Share</b>` : b === 'firefox' ? `Tap the <b>☰</b> menu, then ${share} <b>Share</b>` : `Tap ${share} <b>Share</b> in Safari’s toolbar. On newer iPhones it’s inside the <b>•••</b> button next to the address bar`}</p></li>`;
+    const step1 = `<li><span>1</span><p>${b === 'chrome' ? `Tap ${share} <b>Share</b> at the right of the address bar (or in the <b>•••</b> menu)` : b === 'edge' ? `Tap the <b>•••</b> menu at the bottom, then ${share} <b>Share</b>` : b === 'firefox' ? `Tap the <b>☰</b> menu, then ${share} <b>Share</b>` : `Tap <b>•••</b> next to the address bar, then ${share} <b>Share</b>. On older iPhones, Share is in Safari’s bottom toolbar`}</p></li>`;
     const sc = document.createElement('div'); sc.className = 'scrim'; sc.style.zIndex = 120;
     sc.innerHTML = `<div class="modal pwa-sheet" role="dialog" aria-modal="true" aria-label="Add Hentity to your home screen">
       <div class="row gap-12"><img src="/icons/icon-192.png" alt="" width="48" height="48" style="border-radius:12px"><div><p class="t-h4">Add Hentity to your home screen</p><p class="t-caption c-3" style="font-weight:400">It opens full screen, like an app</p></div></div>
       <ol class="pwa-steps">${step1}<li><span>2</span><p>Scroll down and tap <b>Add to Home Screen</b>. If you don’t see it, tap <b>More</b> or <b>Edit Actions</b> at the bottom of the list</p></li><li><span>3</span><p>Leave <b>Open as Web App</b> on, then tap <b>Add</b></p></li></ol>
+      ${b !== 'safari' ? `<div class="pwa-alt"><p class="t-caption c-2" style="font-weight:400">No <b>Add to Home Screen</b> in ${b === 'chrome' ? 'Chrome' : b === 'edge' ? 'Edge' : 'Firefox'}’s share menu? It always works in Safari: copy the link, open Safari, paste it in the address bar, then tap <b>•••</b> → ${share} <b>Share</b> → <b>Add to Home Screen</b>.</p><button class="btn btn--secondary btn--sm btn--block" type="button" data-copy-link>${icon('copy', 'ic-14')}Copy link for Safari</button></div>` : ''}
       <button class="btn btn--primary btn--block" type="button" data-x>Got it</button></div>`;
     document.body.append(sc);
-    sc.addEventListener('click', e => { if (e.target === sc || e.target.closest('[data-x]')) sc.remove(); });
+    sc.addEventListener('click', e => {
+      if (e.target.closest('[data-copy-link]')) { const u = location.origin + (location.pathname === '/me' ? '/' : location.pathname); navigator.clipboard.writeText(u).then(() => toast('Link copied. Paste it into Safari'), () => toast(u)); return; }
+      if (e.target === sc || e.target.closest('[data-x]')) sc.remove(); });
   }
   // A quiet bar on phones after a few visits, once per fortnight at most, never inside the installed app
   function maybeInstallBanner() {

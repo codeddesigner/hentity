@@ -1231,7 +1231,7 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .pwa-bar img{border-radius:9px;flex:none}
 .pwa-sheet{max-width:400px;display:flex;flex-direction:column;gap:18px}
 .pwa-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:20px}
-.pwa-steps li{display:flex;align-items:center;gap:10px}.pwa-steps b{font-weight:600}
+.pwa-steps li{display:flex;align-items:center;gap:10px}.pwa-steps b,.pwa-alt b{font-weight:600}.pwa-alt{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--color-bg-subtle)}.pwa-alt .ic{display:inline-block;width:14px;height:14px;vertical-align:-2px;color:#0A84FF}
 .pwa-steps li>span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-muted);font-size:12px;font-weight:600;flex:none}
 .pwa-steps .ic{display:inline-block;width:18px;height:18px;color:#0A84FF;vertical-align:-3px;margin:0 2px}
 /* Inside the installed app the browser chrome is gone, so pages feel native: no text selection flashes on taps */
