@@ -54,7 +54,7 @@ H.mount({ active: 'funding', tab: 'you' });
         <div class="fu-chips" style="margin-top:14px">${chips}</div>
         ${O.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(O.description)}</p>` : ''}
         ${!open ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(O.round_note)}</b></p>` : ''}
-        ${O.source_url ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a>${API.isAdmin ? ` · <a class="link link--accent" href="/admin#funding/${O.id}">Edit listing</a>` : ''}</p>` : API.isAdmin ? `<p class="t-caption" style="margin-top:12px"><a class="link link--accent" href="/admin#funding/${O.id}">Edit listing</a></p>` : ''}</section>
+        ${O.source_url ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a></p>` : ''}${API.isAdmin ? `<button class="btn btn--secondary btn--sm" type="button" id="fo-edit" style="margin-top:12px">${icon('edit', 'ic-14')}Edit listing</button>` : ''}</section>
       <section class="card fo-sec"><div class="row between gap-12 wrap"><h2 class="fo-h">Who can apply</h2><span class="badge ${O.meets === O.total ? 'badge--success' : ''}">${O.meets === O.total ? icon('check', 'ic-12') : ''}${esc(p.name)} meets ${O.meets} of ${O.total}</span></div>
         <div style="margin-top:10px">${O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : `<span class="fu-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('')}</div>
         ${O.meets < O.total ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Something wrong? Update your <a class="link link--accent" href="/products/${p.slug}/edit">product page</a>.</p>` : ''}</section>
@@ -87,6 +87,7 @@ H.mount({ active: 'funding', tab: 'you' });
   const track = async (patch, msg) => { try { await API.fundingTrack(oid, pid, patch); msg && toast(msg); await load(); } catch (e) { H.fail(e); } };
   FU.bindReady(root, { get o() { return O; }, get p() { return O.product; }, get pid() { return pid; }, reload: load });
   root.addEventListener('click', async e => {
+    if (e.target.closest('#fo-edit')) { FU.editSheet(O, load); return; }
     if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else track({ status: 'saved', remind: true }, 'Saved. We’ll remind you before it closes.'); return; }
     if (e.target.closest('#applied')) { if (!O.track || O.track.status !== 'applied') track({ status: 'applied', applied_at: new Date().toISOString() }, 'Marked as applied'); return; }
     if (e.target.closest('#unapply')) { track({ status: 'saved', applied_at: null }, 'Moved back to saved'); return; }

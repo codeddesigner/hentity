@@ -43,6 +43,60 @@
     return { el: sc.firstElementChild, close };
   }
 
+  // Admins edit a listing right where founders see it. Saves straight to funding_opps (admin-only RLS).
+  const CATS_ALL = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+  const STAGES_ALL = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
+  const KINDS = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
+  function editSheet(o, onSaved) {
+    const v = o || {}, today = new Date().toISOString().slice(0, 10);
+    const t = (k, l, ph, type) => `<label class="field" style="margin-bottom:12px"><span class="field__label">${l}</span><input class="input" name="${k}" type="${type || 'text'}" value="${esc(v[k] == null ? '' : v[k])}"${ph ? ` placeholder="${esc(ph)}"` : ''}></label>`;
+    const ta = (k, l, rows) => `<label class="field" style="margin-bottom:12px"><span class="field__label">${l}</span><textarea class="input" name="${k}" rows="${rows || 3}">${esc(v[k] || '')}</textarea></label>`;
+    const chk = (k, l) => `<label class="check" style="margin:2px 0 10px"><input type="checkbox" name="${k}"${v[k] ? ' checked' : ''}><span class="check__box">${icon('check')}</span>${l}</label>`;
+    const group = (k, l, opts) => `<div class="field" style="margin-bottom:12px"><span class="field__label">${l}</span><div class="row wrap gap-6" style="margin-top:4px">${opts.map(x => `<label class="chip" style="cursor:pointer"><input type="checkbox" name="${k}" value="${esc(x)}"${(v[k] || []).includes(x) ? ' checked' : ''} style="margin-right:6px">${esc(x)}</label>`).join('')}</div></div>`;
+    const sel = (k, l, opts) => `<label class="field" style="margin-bottom:12px"><span class="field__label">${l}</span><select class="input" name="${k}">${opts.map(([a, b]) => `<option value="${a}"${v[k] === a ? ' selected' : ''}>${esc(b)}</option>`).join('')}</select></label>`;
+    const h = x => `<p class="t-label" style="margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--color-border-default)">${x}</p>`;
+    const sh = sheet(`<div class="row between gap-12"><p class="t-h4">Edit listing</p><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>
+      <form id="fu-edit" style="max-height:68vh;overflow:auto;margin:12px -4px 0;padding:0 4px">
+        <div class="row gap-12" style="align-items:center;margin-bottom:12px"><span id="fe-logo">${logo(v, 48)}</span><div class="grow" style="min-width:0">${t('logo_url', 'Logo (image link)', 'https://')}</div><label class="btn btn--secondary btn--sm" style="cursor:pointer;margin-top:10px">${icon('upload', 'ic-16')}Upload<input type="file" accept="image/*" class="sr-only" id="fe-up"></label></div>
+        ${t('name', 'Name')}${t('org', 'Organisation')}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${sel('mode', 'Board', [['grant', 'Grants'], ['equity', 'Equity']])}${sel('kind', 'Type', KINDS)}</div>
+        ${ta('description', 'Description', 3)}
+        ${h('Links')}${t('apply_url', 'Apply link', 'https://')}${t('website', 'Website', 'https://')}${t('source_url', 'Source', 'https://')}
+        ${h('Money')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${t('amount_text', 'Amount shown')}${t('amount_usd', 'Amount in USD', '', 'number')}</div>${t('amount_note', 'Amount note')}${t('slots_text', 'Slots', 'e.g. 20 grants')}
+        ${h('Dates')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${t('deadline', 'Deadline', '', 'date')}${t('deadline_note', 'Deadline time', '23:59 WAT')}${t('decision_by', 'Results due', '', 'date')}${t('checked_at', 'Checked on', '', 'date')}</div>${t('round_note', 'Round note (when there’s no deadline)', '2026 round closed 8 Sep · opens yearly')}
+        ${h('Who can apply')}${group('categories', 'Categories (none = any)', CATS_ALL)}${group('stages', 'Stages (none = any)', STAGES_ALL)}${t('countries', 'Country codes, comma separated (empty = all of Africa)', 'NG, KE')}${t('region_label', 'Region label')}
+        ${chk('women_only', 'Women-founded or mixed teams only')}${chk('needs_incorporation', 'Must be incorporated')}${chk('needs_live', 'Product must be live')}
+        ${h('Status')}${chk('active', 'Show to founders')}
+      </form>
+      <div class="row gap-8" style="margin-top:14px;justify-content:flex-end"><a class="btn btn--ghost btn--sm" href="/admin#funding/${esc(v.id || '')}" style="margin-right:auto">More in admin</a><button class="btn btn--secondary btn--sm" type="button" id="fe-checked">${icon('check', 'ic-14')}Save · checked today</button><button class="btn btn--primary btn--sm" type="button" id="fe-save">Save</button></div>`, { label: 'Edit listing', w: 600 });
+    const f = sh.el.querySelector('#fu-edit');
+    f.elements.countries.value = (v.countries || []).join(', ');
+    const preview = () => { sh.el.querySelector('#fe-logo').innerHTML = logo(Object.assign({}, v, { name: f.elements.name.value, logo_url: f.elements.logo_url.value.trim() }), 48); };
+    f.elements.logo_url.addEventListener('change', preview);
+    sh.el.querySelector('#fe-up').addEventListener('change', async e => { const file = e.target.files[0]; if (!file) return; try { H.toast('Uploading…'); f.elements.logo_url.value = await API.upload(file, 'admin'); preview(); H.toast('Uploaded'); } catch (er) { H.fail(er); } });
+    const save = async stamp => {
+      const g = n => f.elements[n].value.trim();
+      const row = { name: g('name'), org: g('org'), mode: g('mode'), kind: g('kind'), description: g('description'), logo_url: g('logo_url') || null,
+        apply_url: g('apply_url'), website: g('website'), source_url: g('source_url'), amount_text: g('amount_text'), amount_note: g('amount_note'), slots_text: g('slots_text'),
+        amount_usd: g('amount_usd') === '' ? null : +g('amount_usd'), deadline: g('deadline') || null, deadline_note: g('deadline_note'), decision_by: g('decision_by') || null,
+        round_note: g('round_note'), checked_at: stamp ? today : g('checked_at') || null, region_label: g('region_label'),
+        countries: g('countries').split(/[\s,]+/).filter(Boolean).map(x => x.toUpperCase().slice(0, 2)),
+        categories: [...f.querySelectorAll('input[name="categories"]:checked')].map(i => i.value), stages: [...f.querySelectorAll('input[name="stages"]:checked')].map(i => i.value),
+        women_only: f.elements.women_only.checked, needs_incorporation: f.elements.needs_incorporation.checked, needs_live: f.elements.needs_live.checked, active: f.elements.active.checked };
+      if (row.name.length < 2) return H.toast('Add a name');
+      if (!row.apply_url && !row.website) return H.toast('Add the link where founders apply');
+      for (const k of ['apply_url', 'website', 'source_url', 'logo_url']) if (row[k] && !/^https?:\/\//i.test(row[k])) return H.toast('Links must start with https://');
+      if (['vc', 'micro_vc', 'angel'].includes(row.kind) && row.mode === 'grant') return H.toast('Investors belong on the Equity board');
+      if (row.deadline && row.deadline >= today) row.round_note = '';
+      const b = sh.el.querySelector(stamp ? '#fe-checked' : '#fe-save'); b.disabled = true;
+      try { await API.admin.saveFundingOpp(v.id, row); H.toast('Listing updated'); sh.close(); onSaved && onSaved(row); } catch (er) { H.fail(er); } finally { b.disabled = false; }
+    };
+    sh.el.querySelector('#fe-save').onclick = () => save(false);
+    sh.el.querySelector('#fe-checked').onclick = () => save(true);
+    return sh;
+  }
+  const editBtn = (o, cls) => window.API && API.isAdmin ? `<button class="nav__icon ${cls || ''}" type="button" data-edit="${esc(o.id)}" aria-label="Edit ${esc(o.name)}" title="Edit listing">${icon('edit', 'ic-16')}</button>` : '';
+
   // The checked link to the funder's own application page
   const linkBox = o => `<div class="fu-link">${icon('globe', 'ic-18')}<a class="grow" style="min-width:0" href="${esc(applyUrl(o))}" target="_blank" rel="noopener"><span class="t-label truncate" style="display:block">${esc(host(applyUrl(o)))}</span><span class="t-caption c-3" style="font-weight:400">${o.checked_at ? 'Link checked by Hentity on ' + fmtDate(o.checked_at) : 'Official page'}</span></a><button class="nav__icon" type="button" data-copylink="${esc(applyUrl(o))}" aria-label="Copy link">${icon('copy', 'ic-16')}</button></div>`;
 
@@ -127,5 +181,5 @@
     return sh;
   }
 
-  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, pickFile, copy, sheet, linkBox, readyItems, readyList, bindReady, writeTraction, investorSheet };
+  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, pickFile, copy, sheet, linkBox, readyItems, readyList, bindReady, writeTraction, investorSheet, editSheet, editBtn };
 })();

@@ -21,6 +21,8 @@
 .fu-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
 .fu-filters .chip{height:34px}
 .fu-grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;align-items:start}
+.fu-edit{position:absolute;top:18px;right:52px;color:var(--color-text-tertiary)}
+.fu-edit-sm{width:26px;height:26px;color:var(--color-text-tertiary);flex:none}
 .fu-cards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .fu-card{padding:20px;border-radius:14px;display:flex;flex-direction:column;gap:12px;position:relative}
 .fu-amt{font-size:22px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -171,8 +173,8 @@ H.mount({ active: 'funding', tab: 'you' });
     const strong = o.meets === o.total, open = FU.isOpen(o);
     const cats = o.categories.length ? o.categories.slice(0, 2).join(', ') : 'Any category';
     const stg = o.stages.length ? (o.stages.length > 1 ? o.stages[0] + '–' + o.stages[o.stages.length - 1] : o.stages[0]) : 'Any stage';
-    return `<article class="card fu-card lift"><div class="row gap-12" style="padding-right:28px">${FU.logo(o, 36)}<div style="min-width:0"><a class="t-label truncate" style="display:block" href="/funding/${o.id}?p=${pid}">${esc(o.name)}</a><p class="t-caption c-3 truncate" style="font-weight:400">${esc(o.org || FU.KIND[o.kind])}</p></div></div>
-      <button class="nav__icon fu-save" type="button" data-save="${o.id}" aria-pressed="${!!o.track}" aria-label="${o.track ? 'Saved' : 'Save'}">${icon('bookmark', 'ic-18')}</button>
+    return `<article class="card fu-card lift"><div class="row gap-12" style="padding-right:${API.isAdmin ? 64 : 28}px">${FU.logo(o, 36)}<div style="min-width:0"><a class="t-label truncate" style="display:block" href="/funding/${o.id}?p=${pid}">${esc(o.name)}</a><p class="t-caption c-3 truncate" style="font-weight:400">${esc(o.org || FU.KIND[o.kind])}</p></div></div>
+      ${FU.editBtn(o, 'fu-edit')}<button class="nav__icon fu-save" type="button" data-save="${o.id}" aria-pressed="${!!o.track}" aria-label="${o.track ? 'Saved' : 'Save'}">${icon('bookmark', 'ic-18')}</button>
       <p class="fu-amt">${esc(o.amount_text || '—')}<small>${esc(o.amount_note || FU.KIND[o.kind])}</small></p>
       <div class="fu-chips">${isBest(o) ? `<span class="fu-best">${icon('star', 'ic-12')}Best match</span>` : ''}${FU.deadlineChip(o)}<span class="fu-chip">${esc(cats)}</span><span class="fu-chip">${esc(stg)}</span><span class="fu-chip">${esc(o.region_label || 'All of Africa')}</span>${o.women_only ? '<span class="fu-chip">Women-founded or mixed</span>' : ''}</div>
       <div class="fu-foot">${FU.dots(o)}<span class="${strong ? 'fu-strong' : ''}">${esc(B.product.name)} meets ${o.meets} of ${o.total}</span>
@@ -183,13 +185,14 @@ H.mount({ active: 'funding', tab: 'you' });
   function table(L) {
     return `<div class="fu-table"><div class="fu-tr fu-th d-only" style="border-top:0"><span>Investor</span><span>Cheque · Stage</span><span>Sectors</span><span style="text-align:right">Fit</span><span></span></div>
       ${L.map(o => { const f = FU.fit(o), d = FU.daysLeft(o.deadline), applied = o.track && o.track.status === 'applied';
-        return `<div class="fu-tr" data-inv="${o.id}"><span class="fu-mlogo">${FU.logo(o, 36)}</span><div class="row gap-12" style="min-width:0"><span class="d-only">${FU.logo(o, 36)}</span><div style="min-width:0"><button class="t-label fu-inv" type="button" data-inv="${o.id}">${esc(o.name)}</button><p class="t-caption c-3" style="font-weight:400">${esc(FU.KIND[o.kind])}${o.amount_note && o.kind === 'accelerator' && o.amount_note.split('·')[0].trim().length <= 24 ? ' · ' + esc(o.amount_note.split('·')[0].trim()) : ''} · ${esc(o.region_label || 'Africa')}<span class="m-only">${esc(o.amount_text)}</span></p></div></div>
+        return `<div class="fu-tr" data-inv="${o.id}"><span class="fu-mlogo">${FU.logo(o, 36)}</span><div class="row gap-12" style="min-width:0"><span class="d-only">${FU.logo(o, 36)}</span><div style="min-width:0"><span class="row gap-4" style="align-items:center"><button class="t-label fu-inv" type="button" data-inv="${o.id}">${esc(o.name)}</button>${FU.editBtn(o, 'fu-edit-sm')}</span><p class="t-caption c-3" style="font-weight:400">${esc(FU.KIND[o.kind])}${o.amount_note && o.kind === 'accelerator' && o.amount_note.split('·')[0].trim().length <= 24 ? ' · ' + esc(o.amount_note.split('·')[0].trim()) : ''} · ${esc(o.region_label || 'Africa')}<span class="m-only">${esc(o.amount_text)}</span></p></div></div>
           <div class="fu-cq"><p class="fu-cheque">${esc(o.amount_text || 'Not disclosed')}</p><p class="t-caption c-3" style="font-weight:400">${esc(o.stages.join(', ') || 'Any stage')}</p></div>
           <div class="fu-chips fu-sect">${(o.categories.length ? o.categories : ['Any category']).slice(0, 3).map(c => `<span class="fu-chip">${o.categories.length ? `<i style="width:6px;height:6px;border-radius:50%;background:${H.catColor ? H.catColor(c) : '#999'}"></i>` : ''}${esc(c)}</span>`).join('')}</div>
           <div class="fu-fit"><span class="badge ${isBest(o) ? 'badge--success' : ''}">${isBest(o) ? icon('star', 'ic-12') + 'Best match' : f[0]}</span><span class="t-caption c-3" style="font-weight:400">${FU.howLabel(o)}</span><span class="t-caption" style="font-weight:400;color:${d != null ? (d < 10 ? '#B42318' : '#8A5A00') : 'var(--color-text-tertiary)'}">${esc(FU.deadlineText(o))}</span></div>
           <div class="fu-act" style="text-align:right">${applied ? `<button class="btn btn--sm btn--ghost" type="button" data-inv="${o.id}">${icon('check', 'ic-14')}Applied</button>` : `<a class="btn btn--sm ${f[1] === 'success' ? 'btn--primary' : 'btn--secondary'}" href="${esc(FU.applyUrl(o))}" target="_blank" rel="noopener" data-go="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>`}</div></div>`; }).join('')}</div>`;
   }
   root.addEventListener('click', async e => {
+    const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const o = B.opps.find(x => x.id === ed.dataset.edit); if (o) FU.editSheet(o, load); return; }
     if (e.target.closest('#more')) { F.limit = (F.limit || PAGE) + PAGE; render(); return; }
     const m = e.target.closest('[data-mode]'); if (m) { mode = m.dataset.mode; F.quick = ''; F.view = ''; F.limit = 0; load(); return; }
     const v = e.target.closest('[data-view]'); if (v) { F.view = v.dataset.view; F.limit = 0; render(); return; }
