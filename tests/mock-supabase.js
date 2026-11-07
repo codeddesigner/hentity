@@ -157,6 +157,7 @@
     { key: 'p1', stealth: false, name: 'Tunde A.', what: 'Backend engineer', experience: '7 yrs', city: 'Lagos', looking_for: ['technical'], strengths: ['Go', 'Payments', 'Infra'], open_to: ['cofounder', 'fulltime'], spaces: ['Fintech', 'Logistics'] },
     { key: 'p2', stealth: true, what: 'Product designer', seniority: 'Senior', experience: '', city: 'Nairobi', looking_for: ['design'], strengths: ['Mobile UX', 'Research'], open_to: ['contract', 'parttime'], spaces: ['Health', 'Education'] },
     { key: 'p3', stealth: false, name: 'Fatima N.', what: 'B2B sales lead', experience: '5 yrs', city: 'Abuja', looking_for: ['business'], strengths: ['Enterprise sales', 'Gov'], wants: 'climate or agritech · Can invest time + $5k', open_to: ['cofounder'] }];
+  T.products.filter(p => p.slug === 'mazao-hub').forEach(p => p.verified = true);
   const RPC = {
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_email_stats: () => ({ audience: 26, digest_on: 26, by_kind: { welcome: 3, digest: 26, find: 4 }, launchpad: { n: 1 }, recent: [{ kind: 'digest', to: 'ada@example.com', subject: 'This week in African startups: Biyaport is #1', created_at: new Date().toISOString() }] }),

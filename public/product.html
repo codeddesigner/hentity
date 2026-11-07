@@ -193,7 +193,7 @@ H.mount({ active: 'products', tab: 'products' });
     <div class="uc-head reveal" style="--i:1">
       ${plogo(p, 64)}
       <div class="grow" style="min-width:0">
-        <h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}<span class="uc-tag uc-tag--lg" style="letter-spacing:0">Unclaimed</span></h1>
+        <h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;position:relative;top:-2px">${verified('ic-24')}</span>` : ''}<span class="uc-tag uc-tag--lg" style="letter-spacing:0">Unclaimed</span></h1>
         <p class="t-body-lg c-2 row gap-8 wrap" style="margin-top:6px">${esc(p.tagline)}${dom ? `<span class="src d-only">${icon('link', 'ic-12')}${esc(dom)}</span>` : ''}</p>
         <p class="row gap-8 wrap t-body-sm c-2 uc-meta" style="margin-top:8px">${meta.join('<span class="c-3">·</span>')}</p>
       </div>

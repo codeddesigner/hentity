@@ -114,7 +114,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
     const f = ((p.claim || {}).facts || []).find(x => x.source) || {};
     const mon = d => d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
     const chip = f.source ? `<span class="src">${icon('link', 'ic-12')}${esc([f.source, mon(f.date)].filter(Boolean).join(' · '))}</span>` : '';
-    return `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a><span class="uc-tag">Unclaimed</span></p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap" style="margin-top:2px">${chip}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`;
+    return `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? H.verified('verified--sm') : ''}<span class="uc-tag">Unclaimed</span></p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap" style="margin-top:2px">${chip}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`;
   }
   function radarNote(n) {
     const box = qs('#radar-note'); if (!n) { box.innerHTML = ''; return; }
