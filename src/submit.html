@@ -106,7 +106,7 @@
 
     <!-- 04 Week -->
     <section class="card sec" id="week" data-sec>
-      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Pick the day you go live. You’ll stay on that week’s board until it resets on Monday. Choose a day your team can reply to comments.</p></div></div>
+      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Already launched? Pick the day you launched, even years back, and you’ll go into the Directory. Launching now? Pick today or a day ahead: you’re in the Directory once approved, and on the front page from that day until the board resets on Monday.</p></div></div>
       <div id="cal"></div>
     </section>
 
@@ -312,7 +312,7 @@ H.mount({ active: '', tab: 'launch' });
   const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch date'], ['intro', 'Introduction']];
   let current = 'basics';
   function done() {
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date >= L.addDays(L.lagosToday(), -365) && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date >= '1950-01-01' && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
   }
   function update() {
     if (!ready) return;

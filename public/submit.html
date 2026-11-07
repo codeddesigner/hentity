@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=6615dfc555">
+<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -40,7 +40,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=7f3e6221c0"></script>
+<script src="/assets/api.js?v=65457c8848"></script>
 <script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -160,7 +160,7 @@
 
     <!-- 04 Week -->
     <section class="card sec" id="week" data-sec>
-      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Pick the day you go live. You’ll stay on that week’s board until it resets on Monday. Choose a day your team can reply to comments.</p></div></div>
+      <div class="sec-h"><span class="n">04</span><div><h2 class="t-h3">Launch date</h2><p class="t-body-sm c-2">Already launched? Pick the day you launched, even years back, and you’ll go into the Directory. Launching now? Pick today or a day ahead: you’re in the Directory once approved, and on the front page from that day until the board resets on Monday.</p></div></div>
       <div id="cal"></div>
     </section>
 
@@ -185,7 +185,7 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/launch.js?v=0e5dbb210e"></script>
+<script src="/assets/launch.js?v=19c07e1df5"></script>
 <script>
 H.mount({ active: '', tab: 'launch' });
 (async function () {
@@ -366,7 +366,7 @@ H.mount({ active: '', tab: 'launch' });
   const SECS = [['basics', 'Basics'], ['media', 'Media'], ['makers', 'Makers & company'], ['week', 'Launch date'], ['intro', 'Introduction']];
   let current = 'basics';
   function done() {
-    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date >= L.addDays(L.lagosToday(), -365) && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
+    return { basics: !!(form.name.value.trim() && form.tagline.value.trim() && normUrl(form.website.value.trim()) && s.categories.length && form.city.value.trim()), media: media.some(m => !m.error && !m.loading), makers: founderOk(qs('#founder').value), week: !!s.launch_date && s.launch_date >= '1950-01-01' && !dayFull, intro: qs('#intro-t').value.trim().length >= INTRO_MIN };
   }
   function update() {
     if (!ready) return;

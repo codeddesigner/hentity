@@ -93,7 +93,7 @@
     }, 0);
   });
 
-  function err(e) { if (e) { const m = e.message || String(e); const x = new Error({ WEEK_FULL: 'WEEK_FULL', DAY_FULL: 'DAY_FULL', DAY_PAST: 'Pick a launch day from tomorrow onwards', DAY_TOO_OLD: 'Launch days go back up to a year', DAY_TOO_FAR: 'Launch days open up to 5 weeks ahead' }[m] || m); x.code = e.code; throw x; } }
+  function err(e) { if (e) { const m = e.message || String(e); const x = new Error({ WEEK_FULL: 'WEEK_FULL', DAY_FULL: 'DAY_FULL', DAY_PAST: 'Pick a launch day from tomorrow onwards', DAY_TOO_OLD: 'Pick a launch day from 1950 onwards', DAY_TOO_FAR: 'Launch days open up to 5 weeks ahead' }[m] || m); x.code = e.code; throw x; } }
   async function q(promise) { const { data, error, count } = await promise; err(error); return count !== undefined && count !== null && data === null ? count : data; }
   const uid = () => session && session.user.id;
   function requireAuth(next) {
@@ -159,6 +159,11 @@
       const rows = await q(s.order('upvote_count', { ascending: false }).limit(limit || 60));
       return rows;
     },
+    // A launch day before the day it was submitted = already launched: Directory only, not the board
+    isBackdated: p => !!(p && p.launch_date && p.submitted_at && p.launch_date < new Date(new Date(p.submitted_at).getTime() + 3600e3).toISOString().slice(0, 10)),
+    // Startups listed with a past launch day (or as a plain listing) show on the front page for 30 minutes after approval
+    justListed: () => { const today = new Date(Date.now() + 3600e3).toISOString().slice(0, 10), since = new Date(Date.now() - 30 * 60e3).toISOString();
+      return q(sb.from('product_feed').select(PRODUCT_COLS + ',reviewed_at').in('status', ['scheduled', 'live']).gte('reviewed_at', since).or(`launch_date.is.null,launch_date.lt.${today}`).order('reviewed_at', { ascending: false }).limit(6)).catch(() => []); },
     // Approved launches whose day hasn't started yet, soonest first
     upcoming: () => pre('upcoming', () => q(sb.from('product_feed').select(PRODUCT_COLS).eq('status', 'scheduled').neq('effective_status', 'live').order('launch_date', { ascending: true }).order('verified', { ascending: false }).limit(20))),
     daySlots: (d1, d2) => q(sb.rpc('day_slots', { d1, d2 })),

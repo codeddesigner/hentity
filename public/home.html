@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=6615dfc555">
+<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -40,7 +40,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=7f3e6221c0"></script>
+<script src="/assets/api.js?v=65457c8848"></script>
 <script src="/assets/app.js?v=960cdd2c4a"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -179,7 +179,11 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       if (board === 'upcoming') rows = await API.upcoming();
       else if (board === 'fame') rows = await API.wallOfFame();
       else if (board === 'recent') rows = await API.recent({ country, pay });
-      else rows = await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay });
+      else {
+        rows = (await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay })).filter(p => !API.isBackdated(p));
+        // Just listed (already launched, approved in the last 30 minutes) sits on top of this week's board, then moves to the Directory
+        if (board === 'this') { const jl = (await API.justListed()).filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)) && !rows.some(r => r.id === p.id)); jl.forEach(p => p._just = true); rows = jl.concat(rows); }
+      }
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
       render(true); H.contentShown();
@@ -205,6 +209,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     qs('#feed').innerHTML = shown.length ? shown.map((p, i) => {
       if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
       if (board === 'recent') return D.row(p, 0, { noRank: true, badge: D.isUnclaimed(p) ? '' : `<span class="badge">${esc(H.ago(p.created_at))}</span>` });
+      if (p._just) return D.row(p, 0, { noRank: true, badge: '<span class="badge badge--upcoming">Just listed</span>' });
       return D.row(p, p.promoted ? 0 : ++rank) + (i === 1 && board === 'this' ? teaser() : '');
     }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
@@ -216,8 +221,9 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
   function rerank() {
     if (board !== 'this' && board !== 'last') return;
     const done = M.flip(qs('#feed'), 'data-key');
-    const promoted = rows.filter(p => p.promoted); rows = rows.filter(p => !p.promoted).sort((a, b) => b.upvote_count - a.upvote_count);
+    const just = rows.filter(p => p._just), promoted = rows.filter(p => p.promoted && !p._just); rows = rows.filter(p => !p.promoted && !p._just).sort((a, b) => b.upvote_count - a.upvote_count);
     if (promoted.length) rows.splice(Math.min(3, rows.length), 0, ...promoted);
+    rows = just.concat(rows);
     render(false); done();
   }
   document.addEventListener('hentity:vote', () => setTimeout(rerank, 350));
