@@ -1185,3 +1185,9 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .fnote-box .ic{flex:none;margin-top:1px;color:var(--color-text-tertiary)}
 .fprefill{display:flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;background:#FFF1EA;font-size:13px}
 .fprefill .ic{color:var(--color-accent-default)}
+
+/* Inactive startups: greyed logo + tag */
+.plogo--off{filter:grayscale(1);opacity:.6}
+.off-tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:var(--color-bg-muted,#eee);color:var(--color-text-secondary);font-size:12px;font-weight:500;white-space:nowrap;vertical-align:middle;letter-spacing:0}
+.off-tag--lg{height:26px;padding:0 10px;font-size:13px}
+.off-note{display:inline-flex;align-items:center;gap:6px;color:var(--color-text-secondary)}

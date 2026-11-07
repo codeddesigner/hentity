@@ -102,7 +102,7 @@
 
   const PROFILE_PUBLIC = 'id,username,name,headline,bio,country,city,website,x,linkedin,avatar_url,avatar_color,role,is_verified,banned,is_seed,settings,interests,deletion_requested_at,username_changed_at,created_at';
   const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,airtime_amount,funding,nudged_at,status,slug,form,agreement,access,settings,opens,signed_count,completed_at,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
-  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date,testers_wanted';
+  const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date,testers_wanted,active,inactive_note';
 
   const API = {
     sb, ready, url: SUPABASE_URL,

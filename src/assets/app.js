@@ -292,7 +292,7 @@
   }
 
   function plogo(p, size) {
-    const sz = size ? ' plogo--' + size : '';
+    const sz = (size ? ' plogo--' + size : '') + (p.active === false ? ' plogo--off' : '');
     if (p.logo_url) return `<span class="plogo${sz}" style="background:#fff url('${esc(p.logo_url)}') center/cover"></span>`;
     return `<span class="plogo${sz}" style="background:${esc(p.color || '#000')}">${esc((p.name || '?')[0].toUpperCase())}</span>`;
   }
@@ -407,5 +407,7 @@
   const catInk = () => '#0a0a0a';
   // Short industry names used on charts (Figma: agritech, edtech, climate)
   const catShort = c => ({ Agriculture: 'Agritech', Education: 'Edtech', 'Energy & Climate': 'Climate' })[c] || c;
-  window.H = { on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  // "Inactive" tag for startups that have shut down, been renamed or acquired
+  function inactiveTag(p, lg) { return p && p.active === false ? `<span class="off-tag${lg ? ' off-tag--lg' : ''}" title="${esc(p.inactive_note || 'No longer operating')}">Inactive</span>` : ''; }
+  window.H = { inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
