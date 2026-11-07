@@ -1217,3 +1217,6 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .fu-todo{width:20px;height:20px;border-radius:50%;flex:none;border:1.5px solid var(--color-border-strong,#ccc)}
 .fu-red{color:#D92D20}
 [data-theme="dark"] .fu-no{background:#3a1717;color:#ff8a80}
+
+/* While the app starts, keep the plain server-rendered copy out of sight (it stays for crawlers and as a fallback) */
+.js-boot [data-ssr]{visibility:hidden}
