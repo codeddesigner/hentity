@@ -31,8 +31,8 @@ H.mount();
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
     ['System', [['emails', 'Emails', 'mail'], ['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
-  // Mini-admins (role 'moderator') have every admin power except adding/removing admins (enforced in the database too)
-  const FULL_ONLY = [];   // mini-admins see everything; they just can't change roles or touch admins
+  // Mini-admins (role 'moderator') have every admin power except member data (users, messages, newsletter, email logs) and managing admins (enforced in the database too)
+  const FULL_ONLY = ['users', 'messages', 'newsletter', 'emails', 'admins'];   // member data and admin management stay with the super admin
   if (!isFullAdmin) SECTIONS.forEach(s => { s[1] = s[1].filter(x => !FULL_ONLY.includes(x[0])); });
   const ROLE = { admin: 'Super admin', moderator: 'Mini-admin', user: 'Member' };
   let stats = {};
@@ -127,7 +127,7 @@ H.mount();
   }
   async function openReview(p) {
     location.hash = 'review/' + p.id;
-    const [weeks, makers, notifyN, ownerFull, reg] = await Promise.all([weekOptions(), A.makers(p.id), A.notifyRequests(p.id), p.owner ? A.users(null, [p.owner.id]) : [], regOf(p)]); if (ownerFull[0]) p.owner = ownerFull[0];
+    const [weeks, makers, notifyN, ownerFull, reg] = await Promise.all([weekOptions(), A.makers(p.id), A.notifyRequests(p.id), p.owner && isFullAdmin ? A.users(null, [p.owner.id]).catch(() => []) : [], regOf(p)]); if (ownerFull[0]) p.owner = ownerFull[0];
     const media = (p.media || []).map(m => m.url ? `<img src="${esc(m.url)}" alt="" style="height:72px;border-radius:8px;border:1px solid var(--color-border-default)">` : `<span style="display:inline-block;width:110px;height:72px;border-radius:8px;background:${esc(m.color || '#eee')}"></span>`).join('');
     const top = `<div class="row gap-12" style="margin-bottom:16px">${H.plogo(p, 56)}<div><p class="t-h3">${esc(p.name)}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">${badge(p.status)} · ${esc((p.categories || []).join(', '))} · ${esc(p.country)} · <a class="link" href="/products/${p.slug}" target="_blank">preview</a></p></div></div>
       ${media ? `<div class="row gap-8" style="overflow-x:auto;margin-bottom:16px">${media}</div>` : '<p class="alert alert--warning" style="margin-bottom:16px">No media uploaded.</p>'}
@@ -736,9 +736,9 @@ H.mount();
   V.admins = async () => {
     nav('admins');
     const rows = (await A.users('')).filter(u => u.role === 'admin' || u.role === 'moderator');
-    const can = [['Everything in the admin panel: review, products, Radar, claims, community, news', true], ['Broadcasts, emails and nudges', true], ['Site settings, features, newsletter, audit log', true], ['Verify, ban or delete members', true],
-      ['Add or remove admins and mini-admins', false], ['Change, ban or delete the super admin', false]];
-    qs('#main').innerHTML = head('Admins', isFullAdmin ? 'Mini-admins have the same powers as you, except adding or removing admins and changing your account.' : 'Only the super admin can add or remove admins.', isFullAdmin ? `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}Add a mini-admin</button>` : '')
+    const can = [['Review queue, products, launch weeks, betas, companies', true], ['Radar, claims, Find roles, reports, comments, channels', true], ['News, broadcasts, site settings, features, audit log', true],
+      ['See the Users list or member emails', false], ['Read private messages or the newsletter list', false], ['See email logs or send nudges', false], ['Add or remove admins, or touch the super admin', false]];
+    qs('#main').innerHTML = head('Admins', isFullAdmin ? 'Mini-admins can run everything except member data (users, messages, newsletter, email logs) and admin management.' : 'Only the super admin can add or remove admins.', isFullAdmin ? `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}Add a mini-admin</button>` : '')
       + `<div class="card" style="padding:20px;margin-bottom:24px"><p class="t-label" style="margin-bottom:12px">What a Mini-admin can do</p><div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 24px">${can.map(([t, ok]) => `<p class="row gap-8 t-body-sm ${ok ? '' : 'c-3'}" style="align-items:flex-start">${icon(ok ? 'check' : 'x', 'ic-14 ' + (ok ? 'c-success' : 'c-3'))}<span>${t}</span></p>`).join('')}</div></div>`
       + tbl(['Person', 'Email', 'Role', ''], rows.map(u => `<tr><td><span class="row gap-10" style="gap:10px">${avatar(u, 28)}<span><b>${esc(u.name)}</b><br><span class="c-3">@${esc(u.username)}</span></span></span></td><td>${esc(u.email || '—')}</td><td>${badge(u.role)}</td><td style="text-align:right">${u.id === API.uid ? '<span class="c-3 t-caption">You</span>' : !isFullAdmin ? '' : `<div class="row gap-8" style="justify-content:flex-end">${u.role === 'moderator' ? `<button class="btn btn--secondary btn--sm" data-r="${u.id}" data-to="admin">Make super admin</button>` : `<button class="btn btn--secondary btn--sm" data-r="${u.id}" data-to="moderator">Make mini-admin</button>`}<button class="btn btn--ghost btn--sm" data-r="${u.id}" data-to="user">Remove</button></div>`}</td></tr>`), 'No admins yet');
     qs('#main').onclick = async e => {
