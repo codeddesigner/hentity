@@ -46,6 +46,7 @@
 <script src="/assets/beta.js"></script>
 <script src="/assets/data.js"></script>
 <script src="/assets/reviews.js"></script>
+<script src="/assets/hentity-page.js"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -58,6 +59,8 @@ H.mount({ active: 'products', tab: 'products' });
   document.title = `${p.name} | ${p.tagline} | Hentity`;
   // Directory profiles nobody has claimed use the unclaimed layout, whatever their status says
   if (D.isUnclaimed(p)) return unclaimed(p);
+  // Hentity's own listing has its own layout: reviews of Hentity, no founders or makers (Figma 238:4196)
+  if (p.slug === 'hentity' && window.HP) return HP.render(p);
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own
   // state (votes, follows) is a second parallel batch instead of a chain of round trips.

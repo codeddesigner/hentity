@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=960b7c7757">
+<link rel="stylesheet" href="/assets/styles.css?v=2b6dd08152">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=b6be7bf6aa"></script>
-<script src="/assets/app.js?v=7a854471d7"></script>
+<script src="/assets/api.js?v=9cc6747cba"></script>
+<script src="/assets/app.js?v=44a8cd606e"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -60,6 +60,7 @@
 .me-menu a,.me-menu label{display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;font-size:14px;font-weight:500}
 .me-menu a:hover{background:var(--color-bg-subtle)}
 .me-menu .ic{width:18px;height:18px}
+.me-menu [href="/products/hentity#write"] .ic{color:#F5A524}
 .me-menu .meta{margin-left:auto;font-size:13px;color:var(--color-text-tertiary);font-weight:400}
 </style>
 <meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
@@ -91,6 +92,7 @@
     <a href="/notifications"><span data-icon="bell"></span>Notifications<span class="meta" id="unread"></span></a>
     <a href="/settings/profile"><span data-icon="settings"></span>Settings</a><a href="/admin" id="admin-link" hidden><span data-icon="shield"></span>Admin</a><a href="/news"><span data-icon="newspaper"></span>News</a><a href="/insights"><span data-icon="bar-chart"></span>Insights</a>
     <label><span data-icon="eye"></span>Dark mode<span class="toggle" style="margin-left:auto"><input type="checkbox" data-theme-toggle aria-label="Dark mode"><span class="toggle__track"></span></span></label>
+    <a href="/products/hentity#write"><span data-icon="star" class="me-star"></span>Review Hentity</a>
     <a href="/guidelines"><span data-icon="info"></span>Help &amp; guidelines</a>
   </nav>
   <button class="btn btn--ghost" type="button" data-signout style="color:var(--color-error);margin-top:16px"><span data-icon="arrow-left"></span>Sign out</button>

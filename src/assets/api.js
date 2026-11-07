@@ -221,7 +221,10 @@
     deleteComment: id => (touched(), q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id))),
     // Product reviews (one per member per product; makers reply)
     reviews: (pid, sort) => q(sb.rpc('product_reviews', { pid, sort: sort || 'helpful', lim: 200 })),
-    async saveReview(pid, id, rating, body) { requireAuth(); touched(); if (id) return q(sb.from('product_reviews').update({ rating, body }).eq('id', id).select('id').single()); return q(sb.from('product_reviews').insert({ product_id: pid, rating, body }).select('id').single()); },
+    async saveReview(pid, id, rating, body, extra) { requireAuth(); touched(); const row = Object.assign({ rating, body }, extra || {}); if (id) return q(sb.from('product_reviews').update(row).eq('id', id).select('id').single()); return q(sb.from('product_reviews').insert(Object.assign({ product_id: pid }, row)).select('id').single()); },
+    // Most-requested features and what shipped (Hentity's own page)
+    roadmap: pid => q(sb.rpc('roadmap', { pid })),
+    async roadmapVote(id, on) { requireAuth(); if (on) err((await sb.from('roadmap_votes').insert({ item_id: id })).error); else err((await sb.from('roadmap_votes').delete().eq('item_id', id).eq('user_id', uid())).error); },
     deleteReview: id => q(sb.from('product_reviews').delete().eq('id', id)),
     async reviewHelpful(id, on) { requireAuth(); if (on) err((await sb.from('product_review_votes').insert({ review_id: id })).error); else err((await sb.from('product_review_votes').delete().eq('review_id', id).eq('user_id', uid())).error); },
     reviewReply: (id, txt) => q(sb.rpc('review_reply', { rid: id, txt: txt || '' })),

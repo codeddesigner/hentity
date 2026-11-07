@@ -27,7 +27,7 @@ H.mount();
     ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell']]],
     ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['funding', 'Funding', 'star'], ['users', 'Users', 'users'], ['admins', 'Admins', 'shield']]],
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
-    ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
+    ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['roadmap', 'Hentity roadmap', 'star'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
     ['System', [['emails', 'Emails', 'mail'], ['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
@@ -589,6 +589,34 @@ H.mount();
     const load = async () => { rows = await A.comments(qs('#q').value.trim()); qs('#list').innerHTML = tbl(['When', 'Who', 'On', 'Comment', ''], rows.map(c => `<tr${c.deleted ? ' style="opacity:.5"' : ''}><td>${when(c.created_at)}</td><td>${c.user ? esc(c.user.name) : '—'}</td><td>${c.product ? `<a class="link" href="/products/${c.product.slug}#c-${c.id}" target="_blank">${esc(c.product.name)}</a>` : c.article ? `<a class="link" href="/news/${c.article.slug}" target="_blank">${esc(c.article.title.slice(0, 40))}…</a>` : '—'}${c.parent_id ? '<br><span class="c-3">reply</span>' : ''}</td><td style="max-width:440px">${esc(c.body)}</td><td style="text-align:right;white-space:nowrap"><button class="btn btn--secondary btn--sm" data-hide="${c.id}">${c.deleted ? 'Restore' : 'Hide'}</button> <button class="btn btn--ghost btn--sm" data-del="${c.id}" aria-label="Delete">${icon('trash', 'ic-14')}</button></td></tr>`), 'No comments'); };
     qs('#q').addEventListener('input', debounce(load));
     qs('#list').onclick = async e => { const h = e.target.closest('[data-hide]'), d = e.target.closest('[data-del]'); try { if (h) { const c = rows.find(x => x.id === h.dataset.hide); await A.updateComment(c.id, { deleted: !c.deleted }); toast(c.deleted ? 'Restored' : 'Hidden'); load(); } if (d && confirm('Delete this comment and its replies permanently?')) { await A.hardDeleteComment(d.dataset.del); toast('Deleted'); load(); } } catch (err) { H.fail(err); } };
+    await load();
+  };
+
+  // ---- Hentity's own page: most-requested features (members vote) and what shipped (Figma 238:4196)
+  V.roadmap = async () => {
+    nav('roadmap');
+    const { data: hp } = await API.sb.from('products').select('id').eq('slug', 'hentity').maybeSingle();
+    if (!hp) { qs('#main').innerHTML = head('Hentity roadmap', 'Hentity’s own listing isn’t set up yet.'); return; }
+    qs('#main').innerHTML = head('Hentity roadmap', 'Shown on Hentity’s own product page: “Most requested” (members vote) and “Shipped from your reviews”. Take requests from reviews; mark them shipped when they go out.', `<button class="btn btn--primary btn--sm" type="button" id="rm-add">${icon('plus', 'ic-14')}Add item</button>`) + '<div id="list"></div><p class="t-caption c-3" style="font-weight:400;margin-top:12px"><a class="link" href="/products/hentity" target="_blank" rel="noopener">Open Hentity’s page</a></p>';
+    let rows = [];
+    const F = [['title', 'Title'], ['status', 'Status', 'select', [['requested', 'Most requested'], ['shipped', 'Shipped']]], ['shipped_at', 'Shipped on', 'date']];
+    const edit = r => drawer(r ? 'Edit item' : 'Add item', F, r || { status: 'requested' }, async v => {
+      const row = { title: (v.title || '').trim(), status: v.status, shipped_at: v.status === 'shipped' ? (v.shipped_at || new Date().toISOString().slice(0, 10)) : null };
+      if (row.title.length < 2) throw new Error('Add a title');
+      const q = r ? API.sb.from('roadmap_items').update(row).eq('id', r.id) : API.sb.from('roadmap_items').insert(Object.assign({ product_id: hp.id }, row));
+      const { error } = await q; if (error) throw error; toast('Saved'); load();
+    }, r ? { danger: { label: 'Delete', confirm: 'Delete this item?', run: async () => { const { error } = await API.sb.from('roadmap_items').delete().eq('id', r.id); if (error) throw error; toast('Deleted'); load(); } } } : null);
+    const load = async () => {
+      const { data } = await API.sb.from('roadmap_items').select('*').eq('product_id', hp.id).order('status').order('votes', { ascending: false }).order('shipped_at', { ascending: false });
+      rows = data || [];
+      qs('#list').innerHTML = rows.length ? tbl(['Title', 'Status', 'Votes', 'Shipped', ''], rows.map(r => `<tr><td>${esc(r.title)}</td><td><span class="badge ${r.status === 'shipped' ? 'badge--success' : 'badge--warning'}">${r.status === 'shipped' ? 'Shipped' : 'Requested'}</span></td><td>${r.status === 'requested' ? r.votes : '—'}</td><td>${r.shipped_at ? when(r.shipped_at) : '—'}</td><td style="text-align:right;white-space:nowrap">${r.status === 'requested' ? `<button class="btn btn--secondary btn--sm" data-ship="${r.id}">Mark shipped</button> ` : ''}<button class="btn btn--ghost btn--sm" data-edit="${r.id}">Edit</button></td></tr>`)) : '<p class="t-body-sm c-2" style="padding:16px 0">Nothing yet. Add the features members ask for most in their reviews.</p>';
+    };
+    qs('#rm-add').onclick = () => edit(null);
+    qs('#list').onclick = async e => {
+      const ed = e.target.closest('[data-edit]'), sh = e.target.closest('[data-ship]');
+      if (ed) edit(rows.find(r => r.id === ed.dataset.edit));
+      if (sh) { const { error } = await API.sb.from('roadmap_items').update({ status: 'shipped', shipped_at: new Date().toISOString().slice(0, 10) }).eq('id', sh.dataset.ship); if (error) return H.fail(error); toast('Marked shipped'); load(); }
+    };
     await load();
   };
 
