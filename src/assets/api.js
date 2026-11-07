@@ -389,8 +389,9 @@
     channels: () => q(sb.from('channels').select('id,slug,name,description,kind,product_id,pinned,pinned_link,rules,archived,position,product:products(slug,name,color,logo_url,verified,upvote_count,tagline)').eq('archived', false).order('position').order('name')),
     channelMembers: (cid) => q(sb.from('channel_members').select('user_id,last_read_at,user:profiles!channel_members_user_id_fkey(id,name,username,avatar_url,avatar_color)').eq('channel_id', cid)),
     async myMemberships() { if (!uid()) return []; return q(sb.from('channel_members').select('channel_id,last_read_at').eq('user_id', uid())); },
-    async joinChannel(cid) { if (!uid()) return; await sb.from('channel_members').upsert({ channel_id: cid, user_id: uid(), last_read_at: new Date().toISOString() }, { onConflict: 'channel_id,user_id' }); },
-    markChannelRead: (cid) => uid() ? sb.from('channel_members').update({ last_read_at: new Date().toISOString() }).eq('channel_id', cid).eq('user_id', uid()) : null,
+    // Joining or reading a chat stamps it read on the server (server clock, so it can't drift)
+    async joinChannel(cid) { if (!uid()) return; err((await sb.rpc('mark_channel_read', { cid })).error); },
+    async markChannelRead(cid) { if (!uid() || !cid) return; const { error } = await sb.rpc('mark_channel_read', { cid }); if (error) console.warn('mark read failed', error.message); },
     messages: (cid, parent) => {
       let s = sb.from('messages').select('*,user:profiles!messages_user_id_fkey(id,name,username,avatar_url,avatar_color,is_verified),product:products(id,slug,name,tagline,color,logo_url,verified,upvote_count),reactions(emoji,user_id)').eq('channel_id', cid);
       s = parent ? s.or(`id.eq.${parent},parent_id.eq.${parent}`) : s.or('parent_id.is.null,also_in_channel.eq.true');

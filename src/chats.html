@@ -181,7 +181,7 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (e.target.closest('[data-back]')) { history.pushState(null, '', '/chats'); qs('#chat').classList.remove('in-conv'); cur = null; renderList(); return; }
     if (e.target.closest('#search-in')) { const t = prompt('Search #' + cur.name); if (!t) return; const { data } = await API.sb.from('messages').select('id').eq('channel_id', cur.id).ilike('body', `%${t}%`).order('created_at', { ascending: false }).limit(1); if (data && data[0]) { const el = qs(`[data-mid="${data[0].id}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); } else toast('Found an older message — scroll up to load more'); } else toast('No messages match “' + t + '”'); }
     if (e.target.closest('#more')) {
-      const items = [['Copy link', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); }], ['Mark as read', () => { API.markChannelRead(cur.id); toast('Marked as read'); }]];
+      const items = [['Copy link', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); }], ['Mark as read', async () => { await API.markChannelRead(cur.id); unread[cur.id] = 0; renderList(); H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0)); toast('Marked as read'); }]];
       if (cur.kind !== 'dm') items.push(['Leave channel', async () => { await API.sb.from('channel_members').delete().eq('channel_id', cur.id).eq('user_id', API.uid); toast('You left #' + cur.name); }]);
       if (cur.kind === 'dm' && cur.other) items.push(['Block ' + cur.other.name.split(' ')[0], async () => { if (!confirm('Block ' + cur.other.name + '? They won’t be able to message you.')) return; await API.block(cur.other.id, true); toast('Blocked'); }]);
       const m = document.createElement('div'); m.className = 'menu'; m.dataset.menu = ''; m.style.position = 'fixed'; const r = e.target.closest('#more').getBoundingClientRect(); m.style.top = r.bottom + 6 + 'px'; m.style.right = (innerWidth - r.right) + 'px';
@@ -191,12 +191,13 @@ H.mount({ active: 'chats', tab: 'chats' });
   });
 
   // ---------- realtime
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && cur && API.uid) API.markChannelRead(cur.id).then(() => { unread[cur.id] = 0; renderList(); H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0)); }); });
   function subscribe() {
     stopMsg && stopMsg(); presence && presence.leave();
     stopMsg = API.live('msgs', 'messages', 'channel_id=eq.' + cur.id, async ({ eventType, new: n, old }) => {
       if (eventType === 'INSERT') {
         await addMsg(n.id);
-        API.markChannelRead(cur.id);
+        if (document.visibilityState === 'visible') API.markChannelRead(cur.id);
       } else if (eventType === 'UPDATE') { const i = msgs.findIndex(m => m.id === n.id); if (i > -1) { msgs[i] = Object.assign(msgs[i], n); renderMsgs(); } }
       else if (eventType === 'DELETE') { msgs = msgs.filter(m => m.id !== old.id); renderMsgs(); }
     });

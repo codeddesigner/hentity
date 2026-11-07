@@ -165,6 +165,7 @@
     admin_send_nudges: () => ({ sent: 1, skipped: 0 }),
     email_unsubscribe: () => ({ ok: true }),
     radar_dupe: () => null,
+    mark_channel_read: () => null,
     admin_find_roles: () => [Object.assign({}, FR[3], { status: 'review', startup_name: 'Haul54', startup_line: 'Shared trucks for small traders', country: 'UG', working: 'hybrid', visibility: 'public', updated_at: new Date(Date.now() - 5 * 36e5).toISOString(), owner: { name: 'Ada Obi', email: 'ada@haul54.com', username: 'ada', is_verified: false }, product: null })],
     find_review_role: () => null,
     product_edit_state: a => { const p = T.products.find(x => x.slug === a.pslug) || T.products.find(x => ['live', 'scheduled'].includes(x.status)); if (!p) return null; const cur = { name: p.name, tagline: p.tagline, description: p.description || '', website: p.website || '', logo_url: p.logo_url, color: p.color, media: p.media || [], video_url: p.video_url || '', categories: p.categories || [], country: p.country, city: p.city || '', pay_methods: p.pay_methods || [], stage: p.stage || 'Seed', platforms: 'Web', languages: 'English', currencies: 'NGN', registration: 'RC 1234567', founder_link: 'linkedin.com/in/founder' };
