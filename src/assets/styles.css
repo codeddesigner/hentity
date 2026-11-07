@@ -76,7 +76,7 @@ h1,h2,h3,h4,p{margin:0}
 
 /* ---------- Logo ---------- */
 .logo{display:inline-flex;align-items:center;gap:8px;color:var(--color-text-primary)}
-.logo__beta{font-family:var(--font-sans);font-size:10px;line-height:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:0 6px;border-radius:999px;background:var(--color-accent-subtle,#fff1ea);color:var(--color-accent-default,#ff5b14);flex:none}
+.logo__beta{font-family:var(--font-sans);font-size:10px;line-height:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:0 6px;border-radius:999px;background:var(--color-success-subtle,#ecfdf3);color:var(--color-success,#16a34a);flex:none}
 .logo--inverse .logo__beta{background:rgba(255,255,255,.14);color:#fff}
 .logo svg{height:20.4px;width:auto}
 .logo--lg svg{height:24px}
