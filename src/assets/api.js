@@ -278,6 +278,14 @@
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
     // Insights
     insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
+    insightsFounders: (f) => q(sb.rpc('insights_founders', { f: f || {} })),
+    insightsExplore: (ds, by, split, f, measure) => q(sb.rpc('insights_explore', { ds, by, split: split || null, f: f || {}, measure: measure || 'count' })),
+    insightViews: () => uid() ? q(sb.from('insight_views').select('*').order('updated_at', { ascending: false }).limit(20)) : Promise.resolve([]),
+    saveInsightView: (name, query) => q(sb.from('insight_views').insert({ name, query }).select().single()),
+    deleteInsightView: id => q(sb.from('insight_views').delete().eq('id', id)),
+    foundingTeam: async id => { const [t, p] = await Promise.all([q(sb.from('product_founders').select('team,founders').eq('product_id', id).maybeSingle()), q(sb.from('products').select('founded_year,raised_usd,raised_year').eq('id', id).maybeSingle())]);
+      return Object.assign({ founding_team: t && t.team, founders_count: t && t.founders }, p || {}); },
+    setFoundingTeam: (pid, team, founders, founded) => q(sb.rpc('set_founding_team', { pid, team: team || null, founders: founders || null, founded: founded || null })),
     // Validate an idea (Figma: Validate)
     // Find (roles, people open to work, mutual interest, matches)
     editState: slug => q(sb.rpc('product_edit_state', { pslug: slug })),

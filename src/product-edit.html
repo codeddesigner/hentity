@@ -88,13 +88,27 @@ H.mount({ active: 'my-products', tab: 'you' });
         <div class="grid-2">${field('stage', 'Stage', `<select class="input" id="f-stage" data-k="stage">${[...new Set([v.stage, ...STAGES].filter(Boolean))].map(s => `<option${s === v.stage ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>`)}${field('platforms', 'Platforms', inp('platforms', 'placeholder="Web, iOS, Android"'))}</div>
         <div class="grid-2">${field('languages', 'Languages', inp('languages', 'placeholder="English, Yoruba"'))}${field('currencies', 'Currencies', inp('currencies', 'placeholder="NGN, USD"'))}</div>
       </div></section>
+      <section class="card sec"><h2>Founding team</h2><p class="t-body-sm c-2" style="margin:-6px 0 14px">Saved straight away, no approval needed. Only used in anonymous totals on <a class="link link--accent" href="/insights?tab=founders" target="_blank">Insights</a>, never shown on your page.</p>
+        <div class="chips" data-single id="ft-team" style="flex-wrap:wrap"></div>
+        <div class="row gap-8 wrap" style="margin-top:12px"><input class="input" id="ft-n" type="number" min="1" max="20" inputmode="numeric" placeholder="Number of founders" style="max-width:190px"><input class="input" id="ft-y" type="number" min="1980" max="2100" inputmode="numeric" placeholder="Year founded" style="max-width:150px"><span class="t-caption c-3" id="ft-saved" style="font-weight:400;align-self:center"></span></div></section>
       ${hist.length ? `<section class="card sec"><h2>Past requests</h2>${hist.map(h => `<div class="pe-hist"><span class="badge ${h.status === 'approved' ? 'badge--success' : h.status === 'partial' ? 'badge--accent' : h.status === 'rejected' ? 'badge--danger' : ''}">${{ approved: 'Approved', partial: 'Partly approved', rejected: 'Not approved', withdrawn: 'Withdrawn' }[h.status]}</span><div class="grow"><p class="t-body-sm">${esc(Object.keys(h.changes).map(k => LABEL[k] || k).join(', '))}</p><p class="t-caption c-3" style="font-weight:400">${when(h.created_at)}${h.status === 'partial' ? ' · applied: ' + esc(h.applied.map(k => LABEL[k] || k).join(', ')) : ''}</p>${h.admin_note ? `<p class="t-body-sm c-2" style="margin-top:4px">“${esc(h.admin_note)}”</p>` : ''}</div></div>`).join('')}</section>` : ''}
     </div>
     <aside class="pe-side stack gap-16"><section class="card card--pad stack gap-12"><div class="row between"><p class="t-label">Your changes</p><span class="mono t-body-sm c-2" id="n"></span></div><div id="chg"></div>
       <label class="field"><span class="field__label">Note for the reviewer <span class="c-3" style="font-weight:400">· optional</span></span><textarea class="input" id="msg" rows="3" maxlength="600" placeholder="e.g. We rebranded and moved to a new domain">${esc(pending ? pending.note : '')}</textarea></label>
       <button class="btn btn--accent btn--block" type="button" id="send">${icon('check')}${pending ? 'Update request' : 'Send for approval'}</button>
       <p class="t-caption c-3" style="font-weight:400">Most requests are checked within a day. We’ll notify you either way.</p></section></aside></div>`;
-    bind(); gal(); sync();
+    bind(); gal(); sync(); team();
+  }
+  // Founding team: self-reported, saved directly (it never appears on the page, so it needs no review)
+  let FT = null;
+  async function team() {
+    const TEAMS = [['women', 'Women-founded'], ['mixed', 'Mixed team'], ['men', 'Men-founded'], ['unstated', 'Prefer not to say']];
+    if (!FT) { try { const r = await API.foundingTeam(st.id); FT = { team: r && r.founding_team, n: r && r.founders_count, y: r && r.founded_year }; } catch (e) { FT = {}; } }
+    const paint = () => { qs('#ft-team').innerHTML = TEAMS.map(([k, l]) => `<button class="chip" type="button" data-team="${k}" aria-pressed="${FT.team === k}">${icon('check')}${l}</button>`).join(''); };
+    paint(); qs('#ft-n').value = FT.n || ''; qs('#ft-y').value = FT.y || '';
+    let t; const save = () => { clearTimeout(t); t = setTimeout(async () => { try { FT.n = +qs('#ft-n').value || null; FT.y = +qs('#ft-y').value || null; await API.setFoundingTeam(st.id, FT.team, FT.n, FT.y); qs('#ft-saved').textContent = 'Saved'; } catch (e) { H.fail(e); } }, 500); };
+    qs('#ft-team').onclick = e => { const b = e.target.closest('[data-team]'); if (!b) return; FT.team = FT.team === b.dataset.team ? null : b.dataset.team; paint(); save(); };
+    qs('#ft-n').oninput = save; qs('#ft-y').oninput = save;
   }
 
   function sync() {

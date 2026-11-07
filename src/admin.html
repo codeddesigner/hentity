@@ -295,17 +295,21 @@ H.mount();
     await load();
   };
   async function editProduct(p, after) {
-    const [allWeeks, reg] = await Promise.all([A.weeks(), regOf(p)]);
+    const [allWeeks, reg, priv] = await Promise.all([A.weeks(), regOf(p), API.foundingTeam(p.id).catch(() => ({}))]);
+    p = Object.assign({}, p, { founding_team: priv.founding_team || '', founders_count: priv.founders_count, founded_year: priv.founded_year, raised_usd: priv.raised_usd, raised_year: priv.raised_year });
     const d = drawer('Edit · ' + p.name, [
       ['name', 'Name', 'text'], ['slug', 'Slug', 'text'], ['tagline', 'Tagline', 'text'], ['description', 'Description', 'textarea', { rows: 5 }], ['website', 'Website', 'text'],
       ['logo_url', 'Logo', 'image'], ['color', 'Brand colour (hex)', 'color'], ['video_url', 'Demo video URL', 'text'], ['media', 'Media (JSON)', 'json', { empty: [] }],
       ['status', 'Status', 'select', ['draft', 'review', 'changes', 'scheduled', 'live', 'rejected', 'archived']], ['launch_date', 'Launch day', 'date'], ['week_id', 'Board week (set from the launch day)', 'select', [['', '— none —'], ...allWeeks.map(w => [w.id, 'Week ' + w.id + ' · ' + new Date(w.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })])]],
+      ['founding_team', 'Founding team (private, Insights totals only)', 'select', [['', 'Not stated'], ['women', 'Women-founded'], ['mixed', 'Mixed team'], ['men', 'Men-founded'], ['unstated', 'Prefer not to say']]], ['founders_count', 'Number of founders', 'number'], ['founded_year', 'Year founded', 'number'], ['raised_usd', 'Total raised (USD)', 'number'], ['raised_year', 'Year of latest round', 'number'],
       ['active', 'Active · still operating (untick to grey it out as Inactive)', 'bool'], ['inactive_note', 'If inactive: what happened (e.g. Shut down in 2024)', 'text'],
       ['featured', 'Featured on the board', 'bool'], ['promoted', 'Promoted (sponsored slot)', 'bool'], ['reg', 'Company registration number (CAC/RC)', 'text'], ['verified', 'Verified stamp', 'bool'],
       ['categories', 'Categories', 'list'], ['pay_methods', 'Payment methods', 'list'], ['countries', 'Available countries (codes)', 'list'],
       ['country', 'HQ country code', 'text'], ['city', 'City', 'text'], ['stage', 'Stage', 'select', ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+', 'Bootstrapped', 'Profitable']], ['languages', 'Languages', 'text'], ['platforms', 'Platforms', 'text'], ['currencies', 'Currencies', 'text'],
       ['intro', 'Maker intro', 'textarea'], ['review_note', 'Review note', 'textarea', { rows: 2 }], ['upvote_count', 'Upvotes (read-only, counted)', 'readonly'], ['click_count', 'Website clicks', 'readonly'], ['view_count', 'Views', 'readonly']
-    ], Object.assign({}, p, { reg }), async v => { if (v.week_id != null) v.week_id = +v.week_id; if (v.active) v.inactive_note = null; const r = (v.reg || '').trim(); delete v.reg; if (r !== reg) v.verify = Object.assign({}, p.verify, { company: r || undefined }); if (v.verified && !r) throw new Error('Add the company registration number before issuing the Verified stamp'); await A.updateProduct(p.id, v); toast('Saved'); after && after(); },
+    ], Object.assign({}, p, { reg }), async v => { if (v.week_id != null) v.week_id = +v.week_id; if (v.active) v.inactive_note = null;
+      if ((v.founding_team || '') !== (p.founding_team || '') || (v.founders_count || null) !== (p.founders_count || null)) await API.setFoundingTeam(p.id, v.founding_team || null, v.founders_count || null, null);
+      delete v.founding_team; delete v.founders_count; const r = (v.reg || '').trim(); delete v.reg; if (r !== reg) v.verify = Object.assign({}, p.verify, { company: r || undefined }); if (v.verified && !r) throw new Error('Add the company registration number before issuing the Verified stamp'); await A.updateProduct(p.id, v); toast('Saved'); after && after(); },
       { danger: { label: 'Delete', confirm: `Delete ${p.name} permanently? Votes, comments and its room go too.`, run: async () => { await A.deleteProduct(p.id); toast('Deleted'); after && after(); } } });
     stampField(d, reg, 'reg');
   }
@@ -425,6 +429,13 @@ H.mount();
           <label class="field" style="margin-top:10px"><span class="field__label">Public business contact <span class="c-3" style="font-weight:400">(for the claim invite)</span></span><input class="input" name="contact_email" value="${esc(r.contact_email || '')}" placeholder="hello@raynest.com" style="max-width:320px"></label>
           ${!pub ? `<label class="check" style="display:flex;margin-top:10px"><input type="checkbox" name="invite" checked><span class="check__box">${icon('check')}</span>Send a claim invite to that address when I publish</label>` : ''}
         </section>
+        <details style="margin-top:14px"${r.founding_team || r.raised_usd ? ' open' : ''}><summary class="t-body-sm c-2" style="cursor:pointer">Founders and funding <span class="c-3">(private, used in Insights totals)</span></summary>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+            <label class="field"><span class="field__label">Founding team</span><select class="input" name="founding_team">${[['', 'Not stated'], ['women', 'Women-founded'], ['mixed', 'Mixed team'], ['men', 'Men-founded'], ['unstated', 'Prefer not to say']].map(([k, l]) => `<option value="${k}"${(r.founding_team || '') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+            <label class="field"><span class="field__label">Year founded</span><input class="input" name="founded_year" type="number" min="1980" max="2100" value="${r.founded_year || ''}"></label>
+            <label class="field"><span class="field__label">Total raised (USD)</span><input class="input" name="raised_usd" type="number" min="0" step="1000" value="${r.raised_usd || ''}" placeholder="1500000"></label>
+            <label class="field"><span class="field__label">Year of latest round</span><input class="input" name="raised_year" type="number" min="1990" max="2100" value="${r.raised_year || ''}"></label></div>
+          <p class="t-caption c-3" style="font-weight:400;margin-top:8px">Only set the founding team from what the team has told you. Never guess it from names or photos.</p></details>
         <details style="margin-top:14px"><summary class="t-body-sm c-2" style="cursor:pointer">Sources and facts <span class="c-3">(optional, shown on the unclaimed page)</span></summary>
           <label class="field" style="margin-top:10px"><span class="field__label">Facts · Label | Value | Source | URL | Date</span><textarea class="input" name="facts_txt" rows="4" style="font-family:var(--font-mono);font-size:12px">${esc(lines(r.facts, FACT_KEYS))}</textarea></label>
           <label class="field" style="margin-top:10px"><span class="field__label">News · Title | Source | URL | Date</span><textarea class="input" name="news_txt" rows="2" style="font-family:var(--font-mono);font-size:12px">${esc(lines(r.news, NEWS_KEYS))}</textarea></label>
@@ -451,6 +462,7 @@ H.mount();
       const website = w ? (/^https?:/i.test(w) ? w : 'https://' + w) : '';
       return { website, name: q('name').value.trim() || (website ? domainOf(website).split('.')[0].replace(/^./, c => c.toUpperCase()) : ''), tagline: q('tagline').value.trim(), description: q('description').value.trim(),
         country: q('country').value, city: q('city').value.trim(), categories: qsa('#rf-cats [aria-pressed="true"]', sc).map(b => b.dataset.v).slice(0, 3), logo_url: q('logo_url').value.trim() || null,
+        founding_team: q('founding_team').value || null, founded_year: +q('founded_year').value || null, raised_usd: q('raised_usd').value === '' ? null : +q('raised_usd').value, raised_year: +q('raised_year').value || null,
         active: q('active').checked, inactive_note: q('active').checked ? null : (q('inactive_note').value.trim() || null),
         verified: q('verified').checked, registration: q('registration').value.trim() || null, contact_email: q('contact_email').value.trim() || null,
         facts: unlines(q('facts_txt').value, FACT_KEYS).map(f => Object.assign({ key: (f.label || 'fact').toLowerCase().replace(/[^a-z0-9]+/g, '_') }, f)), news: unlines(q('news_txt').value, NEWS_KEYS), found_via: q('found_via').value.trim() || null };

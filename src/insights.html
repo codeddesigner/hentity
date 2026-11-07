@@ -5,6 +5,7 @@
 <title>The state of African startups | Insights | Hentity</title>
 <meta name="description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
 <script src="/assets/share-image.js" defer></script>
+<script src="/assets/insights-more.js" defer></script>
 <style>
 .ins{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
 .ins-eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--color-accent-default)}
@@ -112,6 +113,98 @@ body.embed .ins{padding:16px}
   .ins-sec{padding-bottom:20px;margin-bottom:20px}
   .citylist .r{grid-template-columns:20px 90px minmax(0,1fr) 40px}.citylist .n,.citylist .p{display:none}
 }
+
+/* ---- Founders + Explore (Figma 197:2484, 198:2702) ---- */
+.mtabs{display:none}
+body.tab-founders #days,body.tab-explore #days,body.tab-explore .ins-sel,body.tab-founders #csv,body.tab-explore #csv,body.tab-founders #embed,body.tab-explore #embed,body.tab-founders #share,body.tab-explore #share{display:none}
+body.tab-explore .ins-bar{margin-bottom:20px}
+.fx-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:-8px 0 20px}
+.fx-sel{position:relative;display:inline-flex;align-items:center;height:36px;border:1px solid var(--color-border-default);border-radius:10px;background:var(--color-bg-canvas)}
+.fx-sel select{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:500;padding:0 30px 0 12px;height:100%;color:var(--color-text-primary);cursor:pointer;max-width:220px}
+.fx-sel .ic{position:absolute;right:10px;pointer-events:none;color:var(--color-text-tertiary)}
+.fx-kpis b{font-variant-numeric:tabular-nums}
+.fx-card{padding:22px 22px 20px;margin-bottom:20px;border-radius:16px}
+.fx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.fx-h{font-size:20px;font-weight:600;letter-spacing:-.01em}.fx-title{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.fx-s{font-size:13px;color:var(--color-text-tertiary);margin-top:4px}.fx-sm{font-size:12px;color:var(--color-text-tertiary)}
+.fx-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--color-text-secondary);margin:2px 0 0}.fx-leg span{display:inline-flex;align-items:center;gap:6px}.fx-leg i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.fx-mono{font-family:var(--font-mono);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fx-cities{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.fx-crow{display:grid;grid-template-columns:120px minmax(0,1fr) 150px 90px;align-items:center;gap:14px;font-size:13px}
+.fx-crow .fx-sm{text-align:right}
+.fx-stack{display:flex;height:26px;gap:2px;border-radius:4px;overflow:hidden}
+.fx-stack i{display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--font-mono);font-size:12px;color:#0a0a0a;min-width:2px}
+.fx-two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px}
+.fx-line{width:100%;height:auto;margin-top:12px;overflow:visible}
+.fx-money{margin-top:16px;font-size:13px}.fx-money .fx-track{margin:8px 0 4px}
+.fx-track{display:flex;height:10px;border-radius:5px;background:var(--color-bg-muted);overflow:hidden}.fx-track i{display:block;height:100%}
+.fx-cats{display:grid;grid-template-columns:1fr 1fr;gap:10px 40px;margin-top:18px}
+.fx-cats>div{display:flex;flex-direction:column;gap:12px}
+.fx-cat{display:grid;grid-template-columns:110px minmax(0,1fr) 84px;align-items:center;gap:14px}
+.fx-tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;font-weight:500;justify-self:start;white-space:nowrap}.fx-tag i{width:7px;height:7px;border-radius:50%}
+.fx-empty{display:flex;gap:16px;align-items:flex-start;padding:28px}
+.fx-explore{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+.fx-side .fx-card{padding:18px}
+.fx-ds{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.fx-dchip,.fx-chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:1px solid var(--color-border-default);border-radius:999px;font-size:13px;font-weight:500;background:var(--color-bg-canvas)}
+.fx-chip{height:30px;padding:0 12px;font-weight:400;color:var(--color-text-secondary)}
+.fx-chip:hover,.fx-dchip:hover{background:var(--color-bg-subtle)}
+.fx-dchip[aria-pressed="true"]{background:var(--color-text-primary);color:var(--color-bg-canvas);border-color:var(--color-text-primary)}
+.fx-sent{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin:18px 0 16px}
+.fx-row{display:contents}
+.fx-w{font-size:18px;color:var(--color-text-tertiary)}
+.fx-pick{position:relative;display:inline-flex;align-items:center;height:34px;border:1px solid var(--color-accent-default);border-radius:8px;background:var(--color-accent-subtle,#fff4ee)}
+.fx-pick select{appearance:none;border:0;background:none;font:inherit;font-size:14px;font-weight:500;color:var(--color-accent-default);padding:0 30px 0 10px;height:100%;cursor:pointer}
+.fx-pick .ic{position:absolute;right:9px;pointer-events:none;color:var(--color-accent-default)}
+.fx-fchip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 6px 0 10px;border-radius:8px;background:var(--color-bg-subtle);font-size:14px;font-weight:500}
+.fx-fchip button{display:grid;place-items:center;width:20px;height:20px;border-radius:5px;color:var(--color-text-tertiary)}.fx-fchip button:hover{background:var(--color-bg-muted)}
+.fx-add{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px dashed var(--color-border-strong,#c4c4c4);border-radius:8px;font-size:14px;color:var(--color-text-secondary)}
+.fx-ask{display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 14px;border-radius:12px;background:var(--color-bg-subtle)}
+.fx-ask>span{color:var(--color-accent-default);display:flex}.fx-ask input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--color-text-primary);outline:0}
+.fx-pop{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.fx-views{display:flex;gap:2px;background:var(--color-bg-subtle);border-radius:10px;padding:3px}
+.fx-views button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:8px;font-size:13px;color:var(--color-text-secondary)}
+.fx-views button[aria-selected="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:500}
+#fx-r>.fx-leg{margin:14px 0 6px}
+.fx-bars{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.fx-brow{display:grid;grid-template-columns:120px minmax(0,1fr);align-items:center;gap:14px;font-size:13px}
+.fx-bt{display:flex;align-items:center;gap:12px;min-width:0}.fx-bt b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-bb{display:flex;gap:2px;height:20px;min-width:4px}
+.fx-bb i{display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--font-mono);font-size:11px;color:#0a0a0a;min-width:2px;overflow:hidden}
+.fx-tablewrap{border:1px solid var(--color-border-default);border-radius:12px;overflow:auto;margin-top:18px}
+.fx-table{width:100%;border-collapse:collapse;font-size:13px}
+.fx-table th{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:400;color:var(--color-text-tertiary);text-align:left;padding:10px 12px;background:var(--color-bg-subtle);white-space:nowrap}
+.fx-table td{padding:9px 12px;border-top:1px solid var(--color-border-default)}.fx-table .num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.fx-table .fx-tot td{font-weight:500}
+.fx-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:18px}
+.fx-tile{padding:12px;border-radius:10px;background:color-mix(in srgb,var(--color-accent-default) calc(var(--a) * 100%),var(--color-bg-subtle));display:flex;flex-direction:column;gap:8px;font-size:13px}.fx-tile b{font-size:20px;font-weight:600}
+.fx-emptyres{display:flex;flex-direction:column;align-items:center;gap:8px;padding:48px 0;color:var(--color-text-secondary);font-size:14px;text-align:center}
+.fx-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:18px}
+.fx-chips{display:flex;flex-wrap:wrap;gap:6px}.fx-chips .fx-chip{height:28px;border-radius:7px;background:var(--color-bg-subtle);border-color:transparent;font-size:12px}
+.fx-api{margin:12px 0 0;padding:12px 14px;border-radius:10px;background:#0a0a0a;color:#fafafa;font-family:var(--font-mono);font-size:12.5px;line-height:18px;white-space:pre-wrap;word-break:break-all}
+.fx-sv{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--color-border-default);cursor:pointer}.fx-sv:first-of-type{border-top:0;margin-top:6px}.fx-sv>.ic{margin-top:3px;color:var(--color-text-tertiary)}
+.fx-sv .nav__icon{width:24px;height:24px;opacity:0}.fx-sv:hover .nav__icon{opacity:1}
+@media (max-width:1100px){.fx-explore{grid-template-columns:minmax(0,1fr)}.fx-side{display:none}}
+@media (max-width:960px){.fx-two,.fx-cats{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:768px){
+  .mtabs{display:flex;margin:0 -16px 16px;padding:0 16px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  body.tab-founders .chipsx,body.tab-explore .chipsx,body.tab-founders .mshare,body.tab-explore .mshare{display:none!important}
+  .fx-filters{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px 16px;padding:0 16px;scrollbar-width:none}.fx-filters .grow{display:none}
+  .fx-kpis{gap:10px;grid-template-columns:1fr 1fr}.fx-kpis>div{background:var(--color-bg-subtle);border-radius:14px;padding:14px!important;border:0!important;order:0!important}
+  .fx-kpis p.l{display:none}.fx-kpis b{margin:0 0 4px!important;font-size:24px!important}.fx-kpis .delta{white-space:normal;color:var(--color-text-tertiary)!important}.fx-kpis .delta .ic{display:none}
+  .fx-card{padding:0;border:0;background:none;box-shadow:none;margin-bottom:24px}
+  .fx-h,.fx-title{font-size:16px}.fx-card .fx-s{display:none}
+  .fx-crow{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}.fx-crow .fx-stack{grid-column:1/-1;grid-row:2}.fx-crow .fx-mono{color:var(--color-text-secondary)}
+  .fx-cat{grid-template-columns:90px minmax(0,1fr) 70px;gap:10px}
+  .fx-builder{border:1px solid var(--color-border-default)!important;border-radius:16px!important;padding:4px 14px!important}
+  .fx-builder .fx-ds,.fx-builder .fx-ask,.fx-builder .fx-pop{display:none}
+  .fx-sent{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:0}
+  .fx-row{display:flex;align-items:center;gap:10px;min-height:48px;border-top:1px solid var(--color-border-default);flex-wrap:wrap;padding:6px 0}.fx-row:first-child{border-top:0}
+  .fx-w{font-size:13px;width:70px;flex:none}.fx-pick{flex:1;border:0;background:none;height:36px}.fx-pick select{color:var(--color-text-primary);width:100%;padding-left:0;font-size:14px}.fx-pick .ic{color:var(--color-text-tertiary)}
+  .fx-brow{grid-template-columns:minmax(0,1fr);gap:6px}.fx-bt b{margin-left:auto}
+  .fx-views{display:none}
+  .fx-acts .btn{flex:1}.fx-acts .grow{display:none}
+}
 </style>
 </head>
 <body>
@@ -125,7 +218,9 @@ body.embed .ins{padding:16px}
       <button role="tab" data-t="overview" aria-selected="true"><span data-icon="bar-chart" data-cls="ic-14"></span>Overview</button>
       <button role="tab" data-t="industries" aria-selected="false"><span data-icon="package" data-cls="ic-14"></span>Industries</button>
       <button role="tab" data-t="cities" aria-selected="false"><span data-icon="globe" data-cls="ic-14"></span>Cities</button>
+      <button role="tab" data-t="founders" aria-selected="false"><span data-icon="users" data-cls="ic-14"></span>Founders</button>
       <button role="tab" data-t="funding" aria-selected="false"><span data-icon="sparkles" data-cls="ic-14"></span>Funding</button>
+      <button role="tab" data-t="explore" aria-selected="false"><span data-icon="search" data-cls="ic-14"></span>Explore</button>
     </div>
     <label class="ins-sel"><span data-icon="globe" data-cls="ic-16"></span><select id="cc" aria-label="Region"><option value="">All of Africa</option></select><span data-icon="chevron-down" data-cls="ic-14" style="margin-left:-20px;pointer-events:none"></span><span class="sp"></span>
       <select id="days" aria-label="Period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select><span data-icon="chevron-down" data-cls="ic-14" style="margin-left:-20px;pointer-events:none"></span></label>
@@ -133,6 +228,7 @@ body.embed .ins{padding:16px}
     <button class="ins-act" type="button" id="embed"><span data-icon="link" data-cls="ic-16"></span>Embed</button>
     <button class="btn btn--primary btn--sm" type="button" id="share" data-share><span data-icon="share" data-cls="ic-14"></span>Share</button>
   </div>
+  <div class="chips mtabs" data-single id="mtabs"></div>
   <div class="chips chipsx" data-single id="ccm"></div>
   <div id="view"><div class="skel" style="height:520px;border-radius:16px"></div></div>
   <p class="ins-note"><span data-icon="info" data-cls="ic-14"></span><span>Counts every public product on Hentity, launched or scheduled. “Live” means the profile is public; visitor numbers are Hentity page views. Download the data under CC BY 4.0.</span></p>
@@ -393,6 +489,9 @@ H.mount({ active: 'insights', tab: 'products' });
   function render() {
     mobileCC();
     let html;
+    document.body.classList.toggle('tab-founders', tab === 'founders'); document.body.classList.toggle('tab-explore', tab === 'explore');
+    qs('#mtabs').innerHTML = [['overview', 'Overview'], ['founders', 'Founders'], ['funding', 'Funding'], ['explore', 'Explore'], ['industries', 'Industries'], ['cities', 'Cities']].map(([k, l]) => `<button class="chip" type="button" data-chip data-mt="${k}" aria-pressed="${k === tab}">${icon('check')}${l}</button>`).join('');
+    if (tab === 'founders' || tab === 'explore') { if (!window.InsightsMore) { setTimeout(render, 120); return; } const ctx = { cc, CN, CATS, D: ALL || D }; window.InsightsMore[tab](qs('#view'), ctx); return; }
     if (tab === 'industries') html = industriesTab();
     else if (tab === 'cities') html = `<div class="ins-grid">${cities(40)}<div>${countries()}</div></div>`;
     else if (tab === 'funding') html = funding();
@@ -404,6 +503,7 @@ H.mount({ active: 'insights', tab: 'products' });
   qs('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; tab = b.dataset.t; qsa('#tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b))); render(); load(); });
   qs('#cc').addEventListener('change', e => { cc = e.target.value; load(); });
   qs('#days').addEventListener('change', e => { days = +e.target.value; ALL = null; load(); });
+  qs('#mtabs').addEventListener('click', e => { const b = e.target.closest('[data-mt]'); if (!b) return; tab = b.dataset.mt; qsa('#tabs button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.t === tab))); load(); });
   qs('#ccm').addEventListener('click', e => { const b = e.target.closest('[data-cc]'); if (!b) return; cc = b.dataset.cc; qs('#cc').value = cc; load(); });
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(drawTree, 150); });
   qsa('[data-share]').forEach(b => b.onclick = () => openShare(innerWidth <= 768 ? 'numbers' : 'industries'));

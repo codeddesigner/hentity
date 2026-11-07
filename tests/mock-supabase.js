@@ -159,6 +159,14 @@
     { key: 'p3', stealth: false, name: 'Fatima N.', what: 'B2B sales lead', experience: '5 yrs', city: 'Abuja', looking_for: ['business'], strengths: ['Enterprise sales', 'Gov'], wants: 'climate or agritech · Can invest time + $5k', open_to: ['cofounder'] }];
   T.products.filter(p => p.slug === 'mazao-hub').forEach(p => p.verified = true);
   const RPC = {
+    insights_founders: () => ({ startups: 3550, stated: 2876, founders: 4860, with_woman: 949, women: 345, stated_2022: 1800, with_woman_2022: 504, raised_total: 1.9e9, raised_women: 5.9e7,
+      cities: [['Kigali', 'RW', 96, 17, 26, 47, 6], ['Nairobi', 'KE', 612, 92, 159, 318, 43], ['Accra', 'GH', 284, 40, 62, 162, 20], ['Cape Town', 'ZA', 341, 41, 82, 198, 20], ['Lagos', 'NG', 893, 98, 188, 545, 62], ['Johannesburg', 'ZA', 302, 30, 66, 184, 22], ['Cairo', 'EG', 455, 36, 77, 314, 28], ['Abuja', 'NG', 147, 13, 26, 94, 14]].map(([city, cc, n, w, m, men, u]) => ({ city, cc, n, w, m, men, u })),
+      trend: [[2020, 300, 72], [2021, 340, 88], [2022, 380, 106], [2023, 420, 122], [2024, 460, 143], [2025, 500, 170], [2026, 300, 108]].map(([y, n, ww]) => ({ y, n, ww })),
+      money: [{ team: 'men', sum: 1.52e9, n: 400, median: 1.1e6 }, { team: 'mixed', sum: 3.18e8, n: 120, median: 9e5 }, { team: 'women', sum: 5.9e7, n: 40, median: 4e5 }],
+      cats: [['Education', 100, 22, 28], ['Health', 100, 19, 29], ['Commerce', 100, 16, 24], ['Agriculture', 100, 14, 25], ['Energy & Climate', 100, 11, 26], ['Fintech', 100, 8, 19], ['Logistics', 100, 7, 16], ['AI', 100, 6, 18]].map(([name, n, w, m]) => ({ name, n, w, m })) }),
+    insights_explore: (a) => { const ks = ['Lagos', 'Nairobi', 'Cairo', 'Johannesburg', 'Accra', 'Kigali'], tt = [214, 132, 118, 76, 58, 31], sp = a.split === 'founding_team' ? ['women', 'mixed', 'men', 'unstated'] : a.split ? ['A', 'B'] : [null];
+      const rows = [], totals = {}; ks.forEach((k, i) => { const t = tt[i]; totals[k] = t; const parts = sp.length === 4 ? [.08, .2, .66, .06] : sp.length === 2 ? [.6, .4] : [1]; sp.forEach((s, j) => { const v = Math.round(t * parts[j]); rows.push({ k, s, v: a.split === 'founding_team' && v < 5 ? null : v }); }); });
+      return { rows, totals, grand: 629, ds: a.ds, by: a.by, split: a.split, measure: a.measure, suppressed: a.split === 'founding_team' }; },
     week_slots: () => T.weeks.filter(w => new Date(w.ends_at) > new Date()).slice(0, 6).map(w => Object.assign({}, w, { taken: T.products.filter(p => p.week_id === w.id && ['review', 'scheduled', 'live'].includes(p.status)).length })),
     admin_email_stats: () => ({ audience: 26, digest_on: 26, by_kind: { welcome: 3, digest: 26, find: 4 }, launchpad: { n: 1 }, recent: [{ kind: 'digest', to: 'ada@example.com', subject: 'This week in African startups: Biyaport is #1', created_at: new Date().toISOString() }] }),
     email_preview_all: () => 6,

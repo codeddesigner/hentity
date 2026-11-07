@@ -20,7 +20,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/styles.css?v=ce83e65d28">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=dbcec5a355"></script>
+<script src="/assets/api.js?v=3159d03eea"></script>
 <script src="/assets/app.js?v=d511f27bb3"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -130,6 +130,10 @@
       <button class="company" type="button" id="company"></button>
       <div class="field" style="margin-top:16px"><div class="field__row"><label class="field__label" for="rc">Company registration number <span class="c-3" style="font-weight:400">· optional</span></label></div><input class="input" id="rc" placeholder="RC 1234567" maxlength="40" autocomplete="off" spellcheck="false" style="max-width:280px"><p class="field__hint" id="rc-hint">CAC, RC or your country’s equivalent. <b>Required for the Verified badge</b>, but you don’t need it to get approved and launch.</p></div>
       <div class="field" id="f-founder" style="margin-top:16px"><label class="field__label" for="founder">Founder profile <span aria-hidden="true" style="color:var(--color-danger,#dc2626)">*</span><span class="sr-only">(required)</span></label><input class="input" id="founder" type="url" inputmode="url" placeholder="linkedin.com/in/yourname or x.com/yourname" autocomplete="off" spellcheck="false"><p class="field__hint" id="founder-hint">Required. Your LinkedIn or X profile, so we know who’s behind the product.</p></div>
+      <div class="field" style="margin-top:16px"><p class="field__label">Founding team <span class="c-3" style="font-weight:400">· optional</span></p>
+        <div class="chips" data-single id="team" style="margin-top:8px;flex-wrap:wrap"></div>
+        <div class="row gap-8 wrap" style="margin-top:10px"><input class="input" id="nfounders" type="number" min="1" max="20" inputmode="numeric" placeholder="Number of founders" style="max-width:190px"><input class="input" id="fyear" type="number" min="1980" max="2100" inputmode="numeric" placeholder="Year founded" style="max-width:150px"></div>
+        <p class="field__hint">Only used in anonymous totals on Hentity Insights, like the share of startups with a woman founder. Never shown on your page.</p></div>
       <div class="row gap-8 wrap" style="margin-top:16px" id="maker-list"></div>
       <div id="add-maker" class="row gap-8" hidden style="margin-top:12px"></div>
     </section>
@@ -183,6 +187,15 @@ H.mount({ active: '', tab: 'launch' });
   ['name', 'tagline', 'website', 'city'].forEach(k => form[k].value = s[k] || '');
   qs('#founder').value = typeof s.verify.founder === 'string' ? s.verify.founder : '';
   qs('#rc').value = typeof s.verify.company === 'string' ? s.verify.company : '';
+  // Founding team (self-reported, for anonymous Insights totals only)
+  const TEAMS = [['women', 'Women-founded'], ['mixed', 'Mixed team'], ['men', 'Men-founded'], ['unstated', 'Prefer not to say']];
+  let ft = { team: null, n: null, y: null };
+  const paintTeam = () => { qs('#team').innerHTML = TEAMS.map(([k, l]) => `<button class="chip" type="button" data-team="${k}" aria-pressed="${ft.team === k}">${icon('check')}${l}</button>`).join(''); };
+  if (p) { try { const r = await API.foundingTeam(p.id); if (r) ft = { team: r.founding_team, n: r.founders_count, y: r.founded_year }; } catch (e) {} }
+  paintTeam(); qs('#nfounders').value = ft.n || ''; qs('#fyear').value = ft.y || '';
+  let ftT; const saveTeam = () => { clearTimeout(ftT); ftT = setTimeout(async () => { try { await ensureDraft(); await API.setFoundingTeam(p.id, ft.team, +qs('#nfounders').value || null, +qs('#fyear').value || null); } catch (e) {} }, 500); };
+  qs('#team').addEventListener('click', e => { const b = e.target.closest('[data-team]'); if (!b) return; ft.team = ft.team === b.dataset.team ? null : b.dataset.team; paintTeam(); saveTeam(); });
+  ['#nfounders', '#fyear'].forEach(id => qs(id).addEventListener('input', saveTeam));
   qs('#intro-t').value = s.intro || ''; qs('#video').value = s.video_url || '';
   qs('#country').innerHTML = Object.entries(COUNTRY).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   qs('#country').value = s.country;

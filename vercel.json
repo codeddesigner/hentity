@@ -6,6 +6,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/v1/insights",
+      "destination": "/api/insights"
+    },
+    {
       "source": "/badges/:slug/:file",
       "destination": "/api/badge?slug=:slug&file=:file"
     },
