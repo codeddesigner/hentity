@@ -21,12 +21,16 @@
   };
   const deadlineText = o => o.deadline ? (o.closed || daysLeft(o.deadline) < 0 ? 'Closed ' : 'Deadline ') + fmtDate(o.deadline) : (o.round_note ? o.round_note.split('·')[0].trim() : 'Rolling');
   const howLabel = o => o.deadline ? 'Applications open' : o.apply_url && o.apply_url !== o.website ? 'Online form' : 'Form on their site';
-  const fit = o => { const r = o.total ? o.meets / o.total : 0; return r >= 1 ? ['Strong match', 'success'] : r >= .6 ? ['Good match', 'info'] : ['Partial match', '']; };
+  // Tiers come from the server (funding_fit): best (the 12 strongest), good, possible, ineligible, closed
+  const TIER = { best: ['Best match', 'success'], good: ['Good fit', 'info'], possible: ['Possible fit', ''], ineligible: ['Not eligible', 'error'], closed: ['Closed now', ''] };
+  const fit = o => TIER[o.tier] || (o.status === 'closed' ? TIER.closed : o.eligible === false ? TIER.ineligible : TIER.possible);
+  // One line on why: what fits, or the rule that rules it out
+  const why = (o, name) => o.tier === 'closed' ? (o.round_note || 'This round has closed') : o.eligible === false ? 'Not eligible: ' + (o.miss || 'a rule doesn’t fit') : (o.why || []).length ? 'Fits on ' + o.why.join(' · ') : o.status === 'unknown' ? 'Dates not announced yet' : 'Open to any sector, stage and country';
   const dots = o => `<span class="fu-dots" aria-hidden="true">${Array.from({ length: o.total }, (_, i) => `<i${i < o.meets ? ' class="on"' : ''}></i>`).join('')}</span>`;
   const productLine = p => [(p.categories || [])[0], p.stage, [p.city, CN[p.country] || p.country].filter(Boolean).join(', '), p.team ? TEAM[p.team] : 'Founding team not set'].filter(Boolean).join(' · ');
   const host = u => { try { const x = new URL(u); return (x.host.replace(/^www\./, '') + x.pathname).replace(/\/$/, ''); } catch (e) { return u || ''; } };
   const applyUrl = o => o.apply_url || o.website;
-  const isOpen = o => !!o.deadline || !o.round_note;   // closed rounds carry a round note and no date
+  const isOpen = o => o.status ? ['open', 'rolling'].includes(o.status) : (!!o.deadline || !o.round_note);   // closed rounds carry a round note and no date
 
   const pickPid = list => { const want = H.params().get('p') || store.get('fundingPid', ''); return (list.find(p => p.id === want) || list[0] || {}).id; };
   const setPid = id => store.set('fundingPid', id);
@@ -132,5 +136,122 @@
     return sh;
   }
 
-  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, copy, sheet, linkBox, bindLink, investorSheet, editSheet, editBtn };
+  // ---------------------------------------------------------------- deck → matching signals
+  // The deck is read here, in the founder's browser (pdf.js, served from our own assets). Only the
+  // signals the founder reviews are saved: sectors, keywords, stage, raise, markets. Never the file.
+  const SECTOR_WORDS = {
+    Fintech: ['fintech', 'payments', 'payment', 'lending', 'loans', 'loan', 'credit', 'wallet', 'remittance', 'remittances', 'banking', 'neobank', 'insurance', 'insurtech', 'savings', 'merchant payments', 'bnpl', 'crypto', 'stablecoin', 'microfinance', 'cross-border'],
+    Health: ['health', 'healthcare', 'healthtech', 'clinic', 'clinics', 'hospital', 'hospitals', 'patients', 'pharmacy', 'pharmacies', 'telemedicine', 'diagnostics', 'medical', 'maternal', 'doctors'],
+    Education: ['education', 'edtech', 'students', 'learning', 'school', 'schools', 'teachers', 'courses', 'tutoring', 'curriculum', 'upskilling', 'learners'],
+    Agriculture: ['agriculture', 'agritech', 'farmers', 'farm', 'farming', 'crops', 'harvest', 'livestock', 'food security', 'smallholder', 'agribusiness', 'irrigation'],
+    Logistics: ['logistics', 'delivery', 'deliveries', 'shipping', 'freight', 'fleet', 'last-mile', 'last mile', 'courier', 'supply chain', 'trucking', 'warehousing', 'mobility'],
+    Commerce: ['e-commerce', 'ecommerce', 'marketplace', 'retail', 'retailers', 'merchants', 'informal retail', 'fmcg', 'social commerce', 'distribution', 'shoppers'],
+    'Energy & Climate': ['solar', 'energy', 'climate', 'carbon', 'renewable', 'clean energy', 'emissions', 'electric vehicles', 'battery', 'batteries', 'off-grid', 'recycling', 'waste', 'cleantech', 'climate tech', 'water'],
+    AI: ['artificial intelligence', 'machine learning', 'llm', 'llms', 'computer vision', 'nlp', 'generative ai', 'ai-powered', 'ai agents', 'deep learning'],
+    SaaS: ['saas', 'software', 'subscription', 'b2b software', 'dashboard', 'erp', 'crm', 'workflow'],
+    Proptech: ['real estate', 'property', 'properties', 'housing', 'rent', 'rental', 'landlords', 'landlord', 'mortgage', 'proptech', 'tenants', 'construction'],
+    'Dev Tools': ['developers', 'developer', 'sdk', 'apis', 'devtools', 'open source'],
+    Infrastructure: ['infrastructure', 'cloud', 'connectivity', 'data center', 'broadband', 'identity', 'kyc']
+  };
+  const COUNTRY_NAMES = { Nigeria: 'NG', Kenya: 'KE', Ghana: 'GH', 'South Africa': 'ZA', Rwanda: 'RW', Egypt: 'EG', Morocco: 'MA', Senegal: 'SN', Ethiopia: 'ET', Uganda: 'UG', Tanzania: 'TZ', 'Côte d’Ivoire': 'CI', "Cote d'Ivoire": 'CI', 'Ivory Coast': 'CI', Cameroon: 'CM', Tunisia: 'TN', Algeria: 'DZ', Benin: 'BJ', Togo: 'TG', Zambia: 'ZM', Zimbabwe: 'ZW' };
+  const STOP = new Set(('the and for with that this from your our are you was were will have has had not but can all any its into out about more most also than then they them their there what when where which who how why per via over under each other such only own same some just very new one two three four five ten year years month months day days week weeks today million billion thousand usd ngn kes percent '
+    + 'market markets team problem solution solutions revenue revenues growth customers customer users user product products traction competition competitors business model models startup startups company companies opportunity vision mission funding round raise raising ask use uses using platform service services africa african pitch deck slide slides contact thank thanks www com http https email phone total size sizes plan plans strategy launch launched based help helps make makes made first next build built across world global local data time key core value people need needs access better best leading largest').split(' '));
+  const esc_re = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function readDeck(raw) {
+    const text = ' ' + raw.replace(/\s+/g, ' ') + ' ', low = text.toLowerCase();
+    const count = w => (low.match(new RegExp('(^|[^a-z])' + esc_re(w) + '(?=[^a-z]|$)', 'g')) || []).length;
+    // Sectors: how often each sector's words come up
+    const hits = Object.entries(SECTOR_WORDS).map(([s, ws]) => [s, ws.reduce((n, w) => n + count(w), 0), ws.filter(w => count(w) > 0)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    const sectors = hits.filter((x, i) => x[1] >= 3 || (i < 2 && x[1] >= 2)).slice(0, 3).map(x => x[0]);
+    // Stage
+    const stage = /series[ -]a\b/i.test(text) && /(raising|round|seeking)[^.]{0,40}series[ -]a/i.test(text) ? 'Series A' : /pre[- ]?seed/i.test(text) ? 'Pre-seed' : /\bseed (round|stage|funding|raise)\b|raising[^.]{0,30}\bseed\b/i.test(text) ? 'Seed' : /\b(idea stage|pre-product|prototype stage)\b/i.test(text) ? 'Idea' : '';
+    // Raise: "raising $750k", "seeking USD 1.2M", "the ask: $500,000"
+    let raise_usd = null;
+    const m = text.match(/(raising|raise of|seeking|looking for|the ask|our ask|ask:|round of|round size)[^$\d]{0,30}(?:\$|usd|us\$)\s?([\d.,]+)\s?(k|m|mn|million|thousand)?/i);
+    if (m) { const v = parseFloat(m[2].replace(/,/g, '')); const u = (m[3] || '').toLowerCase(); raise_usd = Math.round(v * (u === 'k' || u === 'thousand' ? 1e3 : u.startsWith('m') ? 1e6 : 1)); if (!(raise_usd >= 1000 && raise_usd < 1e9)) raise_usd = null; }
+    // Markets
+    const countries = Object.entries(COUNTRY_NAMES).filter(([n]) => new RegExp('\\b' + esc_re(n) + '\\b', 'i').test(text)).map(x => x[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 8);
+    const women = /\b(female|woman|women)[- ](founder|founded|led|ceo|co-?founder)s?\b|\bfounded by (a )?wom[ae]n\b/i.test(text) ? true : null;
+    // Keywords: the sector words found first (they're what funders write too), then frequent specific terms
+    const domain = hits.flatMap(x => x[2]).filter(w => w.length >= 3);
+    const freq = {};
+    (low.match(/[a-z][a-z-]{3,24}/g) || []).forEach(w => { if (!STOP.has(w) && !/^-|-$/.test(w)) freq[w] = (freq[w] || 0) + 1; });
+    const common = Object.entries(freq).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+    const all = [...new Set(domain.concat(common))];
+    const keywords = all.filter(w => !all.includes(w + 's') || /ss$/.test(w)).slice(0, 24);   // "payment" and "payments": keep one
+    return { sectors, stage, raise_usd, countries, women, keywords, chars: raw.length };
+  }
+  async function pdfText(file, onPage) {
+    const pdfjs = await import('/assets/pdfjs-6.2.108/pdf.min.js');
+    pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdfjs-6.2.108/pdf.worker.min.js';
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const n = Math.min(doc.numPages, 40); let out = '';
+    for (let i = 1; i <= n; i++) { onPage && onPage(i, n); const pg = await doc.getPage(i); const c = await pg.getTextContent(); out += c.items.map(x => x.str).join(' ') + '\n'; }
+    doc.destroy && doc.destroy();
+    return out;
+  }
+  const money = v => v >= 1e6 ? '$' + (Math.round(v / 1e5) / 10) + 'M' : '$' + Math.round(v / 1e3) + 'k';
+  const SECTORS_ALL = CATS_ALL.filter(c => !['Apps', 'Productivity'].includes(c));
+  function deckSheet(p, pid, onSaved) {
+    const d = p.deck || null;
+    let R = d ? { sectors: d.sectors || [], stage: d.stage || '', raise_usd: d.raise_usd, countries: d.countries || [], women: d.women, keywords: d.keywords || [], deck_name: d.deck_name, source: d.source, summary: d.summary } : null;
+    const sh = sheet('', { label: 'Sharpen your matches', w: 560 });
+    const head = `<div class="row between gap-12"><div><p class="t-h4">Sharpen your matches</p><p class="t-body-sm c-2" style="margin-top:4px">Add your pitch deck and we’ll match on what ${esc(p.name)} actually does: sector, stage, how much you’re raising and where you operate.</p></div><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>`;
+    const priv = `<p class="fu-priv">${icon('lock', 'ic-14')}<span>Your deck is read on this device and never uploaded. Hentity keeps only what you confirm below, and only your team can see it.</span></p>`;
+    const pick = () => {
+      sh.el.innerHTML = `<span class="fu-grab" aria-hidden="true"></span>${head}
+        <label class="fu-drop" id="dk-drop">${icon('upload', 'ic-20')}<span class="t-label">Choose your deck</span><span class="t-caption c-3" style="font-weight:400">PDF, up to 40 pages. Export from Slides, Keynote or PowerPoint as PDF.</span><input type="file" accept="application/pdf,.pdf" class="sr-only" id="dk-file"></label>
+        <details class="fu-or"><summary>No deck to hand? Describe ${esc(p.name)} instead</summary><textarea class="input" id="dk-text" rows="5" maxlength="600" placeholder="What you do, who for, where you operate, your stage and how much you’re raising">${esc(d && d.source === 'text' ? d.summary || '' : '')}</textarea><button class="btn btn--secondary btn--sm" type="button" id="dk-read" style="margin-top:8px">Use this description</button></details>
+        ${priv}`;
+      const drop = sh.el.querySelector('#dk-drop');
+      ['dragover', 'dragenter'].forEach(k => drop.addEventListener(k, e => { e.preventDefault(); drop.classList.add('is-over'); }));
+      ['dragleave', 'drop'].forEach(k => drop.addEventListener(k, () => drop.classList.remove('is-over')));
+      drop.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) fromFile(f); });
+      sh.el.querySelector('#dk-file').addEventListener('change', e => { const f = e.target.files[0]; if (f) fromFile(f); });
+      sh.el.querySelector('#dk-read').addEventListener('click', () => { const t = sh.el.querySelector('#dk-text').value.trim(); if (t.length < 40) return toast('Add a few sentences first'); R = Object.assign(readDeck(t), { source: 'text', summary: t, deck_name: null }); review(true); });
+    };
+    async function fromFile(f) {
+      if (!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)) return toast('Export your deck as a PDF first', 'error');
+      if (f.size > 40 * 1024 * 1024) return toast('That PDF is over 40 MB', 'error');
+      sh.el.querySelector('#dk-drop').innerHTML = `<span class="spinner" aria-hidden="true"></span><span class="t-label" id="dk-prog">Reading ${esc(f.name)}…</span><span class="t-caption c-3" style="font-weight:400">On your device. Nothing is uploaded.</span>`;
+      try {
+        const txt = await pdfText(f, (i, n) => { const el = sh.el.querySelector('#dk-prog'); if (el) el.textContent = `Reading page ${i} of ${n}…`; });
+        if (txt.replace(/\s/g, '').length < 200) { pick(); sh.el.querySelector('.fu-or').open = true; toast('This PDF is mostly images, so there’s no text to read. Describe your startup instead.', 'error'); return; }
+        R = Object.assign(readDeck(txt), { source: 'deck', summary: null, deck_name: f.name.slice(0, 120) }); review(true);
+      } catch (e) { console.warn(e); pick(); toast('Couldn’t read that PDF. Try exporting it again, or describe your startup instead.', 'error'); }
+    }
+    function review(fresh) {
+      const opt = (k, v, l, on) => `<label class="chip fu-pick"><input type="checkbox" class="sr-only" data-k="${k}" value="${esc(v)}"${on ? ' checked' : ''}>${icon('check')}${esc(l)}</label>`;
+      const ccs = [...new Set(R.countries.concat(p.country ? [p.country] : []))];
+      sh.el.innerHTML = `<span class="fu-grab" aria-hidden="true"></span><div class="row between gap-12"><div><p class="t-h4">${fresh ? 'Here’s what we read' : 'What we match on'}</p><p class="t-body-sm c-2" style="margin-top:4px">${R.source === 'deck' && R.deck_name ? `From ${esc(R.deck_name)}. ` : R.source === 'text' ? 'From your description. ' : ''}Fix anything that’s off, then save.</p></div><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>
+        <div class="fu-rev">
+          <p class="fu-rl">Sectors <span>Pick up to 3</span></p><div class="row wrap gap-6">${SECTORS_ALL.map(c => opt('sector', c, c, R.sectors.includes(c))).join('')}</div>
+          <div class="fu-rg"><label class="field"><span class="field__label">Stage</span><select class="input" id="dk-stage"><option value="">Not sure</option>${STAGES_ALL.map(s => `<option${R.stage === s ? ' selected' : ''}>${s}</option>`).join('')}</select></label>
+            <label class="field"><span class="field__label">Raising (USD)</span><input class="input" id="dk-raise" inputmode="numeric" placeholder="e.g. 500000" value="${R.raise_usd || ''}"></label></div>
+          <p class="fu-rl">Where you operate <span>Your product’s country is always included</span></p><div class="row wrap gap-6">${Object.entries(CN).map(([k, n]) => opt('cc', k, n, ccs.includes(k))).join('')}</div>
+          <label class="check" style="margin-top:14px"><input type="checkbox" id="dk-women"${R.women ? ' checked' : ''}><span class="check__box">${icon('check')}</span>A woman is a founder (unlocks women-founder funds)</label>
+          <p class="fu-rl">Keywords we match against funders <span>Tap to remove</span></p><div class="row wrap gap-6" id="dk-kw">${R.keywords.length ? R.keywords.map(k => `<button class="chip" type="button" data-kw="${esc(k)}">${esc(k)}${icon('x', 'ic-12')}</button>`).join('') : '<span class="t-caption c-3" style="font-weight:400">None found. Matching uses your sectors.</span>'}</div>
+        </div>
+        ${priv}
+        <div class="row gap-8" style="margin-top:14px;justify-content:flex-end">${d ? `<button class="btn btn--ghost btn--sm" type="button" id="dk-del" style="margin-right:auto">Remove</button>` : ''}<button class="btn btn--secondary btn--sm" type="button" id="dk-again">${R.source === 'text' ? 'Use a deck' : 'Use another deck'}</button><button class="btn btn--primary btn--sm" type="button" id="dk-save">Save and rematch</button></div>`;
+      sh.el.querySelectorAll('[data-k="sector"]').forEach(i => i.addEventListener('change', () => { if (sh.el.querySelectorAll('[data-k="sector"]:checked').length > 3) { i.checked = false; toast('Pick up to 3 sectors'); } }));
+    }
+    sh.el.addEventListener('click', async e => {
+      const kw = e.target.closest('[data-kw]'); if (kw) { R.keywords = R.keywords.filter(k => k !== kw.dataset.kw); kw.remove(); return; }
+      if (e.target.closest('#dk-again')) { pick(); return; }
+      if (e.target.closest('#dk-del')) { try { await API.fundingProfileRemove(pid); toast('Deck details removed'); sh.close(); onSaved && onSaved(); } catch (er) { H.fail(er); } return; }
+      const sv = e.target.closest('#dk-save'); if (!sv) return;
+      const raise = +String(sh.el.querySelector('#dk-raise').value).replace(/[^\d.]/g, '') || null;
+      const row = { sectors: [...sh.el.querySelectorAll('[data-k="sector"]:checked')].map(i => i.value), stage: sh.el.querySelector('#dk-stage').value || null, raise_usd: raise,
+        countries: [...sh.el.querySelectorAll('[data-k="cc"]:checked')].map(i => i.value), women: sh.el.querySelector('#dk-women').checked ? true : null,
+        keywords: R.keywords.slice(0, 30), source: R.source || 'deck', deck_name: R.deck_name || null, summary: R.source === 'text' ? (R.summary || '').slice(0, 600) : null };
+      sv.disabled = true;
+      try { await API.fundingProfileSave(pid, row); toast('Saved. Matches updated.'); sh.close(); onSaved && onSaved(); } catch (er) { H.fail(er); sv.disabled = false; }
+    });
+    R ? review(false) : pick();
+    return sh;
+  }
+  const deckLine = d => d ? [d.source === 'deck' ? (d.deck_name || 'Your deck') : 'Your description', (d.sectors || []).join(', '), d.stage, d.raise_usd ? 'raising ' + money(d.raise_usd) : ''].filter(Boolean).join(' · ') : '';
+
+  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, copy, sheet, linkBox, bindLink, investorSheet, editSheet, editBtn, why, TIER, readDeck, deckSheet, deckLine, money };
 })();

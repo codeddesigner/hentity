@@ -328,6 +328,9 @@
     mySaved: () => uid() ? q(sb.rpc('my_saved')) : Promise.resolve({}),
     savedPeopleKeys: () => uid() ? q(sb.rpc('my_saved_people_keys')).then(r => r || []) : Promise.resolve([]),
     savePerson: (key, on) => { requireAuth(); touched(); return q(sb.rpc('find_save_person', { person_key: key, on_: !!on })); },
+    // What the founder's deck (or description) says, read in the browser: sectors, keywords, stage, raise, markets
+    fundingProfileSave: (pid, row) => q(sb.from('funding_profiles').upsert(Object.assign({ product_id: pid, updated_by: uid(), updated_at: new Date().toISOString() }, row)).select().single()),
+    fundingProfileRemove: pid => q(sb.from('funding_profiles').delete().eq('product_id', pid)),
     fundingUntrack: oid => q(sb.from('funding_track').delete().eq('user_id', uid()).eq('opp_id', oid)),
     myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
     dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),

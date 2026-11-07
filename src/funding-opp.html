@@ -19,6 +19,7 @@ body{background:var(--color-bg-subtle)}
 .fo-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
 @media (max-width:1000px){.fo{grid-template-columns:minmax(0,1fr)}.fo-panel{position:static}}
 @media (max-width:768px){.fo{padding:16px 16px 32px;gap:12px}.fo h1.t-h2{font-size:24px;line-height:30px}.fo .fu-chip{white-space:normal;height:auto;min-height:24px;padding:3px 8px}.fo-sec,.fo-panel{padding:18px}.fo-crit .ev{display:none}}
+.fu-q{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;flex:none;font-size:11px;font-weight:600;background:var(--color-bg-muted);color:var(--color-text-tertiary)}
 </style>
 </head>
 <body>
@@ -59,9 +60,10 @@ H.mount({ active: 'funding', tab: 'you' });
         ${O.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(O.description)}</p>` : ''}
         ${!open ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(O.round_note)}</b></p>` : ''}
         ${O.source_url ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a></p>` : ''}${API.isAdmin ? `<button class="btn btn--secondary btn--sm" type="button" id="fo-edit" style="margin-top:12px">${icon('edit', 'ic-14')}Edit listing</button>` : ''}</section>
-      <section class="card fo-sec"><div class="row between gap-12 wrap"><h2 class="fo-h">Who can apply</h2><span class="badge ${O.meets === O.total ? 'badge--success' : ''}">${O.meets === O.total ? icon('check', 'ic-12') : ''}${esc(p.name)} meets ${O.meets} of ${O.total}</span></div>
-        <div style="margin-top:10px">${O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : `<span class="fu-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('')}</div>
-        ${O.meets < O.total ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Something wrong? Update your <a class="link link--accent" href="/products/${p.slug}/edit">product page</a>.</p>` : ''}</section>
+      <section class="card fo-sec"><div class="row between gap-12 wrap"><h2 class="fo-h">Who can apply</h2>${(() => { const f = FU.fit(O); return `<span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${O.tier === 'good' ? icon('check', 'ic-12') : ''}${O.tier === 'good' ? 'Strong fit' : f[0]}</span>`; })()}</div>
+        <p class="t-body-sm c-2" style="margin-top:6px">${esc(FU.why(O))}</p>
+        <div style="margin-top:10px">${O.checks.length ? O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : c.unknown ? `<span class="fu-q" title="We don’t know yet">?</span>` : `<span class="fu-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}${c.hard === false ? ' <span class="c-3">(preferred)</span>' : ''}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('') : '<p class="t-body-sm c-3">Open to any sector, stage and country in Africa.</p>'}</div>
+        ${O.checks.some(c => !c.ok) ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Something wrong? Update your <a class="link link--accent" href="/products/${p.slug}/edit">product page</a>${p.deck ? '' : ` or <a class="link link--accent" href="/funding?p=${p.id}#deck">add your deck</a>`}.</p>` : ''}</section>
       ${(O.judging || []).length ? `<section class="card fo-sec"><h2 class="fo-h">How it’s judged</h2><div style="margin-top:10px">${O.judging.map(j => `<div class="fo-judge"><span>${esc(j.label)}</span><b>${esc(String(j.pct))}%</b></div>`).join('')}</div></section>` : ''}
     </div>
     <aside class="card fo-panel" id="panel">
