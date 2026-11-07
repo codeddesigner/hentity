@@ -105,7 +105,7 @@
 <div data-tabbar></div>
 <script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script src="/assets/data.js?v=354227d2d5"></script>
-<script src="/assets/reviews.js?v=d980591244"></script>
+<script src="/assets/reviews.js?v=84138d1217"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -121,7 +121,7 @@ H.mount({ active: 'products', tab: 'products' });
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own
   // state (votes, follows) is a second parallel batch instead of a chain of round trips.
-  const [makers, company, cur, alts, isSaved, comments, ownerRows, rankRows] = await Promise.all([API.makers(p.id).catch(() => []), API.company(p.company_id).catch(() => null), API.currentWeek().catch(() => null), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id).catch(() => false), API.comments({ product: p.id }).catch(() => []), p.owner_id ? API.profilesByIds([p.owner_id]).catch(() => []) : [], D.isLive(p) && p.week_id ? API.board({ week: p.week_id }).catch(() => []) : []]);
+  const [makers, company, cur, alts, isSaved, ownerRows, rankRows] = await Promise.all([API.makers(p.id).catch(() => []), API.company(p.company_id).catch(() => null), API.currentWeek().catch(() => null), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id).catch(() => false), p.owner_id ? API.profilesByIds([p.owner_id]).catch(() => []) : [], D.isLive(p) && p.week_id ? API.board({ week: p.week_id }).catch(() => []) : []]);
   const owner = ownerRows[0] || null;
   const team = [owner && { user: owner, role: 'Founder' }, ...makers.filter(m => !owner || m.user.id !== owner.id)].filter(Boolean);
   const makerIds = new Set(team.map(m => m.user.id));
@@ -173,14 +173,11 @@ H.mount({ active: 'products', tab: 'products' });
       <div id="beta"></div>
       <div class="kpis">
         <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.upvote_count}" id="kpi-votes">0</b><span class="t-caption c-2" style="font-weight:400">upvotes</span></div>
-        <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.comment_count}" id="kpi-comments">0</b><span class="t-caption c-2" style="font-weight:400">comments</span></div>
+        <div class="kpi lift card" data-scroll-reveal><b id="kpi-reviews">0</b><span class="t-caption c-2" style="font-weight:400" id="kpi-reviews-l">reviews</span></div>
         <div class="kpi lift card" data-scroll-reveal><b class="c-accent">${rank ? '#' + rank : '—'}</b><span class="t-caption c-2" style="font-weight:400">${rank ? 'this week' : live ? 'unranked' : 'not live yet'}</span></div>
         <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.follower_count}">0</b><span class="t-caption c-2" style="font-weight:400">followers</span></div>
       </div>
       <section class="rv-wrap" id="reviews" data-scroll-reveal></section>
-      <div class="row between wrap gap-12" style="margin-bottom:20px"><h2 class="t-h3">Discussion · <span id="c-count">${p.comment_count}</span></h2><a class="badge badge--accent badge--pill" href="/chats/p-${p.slug}">${icon('chats', 'ic-14')}Open the product room</a></div>
-      <form class="row gap-12" id="c-form" style="margin-bottom:28px;align-items:flex-start">${API.uid ? avatar(H.user(), 32) : '<span class="avatar">?</span>'}<div class="grow stack gap-8"><textarea class="input" id="c-text" rows="2" maxlength="4000" placeholder="${API.uid ? 'Ask the makers a question or share feedback' : 'Sign in to join the discussion'}" aria-label="Write a comment"></textarea><div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--sm" type="submit">Comment</button></div></div></form>
-      <div class="stack gap-24" id="comments"></div>
     </div>
     <aside class="stack gap-20">
       ${company ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Company</h2>
@@ -328,44 +325,8 @@ H.mount({ active: 'products', tab: 'products' });
 
   // Reviews (stars, written reviews, Helpful votes, maker replies)
   R.mount(qs('#reviews'), p);
-  // Comments (threaded)
-  let all = comments;
-  function cHTML(c, isReply) {
-    const isMaker = c.user && makerIds.has(c.user.id);
-    return `<div class="comment" id="c-${c.id}">${c.user ? avatar(c.user, isReply ? 28 : null) : '<span class="avatar">?</span>'}<div class="grow" style="min-width:0">
-      <p class="t-label row gap-8 wrap">${c.user ? `<a href="/makers/${c.user.username}">${esc(c.user.name)}</a>` : 'Deleted maker'}${isMaker ? `<span class="badge badge--founder">${owner && c.user.id === owner.id ? 'Founder' : 'Maker'} of ${esc(p.name)}</span>` : ''}<span class="c-3" style="font-weight:400">· ${H.ago(c.created_at)}</span></p>
-      <p class="body" style="margin-top:6px;white-space:pre-wrap;${c.deleted ? 'color:var(--color-text-tertiary);font-style:italic' : ''}">${c.deleted ? 'This comment was deleted.' : esc(c.body)}</p>
-      ${c.deleted ? '' : `<div class="c-actions">${!isReply ? `<button type="button" data-reply="${c.id}">Reply</button>` : ''}${c.user && c.user.id === API.uid ? `<button type="button" data-del="${c.id}">Delete</button>` : `<button type="button" data-report="${c.id}">Report</button>`}</div>`}
-      ${!isReply ? `<div class="replies-in" data-replies="${c.id}">${all.filter(r => r.parent_id === c.id).map(r => cHTML(r, true)).join('')}</div>` : ''}
-    </div></div>`;
-  }
-  function renderComments() { qs('#comments').innerHTML = all.filter(c => !c.parent_id).reverse().map(c => cHTML(c)).join('') || '<p class="t-body-sm c-2">No comments yet. Ask the makers something.</p>'; }
-  renderComments();
   if (location.hash) setTimeout(() => { const t = document.querySelector(location.hash); t && t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-  qs('#c-text').addEventListener('focus', () => { if (!API.uid) location.href = '/signin?next=' + location.pathname; });
-  qs('#c-form').addEventListener('submit', async e => {
-    e.preventDefault(); const v = qs('#c-text').value.trim(); if (!v) return;
-    const btn = e.target.querySelector('button'); btn.disabled = true;
-    try { const c = await API.comment({ product: p.id, body: v }); all.push(c); renderComments(); qs('#c-' + c.id).classList.add('reveal'); qs('#c-text').value = ''; p.comment_count++; M.roll(qs('#c-count'), p.comment_count); toast('Comment posted'); } catch (err) { H.fail(err); } finally { btn.disabled = false; }
-  });
-  qs('#comments').addEventListener('click', async e => {
-    const r = e.target.closest('[data-reply]'), d = e.target.closest('[data-del]'), rp = e.target.closest('[data-report]');
-    if (r) {
-      if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; }
-      const box = qs(`[data-replies="${r.dataset.reply}"]`); if (box.querySelector('form')) return;
-      box.insertAdjacentHTML('beforeend', `<form class="stack gap-8 reveal"><textarea class="input" rows="2" placeholder="Write a reply" aria-label="Reply"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Reply</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div></form>`);
-      const f = box.querySelector('form'); f.querySelector('textarea').focus();
-      f.querySelector('[data-cancel]').onclick = () => f.remove();
-      f.onsubmit = async ev => { ev.preventDefault(); const v = f.querySelector('textarea').value.trim(); if (!v) return; try { const c = await API.comment({ product: p.id, parent: r.dataset.reply, body: v }); all.push(c); renderComments(); toast('Reply posted'); } catch (err) { H.fail(err); } };
-    }
-    if (d) { if (!(await H.confirm('Delete this comment?', { ok: 'Delete', danger: true }))) return; try { await API.deleteComment(d.dataset.del); const c = all.find(x => x.id === d.dataset.del); c.deleted = true; renderComments(); toast('Comment deleted'); } catch (err) { H.fail(err); } }
-    if (rp) { const why = await H.ask('Why are you reporting this comment?', { placeholder: 'Spam, abuse, wrong information…', multiline: true, ok: 'Report' }); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
-  });
   API.here('p:' + p.id, n => { const el = qs('#here'); if (!el) return; if (n < 2) { el.hidden = true; return; } el.hidden = false; M.roll(qs('#here-n'), `${n} people viewing now`); });
-  API.live('pc', 'comments', 'product_id=eq.' + p.id, async ({ eventType, new: n }) => {
-    if (eventType !== 'INSERT' || all.some(c => c.id === n.id)) return;
-    const [u] = await API.profilesByIds([n.user_id]); all.push(Object.assign({}, n, { user: u })); renderComments(); const el = qs('#c-' + n.id); el && el.classList.add('flash'); M.roll(qs('#c-count'), all.length);
-  });
 })();
 </script>
 </body>

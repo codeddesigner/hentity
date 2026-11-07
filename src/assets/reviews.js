@@ -58,6 +58,7 @@
 
     function render() {
       // The rating line under the product name
+      const kpi = document.querySelector('#kpi-reviews'); if (kpi) { kpi.textContent = S.count || 0; const l = document.querySelector('#kpi-reviews-l'); if (l) l.textContent = S.count === 1 ? 'review' : 'reviews'; }
       const hero = document.querySelector('#rv-hero');
       if (hero) hero.innerHTML = S.count ? `<a class="rv-hero" href="#reviews">${stars(S.avg, 'rv-stars--sm')}<b>${(+S.avg).toFixed(1)}</b><span>${S.count} review${S.count === 1 ? '' : 's'}</span></a>` : '';
       const list = (S.reviews || []).filter(r => !only || r.rating === only);
