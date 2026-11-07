@@ -42,7 +42,9 @@ async function build(type, slug) {
     const where = [p.city, COUNTRY[p.country] || p.country].filter(Boolean).join(', ');
     const cats = p.categories || [];
     const cat = cats[0];
-    const alts = cats.length ? await rest(`product_feed?status=in.(scheduled,live)&categories=ov.${encodeURIComponent('{' + cats.map(c => '"' + c.replace(/"/g, '') + '"').join(',') + '}')}&id=neq.${p.id}&select=${LIST}&order=upvote_count.desc&limit=6`).catch(() => []) : [];
+    // Closest alternatives by shared tags and description (product_alternatives); falls back to any shared tag
+    const alts = await rest(`rpc/product_alternatives?pid=${p.id}&lim=6`).catch(() => null)
+      || (cats.length ? await rest(`product_feed?status=in.(scheduled,live)&categories=ov.${encodeURIComponent('{' + cats.map(c => '"' + c.replace(/"/g, '') + '"').join(',') + '}')}&id=neq.${p.id}&select=${LIST}&order=upvote_count.desc&limit=6`).catch(() => []) : []);
     const tag = S.trimP(p.tagline);
     const title = `${p.name}: ${tag} | Hentity`;
     const desc = clip(`${tag}. ${p.description || ''} Built in ${where}.`.replace(/\.\s*\./g, '.'), 160);

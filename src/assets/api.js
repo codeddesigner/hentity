@@ -212,7 +212,9 @@
       const order = sort === 'az' ? ['name', true] : sort === 'new' ? ['created_at', false] : sort === 'votes' ? ['upvote_count', false] : ['follower_count', false];
       return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(1000));
     },
-    alternatives: (p) => pre('alts:' + p.id, () => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3))),
+    // Closest products by shared tags and what they do (scored in product_alternatives); falls back to any shared tag
+    alternatives: (p) => pre('alts:' + p.id, () => q(sb.rpc('product_alternatives', { pid: p.id, lim: 4 })).then(r => r || [])
+      .catch(() => q(sb.from('product_feed').select('id,slug,name,tagline,color,country,logo_url').in('status', ['scheduled', 'live']).overlaps('categories', p.categories || []).neq('id', p.id).limit(3)))),
 
     // ---------------- votes, follows, bookmarks
     async myVotes(ids) { if (!uid() || !ids.length) return new Set(); const r = await q(sb.from('upvotes').select('product_id').eq('user_id', uid()).in('product_id', ids)); return new Set(r.map(x => x.product_id)); },
