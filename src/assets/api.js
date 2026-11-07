@@ -179,7 +179,8 @@
       if (stages && stages.length) s = s.in('stage', stages);
       if (sectors && sectors.length) s = s.overlaps('categories', sectors);
       if (langs && langs.length) s = s.or(langs.map(l => `languages.ilike.%${l}%`).join(','));
-      if (term) s = s.or(`name.ilike.%${term}%,tagline.ilike.%${term}%,city.ilike.%${term}%`);
+      // "yolafresh" also finds "YoLa Fresh": names match with spaces, dots or dashes in between
+      if (term) { const loose = /\s/.test(term) || term.length < 5 ? '' : `,name.ilike.%${term.split('').join('%')}%`; s = s.or(`name.ilike.%${term}%,tagline.ilike.%${term}%,city.ilike.%${term}%,slug.ilike.%${term.trim().replace(/\s+/g, '-')}%${loose}`); }
       const order = sort === 'az' ? ['name', true] : sort === 'new' ? ['created_at', false] : sort === 'votes' ? ['upvote_count', false] : ['follower_count', false];
       return q(s.order(order[0], { ascending: order[1] }).order('upvote_count', { ascending: false }).limit(1000));
     },

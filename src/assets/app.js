@@ -276,7 +276,7 @@
       if (t.length < 2) { el.querySelector('.cmdk__res').innerHTML = '<p class="cmdk__hint">Type to search the board, the directory, makers and news.</p>'; return; }
       searchT = setTimeout(async () => {
         const [p, u, a] = await Promise.all([
-          API.sb.from('products').select('slug,name,tagline,color,logo_url').in('status', ['scheduled', 'live', 'unclaimed']).or(`name.ilike.%${t}%,tagline.ilike.%${t}%`).order('upvote_count', { ascending: false }).limit(12),
+          API.sb.from('products').select('slug,name,tagline,color,logo_url').in('status', ['scheduled', 'live', 'unclaimed']).or(`name.ilike.%${t}%,tagline.ilike.%${t}%,slug.ilike.%${t.trim().replace(/\s+/g, '-')}%${/\s/.test(t) || t.length < 5 ? '' : `,name.ilike.%${t.split('').join('%')}%`}`).order('upvote_count', { ascending: false }).limit(12),
           API.sb.from('profiles').select('username,name,avatar_url,avatar_color').or(`name.ilike.%${t}%,username.ilike.%${t}%`).limit(4),
           API.sb.from('articles').select('slug,title,topic').eq('status', 'published').ilike('title', `%${t}%`).limit(4)
         ]);
