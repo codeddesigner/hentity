@@ -102,6 +102,10 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/products/:slug/analytics",
+      "destination": "/analytics"
+    },
+    {
       "source": "/products/:slug/edit",
       "destination": "/product-edit"
     },

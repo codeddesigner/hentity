@@ -35,7 +35,7 @@ H.mount({ active: 'my-products', tab: 'me' });
   const header = (cur, tab) => `<div class="st-head"><div class="st-head__in">
       <nav class="st-crumbs" aria-label="Breadcrumb"><a href="/my-products">My products</a><span>/</span><a href="/studio/${esc(p.slug)}">${esc(p.name)}</a><span>/</span><b>${tab === 'badges' ? 'Badges &amp; embeds' : 'Beta programs'}</b></nav>
       <div class="row between gap-12"><div class="st-prod">${plogo(p, 32)}${esc(p.name)}${p.verified ? verified() : ''}</div><a class="row gap-6 t-body-sm" style="white-space:nowrap" href="/products/${esc(p.slug)}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-14')}View public page</a></div>
-      <nav class="st-tabs" aria-label="Product"><a href="/products/${esc(p.slug)}">Overview</a><a href="/my-products">Launches</a><a href="/studio/${esc(p.slug)}"${tab === 'badges' ? '' : ' aria-current="page"'}>Beta programs</a>${cur && cur.status !== 'draft' ? `<a href="/betas/${cur.id}/manage?tab=feedback">Feedback</a>` : ''}<a href="/studio/${esc(p.slug)}/badges"${tab === 'badges' ? ' aria-current="page"' : ''}>Badges &amp; embeds</a></nav>
+      <nav class="st-tabs" aria-label="Product"><a href="/products/${esc(p.slug)}">Overview</a><a href="/my-products">Launches</a><a href="/products/${esc(p.slug)}/analytics">Analytics</a><a href="/studio/${esc(p.slug)}"${tab === 'badges' ? '' : ' aria-current="page"'}>Beta programs</a>${cur && cur.status !== 'draft' ? `<a href="/betas/${cur.id}/manage?tab=feedback">Feedback</a>` : ''}<a href="/studio/${esc(p.slug)}/badges"${tab === 'badges' ? ' aria-current="page"' : ''}>Badges &amp; embeds</a></nav>
     </div></div>`;
 
   // /studio/<product>/badges → Badges & embeds (Figma: Studio · Badges & embeds)

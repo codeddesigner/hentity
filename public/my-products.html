@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=9cc6747cba"></script>
-<script src="/assets/app.js?v=a6a3882fcb"></script>
+<script src="/assets/api.js?v=a7b6f660a4"></script>
+<script src="/assets/app.js?v=a25eadc979"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -111,7 +111,7 @@
   </aside>
 </div>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=354227d2d5"></script>
+<script src="/assets/data.js?v=10e6f8b49c"></script>
 <script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script>
 H.mount({ active: 'my-products', tab: 'you' });
@@ -124,8 +124,8 @@ H.mount({ active: 'my-products', tab: 'you' });
   let rows = [];
   const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft', rejected: 'Not approved' };
   const A = {
-    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
-    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/analytics">Analytics</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/analytics">Analytics</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
     changes: r => `<a class="btn btn--accent btn--sm" href="/changes-requested?p=${r.slug}">Fix &amp; resubmit</a>`,
     review: r => `<a class="btn btn--secondary btn--sm" href="/under-review?p=${r.slug}">View status</a>`,
     draft: r => `<a class="btn btn--secondary btn--sm" href="/submit?id=${r.id}">Continue</a><button class="btn btn--ghost btn--sm" type="button" data-del="${r.id}">Delete</button>`,

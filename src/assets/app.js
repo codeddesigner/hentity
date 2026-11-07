@@ -359,7 +359,7 @@
     if (h) { h.outerHTML = sidebar(opts.active); document.body.classList.add('has-sidebar'); }
     // "Leave a review" pill (Figma 238:4196): bottom-right on every desktop page, opens Hentity's own reviews.
     // Not on phones (the tab bar owns that corner; "Review Hentity" is in the You menu) or on that page itself.
-    if (!document.querySelector('.hx-pill') && !/^\/(products\/hentity|admin|signin|signup|welcome|offline)/.test(location.pathname) && !/[?&]p=hentity/.test(location.search))
+    if (!document.querySelector('.hx-pill') && !/^\/(products\/hentity|admin|signin|signup|welcome|offline)/.test(location.pathname) && !/\/analytics$/.test(location.pathname) && !/[?&]p=hentity/.test(location.search))
       document.body.insertAdjacentHTML('beforeend', `<a class="hx-pill" href="/products/hentity#write"><svg viewBox="0 0 416 416" aria-hidden="true"><circle cx="208" cy="208" r="208" fill="#000"/><path fill="#fff" d="M184 90H232V184H326V232A94 94 0 0 0 232 326H184V232H90V184A94 94 0 0 0 184 90Z"/></svg>Leave a review</a>`);
     const t = document.querySelector('[data-tabbar]');
     if (t) t.outerHTML = tabbar(opts.tab, opts.active);

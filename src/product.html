@@ -51,6 +51,8 @@
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
   const { qs, qsa, icon, flag, verified, esc, toast, plogo, avatar } = H;
+  // Website links carry ?ref=hentity so founders can count sign-ups from Hentity in their own analytics
+  const withRef = u => { try { const x = new URL(u); if (!x.searchParams.has('ref')) x.searchParams.set('ref', 'hentity'); return x.toString(); } catch (e) { return u; } };
   const slug = decodeURIComponent(location.pathname.split('/').filter(Boolean)[1] || H.params().get('p') || '');
   await API.ready;
   let p;
@@ -58,6 +60,14 @@ H.mount({ active: 'products', tab: 'products' });
   if (!p) { document.title = 'Product not found | Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
   document.title = `${p.name} | ${p.tagline} | Hentity`;
   // Directory profiles nobody has claimed use the unclaimed layout, whatever their status says
+  // Founders' analytics: one view per visit, with where it came from; clicks on the page's buttons
+  API.track('view', p.id, { s: D.viewSource() });
+  qs('#pp').addEventListener('click', e => {
+    const t = e.target, w = t.closest('#getit') ? 'website' : t.closest('#vote,[data-vote-big]') ? 'upvote' : t.closest('#save') ? 'save' : t.closest('#follow-p,[data-follow]') ? 'follow'
+      : t.closest('#copy,a[href*="x.com/intent"],a[href*="wa.me"],a[href*="linkedin.com/shar"],[data-hx-copy]') ? 'share' : t.closest('a[href*="youtu"],a[href*="loom.com"],a[href*="vimeo"]') ? 'video'
+      : t.closest('a[href*="play.google.com"],a[href*="apps.apple.com"]') ? 'store' : t.closest('[data-rv-write],[data-hx-write]') ? 'review' : null;
+    if (w) API.track('click', p.id, { w });
+  }, true);
   if (D.isUnclaimed(p)) return unclaimed(p);
   // Hentity's own listing has its own layout: reviews of Hentity, no founders or makers (Figma 238:4196)
   if (p.slug === 'hentity' && window.HP) return HP.render(p);
@@ -91,7 +101,7 @@ H.mount({ active: 'products', tab: 'products' });
         ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
         ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
-      ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit" style="align-self:flex-start">${icon('edit', 'ic-14')}Edit page</a>` : ''}
+      ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<div class="row gap-16" style="align-self:flex-start"><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit">${icon('edit', 'ic-14')}Edit page</a><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/analytics">${icon('bar-chart', 'ic-14')}Analytics</a></div>` : ''}
       <div id="beta-callout"></div>
       <span class="here" id="here" hidden><i></i><span id="here-n"></span></span>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
@@ -213,7 +223,7 @@ H.mount({ active: 'products', tab: 'products' });
     vb.dataset.vote = p.id; vlabel(); vb.addEventListener('click', () => setTimeout(vlabel, 30)); D.liveCounts && D.liveCounts(vlabel);
     qs('#uc-follow').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } fol = !fol; followers += fol ? 1 : -1; setF(); setA(); try { await API.follow('product', p.id, fol); } catch (e) { fol = !fol; followers += fol ? 1 : -1; setF(); setA(); H.fail(e); } };
     qs('#uc-ask').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } ask = !ask; nAsk += ask ? 1 : -1; setA(); try { await API.notifyMe(p.id, ask); toast(ask ? `We’ll tell the ${p.name} team you asked` : 'Request removed'); } catch (e) { ask = !ask; nAsk += ask ? 1 : -1; setA(); H.fail(e); } };
-    qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+    qs('#getit') && (qs('#getit').href = withRef(qs('#getit').href), qs('#getit').addEventListener('click', () => API.trackClick(p.id)));
     qs('#uc-report') && (qs('#uc-report').onclick = async () => { const why = await H.ask('What did we get wrong?', { body: 'Tell us the fact and the correct value.', multiline: true, ok: 'Send' }); if (!why) return; try { await API.report('product', p.id, why); toast('Thanks. We’ll check it against the sources.'); } catch (e) { H.fail(e); } });
     const removal = () => {
       const el = document.createElement('div'); el.className = 'scrim';
@@ -252,7 +262,7 @@ H.mount({ active: 'products', tab: 'products' });
     qs('#beta-share').onclick = () => { const u = location.origin + '/b/' + b.slug; if (navigator.share) navigator.share({ title: b.title, url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Beta link copied'); } };
     if (location.hash === '#beta') setTimeout(() => qs('#beta-card').scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
   }
-  qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
+  qs('#getit') && (qs('#getit').href = withRef(qs('#getit').href), qs('#getit').addEventListener('click', () => API.trackClick(p.id)));
   qsa('.thumbs button').forEach(b => b.addEventListener('click', () => { qsa('.thumbs button').forEach(o => o.setAttribute('aria-selected', String(o === b))); const m = media[+b.dataset.i]; const st = qs('#stage'); st.querySelector('img') && st.querySelector('img').remove(); if (m.url) { st.style.background = '#000'; st.insertAdjacentHTML('afterbegin', `<img src="${esc(m.url)}" alt="${esc(p.name)} screenshot ${+b.dataset.i + 1}">`); } else st.style.background = m.color; }));
   const vb = qs('#vote');
   if (vb) {

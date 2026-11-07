@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=9cc6747cba"></script>
-<script src="/assets/app.js?v=a6a3882fcb"></script>
+<script src="/assets/api.js?v=a7b6f660a4"></script>
+<script src="/assets/app.js?v=a25eadc979"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -70,7 +70,7 @@
   <nav class="adm-nav" id="nav" aria-label="Admin"></nav>
   <main class="adm-main" id="main"><div class="skel" style="height:120px"></div></main>
 </div>
-<script src="/assets/data.js?v=354227d2d5"></script>
+<script src="/assets/data.js?v=10e6f8b49c"></script>
 <script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script>
 H.mount();
@@ -394,7 +394,7 @@ H.mount();
     const load = async () => { rows = await A.users(qs('#q').value.trim()); qs('#list').innerHTML = tbl(['Member', 'Email', 'Role', 'Badges', 'Country', 'Joined', ''], rows.map(u => `<tr${u.banned ? ' style="opacity:.55"' : ''}><td><a class="row gap-10" style="gap:10px" href="/makers/${u.username}" target="_blank">${avatar(u, 28)}<span><b>${esc(u.name)}</b>${u.is_verified ? ' ' + H.verified('verified--sm') : ''}<br><span class="c-3">@${esc(u.username)}</span></span></a></td><td>${esc(u.email || '—')}</td><td>${badge(u.role)}</td><td>${u.banned ? '<span class="badge badge--danger">Banned</span> ' : ''}${u.is_seed ? '<span class="badge">Seed</span> ' : ''}${u.deletion_requested_at ? '<span class="badge badge--warning">Deleting</span>' : ''}</td><td>${H.flag ? H.flag(u.country) : esc(u.country)}</td><td>${when(u.created_at)}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-u="${u.id}">Manage</button></td></tr>`), 'No members match'); };
     qs('#q').addEventListener('input', debounce(load)); qs('#exp').onclick = () => csv('users', rows.map(({ settings, ...r }) => r));
     qs('#list').onclick = e => { const b = e.target.closest('[data-u]'); if (!b) return; const u = rows.find(x => x.id === b.dataset.u);
-      drawer('Manage · ' + u.name, [['role', 'Role', isFullAdmin && u.id !== API.uid ? 'select' : 'readonly', [['user', 'Member'], ['moderator', 'Mini-admin (everything except managing admins)'], ['admin', 'Super admin']]], ['is_verified', 'Verified badge', 'bool'], ['banned', 'Banned (can’t post, vote or message)', 'bool'], ['name', 'Name', 'text'], ['username', 'Username', 'text'], ['headline', 'Headline', 'text'], ['bio', 'Bio', 'textarea'], ['country', 'Country code', 'text'], ['city', 'City', 'text'], ['website', 'Website', 'text'], ['avatar_url', 'Avatar', 'image'], ['email', 'Email (from auth)', 'readonly'], ['deletion_requested_at', 'Deletion requested', 'readonly'], ['created_at', 'Joined', 'readonly']], u, async v => {
+      drawer('Manage · ' + u.name, [['role', 'Role', isFullAdmin && u.id !== API.uid ? 'select' : 'readonly', [['user', 'Member'], ['moderator', 'Mini-admin (everything except managing admins)'], ['admin', 'Super admin']]], ['is_verified', 'Verified badge', 'bool'], ['kind', 'Member type (investors are counted, never named, in founders’ analytics)', 'select', [['member', 'Member'], ['investor', 'Investor']]], ['banned', 'Banned (can’t post, vote or message)', 'bool'], ['name', 'Name', 'text'], ['username', 'Username', 'text'], ['headline', 'Headline', 'text'], ['bio', 'Bio', 'textarea'], ['country', 'Country code', 'text'], ['city', 'City', 'text'], ['website', 'Website', 'text'], ['avatar_url', 'Avatar', 'image'], ['email', 'Email (from auth)', 'readonly'], ['deletion_requested_at', 'Deletion requested', 'readonly'], ['created_at', 'Joined', 'readonly']], u, async v => {
         const { role, is_verified, banned, ...rest } = v;
         if (isFullAdmin && (role !== u.role || is_verified !== u.is_verified || banned !== u.banned)) await A.setUser(u.id, { role: role !== u.role ? role : null, verified: is_verified, banned });
         else if (!isFullAdmin && (is_verified !== u.is_verified || banned !== u.banned)) await A.updateUser(u.id, { is_verified, banned });

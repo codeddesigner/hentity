@@ -104,6 +104,28 @@
   const BETA_COLS = 'id,product_id,owner_id,title,why,steps,countries,platforms,requirements,questions,spots,closes_at,test_start,test_end,time_needed,access_methods,nda,perk_type,perk,airtime_amount,funding,nudged_at,status,slug,form,agreement,access,settings,opens,signed_count,completed_at,room_id,applied_count,accepted_count,feedback_count,created_at,product:products(id,slug,name,tagline,color,logo_url,verified,week_id,status,upvote_count),owner:profiles!betas_owner_id_fkey(id,name,username,avatar_url,avatar_color)';
   const PRODUCT_COLS = 'id,slug,name,tagline,description,website,color,logo_url,media,video_url,categories,country,city,countries,pay_methods,currencies,languages,platforms,stage,status,effective_status,week_id,featured,promoted,verified,upvote_count,comment_count,follower_count,click_count,view_count,owner_id,company_id,created_at,submitted_at,week_starts_at,week_ends_at,launch_date,testers_wanted,active,inactive_note';
 
+  // ---------------------------------------------------------------- Product analytics events
+  // A random id for this browser (no name, no account), events batched and sent to /api/t, which adds
+  // city, country and device. Kinds: seen (shown in a list), view (opened the page), click (a button).
+  const TQ = []; let tTimer = null;
+  function visitorId() {
+    try { let v = localStorage.getItem('h.vid'); if (!v) { v = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('h.vid', v); } return v; }
+    catch (e) { return 'tmp' + Math.random().toString(36).slice(2, 14); }
+  }
+  function flushTrack() {
+    if (!TQ.length || location.protocol !== 'https:') { TQ.length = 0; return; }
+    const e = TQ.splice(0, 60), body = JSON.stringify({ e, a: session && session.access_token || undefined });
+    try { fetch('/api/t', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body }).catch(() => {}); } catch (err) {}
+    if (TQ.length) flushTrack();
+  }
+  function track(k, pid, extra) {
+    if (!pid) return;
+    TQ.push(Object.assign({ k, p: pid, v: visitorId() }, extra || {}));
+    clearTimeout(tTimer); tTimer = setTimeout(flushTrack, TQ.length > 40 ? 0 : 1500);
+  }
+  addEventListener('pagehide', flushTrack);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushTrack(); });
+
   const API = {
     sb, ready, url: SUPABASE_URL,
     get session() { return session; }, get profile() { return profile; }, get uid() { return uid(); },
@@ -210,6 +232,9 @@
     async notifyRequests() { if (!uid()) return new Set(); const r = await q(sb.from('notify_requests').select('product_id').eq('user_id', uid())); return new Set(r.map(x => x.product_id)); },
     async notifyMe(pid, on) { requireAuth(); touched(); if (on) err((await sb.from('notify_requests').insert({ user_id: uid(), product_id: pid })).error); else err((await sb.from('notify_requests').delete().eq('user_id', uid()).eq('product_id', pid)).error); },
     trackClick: pid => sb.rpc('track_click', { p: pid }),
+    track, visitorId,
+    // Founders' analytics for one product (team only)
+    productAnalytics: (pid, days) => q(sb.rpc('product_analytics', { pid, days })),
     trackView: pid => sb.rpc('track_view', { p: pid }),
     upvotedBy: (userId) => q(sb.from('upvotes').select('product_id,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(30)),
     votesByDay: (pid) => q(sb.from('upvotes').select('created_at').eq('product_id', pid).gte('created_at', new Date(Date.now() - 8 * 864e5).toISOString())),

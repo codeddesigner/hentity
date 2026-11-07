@@ -80,5 +80,30 @@
       onChange && onChange(p);
     });
   }
-  window.D = { row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, isUnclaimed, canVote, liveCounts };
+  // ---------------------------------------------------------------- analytics: where a visit came from
+  // Order: a flag set when opening from search, then ?ref= on the link, then the previous page.
+  function viewSource() {
+    try { const f = sessionStorage.getItem('h.src'); if (f) { sessionStorage.removeItem('h.src'); return f; } } catch (e) {}
+    const q = new URLSearchParams(location.search), ref = (q.get('ref') || q.get('utm_source') || '').toLowerCase();
+    if (ref) return /badge/.test(ref) ? 'badge' : /digest|email|newsletter|launchpad/.test(ref) ? 'digest' : /whatsapp|^wa$/.test(ref) ? 'whatsapp' : /^x$|twitter|linkedin|facebook|instagram|social|share/.test(ref) ? 'social' : 'other';
+    if (!document.referrer) return 'direct';
+    let u; try { u = new URL(document.referrer); } catch (e) { return 'other'; }
+    if (u.host === location.host) {
+      const pth = u.pathname;
+      return pth === '/' || pth === '/home' ? 'launches' : /^\/(directory|categories|countries)/.test(pth) ? 'directory' : /^\/saved/.test(pth) ? 'saved' : 'other';
+    }
+    const h = u.host;
+    return /whatsapp|wa\.me/.test(h) ? 'whatsapp' : /(^|\.)(x\.com|twitter\.com|t\.co)$|linkedin|lnkd|facebook|instagram/.test(h) ? 'social' : /google\.|bing\.|duckduckgo|yahoo\./.test(h) ? 'google' : 'other';
+  }
+  // Products shown in a list count as "seen" once they're actually on screen
+  const listSource = () => { const pth = location.pathname; return pth === '/' ? 'launches' : /^\/(directory|categories|countries)/.test(pth) ? 'directory' : /^\/saved/.test(pth) ? 'saved' : 'other'; };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; io.unobserve(e.target); API.track && API.track('seen', e.target.dataset.key, { s: listSource() }); }), { threshold: .6 });
+    const scan = () => document.querySelectorAll('.prow[data-key]:not([data-seen])').forEach(el => { el.dataset.seen = '1'; io.observe(el); });
+    let raf = 0; new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; scan(); }); }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  // Opening a product from search
+  document.addEventListener('click', e => { const a = e.target.closest('.cmdk a[href^="/products/"]'); if (a) try { sessionStorage.setItem('h.src', 'search'); } catch (err) {} }, true);
+
+  window.D = { viewSource, row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, isUnclaimed, canVote, liveCounts };
 })();
