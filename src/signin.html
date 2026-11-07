@@ -67,7 +67,8 @@ H.mount();
     qs('#mfa-back').onclick = async () => { await API.auth.signOut(); location.href = '/signin'; };
     mf.addEventListener('submit', async e => {
       e.preventDefault();
-      const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = (f.totp || []).find(x => x.status === 'verified');
+      const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = ((f && f.totp) || []).find(x => x.status === 'verified');
+      if (!factor) { toast('Your sign-in timed out. Please sign in again.', 'error'); setTimeout(() => { location.href = '/signin'; }, 1500); return; }
       const { error } = await API.sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: qs('#mcode').value.trim() });
       if (error) { qs('#f-mcode').classList.add('is-error'); toast('That code didn’t match. Use the newest one.', 'error'); return; }
       await API.refreshProfile(); done();

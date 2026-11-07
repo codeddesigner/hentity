@@ -41,7 +41,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=7f3e6221c0"></script>
-<script src="/assets/app.js?v=424c244de1"></script>
+<script src="/assets/app.js?v=e116a68b14"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -121,7 +121,8 @@ H.mount();
     qs('#mfa-back').onclick = async () => { await API.auth.signOut(); location.href = '/signin'; };
     mf.addEventListener('submit', async e => {
       e.preventDefault();
-      const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = (f.totp || []).find(x => x.status === 'verified');
+      const { data: f } = await API.sb.auth.mfa.listFactors(); const factor = ((f && f.totp) || []).find(x => x.status === 'verified');
+      if (!factor) { toast('Your sign-in timed out. Please sign in again.', 'error'); setTimeout(() => { location.href = '/signin'; }, 1500); return; }
       const { error } = await API.sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: qs('#mcode').value.trim() });
       if (error) { qs('#f-mcode').classList.add('is-error'); toast('That code didn’t match. Use the newest one.', 'error'); return; }
       await API.refreshProfile(); done();
