@@ -1205,14 +1205,17 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .fu-grab{display:none}
 .fu-sheet{max-height:92vh;overflow:auto}
 @media (max-width:768px){.fu-scrim{align-items:flex-end;padding:0}.fu-sheet{border-radius:20px 20px 0 0!important;max-width:none!important;width:100%}.fu-grab{display:block;width:36px;height:4px;border-radius:2px;background:var(--color-border-strong,#ccc);margin:-6px auto 14px}}
-.fu-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--color-bg-subtle);color:var(--color-text-secondary)}
+.fu-link{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--color-bg-subtle);color:var(--color-text-secondary)}
+.fu-link .nav__icon{color:var(--color-text-tertiary)}
 .fu-link a{color:var(--color-text-primary)}
-.fu-ready{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--color-border-default)}
+.fu-ready{display:flex;align-items:center;gap:10px;padding:13px 0;border-top:1px solid var(--color-border-default)}
+.fu-ready .fu-ract{color:var(--color-text-primary);font-weight:500}
 .fu-readyl .fu-ready:first-child{border-top:1px solid var(--color-border-default)}
-.fu-ready .nav__icon{width:30px;height:30px;color:var(--color-text-tertiary)}
+.fu-ready .nav__icon{width:30px;height:30px;color:var(--color-text-tertiary);transition:opacity .15s}
+@media (hover:hover){.fu-ready .nav__icon{opacity:0}.fu-ready:hover .nav__icon,.fu-ready .nav__icon:focus-visible{opacity:1}}
 .fu-ract{flex:none}
 .fu-ib{width:36px;height:36px;border-radius:9px;background:var(--color-bg-subtle);display:grid;place-items:center;flex:none}
-.fu-ok{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;background:#22C55E;color:#fff}
+.fu-ok{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;background:#16A34A;color:#fff}
 .fu-no{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;background:#FDECEC;color:#D92D20}
 .fu-todo{width:20px;height:20px;border-radius:50%;flex:none;border:1.5px solid var(--color-border-strong,#ccc)}
 .fu-red{color:#D92D20}

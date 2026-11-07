@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=f4abd88207">
+<link rel="stylesheet" href="/assets/styles.css?v=cc1119b233">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -50,8 +50,8 @@
 .fo-crit{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:14px}
 .fo-crit .ev{margin-left:auto;color:var(--color-text-tertiary);font-size:13px;text-align:right}
 .fo-judge{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:var(--color-text-secondary)}.fo-judge b{color:var(--color-text-primary);font-weight:500;font-variant-numeric:tabular-nums}
-.fo-panel{padding:24px;position:sticky;top:24px}
-.fo-panel hr{border:0;border-top:1px solid var(--color-border-default);margin:18px 0 16px}
+.fo-panel{padding:24px;position:sticky;top:24px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 12px 32px -8px rgba(16,24,40,.10)}
+.fo-panel hr{border:0;border-top:1px solid var(--color-border-default);margin:12px 0}
 .fo-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
 @media (max-width:1000px){.fo{grid-template-columns:minmax(0,1fr)}.fo-panel{position:static}}
 @media (max-width:768px){.fo{padding:16px 16px 32px;gap:12px}.fo h1.t-h2{font-size:24px;line-height:30px}.fo .fu-chip{white-space:normal;height:auto;min-height:24px;padding:3px 8px}.fo-sec,.fo-panel{padding:18px}.fo-crit .ev{display:none}}
@@ -111,15 +111,15 @@ H.mount({ active: 'funding', tab: 'you' });
     </div>
     <aside class="card fo-panel" id="panel">
       <h2 class="fo-h">Apply on ${isGrant() ? 'the funder’s' : 'their'} site</h2>
-      <p class="t-body-sm c-2" style="margin:8px 0 14px">Applications go through ${esc(who)} directly. Hentity helps you get ready and keeps track.</p>
+      <p class="t-body-sm c-2" style="margin:12px 0 12px">Applications go through ${esc(who)} directly. Hentity helps you get ready and keeps track.</p>
       ${FU.linkBox(O)}
       <a class="btn btn--accent btn--block" style="margin-top:12px" href="${esc(FU.applyUrl(O))}" target="_blank" rel="noopener" id="go">${icon('arrow-up-right', 'ic-16')}${open ? 'Go to application' : 'Open their site'}</a>
       <hr>
-      <div class="fo-sub"><p class="t-label">Get ready</p><p class="t-caption c-3" style="font-weight:400">What they usually ask for</p></div>
+      <div class="fo-sub" style="margin-bottom:12px"><p class="t-label">Get ready</p><p class="t-caption c-3" style="font-weight:400">What they usually ask for</p></div>
       <div id="ready">${FU.readyList(O, p, O.mode, true)}</div>
       <hr>
       <p class="t-label">Keep track</p>
-      ${O.deadline ? `<label class="row between gap-12" style="margin-top:12px;cursor:pointer"><span><span class="t-body-sm" style="display:block">Remind me before it closes</span><span class="t-caption c-3" style="font-weight:400">Email and app, 3 days and 1 day before ${FU.fmtDate(O.deadline)}</span></span><span class="toggle"><input type="checkbox" id="remind"${t ? (t.remind ? ' checked' : '') : ''}${t && t.status === 'applied' ? ' disabled' : ''}><span class="toggle__track"></span></span></label>` : ''}
+      ${O.deadline ? `<label class="row between gap-12" style="margin-top:12px;cursor:pointer"><span><span class="t-body-sm" style="display:block">Remind me before it closes</span><span class="t-caption c-3" style="font-weight:400">Email and app, 3 days and 1 day before ${FU.fmtDate(O.deadline)}</span></span><span class="toggle"><input type="checkbox" id="remind"${!t || t.remind ? ' checked' : ''}${t && t.status === 'applied' ? ' disabled' : ''}><span class="toggle__track"></span></span></label>` : ''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
         <button class="btn btn--secondary" type="button" id="save" aria-pressed="${!!t}">${icon('bookmark', 'ic-16')}${t ? 'Saved' : 'Save'}</button>
         <button class="btn btn--secondary" type="button" id="applied" aria-pressed="${!!(t && t.status === 'applied')}">${icon('check', 'ic-16')}${t && t.status === 'applied' ? 'Applied' : 'I’ve applied'}</button></div>
@@ -137,13 +137,14 @@ H.mount({ active: 'funding', tab: 'you' });
   FU.bindReady(root, { get o() { return O; }, get p() { return O.product; }, get pid() { return pid; }, reload: load });
   root.addEventListener('click', async e => {
     if (e.target.closest('#fo-edit')) { FU.editSheet(O, load); return; }
-    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else track({ status: 'saved', remind: true }, 'Saved. We’ll remind you before it closes.'); return; }
+    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else { const r = root.querySelector('#remind'), on = r ? r.checked : true; track({ status: 'saved', remind: on }, on ? 'Saved. We’ll remind you before it closes.' : 'Saved'); } return; }
     if (e.target.closest('#applied')) { if (!O.track || O.track.status !== 'applied') track({ status: 'applied', applied_at: new Date().toISOString() }, 'Marked as applied'); return; }
     if (e.target.closest('#unapply')) { track({ status: 'saved', applied_at: null }, 'Moved back to saved'); return; }
     // Opening their site saves it, so it shows in the tracker and reminders work
     if (e.target.closest('#go') && !O.track) API.fundingTrack(oid, pid, { status: 'saved', remind: true }).then(load).catch(() => {});
   });
-  root.addEventListener('change', e => { if (e.target.id === 'remind') track({ remind: e.target.checked, status: O.track ? O.track.status : 'saved' }, e.target.checked ? 'Reminders on' : 'Reminders off'); });
+  root.addEventListener('change', e => { if (e.target.id === 'remind' && !O.track) return;   // not saved yet: the switch applies when they save
+    if (e.target.id === 'remind') track({ remind: e.target.checked, status: O.track ? O.track.status : 'saved' }, e.target.checked ? 'Reminders on' : 'Reminders off'); });
   load();
 })();
 </script>
