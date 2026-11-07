@@ -161,22 +161,28 @@
 
   // Investor sheet: checked link, what to have ready, Save and Apply on site
   function investorSheet(o, p, pid, onChange) {
-    const f = fit(o), saved = o.track;
-    const html = () => `<div class="row gap-12" style="align-items:flex-start">${logo(o, 40)}<div class="grow" style="min-width:0"><p class="t-label">${esc(o.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(KIND[o.kind])} · ${esc(o.amount_text || 'Cheque not disclosed')} · ${esc(o.stages.join(', ') || 'Any stage')}</p></div><span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${f[0]}</span></div>
+    const f = fit(o);
+    const html = () => { const t = o.track, applied = t && t.status === 'applied';
+      return `<div class="row gap-12" style="align-items:flex-start">${logo(o, 40)}<div class="grow" style="min-width:0"><p class="t-label">${esc(o.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(KIND[o.kind])} · ${esc(o.amount_text || 'Cheque not disclosed')} · ${esc(o.stages.join(', ') || 'Any stage')}</p></div><span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${f[0]}</span></div>
       ${o.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(o.description)}</p>` : ''}
-      <p class="t-body-sm c-2" style="margin:14px 0 10px">${esc(o.org || o.name)} takes applications on its own site.${o.deadline ? ` Deadline ${fmtDate(o.deadline)}.` : ''}</p>
+      <p class="t-body-sm c-2" style="margin:12px 0">Applications go through ${esc(o.org || o.name)} directly. Everything they ask for is on their page.${o.deadline ? ` Deadline ${fmtDate(o.deadline)}.` : ''}</p>
       ${linkBox(o)}
-      <p class="t-label" style="margin:18px 0 2px">Have these ready</p>
-      <div class="fu-readyl">${readyList(o, p, 'equity', false)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px"><button class="btn btn--secondary" type="button" id="isave">${icon('bookmark', 'ic-16')}${o.track ? (o.track.status === 'applied' ? 'Applied' : 'Saved') : 'Save'}</button>
-        <a class="btn btn--accent" href="${esc(applyUrl(o))}" target="_blank" rel="noopener">${icon('arrow-up-right', 'ic-16')}Apply on site</a></div>
-      <p class="t-caption c-3" style="font-weight:400;margin-top:10px;text-align:center"><a class="link" href="/funding/${o.id}?p=${pid}">Full details</a>${o.track && o.track.status !== 'applied' ? ' · <button class="link" type="button" id="iapplied">I’ve applied</button>' : ''}</p>`;
+      <a class="btn btn--accent btn--block" style="margin-top:12px" href="${esc(applyUrl(o))}" target="_blank" rel="noopener" id="igo">${icon('arrow-up-right', 'ic-16')}Go to application</a>
+      <hr style="border:0;border-top:1px solid var(--color-border-default);margin:12px 0">
+      <p class="t-label">Keep track</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <button class="btn btn--secondary" type="button" id="isave" aria-pressed="${!!t}">${icon('bookmark', 'ic-16')}${t ? 'Saved' : 'Save'}</button>
+        <button class="btn btn--secondary" type="button" id="iapplied" aria-pressed="${!!applied}">${icon('check', 'ic-16')}${applied ? 'Applied' : 'I’ve applied'}</button></div>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${applied ? `Marked applied. <button class="link" type="button" id="iunapply">Undo</button>` : 'Mark it applied to move it to “Applied”.'} <a class="link" href="/funding/${o.id}?p=${pid}">Full details</a></p>`; };
     const sh = sheet(html(), { label: o.name, w: 480 });
     const reload = async () => { try { const x = await API.fundingOpp(o.id, pid); Object.assign(o, { track: x.track }); p = x.product; sh.el.innerHTML = '<span class="fu-grab" aria-hidden="true"></span>' + html(); onChange && onChange(); } catch (e) { H.fail(e); } };
     bindReady(sh.el, { o, get p() { return p; }, pid, reload });
     sh.el.addEventListener('click', async e => {
-      if (e.target.closest('#isave')) { try { if (o.track) await API.fundingUntrack(o.id); else await API.fundingTrack(o.id, pid, { status: 'saved' }); toast(o.track ? 'Removed' : 'Saved'); await reload(); } catch (er) { H.fail(er); } }
-      if (e.target.closest('#iapplied')) { try { await API.fundingTrack(o.id, pid, { status: 'applied', applied_at: new Date().toISOString() }); toast('Marked as applied'); await reload(); } catch (er) { H.fail(er); } }
+      const act = async (fn, msg) => { try { await fn(); toast(msg); await reload(); } catch (er) { H.fail(er); } };
+      if (e.target.closest('#isave')) { if (o.track && o.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; act(() => o.track ? API.fundingUntrack(o.id) : API.fundingTrack(o.id, pid, { status: 'saved', remind: true }), o.track ? 'Removed' : 'Saved'); return; }
+      if (e.target.closest('#iapplied')) { if (!o.track || o.track.status !== 'applied') act(() => API.fundingTrack(o.id, pid, { status: 'applied', applied_at: new Date().toISOString() }), 'Marked as applied'); return; }
+      if (e.target.closest('#iunapply')) { act(() => API.fundingTrack(o.id, pid, { status: 'saved', applied_at: null }), 'Moved back to saved'); return; }
+      if (e.target.closest('#igo') && !o.track) API.fundingTrack(o.id, pid, { status: 'saved', remind: true }).then(reload).catch(() => {});
     });
     return sh;
   }
