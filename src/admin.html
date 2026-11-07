@@ -50,7 +50,7 @@ H.mount();
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms || 250); }; };
 
   // ---------------------------------------------------------------- drawer form
-  // fields: [key, label, type, opts]   type: text|textarea|number|bool|select|list|json|datetime|color|image|readonly
+  // fields: [key, label, type, opts]   type: text|textarea|number|bool|select|checks|list|json|datetime|color|image|readonly|heading
   function drawer(title, fields, values, onSave, extra) {
     qsa('.drawer,.drawer-bg').forEach(x => x.remove());
     const bg = document.createElement('div'); bg.className = 'drawer-bg'; bg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:89;animation:fadein .2s';
@@ -58,6 +58,8 @@ H.mount();
     const v = values || {};
     const field = ([k, l, t, o]) => {
       const val = v[k];
+      if (t === 'heading') return `<p class="t-label" style="margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--color-border-default)">${esc(l)}${o ? ` <span class="t-caption c-3" style="font-weight:400">${esc(o)}</span>` : ''}</p>`;
+      if (t === 'checks') return `<div class="field" style="margin-bottom:14px"><label class="field__label">${l}</label><div class="row wrap gap-8">${o.map(x => { const [ov, ol] = Array.isArray(x) ? x : [x, x]; return `<label class="chip" style="cursor:pointer"><input type="checkbox" name="${k}" value="${esc(ov)}"${(val || []).includes(ov) ? ' checked' : ''} style="margin-right:6px">${esc(ol)}</label>`; }).join('')}</div></div>`;
       if (t === 'bool') return `<label class="check" style="margin:4px 0 14px"><input type="checkbox" name="${k}"${val ? ' checked' : ''}><span class="check__box">${icon('check')}</span>${l}</label>`;
       let inp;
       if (t === 'textarea' || t === 'list' || t === 'json') inp = `<textarea class="input" name="${k}" rows="${t === 'json' ? 6 : (o && o.rows) || 4}" style="${t === 'json' ? 'font-family:var(--font-mono);font-size:12px' : ''}">${esc(t === 'list' ? (val || []).join('\n') : t === 'json' ? JSON.stringify(val == null ? (o && o.empty) || {} : val, null, 2) : val || '')}</textarea>`;
@@ -76,7 +78,7 @@ H.mount();
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
     d.querySelectorAll('[data-prev]').forEach(pv => { const i = d.querySelector(`[name="${pv.dataset.prev}"]`); i && i.addEventListener('change', () => { pv.src = i.value; pv.style.display = i.value ? '' : 'none'; }); });
     d.querySelectorAll('[data-up]').forEach(inp => inp.addEventListener('change', async () => { const f = inp.files[0]; if (!f) return; try { toast('Uploading…'); const url = await API.upload(f, 'admin'); d.querySelector(`[name="${inp.dataset.up}"]`).value = url; const pv = d.querySelector(`[data-prev="${inp.dataset.up}"]`); if (pv) { pv.src = url; pv.style.display = ''; } toast('Uploaded'); } catch (e) { H.fail(e); } }));
-    const collect = () => { const f = qs('#dform'); const out = {}; for (const [k, , t] of fields) { if (t === 'readonly') continue; const el = f.elements[k]; if (!el) continue; if (t === 'bool') out[k] = el.checked; else if (t === 'number') out[k] = el.value === '' ? null : +el.value; else if (t === 'list') out[k] = el.value.split('\n').map(s => s.trim()).filter(Boolean); else if (t === 'json') { try { out[k] = JSON.parse(el.value || 'null'); } catch (e) { throw new Error(l(k) + ' is not valid JSON'); } } else if (t === 'datetime') out[k] = el.value ? new Date(el.value).toISOString() : null; else out[k] = el.value === '' ? null : el.value; } return out; };
+    const collect = () => { const f = qs('#dform'); const out = {}; for (const [k, , t] of fields) { if (t === 'readonly' || t === 'heading') continue; if (t === 'checks') { out[k] = [...f.querySelectorAll(`input[name="${k}"]:checked`)].map(i => i.value); continue; } const el = f.elements[k]; if (!el) continue; if (t === 'bool') out[k] = el.checked; else if (t === 'number') out[k] = el.value === '' ? null : +el.value; else if (t === 'list') out[k] = el.value.split('\n').map(s => s.trim()).filter(Boolean); else if (t === 'json') { try { out[k] = JSON.parse(el.value || 'null'); } catch (e) { throw new Error(l(k) + ' is not valid JSON'); } } else if (t === 'datetime') out[k] = el.value ? new Date(el.value).toISOString() : null; else out[k] = el.value === '' ? null : el.value; } return out; };
     const l = k => (fields.find(f => f[0] === k) || [])[1] || k;
     const sv = d.querySelector('[data-save]');
     sv && (sv.onclick = async () => { sv.disabled = true; try { await onSave(collect(), d); close(); } catch (e) { H.fail(e); } finally { sv.disabled = false; } });
@@ -760,28 +762,109 @@ H.mount();
   };
 
   // ---- funding (grants, prizes and investors founders can apply to)
-  V.funding = async () => {
+  // Every listing is editable here: search, filter, edit any field, hide/show, mark checked, bulk actions.
+  V.funding = async (arg) => {
     nav('funding');
-    const [rows, cnt] = await Promise.all([A.fundingOpps(), A.fundingCounts().catch(() => ({}))]);
-    const KIND = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['vc', 'VC fund'], ['angel', 'Angel network'], ['accelerator', 'Accelerator'], ['micro_vc', 'Micro-VC']];
-    const open = o => o.active && (!o.deadline || o.deadline >= new Date().toISOString().slice(0, 10));
-    qs('#main').innerHTML = head('Funding', 'Grants, prizes and investors shown on /funding. Founders apply on each funder’s own site, so keep the apply link, dates and amounts checked against the official page.', `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New opportunity</button>`)
-      + tbl(['Opportunity', 'Type', 'Amount', 'Deadline', 'Checked', 'Saved · applied', 'State', ''], rows.map(o => `<tr><td><b>${esc(o.name)}</b><br><span class="c-3">${esc(o.org || '')}</span></td><td>${o.mode === 'grant' ? 'Grant' : 'Equity'} · ${esc((KIND.find(k => k[0] === o.kind) || [, o.kind])[1])}</td><td>${esc(o.amount_text || '—')}</td><td>${o.deadline ? esc(o.deadline) : `<span class="c-3">${esc((o.round_note || 'Rolling').split('·')[0])}</span>`}</td><td class="c-3">${o.checked_at ? esc(o.checked_at) : '—'}</td><td class="mono">${(cnt[o.id] || {}).saved || 0} · ${(cnt[o.id] || {}).applied || 0}</td><td>${open(o) ? badge('live').replace('>live<', '>showing<') : badge('archived').replace('>archived<', '>' + (o.active ? 'closed' : 'hidden') + '<')}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-o="${o.id}">Edit</button></td></tr>`));
-    const F = [['mode', 'Board', 'select', [['grant', 'Grants'], ['equity', 'Equity']]], ['kind', 'Type', 'select', KIND], ['name', 'Name', 'text'], ['org', 'Organisation', 'text'], ['color', 'Logo colour (hex)', 'color'], ['logo_url', 'Logo', 'image'],
-      ['website', 'Website', 'text'], ['apply_url', 'Apply link (their application page)', 'text'],
-      ['amount_text', 'Amount (as shown)', 'text'], ['amount_note', 'Amount note', 'text'], ['amount_usd', 'Amount in USD (for filters)', 'number'],
-      ['deadline', 'Deadline', 'date'], ['deadline_note', 'Deadline time (e.g. “23:59 WAT”)', 'text'], ['decision_by', 'Decision by', 'date'], ['slots_text', 'Slots (e.g. “20 grants”)', 'text'], ['round_note', 'Round note (shown when there’s no deadline)', 'text'],
-      ['categories', 'Categories (empty = any)', 'list'], ['stages', 'Stages (empty = any)', 'list'], ['countries', 'Country codes (empty = any)', 'list'], ['region_label', 'Region label', 'text'],
-      ['women_only', 'Women-founded teams only', 'bool'], ['needs_incorporation', 'Must be incorporated', 'bool'], ['needs_live', 'Product must be live', 'bool'],
-      ['judging', 'How it’s judged', 'json', { empty: [] }], ['description', 'Description', 'textarea', { rows: 3 }], ['source_url', 'Source (where you checked it)', 'text'], ['checked_at', 'Checked on', 'date'], ['active', 'Show to founders', 'bool']];
-    const edit = o => drawer(o ? o.name : 'New opportunity', F, o || { mode: 'grant', kind: 'grant', active: true, judging: [], checked_at: new Date().toISOString().slice(0, 10) }, async v => {
-      if (!v.name) throw new Error('Add a name');
+    const [rows, cntRaw] = await Promise.all([A.fundingOpps(), A.fundingCounts().catch(() => ({}))]);
+    const cnt = cntRaw || {};
+    const KIND = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
+    const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate'];
+    const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
+    const today = new Date().toISOString().slice(0, 10), stale = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
+    const state = o => !o.active ? 'hidden' : o.deadline && o.deadline < today ? 'expired' : o.deadline ? 'open' : o.round_note ? 'closed' : 'rolling';
+    const ST = { open: ['Open', 'badge--success'], rolling: ['Rolling', 'badge--info'], closed: ['Between rounds', ''], expired: ['Deadline passed', 'badge--warning'], hidden: ['Hidden', 'badge--danger'] };
+    const F = window.__fuAdm = window.__fuAdm || { q: '', mode: '', st: '', kind: '', sort: 'name', n: 50 };
+    const sel = new Set();
+    const list = () => {
+      const q = F.q.trim().toLowerCase();
+      let L = rows.filter(o => (!F.mode || o.mode === F.mode) && (!F.kind || o.kind === F.kind)
+        && (!F.st || (F.st === 'stale' ? !o.checked_at || o.checked_at < stale : state(o) === F.st))
+        && (!q || [o.name, o.org, o.website, o.apply_url, o.description, o.region_label].join(' ').toLowerCase().includes(q)));
+      const by = { name: (a, b) => a.name.localeCompare(b.name), deadline: (a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'), checked: (a, b) => (a.checked_at || '').localeCompare(b.checked_at || ''), updated: (a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''), saved: (a, b) => ((cnt[b.id] || {}).saved || 0) - ((cnt[a.id] || {}).saved || 0) };
+      return L.sort(by[F.sort]);
+    };
+    const count = (fn) => rows.filter(fn).length;
+    const opt = (k, pairs) => pairs.map(([v, l]) => `<option value="${v}"${F[k] === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
+    const row = o => { const s = ST[state(o)], c = cnt[o.id] || {}; return `<tr data-row="${o.id}">
+        <td style="width:28px"><input type="checkbox" data-sel="${o.id}"${sel.has(o.id) ? ' checked' : ''} aria-label="Select ${esc(o.name)}"></td>
+        <td style="min-width:220px;max-width:340px"><button class="link" type="button" data-o="${o.id}" style="text-align:left"><b>${esc(o.name)}</b></button><br><span class="c-3 t-caption" style="font-weight:400">${esc(o.org && o.org !== o.name ? o.org : '')}${o.apply_url || o.website ? ` <a class="link" href="${esc(o.apply_url || o.website)}" target="_blank" rel="noopener">${esc((o.apply_url || o.website).replace(/^https?:\/\/(www\.)?/, '').slice(0, 40))}</a>` : ''}</span></td>
+        <td>${o.mode === 'grant' ? 'Grant' : 'Equity'} · ${esc((KIND.find(k => k[0] === o.kind) || [, o.kind])[1])}</td>
+        <td>${esc(o.amount_text || '—')}</td>
+        <td style="max-width:160px">${o.deadline ? `<span style="white-space:nowrap">${esc(o.deadline)}</span>` : `<span class="c-3">${esc((o.round_note || 'Rolling').split('·')[0])}</span>`}</td>
+        <td style="white-space:nowrap" class="${!o.checked_at || o.checked_at < stale ? '' : 'c-3'}" style="${!o.checked_at || o.checked_at < stale ? 'color:#B42318' : ''}">${o.checked_at ? esc(o.checked_at) : 'Never'}</td>
+        <td class="mono">${c.saved || 0} · ${c.applied || 0}</td>
+        <td><span class="badge ${s[1]}">${s[0]}</span></td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn btn--ghost btn--sm" type="button" data-chk="${o.id}" title="Mark details checked today">${icon('check')}Checked</button> <button class="btn btn--ghost btn--sm" type="button" data-vis="${o.id}">${o.active ? 'Hide' : 'Show'}</button> <button class="btn btn--secondary btn--sm" type="button" data-o="${o.id}">Edit</button></td></tr>`; };
+    const render = () => {
+      const L = list(), shown = L.slice(0, F.n);
+      qs('#main').innerHTML = head('Funding', `${rows.length} listings · ${count(o => o.mode === 'grant')} grants · ${count(o => o.mode === 'equity')} investors. Founders apply on each funder’s own site, so keep links, dates and amounts checked against the official page.`, `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New opportunity</button>`)
+        + `<div class="row wrap gap-8" style="margin-bottom:12px">
+            <input class="input" id="fq" type="search" placeholder="Search name, organisation, link…" value="${esc(F.q)}" style="max-width:280px">
+            <select class="input" data-f="mode" style="width:auto">${opt('mode', [['', 'Grants and equity'], ['grant', 'Grants'], ['equity', 'Equity']])}</select>
+            <select class="input" data-f="kind" style="width:auto">${opt('kind', [['', 'Any type'], ...KIND])}</select>
+            <select class="input" data-f="st" style="width:auto">${opt('st', [['', 'Any state'], ['open', `Open (${count(o => state(o) === 'open')})`], ['rolling', `Rolling (${count(o => state(o) === 'rolling')})`], ['closed', `Between rounds (${count(o => state(o) === 'closed')})`], ['expired', `Deadline passed (${count(o => state(o) === 'expired')})`], ['hidden', `Hidden (${count(o => state(o) === 'hidden')})`], ['stale', `Not checked in 60 days (${count(o => !o.checked_at || o.checked_at < stale)})`]])}</select>
+            <select class="input" data-f="sort" style="width:auto">${opt('sort', [['name', 'Sort: name'], ['deadline', 'Sort: deadline'], ['checked', 'Sort: oldest check'], ['updated', 'Sort: recently edited'], ['saved', 'Sort: most saved']])}</select>
+            <span class="t-caption c-3" style="font-weight:400;margin-left:auto">${L.length} match${L.length === 1 ? '' : 'es'}</span></div>
+          <div id="bulk" class="row wrap gap-8" style="margin-bottom:12px;${sel.size ? '' : 'display:none'}"><b class="t-body-sm">${sel.size} selected</b>
+            <button class="btn btn--secondary btn--sm" type="button" data-bulk="checked">${icon('check')}Mark checked today</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-bulk="hide">Hide</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-bulk="show">Show</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-bulk="close">Close round…</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-bulk="clear">Clear</button></div>`
+        + tbl(['<input type="checkbox" id="selall" aria-label="Select all shown">', 'Opportunity', 'Type', 'Amount', 'Deadline', 'Checked', 'Saved · applied', 'State', ''], shown.map(row), 'Nothing matches')
+        + (L.length > shown.length ? `<div style="text-align:center;margin-top:14px"><button class="btn btn--secondary btn--sm" type="button" id="more">Show more <span class="c-3">${L.length - shown.length} left</span></button></div>` : '');
+      const fq = qs('#fq'); fq.oninput = () => { F.q = fq.value; F.n = 50; const pos = fq.selectionStart; render(); const n = qs('#fq'); n.focus(); n.setSelectionRange(pos, pos); };
+      qs('#add').onclick = () => edit(null);
+    };
+    const FIELDS = [
+      ['', 'Basics', 'heading'], ['name', 'Name', 'text'], ['org', 'Organisation (who runs it)', 'text'], ['mode', 'Board', 'select', [['grant', 'Grants (non-dilutive)'], ['equity', 'Equity (investors)']]], ['kind', 'Type', 'select', KIND],
+      ['description', 'Description', 'textarea', { rows: 4 }], ['color', 'Logo colour (hex)', 'color'], ['logo_url', 'Logo', 'image'],
+      ['', 'Links', 'heading', 'Founders leave Hentity through these'], ['apply_url', 'Apply link (their application page)', 'text'], ['website', 'Website', 'text'], ['source_url', 'Source (where you checked the details)', 'text'],
+      ['', 'Money', 'heading'], ['amount_text', 'Amount (as shown, e.g. “Up to $50,000”)', 'text'], ['amount_note', 'Amount note (e.g. “Non-dilutive · 12 weeks”)', 'text'], ['amount_usd', 'Amount in USD (used by the Amount filter)', 'number'], ['slots_text', 'Slots (e.g. “20 grants”)', 'text'],
+      ['', 'Dates', 'heading', 'Leave the deadline empty for rolling or between rounds'], ['deadline', 'Deadline', 'date'], ['deadline_note', 'Deadline time (e.g. “23:59 WAT”)', 'text'], ['decision_by', 'Results due', 'date'], ['round_note', 'Round note when there’s no deadline (e.g. “2026 round closed 8 Sep · opens yearly in July”)', 'text'],
+      ['', 'Who can apply', 'heading', 'Used for “meets X of Y” and Best match'], ['categories', 'Categories (none ticked = any)', 'checks', CATS], ['stages', 'Stages (none ticked = any)', 'checks', STAGES], ['countries', 'Country codes, e.g. NG, KE (empty = all of Africa)', 'list'], ['region_label', 'Region label (e.g. “West Africa”)', 'text'],
+      ['women_only', 'Women-founded or mixed teams only', 'bool'], ['needs_incorporation', 'Must be incorporated', 'bool'], ['needs_live', 'Product must be live with users', 'bool'],
+      ['judging', 'How it’s judged · [{"label":"Impact","pct":40}]', 'json', { empty: [] }],
+      ['', 'Status', 'heading'], ['checked_at', 'Details checked on', 'date'], ['active', 'Show to founders', 'bool']];
+    const TEXT = ['org', 'website', 'apply_url', 'amount_text', 'amount_note', 'region_label', 'slots_text', 'round_note', 'description', 'source_url', 'deadline_note', 'color'];
+    const edit = o => drawer(o ? o.name : 'New opportunity', FIELDS, o || { mode: 'grant', kind: 'grant', active: true, judging: [], categories: [], stages: [], checked_at: today, color: '#111111' }, async (v, d) => {
+      if (!v.name || v.name.trim().length < 2) throw new Error('Add a name');
       if (!v.apply_url && !v.website) throw new Error('Add the link where founders apply');
-      v.categories = v.categories || []; v.stages = v.stages || []; v.countries = (v.countries || []).map(x => x.toUpperCase()); v.judging = v.judging || [];
-      await A.saveFundingOpp(o && o.id, v); toast('Saved'); V.funding();
-    }, { danger: o ? { label: 'Delete', confirm: `Delete ${o.name}? Founders who saved it lose it from their tracker.`, run: async () => { await A.deleteFundingOpp(o.id); toast('Deleted'); V.funding(); } } : null });
-    qs('#add').onclick = () => edit(null);
-    qs('#main').onclick = e => { const b = e.target.closest('[data-o]'); if (b) edit(rows.find(x => x.id === b.dataset.o)); };
+      for (const k of ['apply_url', 'website', 'source_url']) if (v[k] && !/^https?:\/\//i.test(v[k])) throw new Error(`${k === 'apply_url' ? 'Apply link' : k === 'website' ? 'Website' : 'Source'} must start with https://`);
+      if (v.deadline && v.round_note && v.deadline >= today) v.round_note = '';   // an open date replaces the closed-round note
+      if (['vc', 'micro_vc', 'angel'].includes(v.kind) && v.mode === 'grant') throw new Error('Investors belong on the Equity board');
+      TEXT.forEach(k => { if (v[k] == null) v[k] = ''; });
+      if (!v.color) v.color = '#111111';
+      v.countries = (v.countries || []).map(x => x.toUpperCase().slice(0, 2)); v.judging = v.judging || [];
+      const saved = await A.saveFundingOpp(o && o.id, v); toast(o ? 'Saved' : 'Added');
+      if (o) { Object.assign(o, saved || v); } else if (saved) rows.unshift(saved);
+      render();
+    }, { top: o ? `<p class="t-caption c-3" style="font-weight:400;margin-bottom:6px">Last edited ${o.updated_at ? esc(new Date(o.updated_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })) : '—'} · ${(cnt[o.id] || {}).saved || 0} saved · ${(cnt[o.id] || {}).applied || 0} applied · <a class="link" href="/funding/${o.id}" target="_blank">View as founder</a></p>` : '',
+      danger: o ? { label: 'Delete', confirm: `Delete ${o.name}? Founders who saved it lose it from their tracker. Hiding keeps their history.`, run: async () => { await A.deleteFundingOpp(o.id); rows.splice(rows.indexOf(o), 1); toast('Deleted'); render(); } } : null });
+    const patch = async (ids, p, msg) => { try { await Promise.all(ids.map(id => A.saveFundingOpp(id, p))); ids.forEach(id => Object.assign(rows.find(r => r.id === id), p)); toast(msg); render(); } catch (e) { H.fail(e); } };
+    qs('#main').onclick = async e => {
+      const t = e.target;
+      if (t.closest('#more')) { F.n += 50; render(); return; }
+      const b = t.closest('[data-o]'); if (b) { edit(rows.find(x => x.id === b.dataset.o)); return; }
+      const c = t.closest('[data-chk]'); if (c) { patch([c.dataset.chk], { checked_at: today }, 'Marked checked today'); return; }
+      const v = t.closest('[data-vis]'); if (v) { const o = rows.find(x => x.id === v.dataset.vis); patch([o.id], { active: !o.active }, o.active ? 'Hidden from founders' : 'Showing to founders'); return; }
+      const bk = t.closest('[data-bulk]'); if (bk) {
+        const ids = [...sel], k = bk.dataset.bulk;
+        if (k === 'clear') { sel.clear(); render(); return; }
+        if (k === 'checked') await patch(ids, { checked_at: today }, `${ids.length} marked checked`);
+        if (k === 'hide') await patch(ids, { active: false }, `${ids.length} hidden`);
+        if (k === 'show') await patch(ids, { active: true }, `${ids.length} showing`);
+        if (k === 'close') { const note = prompt('Round note to show (the deadline will be cleared):', `${today.slice(0, 4)} round closed · check their site for the next one`); if (note == null) return; await patch(ids, { deadline: null, round_note: note }, `${ids.length} moved to between rounds`); }
+        sel.clear(); render(); return;
+      }
+    };
+    qs('#main').onchange = e => {
+      const f = e.target.dataset.f; if (f) { F[f] = e.target.value; F.n = 50; render(); return; }
+      if (e.target.id === 'selall') { list().slice(0, F.n).forEach(o => e.target.checked ? sel.add(o.id) : sel.delete(o.id)); render(); return; }
+      const s = e.target.dataset.sel; if (s) { e.target.checked ? sel.add(s) : sel.delete(s); const bar = qs('#bulk'); bar.style.display = sel.size ? '' : 'none'; bar.querySelector('b').textContent = sel.size + ' selected'; }
+    };
+    render();
+    if (arg) { const o = rows.find(x => x.id === arg); if (o) edit(o); else if (arg === 'new') edit(null); }
   };
 
   // ---------------------------------------------------------------- router
