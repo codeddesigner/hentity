@@ -61,7 +61,7 @@
     const kp = (ic, l, v, sub, cls) => `<div><p class="l">${icon(ic, 'ic-16')}${l}</p><b>${v}</b><span class="delta ${cls || 'flat'}">${sub}</span></div>`;
     const enough = st >= 5;
     const kpis = `<section class="ins-sec"><div class="kpis4 fx-kpis">
-      ${kp('users', 'Founders tracked', n(D.founders), `Across ${n(D.startups)} startups · ${pc(st, D.startups)}% self-reported`)}
+      ${kp('users', 'Founders tracked', n(D.founders), `Across ${n(D.startups)} startups · ${st ? pc(D.self || 0, st) + '% self-reported' : 'none answered yet'}`)}
       ${kp('users', 'At least one woman founder', enough ? nowShare + '%' : '—', enough ? (prevShare != null ? `${icon(nowShare >= prevShare ? 'upvote' : 'chevron-down', 'ic-12')}${nowShare >= prevShare ? '+' : ''}${nowShare - prevShare} pts since 2022` : 'Share of startups that told us') : 'Needs 5+ answers', enough && prevShare != null ? (nowShare >= prevShare ? 'up' : 'down') : '')}
       ${kp('users', 'Women-founded', enough ? pc(D.women, st) + '%' : '—', enough ? 'All founders are women' : 'Needs 5+ answers')}
       ${kp('users', 'Funding to women-founded', D.raised_total ? pc1(D.raised_women, D.raised_total) + '%' : '—', D.raised_total ? `Of ${money(D.raised_total)} raised` : 'No disclosed rounds yet')}
@@ -93,7 +93,7 @@
         ${cats.length ? `<div class="fx-cats"><div>${catCol(cats.slice(0, half))}</div><div>${catCol(cats.slice(half))}</div></div>` : '<p class="fx-s" style="margin-top:14px">No category has 5 or more answers yet.</p>'}</section>` + note();
     bindFounders(root, ctx, D);
   }
-  const note = () => `<p class="ins-note">${icon('info', 'ic-14')}<span>Founders tell us their founding team when they claim or list a startup (“Women-founded”, “Mixed”, “Men-founded”, “Prefer not to say”). Only totals are shown, never people. Groups smaller than 5 are hidden. Women-founded: every founder is a woman. Mixed: at least one woman and one man.</span></p>`;
+  const note = () => `<p class="ins-note">${icon('info', 'ic-14')}<span>Founders tell us their founding team when they claim or list a startup (“Women-founded”, “Mixed”, “Men-founded”, “Prefer not to say”). For startups that haven’t answered yet, Hentity uses widely reported founder information; a team’s own answer always replaces it. Only totals are shown, never people. Groups smaller than 5 are hidden. Women-founded: every founder is a woman. Mixed: at least one woman and one man.</span></p>`;
   function lineChart(T) {
     const W = 600, Hh = 230, pl = 34, pr = 24, pt = 16, pb = 28, max = Math.max(0.4, Math.ceil(Math.max(...T.map(t => t.ww / t.n)) * 10) / 10);
     const xs = i => pl + i * (W - pl - pr) / Math.max(1, T.length - 1), ys = v => pt + (1 - Math.min(v, max) / max) * (Hh - pt - pb);
