@@ -90,7 +90,7 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
   <div class="mk-head">
     <div class="stack gap-12">
       ${avatar(person, 104, 'mk-avatar reveal')}
-      <div class="row gap-12 wrap reveal" style="--i:1"><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">${esc(person.name)}</h1>${person.is_verified ? `<span class="badge badge--pill" style="gap:6px">${icon('check', 'ic-12 c-success')}Verified maker</span>` : ''}${person.role !== 'user' ? `<span class="badge badge--accent badge--pill">Hentity ${esc(person.role)}</span>` : ''}</div>
+      <div class="row gap-12 wrap reveal" style="--i:1"><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">${esc(person.name)}</h1>${person.is_verified ? `<span class="badge badge--pill" style="gap:6px">${H.verified('verified--sm')}Verified maker</span>` : ''}${person.role !== 'user' ? `<span class="badge badge--accent badge--pill">Hentity ${esc(person.role)}</span>` : ''}</div>
       <div class="mk-meta reveal" style="--i:2"><span>@${esc(person.username)}</span>${settings.showCity !== false && person.city ? `<span>·</span><span class="row gap-8">${flag(person.country || 'NG')}${esc(person.city)}, ${H.COUNTRY[person.country] || ''}</span>` : ''}<span>·</span><span>${esc(person.headline || 'Maker')} · joined ${new Date(person.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span></div>
       ${person.bio ? `<p style="max-width:640px" class="reveal" style="--i:3">${esc(person.bio)}</p>` : ''}
       <div class="mk-links reveal" style="--i:3">${person.website ? `<a href="${esc(/^https?:/.test(person.website) ? person.website : 'https://' + person.website)}" target="_blank" rel="noopener nofollow">${icon('globe', 'ic-14')}${esc(person.website.replace(/^https?:\/\//, ''))}</a>` : ''}${person.linkedin ? `<a href="https://${esc(person.linkedin.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}${esc(person.linkedin)}</a>` : ''}${person.x ? `<a href="https://x.com/${esc(person.x.replace('@', ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}x.com/${esc(person.x.replace('@', ''))}</a>` : ''}</div>
@@ -109,7 +109,7 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
     <aside class="stack gap-16">
       <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Achievements</h2><div class="stack gap-16">
         ${top.map(x => `<div class="row gap-12"><span class="medal" style="background:var(--award-gold)"></span><div><p class="t-label">Top launch · ${D.fmt(x.upvote_count)} upvotes</p><p class="t-caption c-3" style="font-weight:400">${esc(x.name)} · Week ${x.week_id}</p></div></div>`).join('')}
-        ${person.is_verified ? `<div class="row gap-12"><span class="medal" style="background:var(--color-accent-default)"></span><div><p class="t-label">Verified maker</p><p class="t-caption c-3" style="font-weight:400">Identity confirmed by Hentity</p></div></div>` : ''}
+        ${person.is_verified ? `<div class="row gap-12">${H.verified('').replace('class="verified', 'style="width:28px;height:28px" class="verified')}<div><p class="t-label">Verified maker</p><p class="t-caption c-3" style="font-weight:400">Identity confirmed by Hentity</p></div></div>` : ''}
         ${!top.length && !person.is_verified ? '<p class="t-body-sm c-2">Medals from launches show up here.</p>' : ''}</div></section>
     </aside>
   </div>`;
