@@ -1191,3 +1191,17 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .off-tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:var(--color-bg-muted,#eee);color:var(--color-text-secondary);font-size:12px;font-weight:500;white-space:nowrap;vertical-align:middle;letter-spacing:0}
 .off-tag--lg{height:26px;padding:0 10px;font-size:13px}
 .off-note{display:inline-flex;align-items:center;gap:6px;color:var(--color-text-secondary)}
+
+/* Funding (shared by /funding, /funding/:id, /data-room) */
+.fu-sel{position:relative;display:inline-flex;align-items:center;height:34px;border:1px solid var(--color-border-default);border-radius:999px;background:var(--color-bg-canvas)}
+.fu-sel select{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:500;padding:0 30px 0 14px;height:100%;color:var(--color-text-primary);cursor:pointer}
+.fu-sel .ic{position:absolute;right:11px;pointer-events:none;color:var(--color-text-tertiary)}
+.fu-logo{display:inline-grid;place-items:center;border-radius:8px;color:#fff;font-weight:600;flex:none;letter-spacing:0}
+.fu-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fu-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:6px;background:var(--color-bg-subtle);font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.fu-chip--red{background:#FDECEC;color:#B42318}.fu-chip--amber{background:#FEF5E1;color:#8A5A00}.fu-chip--green{background:#E8F7EE;color:#137A3A}
+[data-theme="dark"] .fu-chip--red{background:#3a1717;color:#ff8a80}[data-theme="dark"] .fu-chip--amber{background:#3a2e12;color:#ffcf66}[data-theme="dark"] .fu-chip--green{background:#12301e;color:#6fd99a}
+.fu-scrim{align-items:center}
+.fu-grab{display:none}
+.fu-sheet{max-height:92vh;overflow:auto}
+@media (max-width:768px){.fu-scrim{align-items:flex-end;padding:0}.fu-sheet{border-radius:20px 20px 0 0!important;max-width:none!important;width:100%}.fu-grab{display:block;width:36px;height:4px;border-radius:2px;background:var(--color-border-strong,#ccc);margin:-6px auto 14px}}

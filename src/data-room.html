@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Data room | Hentity</title>
+<meta name="robots" content="noindex">
+<style>
+.dr{max-width:880px;margin:0 auto;padding:36px 40px 96px;box-sizing:content-box}
+.dr h1{font-size:36px;line-height:42px;font-weight:600;letter-spacing:-.02em}
+.dr-sec{padding:6px 20px;border-radius:16px;margin-top:16px}
+.dr-sec h2{font-size:16px;font-weight:600;padding:16px 0 4px}
+.dr-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--color-border-default)}
+.dr-row:first-of-type{border-top:0}
+.dr-ib{width:40px;height:40px;border-radius:10px;background:var(--color-bg-subtle);display:grid;place-items:center;flex:none}
+.dr-row p{font-size:14px;font-weight:500}.dr-row small{display:block;font-size:12.5px;color:var(--color-text-tertiary);margin-top:1px}
+.dr-row small.red{color:#D92D20}
+.dr-row .act{margin-left:auto;display:flex;gap:6px;flex:none}
+.dr-ok{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#22C55E;color:#fff;flex:none}
+.dr-bar{height:6px;border-radius:3px;background:var(--color-bg-muted);overflow:hidden;flex:1;max-width:240px}.dr-bar i{display:block;height:100%;background:#22C55E}
+@media (max-width:768px){.dr{padding:16px 16px 32px}.dr h1{font-size:28px;line-height:34px}.dr-sec{padding:4px 16px}.dr-row{flex-wrap:wrap}.dr-row .act{margin-left:54px}}
+</style>
+</head>
+<body>
+<div data-header></div>
+<main id="main" class="dr"><div class="skel" style="height:44px;width:260px"></div><div class="skel" style="height:420px;border-radius:16px;margin-top:24px"></div></main>
+<div data-tabbar></div>
+<script src="/assets/funding.js"></script>
+<script>
+H.mount({ active: 'data-room', tab: 'you' });
+(async function () {
+  const { qs, esc, icon, toast } = H;
+  const root = qs('#main');
+  await API.ready;
+  if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname + location.search); return; }
+  const products = await API.myFundingProducts().catch(() => []);
+  if (!products.length) {
+    root.innerHTML = `<h1>Data room</h1><div class="card card--pad" style="margin-top:24px;text-align:center;padding:48px 24px"><div class="icon-badge" style="margin:0 auto 12px">${icon('folder')}</div><p class="t-h4">List a product first</p><p class="t-body-sm c-2" style="margin:6px auto 0;max-width:380px">Your Data room keeps the deck, financials and documents funders ask for. It opens once you’ve listed or claimed a product.</p><div class="row gap-8" style="justify-content:center;margin-top:18px"><a class="btn btn--primary btn--sm" href="/submit">List your product</a><a class="btn btn--secondary btn--sm" href="/directory">Claim your startup</a></div></div>`;
+    return;
+  }
+  let pid = FU.pickPid(products), B, rows;
+  const FILES = [['deck', 'file-text', 'Pitch deck', 'PDF or PowerPoint'], ['financials', 'bar-chart', 'Financials', 'Last 6 months · PDF, Excel or CSV'], ['cap_table', 'list', 'Cap table', 'Who owns what · PDF, Excel or CSV'], ['incorporation', 'file-text', 'Incorporation certificate', 'PDF or image']];
+  async function load() {
+    [B, rows] = await Promise.all([API.fundingBoard(pid, 'grant'), API.dataroom(pid)]);
+    render();
+  }
+  function render() {
+    const fx = B.product, R = FU.readiness(fx), by = k => rows.find(r => r.kind === k) || {};
+    const tr = by('traction').text_value || '';
+    const live = (B.apps || []).filter(a => a.status !== 'draft' && a.status !== 'withdrawn');
+    root.innerHTML = `<div class="row between gap-16 wrap" style="align-items:flex-end"><div><h1>Data room</h1><p class="t-body-sm c-2" style="margin-top:6px">Upload once. Every application and pitch from Funding uses these files.</p></div>
+      ${products.length > 1 ? `<label class="fu-sel"><select id="pp" aria-label="Product">${products.map(x => `<option value="${x.id}"${x.id === pid ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${icon('chevron-down', 'ic-14')}</label>` : `<span class="t-label">${esc(products[0].name)}</span>`}</div>
+      <div class="row gap-12" style="margin-top:20px"><span class="dr-bar"><i style="width:${R.ready / R.items.length * 100}%"></i></span><span class="t-body-sm"><b style="font-weight:500">${R.ready} of ${R.items.length}</b> <span class="c-3">ready</span></span></div>
+      <section class="card dr-sec"><h2>Files</h2>${FILES.map(([k, ic, t, hint]) => { const r = by(k); return `<div class="dr-row"><span class="dr-ib">${icon(ic, 'ic-18')}</span><div style="min-width:0"><p>${t}</p><small class="${r.path ? '' : k === 'cap_table' ? '' : 'red'}">${r.path ? `${esc(r.file_name || 'File')} · v${r.version || 1} · ${H.ago(r.updated_at)}` : (k === 'cap_table' ? 'Not uploaded · ' : 'Missing · ') + hint}</small></div>
+        <span class="act">${r.path ? `<button class="btn btn--ghost btn--sm" type="button" data-view="${esc(r.path)}" aria-label="View">${icon('eye', 'ic-16')}</button><button class="btn btn--ghost btn--sm" type="button" data-rm="${k}" aria-label="Remove">${icon('trash', 'ic-16')}</button>` : ''}<button class="btn btn--secondary btn--sm" type="button" data-up="${k}">${icon('upload', 'ic-14')}${r.path ? 'Replace' : 'Upload'}</button></span></div>`; }).join('')}</section>
+      <section class="card dr-sec"><h2>Written</h2><div class="dr-row"><span class="dr-ib">${icon('bar-chart', 'ic-18')}</span><div style="min-width:0;flex:1"><p>Traction</p><small class="${tr ? '' : 'red'}">${tr ? esc(tr) : 'Missing · users, revenue, growth or pilots in a line or two'}</small></div><span class="act"><button class="btn btn--secondary btn--sm" type="button" id="tr">${tr ? 'Edit' : 'Write'}</button></span></div></section>
+      <section class="card dr-sec"><h2>From Hentity</h2>${[['package', 'Product page', 'hentity.com/products/' + fx.slug, true, `/products/${fx.slug}`],
+        ['users', 'Founding team', fx.team && fx.team !== 'unstated' ? FU.TEAM[fx.team] : 'Not set · add it on your product page', fx.team && fx.team !== 'unstated', `/products/${fx.slug}/edit`],
+        ['flask', 'Beta results', fx.testers ? `${fx.testers} testers in Studio` : 'No beta test yet', fx.testers > 0, '/studio'],
+        ['comment', 'Reviews', fx.comments ? `${fx.comments} comments on your product page` : 'No comments yet', fx.comments > 0, `/products/${fx.slug}#comments`]].map(([ic, t, s, ok, href]) => `<div class="dr-row"><span class="dr-ib">${icon(ic, 'ic-18')}</span><div style="min-width:0"><p>${t}</p><small>${esc(s)}</small></div><span class="act">${ok ? `<span class="dr-ok">${icon('check', 'ic-12')}</span>` : `<a class="btn btn--secondary btn--sm" href="${href}">Add</a>`}</span></div>`).join('')}</section>
+      <section class="card dr-sec"><h2>Who has access</h2>${live.length ? live.map(a => `<div class="dr-row"><span class="dr-ib">${icon('lock', 'ic-16')}</span><div style="min-width:0"><p>${esc(a.name)}</p><small>${(FU.STATUS[a.status] || [a.status])[0]}${a.access_until ? ' · links work until ' + FU.fmtDate(a.access_until.slice(0, 10)) : ''}</small></div><span class="act"><a class="btn btn--ghost btn--sm" href="/funding/${a.opp_id}?p=${pid}">Open</a></span></div>`).join('') : `<p class="t-body-sm c-3" style="padding:12px 0 16px">No funder has links to your files yet.</p>`}
+        <div class="dr-row" style="border-top:1px solid var(--color-border-default)"><div style="min-width:0"><p>Revoke shared links</p><small>Every link you’ve sent stops working. Your files stay here.</small></div><span class="act"><button class="btn btn--secondary btn--sm" type="button" id="rv"${rows.some(r => r.path) ? '' : ' disabled'}>Revoke all</button></span></div></section>
+      <p class="t-caption c-3 row gap-6" style="font-weight:400;margin-top:16px">${icon('lock', 'ic-12')}Only you and your product’s makers can see these files. Funders only get read-only links you choose to send.</p>
+      <div class="row gap-8" style="margin-top:20px"><a class="btn btn--primary btn--sm" href="/funding?p=${pid}">${icon('star', 'ic-16')}Find funding</a></div>`;
+    H.contentShown && H.contentShown();
+  }
+  root.addEventListener('change', e => { if (e.target.id === 'pp') { pid = e.target.value; FU.setPid(pid); load(); } });
+  root.addEventListener('click', async e => {
+    const up = e.target.closest('[data-up]');
+    if (up) { const f = await FU.pickFile(up.dataset.up === 'deck' ? '.pdf,.pptx,.ppt' : undefined); if (!f) return; if (f.size > 20971520) { toast('Files can be up to 20 MB', 'error'); return; } up.disabled = true; up.textContent = 'Uploading…'; try { await API.dataroomUpload(pid, up.dataset.up, f); toast('Uploaded'); await load(); } catch (er) { H.fail(er); up.disabled = false; } return; }
+    const v = e.target.closest('[data-view]'); if (v) { try { window.open(await API.dataroomLink(v.dataset.view, 0.01), '_blank', 'noopener'); } catch (er) { H.fail(er); } return; }
+    const rm = e.target.closest('[data-rm]'); if (rm) { if (!confirm('Remove this file from your Data room?')) return; try { await API.dataroomRemove(pid, rm.dataset.rm); toast('Removed'); await load(); } catch (er) { H.fail(er); } return; }
+    if (e.target.closest('#rv')) { if (!confirm('Revoke every link you’ve sent to funders? They will stop working right away.')) return; try { await API.dataroomRevoke(pid); toast('Links revoked'); await load(); } catch (er) { H.fail(er); } return; }
+    if (e.target.closest('#tr')) {
+      const cur = (rows.find(r => r.kind === 'traction') || {}).text_value || '';
+      const sh = FU.sheet(`<p class="t-h4">Traction</p><p class="t-body-sm c-2" style="margin-top:6px">Users, revenue, growth or pilots, in a line or two. Reused in every application.</p><textarea class="input" id="wt" rows="4" maxlength="400" style="margin-top:12px">${esc(cur)}</textarea><div class="row gap-8" style="justify-content:flex-end;margin-top:12px"><button class="btn btn--ghost btn--sm" type="button" data-x>Cancel</button><button class="btn btn--primary btn--sm" type="button" id="ws">Save</button></div>`, { label: 'Traction' });
+      sh.el.querySelector('#wt').focus();
+      sh.el.querySelector('#ws').onclick = async () => { try { await API.dataroomText(pid, 'traction', sh.el.querySelector('#wt').value.trim()); sh.close(); toast('Saved'); load(); } catch (er) { H.fail(er); } };
+    }
+  });
+  load().catch(e => { H.fail(e); });
+})();
+</script>
+</body>
+</html>

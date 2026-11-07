@@ -25,7 +25,7 @@ H.mount();
   // ---------------------------------------------------------------- shell
   const SECTIONS = [
     ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell']]],
-    ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['users', 'Users', 'users'], ['admins', 'Admins', 'shield']]],
+    ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['funding', 'Funding', 'star'], ['users', 'Users', 'users'], ['admins', 'Admins', 'shield']]],
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
     ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
     ['News', [['articles', 'Articles', 'newspaper'], ['suggestions', 'Story suggestions', 'sparkles', 'suggestions'], ['newsletter', 'Newsletter', 'mail']]],
@@ -757,6 +757,45 @@ H.mount();
         });
       }
     };
+  };
+
+  // ---- funding (grants, prizes and investors founders can apply to)
+  V.funding = async (tab) => {
+    nav('funding'); tab = tab === 'apps' ? 'apps' : 'opps';
+    const tabs = `<div class="row gap-8" style="margin-bottom:16px"><a class="chip${tab === 'opps' ? ' is-selected' : ''}" href="#funding">Opportunities</a><a class="chip${tab === 'apps' ? ' is-selected' : ''}" href="#funding/apps">Applications</a></div>`;
+    const ST = ['draft', 'submitted', 'pitch_sent', 'intro_requested', 'shortlisted', 'accepted', 'declined', 'withdrawn'];
+    if (tab === 'apps') {
+      const rows = await A.fundingApps();
+      qs('#main').innerHTML = head('Funding', 'Applications, pitches and intro requests founders have sent.') + tabs + (rows.length ? tbl(['Product', 'Opportunity', 'Sent', 'Note', 'Status'], rows.map(a => `<tr><td><a class="link" href="/products/${esc(a.slug)}" target="_blank"><b>${esc(a.product)}</b></a></td><td>${esc(a.opp)}<br><span class="c-3">${a.mode === 'grant' ? 'Grant' : 'Equity'} · ${a.sent_to === 'email' ? 'emailed' : a.sent_to === 'site' ? 'their site' : '—'}</span></td><td class="c-3">${a.submitted_at ? H.ago(a.submitted_at) : 'not yet'}</td><td style="max-width:320px" class="c-2">${esc((a.note || '').slice(0, 160))}</td><td><select class="input" data-st="${a.id}" style="height:32px;width:auto">${ST.map(x => `<option${x === a.status ? ' selected' : ''}>${x}</option>`).join('')}</select></td></tr>`)) : `<div class="card card--pad c-3">No applications yet.</div>`);
+      qs('#main').onchange = async e => { const s = e.target.closest('[data-st]'); if (s) { try { await A.setFundingApp(s.dataset.st, s.value); toast('Status updated'); } catch (er) { H.fail(er); } } };
+      return;
+    }
+    const rows = await A.fundingOpps();
+    const KIND = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['vc', 'VC fund'], ['angel', 'Angel network'], ['accelerator', 'Accelerator'], ['micro_vc', 'Micro-VC']];
+    const open = o => o.active && (!o.deadline || o.deadline >= new Date().toISOString().slice(0, 10));
+    qs('#main').innerHTML = head('Funding', 'Grants, prizes and investors shown on /funding. Founders see an opportunity only while it’s active. Keep dates and amounts checked against the official page.', `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New opportunity</button>`) + tabs
+      + tbl(['Opportunity', 'Type', 'Amount', 'Deadline', 'Checked', 'State', ''], rows.map(o => `<tr><td><b>${esc(o.name)}</b><br><span class="c-3">${esc(o.org || '')}</span></td><td>${o.mode === 'grant' ? 'Grant' : 'Equity'} · ${esc((KIND.find(k => k[0] === o.kind) || [, o.kind])[1])}</td><td>${esc(o.amount_text || '—')}</td><td>${o.deadline ? esc(o.deadline) : `<span class="c-3">${esc((o.round_note || 'Rolling').split('·')[0])}</span>`}</td><td class="c-3">${o.checked_at ? esc(o.checked_at) : '—'}</td><td>${open(o) ? badge('live').replace('>live<', '>showing<') : badge('archived').replace('>archived<', '>' + (o.active ? 'closed' : 'hidden') + '<')}</td><td style="text-align:right"><button class="btn btn--secondary btn--sm" data-o="${o.id}">Edit</button></td></tr>`));
+    const F = [['mode', 'Board', 'select', [['grant', 'Grants'], ['equity', 'Equity']]], ['kind', 'Type', 'select', KIND], ['name', 'Name', 'text'], ['org', 'Organisation', 'text'], ['color', 'Logo colour (hex)', 'color'], ['logo_url', 'Logo', 'image'],
+      ['website', 'Website', 'text'], ['apply_url', 'Apply link (their form)', 'text'], ['how', 'How founders reach them', 'select', [['apply', 'Apply / send pitch'], ['pitch', 'Pitch only'], ['intro', 'Warm intro only']]],
+      ['amount_text', 'Amount (as shown)', 'text'], ['amount_note', 'Amount note', 'text'], ['amount_usd', 'Amount in USD (for filters)', 'number'],
+      ['deadline', 'Deadline', 'date'], ['decision_by', 'Decision by', 'date'], ['slots_text', 'Slots (e.g. “20 grants”)', 'text'], ['round_note', 'Round note (shown when there’s no deadline)', 'text'],
+      ['categories', 'Categories (empty = any)', 'list'], ['stages', 'Stages (empty = any)', 'list'], ['countries', 'Country codes (empty = any)', 'list'], ['region_label', 'Region label', 'text'],
+      ['women_only', 'Women-founded teams only', 'bool'], ['needs_incorporation', 'Must be incorporated', 'bool'], ['needs_live', 'Product must be live', 'bool'],
+      ['judging', 'How it’s judged', 'json', { empty: [] }], ['description', 'Description', 'textarea', { rows: 3 }], ['source_url', 'Source (where you checked it)', 'text'], ['checked_at', 'Checked on', 'date'], ['active', 'Show to founders', 'bool']];
+    const edit = async o => {
+      let contact = '';
+      if (o && isFullAdmin) { try { const c = await A.fundingContact(o.id); contact = c ? c.email : ''; } catch (e) {} }
+      const top = isFullAdmin ? `<div class="field" style="margin-bottom:14px"><label class="field__label">Funder inbox <span class="c-3" style="font-weight:400">· private, super admin only. When set, applications are emailed here; otherwise founders finish on the funder’s site.</span></label><input class="input" id="fcontact" type="email" value="${esc(contact)}" placeholder="applications@fund.com"></div>` : '';
+      drawer(o ? o.name : 'New opportunity', F, o || { mode: 'grant', kind: 'grant', how: 'apply', active: true, judging: [], checked_at: new Date().toISOString().slice(0, 10) }, async v => {
+        if (!v.name) throw new Error('Add a name');
+        v.categories = v.categories || []; v.stages = v.stages || []; v.countries = (v.countries || []).map(x => x.toUpperCase()); v.judging = v.judging || [];
+        const r = await A.saveFundingOpp(o && o.id, v);
+        const ce = qs('#fcontact'); if (ce && isFullAdmin && (ce.value.trim() || contact)) await A.setFundingContact(r.id, ce.value.trim());
+        toast('Saved'); V.funding();
+      }, { top, danger: o ? { label: 'Delete', confirm: `Delete ${o.name}? Applications to it are deleted too.`, run: async () => { await A.deleteFundingOpp(o.id); toast('Deleted'); V.funding(); } } : null });
+    };
+    qs('#add').onclick = () => edit(null);
+    qs('#main').onclick = e => { const b = e.target.closest('[data-o]'); if (b) edit(rows.find(x => x.id === b.dataset.o)); };
   };
 
   // ---------------------------------------------------------------- router

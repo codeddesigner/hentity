@@ -279,6 +279,27 @@
     nudgeTesters: b => q(sb.rpc('beta_nudge', { b })),
     // Insights
     insights: (cc, days) => q(sb.rpc('insights', { cc: cc || null, days: days || 30 })),
+    // Funding
+    fundingBoard: (pid, mode) => q(sb.rpc('funding_board', { pid, md: mode || 'grant' })),
+    fundingOpp: (oid, pid) => q(sb.rpc('funding_opp', { oid, pid })),
+    fundingSend: (oid, pid, act, o = {}) => q(sb.rpc('funding_send', { oid, pid, act, answers: o.answers || {}, attach: o.attach || [], note: o.note || '', links: o.links || [], via: o.via || null })),
+    fundingSave: (oid, on) => on ? q(sb.from('funding_saves').insert({ opp_id: oid })) : q(sb.from('funding_saves').delete().eq('opp_id', oid).eq('user_id', uid())),
+    myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
+    dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),
+    dataroomUpload: async (pid, kind, file) => {
+      if (file.size > 20 * 1024 * 1024) throw new Error('Files can be up to 20 MB');
+      const ext = (file.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5);
+      const path = `${pid}/${kind}-${Date.now()}.${ext}`;
+      const up = await sb.storage.from('dataroom').upload(path, file, { contentType: file.type || 'application/pdf', upsert: false }); if (up.error) throw up.error;
+      const old = await q(sb.from('dataroom_items').select('path,version').eq('product_id', pid).eq('kind', kind).maybeSingle());
+      await q(sb.from('dataroom_items').upsert({ product_id: pid, kind, path, file_name: file.name.slice(0, 120), version: old ? (old.version || 1) + 1 : 1, updated_at: new Date().toISOString() }));
+      if (old && old.path) sb.storage.from('dataroom').remove([old.path]).catch(() => {});
+      return path; },
+    dataroomText: (pid, kind, text) => q(sb.from('dataroom_items').upsert({ product_id: pid, kind, text_value: text, updated_at: new Date().toISOString() })),
+    dataroomRemove: async (pid, kind) => { const old = await q(sb.from('dataroom_items').select('path').eq('product_id', pid).eq('kind', kind).maybeSingle()); if (old && old.path) await sb.storage.from('dataroom').remove([old.path]); return q(sb.from('dataroom_items').delete().eq('product_id', pid).eq('kind', kind)); },
+    // Revoke: move every file to a new path so links already sent stop working
+    dataroomRevoke: async pid => { const rows = await q(sb.from('dataroom_items').select('kind,path').eq('product_id', pid)); for (const r of rows.filter(x => x.path)) { const np = r.path.replace(/-(\d+)\./, `-${Date.now()}.`); const mv = await sb.storage.from('dataroom').move(r.path, np); if (!mv.error) await q(sb.from('dataroom_items').update({ path: np }).eq('product_id', pid).eq('kind', r.kind)); } },
+    dataroomLink: async (path, days) => { const r = await sb.storage.from('dataroom').createSignedUrl(path, Math.round((days || 30) * 86400)); if (r.error) throw r.error; return r.data.signedUrl; },
     insightsFounders: (f) => q(sb.rpc('insights_founders', { f: f || {} })),
     insightsExplore: (ds, by, split, f, measure) => q(sb.rpc('insights_explore', { ds, by, split: split || null, f: f || {}, measure: measure || 'count' })),
     insightViews: () => uid() ? q(sb.from('insight_views').select('*').order('updated_at', { ascending: false }).limit(20)) : Promise.resolve([]),
@@ -460,6 +481,13 @@
     products: ({ status, term } = {}) => { let s = sb.from('product_feed').select(PRODUCT_COLS + ',updated_at,review_note,review_items,intro,verify,support_pledge,owner:profiles!products_owner_id_fkey(id,name,username)'); if (status && status !== 'all') s = status === 'live' ? s.eq('effective_status', 'live') : s.eq('status', status); if (term) s = s.or(`name.ilike.%${term}%,slug.ilike.%${term}%`); return q(s.order('updated_at', { ascending: false }).limit(200)); },
     emailStats: () => q(sb.rpc('admin_email_stats')),
     emailPreview: () => q(sb.rpc('email_preview_all')),
+    fundingOpps: () => q(sb.from('funding_opps').select('*').order('mode').order('name')),
+    saveFundingOpp: (id, row) => id ? q(sb.from('funding_opps').update(Object.assign({}, row, { updated_at: new Date().toISOString() })).eq('id', id).select().single()) : q(sb.from('funding_opps').insert(row).select().single()),
+    deleteFundingOpp: id => q(sb.from('funding_opps').delete().eq('id', id)),
+    fundingContact: id => q(sb.from('funding_contacts').select('email').eq('opp_id', id).maybeSingle()),
+    setFundingContact: (id, email) => email ? q(sb.from('funding_contacts').upsert({ opp_id: id, email })) : q(sb.from('funding_contacts').delete().eq('opp_id', id)),
+    fundingApps: () => q(sb.rpc('admin_funding_apps')),
+    setFundingApp: (id, status) => q(sb.from('funding_apps').update({ status, updated_at: new Date().toISOString() }).eq('id', id)),
     nudgeAudience: kinds => q(sb.rpc('admin_nudge_audience', { kinds })),
     sendNudges: (kinds, note, test, ids) => q(sb.rpc('admin_send_nudges', { kinds, note: note || null, test_only: !!test, only_ids: ids || null })),
     findRoles: st => q(sb.rpc('admin_find_roles', { st: st || 'review' })),
