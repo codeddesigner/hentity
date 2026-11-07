@@ -45,6 +45,7 @@
 <div data-tabbar></div>
 <script src="/assets/beta.js"></script>
 <script src="/assets/data.js"></script>
+<script src="/assets/reviews.js"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 (async function () {
@@ -81,7 +82,7 @@ H.mount({ active: 'products', tab: 'products' });
     </div>
     <div class="stack gap-20 reveal" style="--i:2">
       ${plogo(p, 64)}
-      <div><h1 class="pp-title" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}${p.active === false ? '<span style="display:inline-flex;vertical-align:middle;margin-left:10px">' + H.inactiveTag(p, true) + '</span>' : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:8px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}</div>
+      <div><h1 class="pp-title" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}${p.active === false ? '<span style="display:inline-flex;vertical-align:middle;margin-left:10px">' + H.inactiveTag(p, true) + '</span>' : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p><div id="rv-hero"></div>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:8px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}</div>
       ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} this week${p.week_id === (cur && cur.id) ? ' · live now' : ''}</span></div>` : `<div class="row gap-8 wrap">${(p.categories || []).map(c => `<a class="badge" href="/categories/${c.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}">${esc(c)}</a>`).join('')}${!live && p.status === 'scheduled' ? `<span class="badge badge--upcoming">Launches ${weekDate}</span>` : ''}</div>`}
       <div class="grid-2" style="gap:12px">
         ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
@@ -116,6 +117,7 @@ H.mount({ active: 'products', tab: 'products' });
         <div class="kpi lift card" data-scroll-reveal><b class="c-accent">${rank ? '#' + rank : '—'}</b><span class="t-caption c-2" style="font-weight:400">${rank ? 'this week' : live ? 'unranked' : 'not live yet'}</span></div>
         <div class="kpi lift card" data-scroll-reveal><b data-count-to="${p.follower_count}">0</b><span class="t-caption c-2" style="font-weight:400">followers</span></div>
       </div>
+      <section class="rv-wrap" id="reviews" data-scroll-reveal></section>
       <div class="row between wrap gap-12" style="margin-bottom:20px"><h2 class="t-h3">Discussion · <span id="c-count">${p.comment_count}</span></h2><a class="badge badge--accent badge--pill" href="/chats/p-${p.slug}">${icon('chats', 'ic-14')}Open the product room</a></div>
       <form class="row gap-12" id="c-form" style="margin-bottom:28px;align-items:flex-start">${API.uid ? avatar(H.user(), 32) : '<span class="avatar">?</span>'}<div class="grow stack gap-8"><textarea class="input" id="c-text" rows="2" maxlength="4000" placeholder="${API.uid ? 'Ask the makers a question or share feedback' : 'Sign in to join the discussion'}" aria-label="Write a comment"></textarea><div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--sm" type="submit">Comment</button></div></div></form>
       <div class="stack gap-24" id="comments"></div>
@@ -264,6 +266,8 @@ H.mount({ active: 'products', tab: 'products' });
   qs('#save').addEventListener('click', async e => { const b = e.currentTarget; const on = b.getAttribute('aria-pressed') !== 'true'; try { await API.bookmark('product', p.id, on); b.setAttribute('aria-pressed', on); b.querySelector('span').textContent = on ? 'Saved' : 'Save'; toast(on ? 'Saved to your list' : 'Removed from saved'); } catch (err) { H.fail(err); } });
   qsa('[data-follow]').forEach(b => b.addEventListener('click', async () => { const id = b.dataset.follow; const on = b.textContent !== 'Following'; try { await API.follow('user', id, on); b.textContent = on ? 'Following' : 'Follow'; b.className = 'btn btn--sm ' + (on ? 'btn--ghost' : 'btn--secondary'); } catch (e) { H.fail(e); } }));
 
+  // Reviews (stars, written reviews, Helpful votes, maker replies)
+  R.mount(qs('#reviews'), p);
   // Comments (threaded)
   let all = comments;
   function cHTML(c, isReply) {

@@ -219,6 +219,12 @@
     recentComments: () => pre('recent', () => q(sb.from('comments').select('created_at,product:products(name),article:articles(title),user:profiles!comments_user_id_fkey(name,city,username,avatar_url,avatar_color)').eq('deleted', false).order('created_at', { ascending: false }).limit(5))),
     async comment({ product, article, parent, body }) { requireAuth(); touched(); return q(sb.from('comments').insert({ product_id: product || null, article_id: article || null, parent_id: parent || null, body, user_id: uid() }).select('id,body,created_at,parent_id,deleted,user:profiles!comments_user_id_fkey(id,username,name,avatar_url,avatar_color)').single()); },
     deleteComment: id => (touched(), q(sb.from('comments').update({ deleted: true, body: '[deleted]' }).eq('id', id))),
+    // Product reviews (one per member per product; makers reply)
+    reviews: (pid, sort) => q(sb.rpc('product_reviews', { pid, sort: sort || 'helpful', lim: 200 })),
+    async saveReview(pid, id, rating, body) { requireAuth(); touched(); if (id) return q(sb.from('product_reviews').update({ rating, body }).eq('id', id).select('id').single()); return q(sb.from('product_reviews').insert({ product_id: pid, rating, body }).select('id').single()); },
+    deleteReview: id => q(sb.from('product_reviews').delete().eq('id', id)),
+    async reviewHelpful(id, on) { requireAuth(); if (on) err((await sb.from('product_review_votes').insert({ review_id: id })).error); else err((await sb.from('product_review_votes').delete().eq('review_id', id).eq('user_id', uid())).error); },
+    reviewReply: (id, txt) => q(sb.rpc('review_reply', { rid: id, txt: txt || '' })),
     async report(type, id, reason) { requireAuth(); err((await sb.from('reports').insert({ reporter_id: uid(), target_type: type, target_id: id, reason })).error); },
 
     // ---------------- notifications

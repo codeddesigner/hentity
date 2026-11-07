@@ -3,7 +3,7 @@
   const D = window.__FIXTURE__;
   const T = {};
   Object.keys(D).forEach(k => T[k] = (D[k] || []).map(r => Object.assign({}, r)));
-  ['upvotes', 'follows', 'bookmarks', 'notify_requests', 'notifications', 'channel_members', 'reactions', 'reports', 'newsletter', 'story_suggestions', 'audit_log', 'blocks', 'radar'].forEach(k => T[k] = T[k] || []);
+  ['product_reviews', 'product_review_votes', 'upvotes', 'follows', 'bookmarks', 'notify_requests', 'notifications', 'channel_members', 'reactions', 'reports', 'newsletter', 'story_suggestions', 'audit_log', 'blocks', 'radar'].forEach(k => T[k] = T[k] || []);
   if (!T.radar.length) T.radar.push({ id: 'rd1', name: 'Raynest', website: 'https://raynest.com', tagline: '', country: 'NG', city: 'Lagos', categories: ['Fintech'], status: 'review', confidence: 40, facts: [{ label: 'Founded', value: '2023', source: 'raynest.com' }], news: [], checks: {}, created_at: new Date().toISOString(), verified: false },
     { id: 'rd2', name: 'Payce', website: 'https://payce.africa', tagline: 'Your movement has value', country: 'NG', city: 'Lagos', categories: ['Apps'], status: 'review', confidence: 70, facts: [], news: [], checks: {}, created_at: new Date().toISOString(), verified: true, registration: 'RC 99' });
   const ME = '11111111-1111-4111-8111-111111111111';
@@ -124,6 +124,7 @@
       const all = this.rows();
       if (this.op === 'insert' || this.op === 'upsert') {
         const vals = (Array.isArray(this.val) ? this.val : [this.val]).map(v => Object.assign({ id: crypto.randomUUID(), created_at: new Date().toISOString() }, v));
+        if (this.t === 'product_reviews' || this.t === 'product_review_votes') vals.forEach(v => { v.user_id = v.user_id || ME; v.helpful_count = v.helpful_count || 0; v.hidden = false; });
         if (this.t === 'products') vals.forEach(v => Object.assign(v, { status: v.status || 'draft', upvote_count: 0, comment_count: 0, follower_count: 0, media: v.media || [], categories: v.categories || [], pay_methods: v.pay_methods || [] }));
         if (this.t === 'betas') vals.forEach(v => Object.assign(v, Object.assign({ why: '', steps: [], countries: [], platforms: [], requirements: [], questions: [], form: [], agreement: {}, access: {}, settings: { show_on_product: true, close_when_full: true }, opens: 0, signed_count: 0, applied_count: 0, accepted_count: 0, feedback_count: 0, airtime_amount: 0, perk: '', time_needed: '20 min', owner_id: ME, slug: 'new-beta-' + (T.betas.length + 1) }, v)));
         if (this.t === 'beta_applications') vals.forEach(v => Object.assign(v, { status: 'applied', match_score: 3, match_total: 3, tasks_done: [] }));
@@ -196,6 +197,16 @@
       return { days: a.days, live: P.length, live_week: 3, launched: 9, launched_prev: 6, views: 4120, views_prev: 3300, cities: Object.keys(cities).length, cities_new: 1, heat, total: P.length,
         industries: Object.entries(cnt(p => p.categories)).map(([name, n], i) => ({ name, n, cur: i === 2 ? 3 : 1, prev: 1 })).sort((x, y) => y.n - x.n), countries: Object.entries(cnt(p => p.country)).map(([cc, n]) => ({ cc, n })).sort((x, y) => y.n - x.n),
         city_list: Object.entries(cities).map(([k, n]) => ({ city: k.split('|')[0], cc: k.split('|')[1], n, new: n > 1 ? 1 : 0 })).sort((x, y) => y.n - x.n), stages: Object.entries(cnt(p => p.stage || 'Pre-seed')).map(([stage, n]) => ({ stage, n })), raised: [] }; },
+    product_reviews: a => {
+      if (!T._rvSeed) { T._rvSeed = 1; const ppl = T.profiles.filter(u => u.id !== ME).slice(0, 4); const txt = ['We switched our shop’s bookkeeping to it in a weekend. Reading bank SMS saves me an hour a day, though the export to Excel needs work.', 'Works well on my Tecno even with bad network. Support answered on WhatsApp within the hour.', 'Good idea, but onboarding asked for too many documents before I could try anything.', 'Exactly what our cooperative needed. Prices are fair and the team listens to feedback.'];
+        ppl.forEach((u, i) => T.product_reviews.push({ id: 'rv' + i, product_id: a.pid, user_id: u.id, rating: [5, 4, 2, 5][i], body: txt[i], helpful_count: [6, 2, 1, 0][i], created_at: new Date(Date.now() - (i + 1) * 3 * 864e5).toISOString(), maker_reply: i === 2 ? 'Thanks for this. We cut the sign-up to two steps last week.' : null, maker_reply_at: i === 2 ? new Date(Date.now() - 864e5).toISOString() : null, maker_reply_by: null, hidden: false })); }
+      const rows = T.product_reviews.filter(r => r.product_id === a.pid && !r.hidden), prod = T.products.find(x => x.id === a.pid) || {}, maker = prod.owner_id === ME;
+      const dist = {}; [1, 2, 3, 4, 5].forEach(k => dist[k] = rows.filter(r => r.rating === k).length);
+      const key = { newest: r => +new Date(r.created_at), high: r => r.rating * 1e13 + +new Date(r.created_at), low: r => (6 - r.rating) * 1e13 + +new Date(r.created_at) }[a.sort] || (r => r.helpful_count);
+      return { count: rows.length, avg: rows.length ? Math.round(rows.reduce((t, r) => t + r.rating, 0) / rows.length * 10) / 10 : null, dist, can_review: !maker, is_maker: maker,
+        reviews: rows.slice().sort((x, y) => key(y) - key(x)).map(r => { const u = T.profiles.find(x => x.id === r.user_id) || {}; return { id: r.id, rating: r.rating, body: r.body, helpful: r.helpful_count || 0, created_at: r.created_at, edited_at: r.edited_at || null, mine: r.user_id === ME, voted: T.product_review_votes.some(v => v.review_id === r.id && v.user_id === ME), tester: r.user_id === (T.profiles[1] || {}).id, user: u, reply: r.maker_reply ? { body: r.maker_reply, at: r.maker_reply_at, by: { name: 'Team' } } : null }; }) };
+    },
+    review_reply: a => { const r = T.product_reviews.find(x => x.id === a.rid); if (r) { r.maker_reply = a.txt || null; r.maker_reply_at = new Date().toISOString(); } return null; },
     my_saved_people_keys: () => (T._savedPeople || ['p1']),
     find_save_person: a => { T._savedPeople = (T._savedPeople || ['p1']).filter(k => k !== a.person_key).concat(a.on_ ? [a.person_key] : []); return a.on_; },
     my_saved: () => { const d = n => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10), at = h => new Date(Date.now() - h * 36e5).toISOString();
