@@ -106,7 +106,7 @@
   </nav>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=746cd36043"></script>
+<script src="/assets/data.js?v=354227d2d5"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 H.qs('#ptabs').innerHTML = H.productTabs('directory');
@@ -152,7 +152,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
       qs('#title-flag').innerHTML = scope === 'local' && !term ? flag('NG').replace('class="flag"', 'class="flag" style="width:36px;height:24px"') : '';
       qs('#count').textContent = `${L.length} product${L.length === 1 ? '' : 's'} ${scope === 'local' ? 'in Nigeria' : 'across Africa'}`;
       if (qs('#sort').value === 'followed') L = mix(L);
-      qs('#list').innerHTML = L.length ? L.map(p => p.status === 'unclaimed' ? ucCard(p) : `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? H.verified('verified--sm') : ''}${H.inactiveTag(p)}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
+      qs('#list').innerHTML = L.length ? L.map(p => D.isUnclaimed(p) ? ucCard(p) : `<article class="drow card lift stretch">${plogo(p)}<div class="grow stack gap-4" style="min-width:0"><p class="row gap-8 t-label" style="font-size:14px"><a class="stretch-link" href="/products/${p.slug}">${esc(p.name)}</a>${p.verified ? H.verified('verified--sm') : ''}${H.inactiveTag(p)}</p><p class="t-body-sm c-2">${esc(p.tagline)}</p><div class="row gap-8 wrap t-caption c-2" style="margin-top:2px"><span class="row gap-6">${flag(p.country)}${esc(p.city)}</span>${(p.categories || []).slice(0, 1).map(c => `<span class="badge">${esc(c)}</span>`).join('')}${p.stage ? `<span class="badge">${esc(p.stage)}</span>` : ''}${p.testers_wanted ? `<a class="badge badge--testers" href="/products/${p.slug}#beta">${icon('flask', 'ic-12')}Testers wanted</a>` : ''}${(p.pay_methods || []).length ? `<span class="badge badge--outline hide-sm">${esc(p.pay_methods.join(' · '))}</span>` : ''}</div></div><button class="btn btn--sm ${fol.has(p.id) ? 'btn--ghost' : 'btn--secondary'}" data-pf="${p.id}">${fol.has(p.id) ? 'Following' : 'Follow'}</button></article>`).join('')
         : `<div class="card card--pad" style="text-align:center;padding:40px 20px"><p class="t-h4">No products match these filters</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Remove a filter or switch to Pan-African.</p><button class="btn btn--secondary btn--sm" type="button" onclick="document.getElementById('clear').click()">Clear all filters</button></div>`;
       M.stagger(qs('#list'));
     } catch (e) { H.fail(e); }
@@ -162,7 +162,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   function mix(L) {
     const day = new Date().toISOString().slice(0, 10), h = x => { let v = 2166136261; for (const c of x + day) { v ^= c.charCodeAt(0); v = Math.imul(v, 16777619); } return v >>> 0; };
     const cmp = (a, b) => (b.follower_count || 0) - (a.follower_count || 0) || (b.upvote_count || 0) - (a.upvote_count || 0) || h(a.slug) - h(b.slug);
-    const C = L.filter(p => p.status !== 'unclaimed').sort(cmp), U = L.filter(p => p.status === 'unclaimed').sort(cmp), out = [];
+    const C = L.filter(p => !D.isUnclaimed(p)).sort(cmp), U = L.filter(p => D.isUnclaimed(p)).sort(cmp), out = [];
     while (C.length || U.length) { out.push(...C.splice(0, 2)); if (U.length) out.push(U.shift()); }
     return out;
   }

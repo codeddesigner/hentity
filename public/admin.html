@@ -59,7 +59,7 @@
   <nav class="adm-nav" id="nav" aria-label="Admin"></nav>
   <main class="adm-main" id="main"><div class="skel" style="height:120px"></div></main>
 </div>
-<script src="/assets/data.js?v=746cd36043"></script>
+<script src="/assets/data.js?v=354227d2d5"></script>
 <script src="/assets/beta.js?v=1c75cc3bd6"></script>
 <script>
 H.mount();
@@ -349,7 +349,7 @@ H.mount();
     const d = drawer('Edit · ' + p.name, [
       ['name', 'Name', 'text'], ['slug', 'Slug', 'text'], ['tagline', 'Tagline', 'text'], ['description', 'Description', 'textarea', { rows: 5 }], ['website', 'Website', 'text'],
       ['logo_url', 'Logo', 'image'], ['color', 'Brand colour (hex)', 'color'], ['video_url', 'Demo video URL', 'text'], ['media', 'Media (JSON)', 'json', { empty: [] }],
-      ['status', 'Status', 'select', ['draft', 'review', 'changes', 'scheduled', 'live', 'rejected', 'archived']], ['launch_date', 'Launch day', 'date'], ['week_id', 'Board week (set from the launch day)', 'select', [['', '— none —'], ...allWeeks.map(w => [w.id, 'Week ' + w.id + ' · ' + new Date(w.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })])]],
+      ['status', 'Status', 'select', [['draft', 'draft'], ['review', 'review'], ['changes', 'changes'], ['scheduled', 'scheduled'], ['live', 'live (launched by its team)'], ['unclaimed', 'unclaimed (directory profile)'], ['held', 'held (hidden, from radar)'], ['rejected', 'rejected'], ['archived', 'archived']]], ['launch_date', 'Launch day', 'date'], ['week_id', 'Board week (set from the launch day)', 'select', [['', '— none —'], ...allWeeks.map(w => [w.id, 'Week ' + w.id + ' · ' + new Date(w.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })])]],
       ['founding_team', 'Founding team (private, Insights totals only)', 'select', [['', 'Not stated'], ['women', 'Women-founded'], ['mixed', 'Mixed team'], ['men', 'Men-founded'], ['unstated', 'Prefer not to say']]], ['founders_count', 'Number of founders', 'number'], ['founded_year', 'Year founded', 'number'], ['raised_usd', 'Total raised (USD)', 'number'], ['raised_year', 'Year of latest round', 'number'],
       ['active', 'Active · still operating (untick to grey it out as Inactive)', 'bool'], ['inactive_note', 'If inactive: what happened (e.g. Shut down in 2024)', 'text'],
       ['featured', 'Featured on the board', 'bool'], ['promoted', 'Promoted (sponsored slot)', 'bool'], ['reg', 'Company registration number (CAC/RC)', 'text'], ['verified', 'Verified stamp', 'bool'],

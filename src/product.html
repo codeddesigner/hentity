@@ -55,7 +55,8 @@ H.mount({ active: 'products', tab: 'products' });
   try { p = await API.product(slug); } catch (e) { H.fail(e); }
   if (!p) { document.title = 'Product not found | Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
   document.title = `${p.name} | ${p.tagline} | Hentity`;
-  if (p.status === 'unclaimed') return unclaimed(p);
+  // Directory profiles nobody has claimed use the unclaimed layout, whatever their status says
+  if (D.isUnclaimed(p)) return unclaimed(p);
   D.remember([p]);
   // Everything public comes in one parallel batch (instant when the server preloaded it); the member's own
   // state (votes, follows) is a second parallel batch instead of a chain of round trips.

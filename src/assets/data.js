@@ -12,7 +12,9 @@
     mine.forEach(id => voted.add(id));
     document.querySelectorAll('[data-vote]').forEach(syncBtn);
   }
-  function isLive(p) { return (p.effective_status || p.status) === 'live'; }
+  // A directory profile Hentity created that no team has claimed (status 'unclaimed', or marked live by mistake with no owner or launch week)
+  function isUnclaimed(p) { return p.status === 'unclaimed' || (p.status === 'live' && !p.owner_id && !p.week_id); }
+  function isLive(p) { return !isUnclaimed(p) && (p.effective_status || p.status) === 'live'; }
   // Unclaimed profiles can be upvoted too (they never enter the weekly ranking, which goes by launch week)
   function canVote(p) { return ['live', 'unclaimed'].includes(p.effective_status || p.status); }
   function upBtn(p, extra) {
@@ -78,5 +80,5 @@
       onChange && onChange(p);
     });
   }
-  window.D = { row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, canVote, liveCounts };
+  window.D = { row, upBtn, loadVotes, remember, voted, byId, fmt, isLive, isUnclaimed, canVote, liveCounts };
 })();

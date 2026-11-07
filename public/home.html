@@ -142,7 +142,7 @@
   </div>
 </main>
 <div data-tabbar></div>
-<script src="/assets/data.js?v=746cd36043"></script>
+<script src="/assets/data.js?v=354227d2d5"></script>
 <script>
 H.mount({ active: 'products', tab: 'products' });
 H.qs('#ptabs').innerHTML = H.productTabs('week');
@@ -199,7 +199,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     let rank = 0; const shown = expanded ? rows : rows.slice(0, 7);
     qs('#feed').innerHTML = shown.length ? shown.map((p, i) => {
       if (board === 'upcoming') return D.row(p, 0, { noRank: true, noVote: true, badge: `<span class="badge badge--upcoming">${new Date((p.launch_date ? p.launch_date + 'T12:00:00Z' : p.week_starts_at)).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase()}</span>`, trailing: `<button class="btn btn--secondary btn--sm" data-notify="${p.id}">${icon('bell')}Notify me</button>` });
-      if (board === 'recent') return D.row(p, 0, { noRank: true, badge: p.status === 'unclaimed' ? '' : `<span class="badge">${esc(H.ago(p.created_at))}</span>` });
+      if (board === 'recent') return D.row(p, 0, { noRank: true, badge: D.isUnclaimed(p) ? '' : `<span class="badge">${esc(H.ago(p.created_at))}</span>` });
       return D.row(p, p.promoted ? 0 : ++rank) + (i === 1 && board === 'this' ? teaser() : '');
     }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
