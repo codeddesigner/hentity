@@ -181,7 +181,6 @@
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
         ${on('validate') ? item('validate', lbl('validate', 'Validate an idea'), '/validate', 'sparkles') : ''}
         ${item('my-products', 'My products', '/my-products', 'rocket')}
-        ${on('funding') ? item('data-room', 'Data room', '/data-room', 'folder') : ''}
         ${item('notifications', 'Notifications', '/notifications', 'bell', counts.notifs)}
         ${item('saved', 'Saved', '/saved', 'bookmark')}
         ${window.API && API.isAdmin ? item('admin', 'Admin', '/admin', 'shield') : ''}

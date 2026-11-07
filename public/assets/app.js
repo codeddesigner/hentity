@@ -12,7 +12,6 @@
       ${e?`<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
         ${C("validate")?a("validate",g("validate","Validate an idea"),"/validate","sparkles"):""}
         ${a("my-products","My products","/my-products","rocket")}
-        ${C("funding")?a("data-room","Data room","/data-room","folder"):""}
         ${a("notifications","Notifications","/notifications","bell",p.notifs)}
         ${a("saved","Saved","/saved","bookmark")}
         ${window.API&&API.isAdmin?a("admin","Admin","/admin","shield"):""}

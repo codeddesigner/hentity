@@ -36,7 +36,12 @@
 .fu-app{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;font-size:13.5px}
 .fu-app+.fu-app{border-top:1px solid var(--color-border-default)}
 .fu-table{border:1px solid var(--color-border-default);border-radius:14px;overflow:hidden;background:var(--color-bg-canvas)}
-.fu-tr{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1.2fr) 112px 112px;gap:14px;align-items:center;padding:16px 20px;border-top:1px solid var(--color-border-default)}
+.fu-tr{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1.2fr) 124px 136px;gap:14px;align-items:center;padding:16px 20px;border-top:1px solid var(--color-border-default);cursor:pointer}
+.fu-tr.fu-th{cursor:default}
+.fu-mlogo{display:none}
+.fu-tr:not(.fu-th):hover{background:var(--color-bg-subtle)}
+.fu-inv{all:unset;cursor:pointer;font-size:14px;font-weight:500}.fu-inv:hover{text-decoration:underline}
+.fu-fit{gap:2px}
 .fu-tr:first-child{border-top:0}
 .fu-th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);padding:12px 20px}
 .fu-cheque{font-weight:500;font-variant-numeric:tabular-nums}
@@ -64,6 +69,7 @@
   .fu-tr{grid-template-columns:40px minmax(0,1fr) auto;gap:12px;padding:14px 16px}
   .fu-tr .fu-sect,.fu-tr .fu-act,.fu-tr .fu-cq{display:none}.fu-tr .fu-fit span:last-child{display:none}
   .fu-tr .m-only{display:block}
+  .fu-mlogo{display:block}.fu-tr .d-only{display:none}
   .fu-lockcard{top:40px}
 }
 .m-only{display:none}
@@ -124,7 +130,7 @@ H.mount({ active: 'funding', tab: 'you' });
     if (q === 'women') L = L.filter(o => o.women_only);
     if (q === 'nondil') L = L.filter(o => /non-?dilutive|non-refundable|equity-free/i.test(o.amount_note + ' ' + o.amount_text) || ['grant', 'prize'].includes(o.kind));
     if (q === 'comp') L = L.filter(o => ['competition', 'prize'].includes(o.kind));
-    if (q === 'pitch') L = L.filter(o => o.how === 'pitch' || o.can_email);
+    if (q === 'form') L = L.filter(o => o.apply_url && o.apply_url !== o.website);
     if (q === 'angel') L = L.filter(o => o.kind === 'angel');
     if (q === 'vc') L = L.filter(o => ['vc', 'micro_vc'].includes(o.kind));
     if (q === 'acc') L = L.filter(o => o.kind === 'accelerator');
@@ -135,10 +141,10 @@ H.mount({ active: 'funding', tab: 'you' });
     return L;
   }
   function render() {
-    const p = B.product, rd = FU.readiness(p), L = filtered();
-    const quick = mode === 'grant' ? [['best', 'Best match'], ['soon', 'Closing soon'], ['women', 'Women-founded'], ['nondil', 'Non-dilutive'], ['comp', 'Competitions']] : [['best', 'Best match'], ['pitch', 'Open to pitches'], ['angel', 'Angels'], ['vc', 'VC funds'], ['acc', 'Accelerators']];
+    const p = B.product, L = filtered();
+    const quick = mode === 'grant' ? [['best', 'Best match'], ['soon', 'Closing soon'], ['women', 'Women-founded'], ['nondil', 'Non-dilutive'], ['comp', 'Competitions']] : [['best', 'Best match'], ['form', 'Online form'], ['angel', 'Angels'], ['vc', 'VC funds'], ['acc', 'Accelerators']];
     const sel = (k, label, opts) => `<label class="fu-sel"><select data-f="${k}" aria-label="${label}"><option value="">${label}</option>${opts.map(([v, l]) => `<option value="${esc(v)}"${F[k] === String(v) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>${icon('chevron-down', 'ic-14')}</label>`;
-    const apps = B.apps || [];
+    const tr = B.tracked || [];
     root.innerHTML = `<div class="fu-head"><div><h1 class="row gap-12">${'<a class="nav__icon m-only" href="/me" aria-label="Back" style="margin-left:-8px">' + icon('arrow-left') + '</a>'}Funding</h1><p class="fu-sub">${subtitle(p.name)}</p></div>${toggle(B.counts)}</div>
       <div class="fu-prod">${plogo(p)}<div style="min-width:0"><p class="t-label row gap-6"><span class="truncate">Matching for ${esc(p.name)}</span>${p.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-3 meta" style="font-weight:400;margin-top:2px">${esc(FU.productLine(p))}${!p.team || !p.stage || !p.country ? ` · <a class="link link--accent" href="/products/${p.slug}/edit">Add missing details</a>` : ''}</p></div>
         <span class="fu-switch">${products.length > 1 ? `<span class="d-only">Switch product</span><span class="m-only">${icon('chevron-down', 'ic-16')}</span><select id="pick" aria-label="Switch product">${products.map(x => `<option value="${x.id}"${x.id === pid ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : `<a href="/products/${p.slug}/edit" class="d-only" style="color:inherit">Edit details</a>`}</span></div>
@@ -146,38 +152,39 @@ H.mount({ active: 'funding', tab: 'you' });
         ${sel('cat', 'Category', CATS.map(c => [c, c]))}${sel('cc', 'Country', Object.entries(FU.CN))}${sel('stage', 'Stage', STAGES.map(s => [s, s]))}${sel('amount', 'Amount', [[5000, '$5k+'], [25000, '$25k+'], [100000, '$100k+'], [500000, '$500k+']])}</div>
       <div class="fu-grid"><div>${L.length ? (mode === 'grant' ? `<div class="fu-cards">${L.map(card).join('')}</div>` : table(L)) : `<div class="card fu-empty">${icon('search', 'ic-20')}<p style="margin-top:8px">Nothing matches these filters yet.</p><p class="t-body-sm c-3" style="margin-top:4px">${B.opps.length ? 'Try clearing a filter.' : 'Hentity adds new rounds as they open. Check back soon.'}</p></div>`}</div>
         <aside class="fu-side">
-          <div class="card"><p class="t-label">Your applications</p>${apps.length ? apps.map(a => { const s = FU.STATUS[a.status] || [a.status, '']; return `<a class="fu-app" href="/funding/${a.opp_id}?p=${pid}"><span class="truncate">${esc(a.name)}</span><span class="badge ${s[1] ? 'badge--' + s[1] : ''}">${s[0]}</span></a>`; }).join('') : `<p class="t-body-sm c-3" style="margin-top:8px">Nothing yet. Applications you start or send show here.</p>`}</div>
-          <div class="card" style="background:none;border:0;box-shadow:none;padding:0 16px"><p class="t-label row gap-8">${icon('folder', 'ic-16')}Data room ready: ${rd.ready} of ${rd.items.length}</p>
-            <p class="t-body-sm c-2" style="margin:8px 0 12px">Pitch deck, beta results and reviews attach to applications in one tap.${rd.missing.length ? ' Missing: ' + esc(rd.missing.slice(0, 3).join(', ')) + (rd.missing.length > 3 ? ' and ' + (rd.missing.length - 3) + ' more' : '') + '.' : ''}</p>
-            <a class="btn btn--secondary btn--sm" href="/data-room?p=${pid}">Open Data room</a></div>
+          <div class="card"><p class="t-label">Saved and applied</p>${tr.length ? tr.map(a => { const s = FU.TRACK[a.status] || [a.status, '']; const d = FU.daysLeft(a.deadline); return `<a class="fu-app" href="/funding/${a.opp_id}?p=${pid}"><span style="min-width:0"><span class="truncate" style="display:block">${esc(a.name)}</span><span class="t-caption ${a.status === 'saved' && d != null && d >= 0 && d < 10 ? 'fu-red' : 'c-3'}" style="font-weight:400">${esc(FU.deadlineText(a))}</span></span><span class="badge ${a.status === 'applied' && a.closed ? 'badge--success' : 'badge--' + s[1]}">${s[0]}</span></a>`; }).join('') : `<p class="t-body-sm c-3" style="margin-top:8px">Nothing yet. Save ${mode === 'grant' ? 'a grant' : 'an investor'} or mark one as applied to track it here, with reminders before deadlines.</p>`}</div>
         </aside></div>`;
     H.contentShown && H.contentShown();
   }
   function card(o) {
-    const f = FU.fit(o), strong = o.meets === o.total, open = !o.round_note || o.deadline;
+    const strong = o.meets === o.total, open = FU.isOpen(o);
     const cats = o.categories.length ? o.categories.slice(0, 2).join(', ') : 'Any category';
     const stg = o.stages.length ? (o.stages.length > 1 ? o.stages[0] + '–' + o.stages[o.stages.length - 1] : o.stages[0]) : 'Any stage';
-    return `<article class="card fu-card lift"><div class="row gap-12" style="padding-right:28px">${FU.logo(o, 36)}<div style="min-width:0"><p class="t-label truncate">${esc(o.name)}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(o.org || FU.KIND[o.kind])}</p></div></div>
-      <button class="nav__icon fu-save" type="button" data-save="${o.id}" aria-pressed="${!!o.saved}" aria-label="Save">${icon('bookmark', 'ic-18')}</button>
+    return `<article class="card fu-card lift"><div class="row gap-12" style="padding-right:28px">${FU.logo(o, 36)}<div style="min-width:0"><a class="t-label truncate" style="display:block" href="/funding/${o.id}?p=${pid}">${esc(o.name)}</a><p class="t-caption c-3 truncate" style="font-weight:400">${esc(o.org || FU.KIND[o.kind])}</p></div></div>
+      <button class="nav__icon fu-save" type="button" data-save="${o.id}" aria-pressed="${!!o.track}" aria-label="${o.track ? 'Saved' : 'Save'}">${icon('bookmark', 'ic-18')}</button>
       <p class="fu-amt">${esc(o.amount_text || '—')}<small>${esc(o.amount_note || FU.KIND[o.kind])}</small></p>
       <div class="fu-chips">${FU.deadlineChip(o)}<span class="fu-chip">${esc(cats)}</span><span class="fu-chip">${esc(stg)}</span><span class="fu-chip">${esc(o.region_label || 'All of Africa')}</span>${o.women_only ? '<span class="fu-chip">Women-founded or mixed</span>' : ''}</div>
       <div class="fu-foot">${FU.dots(o)}<span class="${strong ? 'fu-strong' : ''}">${esc(B.product.name)} meets ${o.meets} of ${o.total}</span>
-        <a class="btn btn--sm ${strong && open ? 'btn--accent' : 'btn--secondary'}" href="/funding/${o.id}?p=${pid}">${o.app ? (FU.STATUS[o.app.status] || ['Open'])[0] : strong && open ? 'Apply' : 'View'}</a></div></article>`;
+        ${o.track && o.track.status === 'applied' ? `<a class="btn btn--sm btn--ghost" href="/funding/${o.id}?p=${pid}">${icon('check', 'ic-14')}Applied</a>`
+          : strong && open ? `<a class="btn btn--sm btn--accent" href="${esc(FU.applyUrl(o))}" target="_blank" rel="noopener" data-go="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>`
+          : `<a class="btn btn--sm btn--secondary" href="/funding/${o.id}?p=${pid}">View</a>`}</div></article>`;
   }
   function table(L) {
     return `<div class="fu-table"><div class="fu-tr fu-th d-only" style="border-top:0"><span>Investor</span><span>Cheque · Stage</span><span>Sectors</span><span style="text-align:right">Fit</span><span></span></div>
-      ${L.map(o => { const f = FU.fit(o); const how = o.how === 'intro' ? 'Warm intro' : o.can_email ? 'Open to pitches' : o.kind === 'accelerator' ? 'Applications open' : 'Apply on their site';
-        const act = o.app ? (FU.STATUS[o.app.status] || ['Open'])[0] : o.how === 'intro' ? 'Ask for intro' : o.can_email ? 'Send pitch' : 'Apply';
-        return `<div class="fu-tr">${FU.logo(o, 36).replace('class="fu-logo"', 'class="fu-logo m-only" style="display:inline-grid;')}<div class="row gap-12" style="min-width:0"><span class="d-only">${FU.logo(o, 36)}</span><div style="min-width:0"><a class="t-label" href="/funding/${o.id}?p=${pid}&tab=equity">${esc(o.name)}</a><p class="t-caption c-3" style="font-weight:400">${esc(FU.KIND[o.kind])}${o.amount_note && o.kind === 'accelerator' ? ' · ' + esc(o.amount_note.split('·')[0]) : ''} · ${esc(o.region_label || 'Africa')}<span class="m-only">${esc(o.amount_text)}</span></p></div></div>
+      ${L.map(o => { const f = FU.fit(o), d = FU.daysLeft(o.deadline), applied = o.track && o.track.status === 'applied';
+        return `<div class="fu-tr" data-inv="${o.id}"><span class="fu-mlogo">${FU.logo(o, 36)}</span><div class="row gap-12" style="min-width:0"><span class="d-only">${FU.logo(o, 36)}</span><div style="min-width:0"><button class="t-label fu-inv" type="button" data-inv="${o.id}">${esc(o.name)}</button><p class="t-caption c-3" style="font-weight:400">${esc(FU.KIND[o.kind])}${o.amount_note && o.kind === 'accelerator' && o.amount_note.split('·')[0].trim().length <= 24 ? ' · ' + esc(o.amount_note.split('·')[0].trim()) : ''} · ${esc(o.region_label || 'Africa')}<span class="m-only">${esc(o.amount_text)}</span></p></div></div>
           <div class="fu-cq"><p class="fu-cheque">${esc(o.amount_text || 'Not disclosed')}</p><p class="t-caption c-3" style="font-weight:400">${esc(o.stages.join(', ') || 'Any stage')}</p></div>
           <div class="fu-chips fu-sect">${(o.categories.length ? o.categories : ['Any category']).slice(0, 3).map(c => `<span class="fu-chip">${o.categories.length ? `<i style="width:6px;height:6px;border-radius:50%;background:${H.catColor ? H.catColor(c) : '#999'}"></i>` : ''}${esc(c)}</span>`).join('')}</div>
-          <div class="fu-fit"><span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${f[0]}</span><span class="t-caption c-3" style="font-weight:400">${how}</span></div>
-          <div class="fu-act" style="text-align:right"><a class="btn btn--sm ${o.app ? 'btn--ghost' : f[1] === 'success' || o.can_email ? 'btn--primary' : 'btn--secondary'}" href="/funding/${o.id}?p=${pid}&tab=equity${o.app ? '' : '&go=1'}">${act}</a></div></div>`; }).join('')}</div>`;
+          <div class="fu-fit"><span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${f[0]}</span><span class="t-caption c-3" style="font-weight:400">${FU.howLabel(o)}</span><span class="t-caption" style="font-weight:400;color:${d != null ? (d < 10 ? '#B42318' : '#8A5A00') : 'var(--color-text-tertiary)'}">${esc(FU.deadlineText(o))}</span></div>
+          <div class="fu-act" style="text-align:right">${applied ? `<button class="btn btn--sm btn--ghost" type="button" data-inv="${o.id}">${icon('check', 'ic-14')}Applied</button>` : `<a class="btn btn--sm ${f[1] === 'success' ? 'btn--primary' : 'btn--secondary'}" href="${esc(FU.applyUrl(o))}" target="_blank" rel="noopener" data-go="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>`}</div></div>`; }).join('')}</div>`;
   }
   root.addEventListener('click', async e => {
     const m = e.target.closest('[data-mode]'); if (m) { mode = m.dataset.mode; F.quick = 'best'; load(); return; }
     const q = e.target.closest('[data-q]'); if (q) { F.quick = q.dataset.q; render(); return; }
-    const s = e.target.closest('[data-save]'); if (s) { e.preventDefault(); const on = s.getAttribute('aria-pressed') !== 'true'; s.setAttribute('aria-pressed', String(on)); try { await API.fundingSave(s.dataset.save, on); const o = B.opps.find(x => x.id === s.dataset.save); if (o) o.saved = on; toast(on ? 'Saved' : 'Removed from saved'); } catch (er) { H.fail(er); } }
+    const s = e.target.closest('[data-save]'); if (s) { e.preventDefault(); const o = B.opps.find(x => x.id === s.dataset.save); const on = !o.track; try { if (on) await API.fundingTrack(o.id, pid, { status: 'saved', remind: true }); else await API.fundingUntrack(o.id); toast(on ? 'Saved. We’ll remind you before it closes.' : 'Removed from saved'); load(); } catch (er) { H.fail(er); } return; }
+    // Opening a funder's site saves it to the tracker
+    const g = e.target.closest('[data-go]'); if (g) { const o = B.opps.find(x => x.id === g.dataset.go); if (o && !o.track) API.fundingTrack(o.id, pid, { status: 'saved', remind: true }).then(load).catch(() => {}); return; }
+    const iv = e.target.closest('[data-inv]'); if (iv && !e.target.closest('a')) { const o = B.opps.find(x => x.id === iv.dataset.inv); if (o) FU.investorSheet(o, B.product, pid, load); return; }
   });
   root.addEventListener('change', e => { const f = e.target.dataset.f; if (f) { F[f] = e.target.value; render(); } if (e.target.id === 'pick') { pid = e.target.value; load(); } });
   load();

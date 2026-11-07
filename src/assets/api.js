@@ -282,8 +282,9 @@
     // Funding
     fundingBoard: (pid, mode) => q(sb.rpc('funding_board', { pid, md: mode || 'grant' })),
     fundingOpp: (oid, pid) => q(sb.rpc('funding_opp', { oid, pid })),
-    fundingSend: (oid, pid, act, o = {}) => q(sb.rpc('funding_send', { oid, pid, act, answers: o.answers || {}, attach: o.attach || [], note: o.note || '', links: o.links || [], via: o.via || null })),
-    fundingSave: (oid, on) => on ? q(sb.from('funding_saves').insert({ opp_id: oid })) : q(sb.from('funding_saves').delete().eq('opp_id', oid).eq('user_id', uid())),
+    // Saved / applied tracker (funders take applications on their own sites)
+    fundingTrack: (oid, pid, patch) => q(sb.from('funding_track').upsert(Object.assign({ user_id: uid(), opp_id: oid, product_id: pid || null, updated_at: new Date().toISOString() }, patch), { onConflict: 'user_id,opp_id' }).select().single()),
+    fundingUntrack: oid => q(sb.from('funding_track').delete().eq('user_id', uid()).eq('opp_id', oid)),
     myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
     dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),
     dataroomUpload: async (pid, kind, file) => {
@@ -483,11 +484,8 @@
     emailPreview: () => q(sb.rpc('email_preview_all')),
     fundingOpps: () => q(sb.from('funding_opps').select('*').order('mode').order('name')),
     saveFundingOpp: (id, row) => id ? q(sb.from('funding_opps').update(Object.assign({}, row, { updated_at: new Date().toISOString() })).eq('id', id).select().single()) : q(sb.from('funding_opps').insert(row).select().single()),
+    fundingCounts: () => q(sb.rpc('admin_funding_counts')),
     deleteFundingOpp: id => q(sb.from('funding_opps').delete().eq('id', id)),
-    fundingContact: id => q(sb.from('funding_contacts').select('email').eq('opp_id', id).maybeSingle()),
-    setFundingContact: (id, email) => email ? q(sb.from('funding_contacts').upsert({ opp_id: id, email })) : q(sb.from('funding_contacts').delete().eq('opp_id', id)),
-    fundingApps: () => q(sb.rpc('admin_funding_apps')),
-    setFundingApp: (id, status) => q(sb.from('funding_apps').update({ status, updated_at: new Date().toISOString() }).eq('id', id)),
     nudgeAudience: kinds => q(sb.rpc('admin_nudge_audience', { kinds })),
     sendNudges: (kinds, note, test, ids) => q(sb.rpc('admin_send_nudges', { kinds, note: note || null, test_only: !!test, only_ids: ids || null })),
     findRoles: st => q(sb.rpc('admin_find_roles', { st: st || 'review' })),

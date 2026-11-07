@@ -6,10 +6,6 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/data-room",
-      "destination": "/data-room"
-    },
-    {
       "source": "/funding/:id",
       "destination": "/funding-opp"
     },
@@ -127,6 +123,11 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/data-room",
+      "destination": "/funding",
+      "permanent": false
+    },
     {
       "source": "/:path*",
       "has": [

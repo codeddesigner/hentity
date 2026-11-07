@@ -2,35 +2,21 @@
 <html lang="en">
 <head>
 <!--#head-->
-<title>Apply | Hentity Funding</title>
+<title>Funding | Hentity</title>
 <meta name="robots" content="noindex">
 <style>
-.fo{max-width:1112px;margin:0 auto;padding:32px 40px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+.fo{max-width:1112px;margin:0 auto;padding:32px 40px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start}
 .fo .card{border-radius:16px}
 .fo-sec{padding:22px 22px 20px;margin-top:16px}
 .fo-h{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .fo-crit{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:14px}
 .fo-crit .ev{margin-left:auto;color:var(--color-text-tertiary);font-size:13px;text-align:right}
-.fo-ok{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;background:#22C55E;color:#fff}
-.fo-no{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;background:#FDECEC;color:#D92D20}
-.fo-todo{width:20px;height:20px;border-radius:50%;flex:none;border:1.5px solid var(--color-border-strong,#ccc)}
 .fo-judge{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:var(--color-text-secondary)}.fo-judge b{color:var(--color-text-primary);font-weight:500;font-variant-numeric:tabular-nums}
-.fo-panel{padding:22px;position:sticky;top:24px}
-.fo-bar{height:6px;border-radius:3px;background:var(--color-bg-muted);overflow:hidden;flex:1}.fo-bar i{display:block;height:100%;background:#22C55E;border-radius:3px}
-.fo-filled{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:#FFF4EC;color:#7A3A0B;font-size:13px;line-height:18px;margin:14px 0 6px}
-[data-theme="dark"] .fo-filled{background:#33200f;color:#ffc89a}
-.fo-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--color-border-default)}
-.fo-item:first-of-type{border-top:0}
-.fo-item p{font-size:14px;font-weight:500}.fo-item small{display:block;font-size:12.5px;color:var(--color-text-tertiary);font-weight:400;margin-top:1px}
-.fo-item small.red{color:#D92D20}
-.fo-item .act{margin-left:auto;flex:none}
-.fo-lock{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:var(--color-bg-subtle);font-size:13px;color:var(--color-text-secondary);margin:6px 0 14px}
-.fo-attach{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--color-border-default);border-radius:12px;margin-top:10px;cursor:pointer}
-.fo-attach .ib{width:36px;height:36px;border-radius:9px;background:var(--color-bg-subtle);display:grid;place-items:center;flex:none}
-.fo-attach input{margin-left:auto;width:20px;height:20px;accent-color:#111}
-.fo-attach.off{opacity:.5;cursor:not-allowed}
+.fo-panel{padding:24px;position:sticky;top:24px}
+.fo-panel hr{border:0;border-top:1px solid var(--color-border-default);margin:18px 0 16px}
+.fo-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
 @media (max-width:1000px){.fo{grid-template-columns:minmax(0,1fr)}.fo-panel{position:static}}
-@media (max-width:768px){.fo{padding:16px 16px 32px;gap:12px}.fo h1.t-h2{font-size:24px;line-height:30px}.fo .fu-chip{white-space:normal;height:auto;min-height:24px;padding:3px 8px}.fo-sec{padding:18px}.fo-crit .ev{display:none}}
+@media (max-width:768px){.fo{padding:16px 16px 32px;gap:12px}.fo h1.t-h2{font-size:24px;line-height:30px}.fo .fu-chip{white-space:normal;height:auto;min-height:24px;padding:3px 8px}.fo-sec,.fo-panel{padding:18px}.fo-crit .ev{display:none}}
 </style>
 </head>
 <body>
@@ -48,167 +34,66 @@ H.mount({ active: 'funding', tab: 'you' });
   const oid = location.pathname.split('/').filter(Boolean)[1];
   const products = await API.myFundingProducts().catch(() => []);
   if (!products.length) { location.href = '/funding'; return; }
-  let pid = FU.pickPid(products), O, saveT;
-  const draft = { answers: {}, note: '' };
+  let pid = FU.pickPid(products), O;
   async function load() {
     try { O = await API.fundingOpp(oid, pid); } catch (e) { root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">${esc(e.message || 'Not found')}</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; return; }
-    if (O.app) { draft.answers = O.app.answers || {}; draft.note = O.app.note || ''; }
     document.title = O.name + ' | Hentity Funding';
     render();
-    if (H.params().get('go') && O.mode === 'equity' && !O.app) O.how === 'intro' ? introSheet() : pitchSheet();
   }
   const isGrant = () => O.mode === 'grant';
-  // The application checklist (grants): product page, Studio, comments and the Data room fill it
-  function items() {
-    const p = O.product, dr = p.dataroom || {};
-    const file = k => dr[k] && dr[k].file;
-    return [
-      { k: 'product', t: 'Product and one-line pitch', s: 'Product page', ok: true, req: true, view: `/products/${p.slug}` },
-      { k: 'team', t: 'Founding team', s: p.team && p.team !== 'unstated' ? `Product page · ${p.founders || p.makers} founder${(p.founders || p.makers) == 1 ? '' : 's'}` : 'Add your founding team', ok: !!p.team && p.team !== 'unstated', req: true, fix: ['Add', `/products/${p.slug}/edit`] },
-      { k: 'traction', t: 'Traction', s: dr.traction && dr.traction.text ? dr.traction.text : 'Users, revenue, growth in a line or two', ok: !!(dr.traction && dr.traction.text), req: true, write: true },
-      { k: 'deck', t: 'Pitch deck', s: file('deck') ? `Data room · v${dr.deck.version}` : 'Missing from Data room', ok: !!file('deck'), req: true, upload: true },
-      { k: 'beta', t: 'Beta results', s: p.testers ? `Studio · ${p.testers} testers${p.beta_rating ? ' · ' + p.beta_rating + ' avg' : ''}` : 'Optional · run a beta test in Studio', ok: p.testers > 0, req: false, fix: p.testers ? null : ['Studio', '/studio'] },
-      { k: 'incorporation', t: 'Incorporation certificate', s: file('incorporation') ? 'Data room' : 'Missing from Data room', ok: !!file('incorporation'), req: !!O.needs_incorporation || isGrant(), upload: true },
-      { k: 'reviews', t: 'Reviews', s: p.comments ? `${p.comments} comment${p.comments === 1 ? '' : 's'} on Hentity` : 'Optional · comments on your product page', ok: p.comments > 0, req: false, view: `/products/${p.slug}#comments` },
-      { k: 'financials', t: 'Financials (last 6 months)', s: file('financials') ? 'Data room' : 'Missing from Data room', ok: !!file('financials'), req: true, upload: true },
-      { k: 'use', t: `How will you use the ${O.amount_text && /\d/.test(O.amount_text) ? O.amount_text.split(' ')[0] : 'funds'}?`, s: draft.answers.use_of_funds ? draft.answers.use_of_funds.slice(0, 80) + (draft.answers.use_of_funds.length > 80 ? '…' : '') : 'Required · up to 300 words', ok: !!(draft.answers.use_of_funds || '').trim(), req: true, write: true }];
-  }
   function render() {
-    const p = O.product, I = items(), done = I.filter(i => i.ok).length, left = I.filter(i => i.req && !i.ok).length;
-    const d = FU.daysLeft(O.deadline), sent = O.app && O.app.status !== 'draft' && O.app.status !== 'withdrawn';
-    const closed = !O.deadline && O.round_note;
-    const chips = [`<span class="fu-chip fu-chip--green">${esc(O.amount_text || '—')}${O.amount_note ? ' · ' + esc(O.amount_note.toLowerCase()) : ''}</span>`,
-      O.deadline ? `<span class="fu-chip ${d < 10 ? 'fu-chip--red' : 'fu-chip--amber'}">${icon('clock', 'ic-12')}Closes ${FU.fmtDate(O.deadline)} · ${d} day${d === 1 ? '' : 's'} left</span>` : `<span class="fu-chip">${icon('clock', 'ic-12')}${esc(O.round_note || 'Rolling')}</span>`,
-      O.slots_text ? `<span class="fu-chip">${esc(O.slots_text)}</span>` : '', O.decision_by ? `<span class="fu-chip">Decision by ${FU.fmtDate(O.decision_by)}</span>` : ''].join('');
+    const p = O.product, t = O.track, open = FU.isOpen(O);
+    const chips = [`<span class="fu-chip fu-chip--green">${esc(O.amount_text || '—')}${O.amount_note ? ' · ' + esc(O.amount_note.split('·')[0].trim().toLowerCase()) : ''}</span>`, FU.deadlineChip(O, true),
+      O.slots_text ? `<span class="fu-chip">${esc(O.slots_text)}</span>` : '', O.decision_by ? `<span class="fu-chip">Decision by ${FU.fmtDate(O.decision_by)}</span>` : '',
+      !isGrant() && O.stages.length ? `<span class="fu-chip">${esc(O.stages.join(', '))}</span>` : ''].join('');
     const back = isGrant() ? ['Grants', '/funding'] : ['Investors', '/funding?tab=equity'];
+    const who = O.org && O.org !== O.name ? O.org : O.name;
     root.innerHTML = `<div>
       <a class="row gap-8 t-body-sm c-2" href="${back[1]}" style="margin-bottom:14px">${icon('arrow-left', 'ic-16')}${back[0]}</a>
       <section class="card fo-sec" style="margin-top:0"><div class="row gap-16" style="align-items:center">${FU.logo(O, 48)}<div style="min-width:0"><p class="t-caption c-3" style="font-weight:400">${esc(O.org || FU.KIND[O.kind])}</p><h1 class="t-h2" style="margin-top:2px">${esc(O.name)}</h1></div></div>
         <div class="fu-chips" style="margin-top:14px">${chips}</div>
         ${O.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(O.description)}</p>` : ''}
-        <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${O.apply_url || O.website ? `<a class="link link--accent" href="${esc(O.apply_url || O.website)}" target="_blank" rel="noopener">Official page</a> · ` : ''}${O.checked_at ? 'Checked by Hentity ' + FU.fmtDate(O.checked_at) : ''}${O.source_url ? ` · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a>` : ''}</p></section>
+        ${!open ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(O.round_note)}</b></p>` : ''}
+        ${O.source_url ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a></p>` : ''}</section>
       <section class="card fo-sec"><div class="row between gap-12 wrap"><h2 class="fo-h">Who can apply</h2><span class="badge ${O.meets === O.total ? 'badge--success' : ''}">${O.meets === O.total ? icon('check', 'ic-12') : ''}${esc(p.name)} meets ${O.meets} of ${O.total}</span></div>
-        <div style="margin-top:10px">${O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fo-ok">${icon('check', 'ic-12')}</span>` : `<span class="fo-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('')}</div>
-        ${O.meets < O.total ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Fix what’s missing on your <a class="link link--accent" href="/products/${p.slug}/edit">product page</a>.</p>` : ''}</section>
+        <div style="margin-top:10px">${O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : `<span class="fu-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('')}</div>
+        ${O.meets < O.total ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Something wrong? Update your <a class="link link--accent" href="/products/${p.slug}/edit">product page</a>.</p>` : ''}</section>
       ${(O.judging || []).length ? `<section class="card fo-sec"><h2 class="fo-h">How it’s judged</h2><div style="margin-top:10px">${O.judging.map(j => `<div class="fo-judge"><span>${esc(j.label)}</span><b>${esc(String(j.pct))}%</b></div>`).join('')}</div></section>` : ''}
     </div>
-    <aside class="card fo-panel" id="panel">${isGrant() ? grantPanel(I, done, left, sent, closed) : equityPanel(sent)}</aside>`;
+    <aside class="card fo-panel" id="panel">
+      <h2 class="fo-h">Apply on ${isGrant() ? 'the funder’s' : 'their'} site</h2>
+      <p class="t-body-sm c-2" style="margin:8px 0 14px">Applications go through ${esc(who)} directly. Hentity helps you get ready and keeps track.</p>
+      ${FU.linkBox(O)}
+      <a class="btn btn--accent btn--block" style="margin-top:12px" href="${esc(FU.applyUrl(O))}" target="_blank" rel="noopener" id="go">${icon('arrow-up-right', 'ic-16')}${open ? 'Go to application' : 'Open their site'}</a>
+      <hr>
+      <div class="fo-sub"><p class="t-label">Get ready</p><p class="t-caption c-3" style="font-weight:400">What they usually ask for</p></div>
+      <div id="ready">${FU.readyList(O, p, O.mode, true)}</div>
+      <hr>
+      <p class="t-label">Keep track</p>
+      ${O.deadline ? `<label class="row between gap-12" style="margin-top:12px;cursor:pointer"><span><span class="t-body-sm" style="display:block">Remind me before it closes</span><span class="t-caption c-3" style="font-weight:400">Email and app, 3 days and 1 day before ${FU.fmtDate(O.deadline)}</span></span><span class="toggle"><input type="checkbox" id="remind"${t ? (t.remind ? ' checked' : '') : ''}${t && t.status === 'applied' ? ' disabled' : ''}><span class="toggle__track"></span></span></label>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+        <button class="btn btn--secondary" type="button" id="save" aria-pressed="${!!t}">${icon('bookmark', 'ic-16')}${t ? 'Saved' : 'Save'}</button>
+        <button class="btn btn--secondary" type="button" id="applied" aria-pressed="${!!(t && t.status === 'applied')}">${icon('check', 'ic-16')}${t && t.status === 'applied' ? 'Applied' : 'I’ve applied'}</button></div>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${t && t.status === 'applied' ? `Marked applied ${H.ago(t.applied_at)}.${O.decision_by ? ` We’ll remind you when results are due (${FU.fmtDate(O.decision_by)}).` : ''} <button class="link" type="button" id="unapply">Undo</button>` : `Mark it applied to move it to “Applied”${O.decision_by ? ` and get a reminder when results are due (${FU.fmtDate(O.decision_by)})` : ''}.`}</p>
+    </aside>`;
     if (products.length > 1) {
       const s = document.createElement('label'); s.className = 'fu-sel'; s.style.marginTop = '12px';
-      s.innerHTML = `<select aria-label="Product">${products.map(x => `<option value="${x.id}"${x.id === pid ? ' selected' : ''}>For ${esc(x.name)}</option>`).join('')}</select>${icon('chevron-down', 'ic-14')}`;
+      s.innerHTML = `<select aria-label="Product">${products.map(x => `<option value="${x.id}"${x.id === pid ? ' selected' : ''}>Matching ${esc(x.name)}</option>`).join('')}</select>${icon('chevron-down', 'ic-14')}`;
       s.querySelector('select').onchange = e => { pid = e.target.value; FU.setPid(pid); load(); };
       root.querySelector('.fo-sec').append(s);
     }
     H.contentShown && H.contentShown();
   }
-  function grantPanel(I, done, left, sent, closed) {
-    const until = O.decision_by ? FU.fmtDate(O.decision_by) : '60 days after you submit';
-    return `<div class="row between"><h2 class="fo-h">Your application</h2><span class="t-caption c-3" style="font-weight:400" id="saved">${O.app ? 'Saved ' + H.ago(O.app.updated_at) : ''}</span></div>
-      <div class="row gap-12" style="margin-top:12px"><span class="fo-bar"><i style="width:${done / I.length * 100}%"></i></span><b style="font-variant-numeric:tabular-nums;font-weight:500">${done} of ${I.length}</b></div>
-      <div class="fo-filled">${icon('sparkles', 'ic-16')}<span>Filled from ${esc(O.product.name)}’s product page and Data room. Check each item.</span></div>
-      <div>${I.map(i => `<div class="fo-item">${i.ok ? `<span class="fo-ok">${icon('check', 'ic-12')}</span>` : i.req && !i.write ? `<span class="fo-no">${icon('alert-circle', 'ic-12')}</span>` : '<span class="fo-todo"></span>'}
-        <div style="min-width:0"><p>${esc(i.t)}</p><small class="${!i.ok && i.req && i.upload ? 'red' : ''}">${esc(i.s)}</small></div>
-        <span class="act">${i.upload ? `<button class="btn btn--secondary btn--sm" type="button" data-up="${i.k}">${icon('upload', 'ic-14')}${i.ok ? 'Replace' : 'Upload'}</button>`
-          : i.write ? `<button class="btn btn--secondary btn--sm" type="button" data-write="${i.k}">${i.ok ? 'Edit' : 'Write'}</button>`
-          : i.fix && !i.ok ? `<a class="btn btn--secondary btn--sm" href="${i.fix[1]}">${i.fix[0]}</a>`
-          : i.view ? `<a class="nav__icon" href="${i.view}" target="_blank" aria-label="View">${icon('eye', 'ic-16')}</a>` : ''}</span></div>`).join('')}</div>
-      <div class="fo-lock">${icon('lock', 'ic-14')}<span>The funder gets read-only links to your files until ${esc(until)}. You can revoke them from your <a class="link" href="/data-room?p=${pid}">Data room</a>.</span></div>
-      ${sent ? `<button class="btn btn--secondary btn--block" type="button" disabled>${icon('check')}${(FU.STATUS[O.app.status] || ['Sent'])[0]}${O.app.submitted_at ? ' · ' + H.ago(O.app.submitted_at) : ''}</button>`
-        : closed ? `<button class="btn btn--secondary btn--block" type="button" disabled>${esc(O.round_note.split('·')[0])}</button><p class="t-caption c-3" style="text-align:center;font-weight:400;margin-top:10px">Get it ready now. You’ll be able to send it when the next round opens.</p>`
-        : `<button class="btn btn--accent btn--block" type="button" id="submit"${left ? ' disabled' : ''}>${O.can_email ? 'Submit application' : 'Submit on their site'}</button><p class="t-caption c-3" style="text-align:center;font-weight:400;margin-top:10px">${left ? `${left} item${left === 1 ? '' : 's'} left before you can submit` : O.can_email ? 'Sent straight to the funder with your files' : 'We’ll open their form and give you links to paste'}</p>`}`;
-  }
-  function equityPanel(sent) {
-    const f = FU.fit(O);
-    return `<div class="row between gap-12"><h2 class="fo-h">${O.how === 'intro' ? 'Get a warm intro' : 'Pitch ' + esc(O.name)}</h2><span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${f[0]}</span></div>
-      <p class="t-body-sm c-2" style="margin-top:8px">${esc(FU.KIND[O.kind])} · ${esc(O.amount_text || 'Cheque not disclosed')} · ${esc(O.stages.join(', ') || 'Any stage')}</p>
-      ${O.amount_note ? `<p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(O.amount_note)}</p>` : ''}
-      ${sent ? `<button class="btn btn--secondary btn--block" type="button" disabled style="margin-top:18px">${icon('check')}${(FU.STATUS[O.app.status] || ['Sent'])[0]} · ${H.ago(O.app.submitted_at || O.app.updated_at)}</button>`
-        : `<div class="stack gap-8" style="margin-top:18px">${O.how === 'intro' ? `<button class="btn btn--primary btn--block" type="button" id="intro">Ask for intro</button>` : `<button class="btn btn--primary btn--block" type="button" id="pitch">${icon('send', 'ic-16')}${O.can_email ? 'Send pitch' : 'Prepare pitch'}</button>`}
-          ${O.how !== 'intro' && (O.intro_via || []).length ? `<button class="btn btn--secondary btn--block" type="button" id="intro">Ask a founder they backed for an intro</button>` : ''}</div>
-          <p class="t-caption c-3" style="text-align:center;font-weight:400;margin-top:10px">${O.can_email ? 'Goes straight to their team with your files' : O.how === 'intro' ? 'A founder they backed, or Hentity, introduces you' : 'They take pitches on their site. We’ll get your links ready to paste.'}</p>`}`;
-  }
-  // -------- actions
-  const autosave = () => { clearTimeout(saveT); saveT = setTimeout(async () => { try { O.app = await API.fundingSend(oid, pid, 'draft', { answers: draft.answers, note: draft.note }); const s = qs('#saved'); s && (s.textContent = 'Saved just now'); } catch (e) {} }, 400); };
-  async function signedLinks(kinds, days) {
-    const dr = await API.dataroom(pid); const out = [{ label: O.product.name + ' on Hentity', url: `https://hentity.com/products/${O.product.slug}` }];
-    const L = { deck: 'Pitch deck', incorporation: 'Incorporation certificate', financials: 'Financials', cap_table: 'Cap table' };
-    for (const k of kinds) { const r = dr.find(x => x.kind === k && x.path); if (r) out.push({ label: L[k] || k, url: await API.dataroomLink(r.path, days) }); }
-    return out;
-  }
-  function linksSheet(links, url) {
-    const sh = FU.sheet(`<p class="t-h4">Finish on their site</p><p class="t-body-sm c-2" style="margin-top:6px">${esc(O.name)} takes applications on their own form. Paste these links where it asks for documents. They stop working after the access date.</p>
-      <div class="stack gap-8" style="margin:14px 0">${links.map(l => `<div class="row gap-8" style="padding:10px 12px;border:1px solid var(--color-border-default);border-radius:10px"><span class="grow truncate t-body-sm">${esc(l.label)}</span><button class="btn btn--ghost btn--sm" type="button" data-copy="${esc(l.url)}">${icon('copy', 'ic-14')}Copy</button></div>`).join('')}</div>
-      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost btn--sm" type="button" data-x>Close</button><a class="btn btn--primary btn--sm" href="${esc(url)}" target="_blank" rel="noopener">Open their form</a></div>`, { label: 'Finish on their site' });
-    sh.el.addEventListener('click', e => { const c = e.target.closest('[data-copy]'); if (c) navigator.clipboard.writeText(c.dataset.copy).then(() => toast('Link copied')); });
-  }
-  async function submitGrant(b) {
-    b.disabled = true; b.textContent = 'Sending…';
-    const days = O.decision_by ? Math.max(14, Math.ceil((new Date(O.decision_by) - new Date()) / 864e5) + 14) : 60;
-    try {
-      const links = await signedLinks(['deck', 'incorporation', 'financials', 'cap_table'], days);
-      O.app = await API.fundingSend(oid, pid, 'apply', { answers: draft.answers, links, attach: links.map(l => l.label) });
-      if (O.app.sent_to === 'site') linksSheet(links, O.apply_url || O.website); else toast('Application sent');
-      render();
-    } catch (e) { H.fail(e); b.disabled = false; b.textContent = 'Submit application'; }
-  }
-  function pitchSheet() {
-    const p = O.product, dr = p.dataroom || {};
-    const A = [['product', 'package', 'Product page', `hentity.com/products/${p.slug}`, true], ['deck', 'file-text', 'Pitch deck', dr.deck && dr.deck.file ? `Data room · v${dr.deck.version}` : 'Not in your Data room yet', !!(dr.deck && dr.deck.file)],
-      ['beta', 'flask', 'Beta results', p.testers ? `${p.testers} testers${p.beta_rating ? ' · ' + p.beta_rating + ' avg' : ''}` : 'No beta test yet', p.testers > 0], ['traction', 'bar-chart', 'Traction', dr.traction && dr.traction.text ? dr.traction.text.slice(0, 60) : 'Not written yet', !!(dr.traction && dr.traction.text)]];
-    const sh = FU.sheet(`<div class="row gap-12" style="align-items:flex-start">${FU.logo(O, 40)}<div class="grow" style="min-width:0"><p class="t-label">${O.can_email ? 'Send pitch to' : 'Pitch'} ${esc(O.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(FU.KIND[O.kind])} · ${esc(O.amount_text || 'Cheque not disclosed')} · ${esc(O.stages.join(', ') || 'Any stage')}</p></div><span class="badge badge--${FU.fit(O)[1] || 'outline'}">${FU.fit(O)[0]}</span></div>
-      <p class="t-label" style="margin-top:18px">Attached from ${esc(p.name)}</p>
-      ${A.map(([k, ic, t, s, ok]) => `<label class="fo-attach${ok ? '' : ' off'}"><span class="ib">${icon(ic, 'ic-18')}</span><span style="min-width:0"><span class="t-label" style="display:block">${t}</span><span class="t-caption c-3 truncate" style="font-weight:400;display:block">${esc(s)}</span></span><input type="checkbox" value="${k}"${ok ? ' checked' : ' disabled'}></label>`).join('')}
-      <label class="field" style="margin-top:16px"><span class="field__label">Short note</span><textarea class="input" id="pnote" rows="4" maxlength="1200" placeholder="What you’re raising, what it gets you to, and why them.">${esc(draft.note)}</textarea></label>
-      <p class="t-caption c-3 row gap-6" style="font-weight:400;margin:12px 0 14px">${icon('lock', 'ic-12')}${esc(O.name)} can view these files for 30 days. Revoke any time.</p>
-      <button class="btn btn--accent btn--block" type="button" id="psend">${icon('send', 'ic-16')}${O.can_email ? 'Send pitch' : 'Get links and open their site'}</button>`, { label: 'Send pitch', w: 480 });
-    sh.el.querySelector('#psend').onclick = async e => {
-      const b = e.currentTarget, sel = [...sh.el.querySelectorAll('input:checked')].map(i => i.value), note = sh.el.querySelector('#pnote').value.trim();
-      if (!note) { toast('Add a short note first', 'error'); return; }
-      b.disabled = true;
-      try {
-        const links = (await signedLinks(sel.includes('deck') ? ['deck'] : [], 30)).filter(l => sel.includes('product') || !l.url.startsWith('https://hentity.com/'));
-        if (sel.includes('beta')) links.push({ label: 'Beta results', url: `https://hentity.com/products/${p.slug}#beta` });
-        const full = sel.includes('traction') && dr.traction ? note + '\n\nTraction: ' + dr.traction.text : note;
-        O.app = await API.fundingSend(oid, pid, 'pitch', { note: full, links, attach: sel });
-        sh.close();
-        if (O.app.sent_to === 'site') linksSheet(links, O.apply_url || O.website); else toast('Pitch sent');
-        render();
-      } catch (er) { H.fail(er); b.disabled = false; }
-    };
-  }
-  function introSheet() {
-    const via = O.intro_via || [];
-    const sh = FU.sheet(`<p class="t-h4">Ask for an intro to ${esc(O.name)}</p>
-      <p class="t-body-sm c-2" style="margin-top:6px">${via.length ? 'Ask a founder they backed on Hentity to introduce you, or ask the Hentity team.' : 'The Hentity team will look for the best way to introduce you and get back to you.'}</p>
-      ${via.length ? `<label class="field" style="margin-top:14px"><span class="field__label">Who should introduce you</span><select class="input" id="via">${via.map(v => `<option value="${v.id}">${esc(v.name)}’s founders</option>`).join('')}<option value="">The Hentity team</option></select></label>` : ''}
-      <label class="field" style="margin-top:14px"><span class="field__label">Why ${esc(O.name)}, in a line or two</span><textarea class="input" id="inote" rows="4" maxlength="1200" placeholder="What you’re raising and why they’re a fit.">${esc(draft.note)}</textarea></label>
-      <div class="row gap-8" style="justify-content:flex-end;margin-top:16px"><button class="btn btn--ghost btn--sm" type="button" data-x>Cancel</button><button class="btn btn--primary btn--sm" type="button" id="isend">Ask for intro</button></div>`, { label: 'Ask for intro' });
-    sh.el.querySelector('#isend').onclick = async e => {
-      const note = sh.el.querySelector('#inote').value.trim(); if (!note) { toast('Add a line about why', 'error'); return; }
-      e.currentTarget.disabled = true;
-      try { const v = sh.el.querySelector('#via'); O.app = await API.fundingSend(oid, pid, 'intro', { note, via: v && v.value || null }); sh.close(); toast('Intro requested'); render(); } catch (er) { H.fail(er); e.currentTarget.disabled = false; }
-    };
-  }
-  function writeSheet(k) {
-    const isUse = k === 'use', dr = O.product.dataroom || {};
-    const cur = isUse ? (draft.answers.use_of_funds || '') : (dr.traction && dr.traction.text) || '';
-    const sh = FU.sheet(`<p class="t-h4">${isUse ? 'How will you use the funds?' : 'Traction'}</p><p class="t-body-sm c-2" style="margin-top:6px">${isUse ? 'Be specific: what you’ll spend it on and what it gets you to.' : 'Users, revenue, growth or pilots, in a line or two. Saved to your Data room and reused everywhere.'}</p>
-      <textarea class="input" id="wt" rows="${isUse ? 9 : 4}" style="margin-top:12px" maxlength="${isUse ? 2400 : 400}">${esc(cur)}</textarea><p class="t-caption c-3" id="wc" style="font-weight:400;margin-top:6px"></p>
-      <div class="row gap-8" style="justify-content:flex-end;margin-top:12px"><button class="btn btn--ghost btn--sm" type="button" data-x>Cancel</button><button class="btn btn--primary btn--sm" type="button" id="ws">Save</button></div>`, { label: 'Write' });
-    const t = sh.el.querySelector('#wt'), wc = sh.el.querySelector('#wc'); const cnt = () => { const w = t.value.trim().split(/\s+/).filter(Boolean).length; wc.textContent = isUse ? `${w} / 300 words` : ''; wc.style.color = w > 300 && isUse ? '#D92D20' : ''; }; t.oninput = cnt; cnt(); t.focus();
-    sh.el.querySelector('#ws').onclick = async () => {
-      const v = t.value.trim(); if (isUse && v.split(/\s+/).filter(Boolean).length > 300) { toast('Keep it under 300 words', 'error'); return; }
-      try { if (isUse) { draft.answers.use_of_funds = v; autosave(); } else { await API.dataroomText(pid, 'traction', v); O.product.dataroom = Object.assign({}, O.product.dataroom, { traction: { text: v } }); } sh.close(); render(); } catch (e) { H.fail(e); }
-    };
-  }
+  const track = async (patch, msg) => { try { await API.fundingTrack(oid, pid, patch); msg && toast(msg); await load(); } catch (e) { H.fail(e); } };
+  FU.bindReady(root, { get o() { return O; }, get p() { return O.product; }, get pid() { return pid; }, reload: load });
   root.addEventListener('click', async e => {
-    const up = e.target.closest('[data-up]');
-    if (up) { const f = await FU.pickFile(); if (!f) return; up.disabled = true; up.textContent = 'Uploading…'; try { await API.dataroomUpload(pid, up.dataset.up, f); toast('Added to your Data room'); await load(); } catch (er) { H.fail(er); up.disabled = false; } return; }
-    const w = e.target.closest('[data-write]'); if (w) { writeSheet(w.dataset.write); return; }
-    if (e.target.closest('#submit')) { submitGrant(e.target.closest('#submit')); return; }
-    if (e.target.closest('#pitch')) { pitchSheet(); return; }
-    if (e.target.closest('#intro')) { introSheet(); return; }
+    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else track({ status: 'saved', remind: true }, 'Saved. We’ll remind you before it closes.'); return; }
+    if (e.target.closest('#applied')) { if (!O.track || O.track.status !== 'applied') track({ status: 'applied', applied_at: new Date().toISOString() }, 'Marked as applied'); return; }
+    if (e.target.closest('#unapply')) { track({ status: 'saved', applied_at: null }, 'Moved back to saved'); return; }
+    // Opening their site saves it, so it shows in the tracker and reminders work
+    if (e.target.closest('#go') && !O.track) API.fundingTrack(oid, pid, { status: 'saved', remind: true }).then(load).catch(() => {});
   });
+  root.addEventListener('change', e => { if (e.target.id === 'remind') track({ remind: e.target.checked, status: O.track ? O.track.status : 'saved' }, e.target.checked ? 'Reminders on' : 'Reminders off'); });
   load();
 })();
 </script>
