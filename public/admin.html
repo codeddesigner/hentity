@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=2b6dd08152">
+<link rel="stylesheet" href="/assets/styles.css?v=98ff5e55e9">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=9cc6747cba"></script>
-<script src="/assets/app.js?v=44a8cd606e"></script>
+<script src="/assets/app.js?v=a6a3882fcb"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -959,7 +959,7 @@ H.mount();
   async function route() {
     const [k, arg] = (location.hash.slice(1) || 'dashboard').split('/');
     if (!V[k] || (!isFullAdmin && FULL_ONLY.includes(k))) { location.hash = 'dashboard'; return; }
-    if (k === 'review' && arg && qs('.drawer')) return; // drawer already open
+    if (k === 'review' && arg && qs('.drawer:not(.is-closing)')) return; // drawer already open
     qsa('.drawer,.drawer-bg').forEach(x => x.remove());
     qs('#main').innerHTML = '<div class="skel" style="height:40px;width:240px;margin-bottom:24px"></div><div class="skel" style="height:320px"></div>';
     try { await V[k](arg); qs('#main').classList.remove('reveal'); void qs('#main').offsetWidth; qs('#main').classList.add('reveal'); } catch (e) { H.fail(e); qs('#main').innerHTML = `<div class="alert alert--error">${icon('alert-circle')}<div><p class="alert__title">Couldn’t load ${esc(k)}</p><p class="alert__body">${esc(e.message)}</p></div></div>`; }

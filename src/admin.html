@@ -899,7 +899,7 @@ H.mount();
   async function route() {
     const [k, arg] = (location.hash.slice(1) || 'dashboard').split('/');
     if (!V[k] || (!isFullAdmin && FULL_ONLY.includes(k))) { location.hash = 'dashboard'; return; }
-    if (k === 'review' && arg && qs('.drawer')) return; // drawer already open
+    if (k === 'review' && arg && qs('.drawer:not(.is-closing)')) return; // drawer already open
     qsa('.drawer,.drawer-bg').forEach(x => x.remove());
     qs('#main').innerHTML = '<div class="skel" style="height:40px;width:240px;margin-bottom:24px"></div><div class="skel" style="height:320px"></div>';
     try { await V[k](arg); qs('#main').classList.remove('reveal'); void qs('#main').offsetWidth; qs('#main').classList.add('reveal'); } catch (e) { H.fail(e); qs('#main').innerHTML = `<div class="alert alert--error">${icon('alert-circle')}<div><p class="alert__title">Couldn’t load ${esc(k)}</p><p class="alert__body">${esc(e.message)}</p></div></div>`; }

@@ -1401,3 +1401,96 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 @media print{.hx-pill{display:none}}
 .hx-compose--done .btn{align-self:flex-start;width:auto}
 .hx-foot .link{color:var(--color-text-tertiary);font-weight:400}.hx-foot .link:hover{color:var(--color-text-primary)}
+
+/* ==========================================================================
+   Motion v2: one feel across the product.
+   Fast, springy presses; soft hovers; dialogs and sheets that spring in and
+   ease out. Uses the independent scale/translate properties so it never
+   fights an element's own transform. All of it switches off for people who
+   ask for reduced motion (see the rule near the top of this file).
+   ========================================================================== */
+:root{
+  --ease-out:cubic-bezier(.22,1,.36,1);        /* settles quickly, no overshoot */
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);  /* small overshoot, for presses and pops */
+  --ease-soft:cubic-bezier(.2,.8,.2,1);
+  --t-fast:140ms;--t-med:240ms;--t-slow:420ms;
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* Press: everything you can tap gives a little, then springs back */
+:is(button,.btn,.chip,.badge[href],a.fpill,.nav__icon,.sb-item,.citem,.tab,.menu__item,.cal__d,.hx-chip,.hx-metoo,.hx-up,.rv-help,.sv-bm,.fsave,.fu-save,.rv-bar,.hx-pill,.choice,.react,.send,.upvote,.sv-up){
+  transition:scale var(--t-med) var(--ease-spring),translate var(--t-med) var(--ease-out),transform var(--t-med) var(--ease-out),background-color var(--t-fast) ease,border-color var(--t-fast) ease,color var(--t-fast) ease,box-shadow var(--t-med) var(--ease-out),opacity var(--t-fast) ease}
+:is(button,.btn,.chip,.badge[href],a.fpill,.nav__icon,.sb-item,.citem,.tab,.menu__item,.cal__d,.hx-chip,.hx-metoo,.hx-up,.rv-help,.sv-bm,.fsave,.fu-save,.hx-pill,.react,.send,.upvote,.sv-up):active:not(:disabled){scale:.95;transition-duration:90ms}
+:is(.btn--block,.btn--lg,.choice,.rv-bar,.menu__item,.sb-item,.citem):active:not(:disabled){scale:.985}
+.btn:active:not(:disabled),.chip:active,.upvote:active,.cal__d:active:not(:disabled){transform:none}   /* replaced by scale above */
+.tabbar a{transition:scale var(--t-med) var(--ease-spring)}.tabbar a:active{transform:none;scale:.9}
+
+/* Hover: a lift on the main actions, a soft fill on the quiet ones */
+@media (hover:hover){
+  .btn--primary:hover:not(:disabled),.btn--accent:hover:not(:disabled){translate:0 -1px}
+  .btn--primary:hover:not(:disabled){box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
+  .btn--secondary:hover:not(:disabled){box-shadow:0 4px 12px -8px rgba(16,24,40,.25)}
+  .nav__icon:hover{scale:1.06}
+  .hx-pill:hover{translate:0 -2px}
+  .hx-rv,.rv,.sv-row{transition:border-color var(--t-med) ease,box-shadow var(--t-med) var(--ease-out),background-color var(--t-med) ease}
+  .hx-rv:hover{border-color:var(--color-border-strong);box-shadow:0 6px 18px -12px rgba(16,24,40,.25)}
+}
+
+/* Focus: the ring grows in instead of snapping on */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--color-accent-default);outline-offset:2px;transition:outline-offset var(--t-fast) var(--ease-out)}
+.input{transition:border-color var(--t-fast) ease,box-shadow var(--t-med) var(--ease-out),background-color var(--t-fast) ease}
+
+/* Toggles that turn on (save, bookmark, Me too, Helpful, votes) pop */
+@keyframes press-pop{0%{scale:1}35%{scale:1.32}65%{scale:.92}100%{scale:1}}
+:where(.sv-bm,.fsave,.fu-save,.hx-metoo,.hx-up,.rv-help,#save,#isave,#bsave)[aria-pressed="true"] .ic,
+:where(.hx-metoo,.hx-up)[aria-pressed="true"] svg{animation:press-pop .42s var(--ease-out)}
+.hx-pick button.is-on svg,.rv-pick button.is-on svg{animation:press-pop .38s var(--ease-out)}
+.toggle__track::after{transition:transform .32s var(--ease-spring),width .18s ease}
+.toggle input:active+.toggle__track::after{width:20px}
+.check__box{transition:background-color var(--t-fast) ease,border-color var(--t-fast) ease,scale var(--t-med) var(--ease-spring)}
+.check input:checked+.check__box{animation:press-pop .34s var(--ease-out)}
+
+/* Dialogs: the backdrop fades, the card springs up; both ease out on close */
+@keyframes scrim-in{from{opacity:0}}
+@keyframes scrim-out{to{opacity:0}}
+@keyframes modal-in{from{opacity:0;transform:translateY(14px) scale(.96)}}
+@keyframes modal-out{to{opacity:0;transform:translateY(8px) scale(.98)}}
+@keyframes sheet-in{from{transform:translateY(100%)}}
+@keyframes sheet-out{to{transform:translateY(100%)}}
+@keyframes drawer-in{from{transform:translateX(100%)}}
+@keyframes drawer-out{to{transform:translateX(100%)}}
+.scrim{animation:scrim-in var(--t-med) ease both}
+.scrim>.modal,.modal{animation:modal-in .34s var(--ease-spring) both}
+.scrim.is-closing{animation:scrim-out .2s ease forwards}
+.scrim.is-closing>.modal{animation:modal-out .2s var(--ease-out) forwards}
+.drawer{animation:drawer-in .36s var(--ease-out) both}
+.drawer.is-closing{animation:drawer-out .22s var(--ease-out) forwards}
+.drawer-bg.is-closing{animation:scrim-out .2s ease forwards}
+@media (max-width:768px){
+  .fu-scrim>.fu-sheet,.bsheet,.lsheet{animation:sheet-in .38s var(--ease-out) both}
+  .scrim.is-closing>.fu-sheet{animation:sheet-out .22s var(--ease-out) forwards}
+}
+.menu{animation:pop .2s var(--ease-out);transform-origin:top right}
+.menu.is-closing{animation:modal-out .14s ease forwards}
+
+/* Toasts glide up with a little give, and glide away */
+@keyframes toast-in{from{opacity:0;transform:translateY(14px) scale(.95)}}
+.toast{animation:toast-in .38s var(--ease-spring) both}
+.toast.is-leaving{opacity:0;transform:translateY(8px) scale(.97);transition:opacity .22s ease,transform .22s var(--ease-out)}
+
+/* Content arriving after a load fades in instead of popping */
+@keyframes content-in{from{opacity:0;transform:translateY(6px)}}
+.sv-body>*,.hx-list>.hx-rv,.rv-list>.rv,#rv-form,#hx-compose>*,.fu-cards>*,.fd-cards>*{animation:content-in .42s var(--ease-out) both}
+.hx-list>.hx-rv:nth-child(2),.fu-cards>:nth-child(2),.fd-cards>:nth-child(2){animation-delay:40ms}
+.hx-list>.hx-rv:nth-child(3),.fu-cards>:nth-child(3),.fd-cards>:nth-child(3){animation-delay:80ms}
+.hx-list>.hx-rv:nth-child(n+4),.fu-cards>:nth-child(n+4),.fd-cards>:nth-child(n+4){animation-delay:120ms}
+
+/* Bars and meters grow into place */
+@keyframes grow-x{from{transform:scaleX(0)}}
+.rv-bar em,.hx-bar em,.bcard__bar i{transform-origin:left;animation:grow-x .7s var(--ease-out) both}
+
+/* Switching light/dark crossfades colours for a moment instead of flashing */
+html.theme-fade,html.theme-fade *{transition:background-color .3s ease,border-color .3s ease,color .3s ease,fill .3s ease!important}
+/* Clickable rows and cards press in very slightly */
+.prow,.fu-card,.fcard,.bcard,.card.lift,.art-row{transition:scale var(--t-med) var(--ease-spring),translate var(--t-med) var(--ease-out),transform .35s var(--ease-soft),box-shadow var(--t-med) var(--ease-out),border-color var(--t-fast) ease,background-color var(--t-fast) ease}
+.prow:active,.fcard:active,.bcard:active,.card.lift:active,.art-row:active{scale:.992;transition-duration:90ms}

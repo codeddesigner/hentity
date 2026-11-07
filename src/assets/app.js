@@ -143,7 +143,29 @@
   function hhmm(ts) { return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
 
   // ---------- Theme ----------
-  function applyTheme(t) { document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'; }
+  let themeT;
+  function applyTheme(t) {
+    const d = document.documentElement, next = t === 'dark' ? 'dark' : 'light';
+    // Crossfade colours when the theme actually changes (not on first paint)
+    if (d.dataset.theme && d.dataset.theme !== next) { d.classList.add('theme-fade'); clearTimeout(themeT); themeT = setTimeout(() => d.classList.remove('theme-fade'), 350); }
+    d.dataset.theme = next;
+  }
+  // Dialogs, sheets, drawers and menus play a short closing animation before they leave the page.
+  // Anything that calls .remove() on them gets this for free. While closing they stop taking clicks
+  // and drop their ids, so a replacement opened straight away is the one scripts find.
+  (function () {
+    const native = Element.prototype.remove, EXIT = '.scrim, .drawer, .drawer-bg, .menu';
+    const calm = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+    Element.prototype.remove = function () {
+      if (this.isConnected && this.nodeType === 1 && !this.classList.contains('is-closing') && this.matches(EXIT) && !calm()) {
+        this.classList.add('is-closing'); this.style.pointerEvents = 'none';
+        this.removeAttribute('id'); this.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+        setTimeout(() => native.call(this), this.matches('.menu') ? 140 : 210);
+        return;
+      }
+      return native.call(this);
+    };
+  })();
   applyTheme(store.get('theme', 'light'));
 
   // ---------- Toasts ----------
