@@ -45,14 +45,14 @@ create policy "review votes own" on public.product_review_votes for insert with 
 drop policy if exists "review votes delete own" on public.product_review_votes;
 create policy "review votes delete own" on public.product_review_votes for delete using (user_id = auth.uid());
 grant select, insert, update, delete on public.product_reviews, public.product_review_votes to authenticated;
-grant select on public.product_reviews to anon;
 
 -- Rules a reviewer can't get around from the browser
 create or replace function public.guard_review() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare st text;
 begin
-  if public.is_admin() then return new; end if;
+  -- system updates (Helpful counts, maker replies) set this flag; admins may moderate
+  if public.is_admin() or current_setting('hentity.review_sys', true) = 'on' then return new; end if;
   if tg_op = 'INSERT' then
     select status into st from products where id = new.product_id;
     if st is null or st not in ('live', 'scheduled', 'unclaimed') then raise exception 'This product can’t be reviewed yet'; end if;
@@ -74,10 +74,12 @@ create or replace function public.review_summary_sync() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare pid uuid := coalesce(new.product_id, old.product_id);
 begin
+  perform set_config('hentity.counter', 'on', true);   -- let the product guard accept this counter update
   update products set
     review_count = (select count(*) from product_reviews where product_id = pid and not hidden),
     rating_avg = (select round(avg(rating)::numeric, 1) from product_reviews where product_id = pid and not hidden)
   where id = pid;
+  perform set_config('hentity.counter', 'off', true);
   return null;
 end $$;
 drop trigger if exists review_summary_sync on public.product_reviews;
@@ -86,8 +88,10 @@ create trigger review_summary_sync after insert or update of rating, hidden or d
 create or replace function public.review_vote_sync() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
+  perform set_config('hentity.review_sys', 'on', true);
   update product_reviews set helpful_count = (select count(*) from product_review_votes where review_id = coalesce(new.review_id, old.review_id))
   where id = coalesce(new.review_id, old.review_id);
+  perform set_config('hentity.review_sys', 'off', true);
   return null;
 end $$;
 drop trigger if exists review_vote_sync on public.product_review_votes;
@@ -152,8 +156,10 @@ begin
   select * into r from product_reviews where id = rid;
   if r.id is null then raise exception 'Review not found'; end if;
   if not public.is_maker(r.product_id) and not public.is_admin() then raise exception 'Only the product’s team can reply'; end if;
+  perform set_config('hentity.review_sys', 'on', true);
   update product_reviews set maker_reply = nullif(trim(txt), ''), maker_reply_at = case when nullif(trim(txt), '') is null then null else now() end,
     maker_reply_by = case when nullif(trim(txt), '') is null then null else auth.uid() end where id = rid;
+  perform set_config('hentity.review_sys', 'off', true);
   if nullif(trim(txt), '') is not null then
     perform public.notify(r.user_id, 'review_reply', 'comments', 'The team replied to your review of <b>' || public.h_esc((select name from products where id = r.product_id)) || '</b>.',
       left(trim(txt), 140), '/products/' || (select slug from products where id = r.product_id) || '#reviews', 'See reply', auth.uid(), r.product_id);
