@@ -23,10 +23,12 @@
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
   function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
+  // A page that fails while loading its data shows the readable server copy instead of a blank screen
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
   function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { d.classList.remove('js-boot'); check(); }, 8000);
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>

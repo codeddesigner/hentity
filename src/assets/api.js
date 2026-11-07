@@ -152,6 +152,7 @@
     weeks: () => q(sb.from('weeks').select('*').order('id')),
     async board({ week, country, pay, limit } = {}) {
       const key = `board:${week}:${country || 'all'}:${pay || ''}:${limit || 60}`; if (Object.prototype.hasOwnProperty.call(PRE, key)) return pre(key);
+      if (!week) return [];   // no launch week (e.g. listed by an admin): nothing to rank against
       let s = sb.from('product_feed').select(PRODUCT_COLS).eq('week_id', week).eq('effective_status', 'live');   // a product appears from 06:00 WAT on its launch day
       if (country && country !== 'all') s = s.eq('country', country);
       if (pay) s = s.contains('pay_methods', [pay]);
