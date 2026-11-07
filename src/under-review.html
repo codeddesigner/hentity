@@ -46,7 +46,7 @@ H.mount({ active: 'my-products', tab: 'launch' });
   qs('#wait').innerHTML = W.map((t, i) => `<label class="check"><input type="checkbox" data-i="${i}" ${done[i] ? 'checked' : ''}><span class="check__box">${icon('check')}</span>${t}</label>`).join('');
   qs('#wait').addEventListener('change', e => { done[+e.target.dataset.i] = e.target.checked; H.store.set(key, done); });
   qs('#view').href = '/submit?id=' + p.id;
-  qs('#withdraw').addEventListener('click', async () => { if (!confirm('Withdraw from review? You can edit and resubmit; your launch day is held while it has room.')) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id; } catch (e) { H.fail(e); } });
+  qs('#withdraw').addEventListener('click', async () => { if (!(await H.confirm('Withdraw from review?', { body: 'You can edit and resubmit. Your launch day is held while it has room.', ok: 'Withdraw' }))) return; try { await API.saveProduct(p.id, { status: 'draft' }); location.href = '/submit?id=' + p.id; } catch (e) { H.fail(e); } });
   if (API.isAdmin) qs('#admin-box').hidden = false, qs('#admin-link').href = '/admin#review/' + p.id;
   API.live('rv', 'products', 'id=eq.' + p.id, ({ new: n }) => { if (n && n.status !== 'review') { toast('Your review decision is in'); setTimeout(() => location.reload(), 900); } });
 })();

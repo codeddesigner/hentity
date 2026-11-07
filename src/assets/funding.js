@@ -30,7 +30,6 @@
 
   const pickPid = list => { const want = H.params().get('p') || store.get('fundingPid', ''); return (list.find(p => p.id === want) || list[0] || {}).id; };
   const setPid = id => store.set('fundingPid', id);
-  const pickFile = accept => new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.accept = accept || '.pdf,.pptx,.ppt,.xlsx,.xls,.csv,.png,.jpg,.jpeg'; i.onchange = () => res(i.files[0] || null); i.click(); });
   const copy = (text, what) => navigator.clipboard.writeText(text).then(() => toast((what || 'Text') + ' copied'), () => toast('Couldn’t copy', 'error'));
 
   function sheet(html, opts = {}) {
@@ -100,66 +99,12 @@
   // The checked link to the funder's own application page
   const linkBox = o => `<div class="fu-link">${icon('globe', 'ic-18')}<a class="grow" style="min-width:0" href="${esc(applyUrl(o))}" target="_blank" rel="noopener"><span class="t-label truncate" style="display:block">${esc(host(applyUrl(o)))}</span><span class="t-caption c-3" style="font-weight:400">${o.checked_at ? 'Link checked by Hentity on ' + fmtDate(o.checked_at) : 'Official page'}</span></a><button class="nav__icon" type="button" data-copylink="${esc(applyUrl(o))}" aria-label="Copy link">${icon('copy', 'ic-16')}</button></div>`;
 
-  // What funders usually ask for, from the product page, Studio and files the team uploaded
-  function readyItems(o, p, kind) {
-    const dr = p.dataroom || {}, f = k => dr[k] && dr[k].file;
-    const up = k => f(k) ? `Uploaded to ${p.name} · v${dr[k].version || 1}` : 'Not uploaded yet';
-    const beta = p.testers > 0 ? `Studio · ${p.testers} tester${p.testers === 1 ? '' : 's'}${p.beta_rating ? ' · ' + p.beta_rating + ' avg' : ''}` : 'No beta test yet · optional';
-    const all = {
-      pitch: { k: 'pitch', ic: 'sparkles', t: 'One-line pitch', s: p.tagline ? 'From your product page' : 'Add a tagline to your product page', ok: !!p.tagline, act: p.tagline ? 'copy' : 'edit' },
-      traction: { k: 'traction', ic: 'bar-chart', t: 'Traction', s: dr.traction && dr.traction.text ? dr.traction.text : 'Users, revenue or growth in a line', ok: !!(dr.traction && dr.traction.text), act: dr.traction && dr.traction.text ? 'copy' : 'write' },
-      deck: { k: 'deck', ic: 'file-text', t: 'Pitch deck', s: up('deck'), ok: !!f('deck'), act: f('deck') ? 'download' : 'upload' },
-      beta: { k: 'beta', ic: 'flask', t: 'Beta results summary', s: beta, ok: p.testers > 0, opt: true, act: p.testers > 0 ? 'download' : 'studio' },
-      financials: { k: 'financials', ic: 'bar-chart', t: 'Financials (last 6 months)', s: up('financials'), ok: !!f('financials'), act: f('financials') ? 'download' : 'upload' },
-      incorporation: { k: 'incorporation', ic: 'file-text', t: 'Incorporation certificate', s: up('incorporation'), ok: !!f('incorporation'), act: f('incorporation') ? 'download' : 'upload' },
-      link: { k: 'link', ic: 'package', t: 'Product page link', s: 'hentity.com/products/' + p.slug, ok: true, act: 'copylink' }
-    };
-    const keys = kind === 'equity' ? ['deck', 'traction', 'link'] : ['pitch', 'traction', 'deck', 'beta', 'financials'].concat(o.needs_incorporation ? ['incorporation'] : []);
-    return keys.map(k => all[k]);
-  }
-  const ACT = { copy: ['copy', 'Copy'], copylink: ['copy', 'Copy'], download: ['download', 'Download'], upload: ['upload', 'Add'], write: ['plus', 'Add'], edit: ['plus', 'Add'], studio: ['flask', 'Studio'] };
-  function readyList(o, p, kind, marks) {
-    return readyItems(o, p, kind).map(i => `<div class="fu-ready">${marks ? (i.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : i.opt ? '<span class="fu-todo"></span>' : `<span class="fu-no">${icon('alert-circle', 'ic-12')}</span>`) : `<span class="fu-ib">${icon(i.ic, 'ic-16')}</span>`}
-      <div style="min-width:0" class="grow"><p class="t-label">${esc(i.t)}</p><p class="t-caption ${!i.ok && !i.opt ? 'fu-red' : 'c-3'} truncate" style="font-weight:400">${esc(i.s)}</p></div>
-      ${i.ok && ['download'].includes(i.act) ? `<button class="nav__icon" type="button" data-rd="replace" data-k="${i.k}" aria-label="Replace ${esc(i.t)}" title="Replace">${icon('upload', 'ic-14')}</button>` : ''}
-      ${i.ok && i.k === 'traction' ? `<button class="nav__icon" type="button" data-rd="write" data-k="traction" aria-label="Edit traction" title="Edit">${icon('edit', 'ic-14')}</button>` : ''}
-      <button class="btn btn--ghost btn--sm fu-ract" type="button" data-rd="${i.act}" data-k="${i.k}">${icon(ACT[i.act][0], 'ic-14')}${ACT[i.act][1]}</button></div>`).join('');
-  }
-  // Wire the "Get ready" buttons. ctx: { o, p, pid, reload }
-  function bindReady(el, ctx) {
-    el.addEventListener('click', async e => {
-      const cl = e.target.closest('[data-copylink]'); if (cl) { copy(cl.dataset.copylink, 'Link'); return; }
-      const b = e.target.closest('[data-rd]'); if (!b) return;
-      const { p, pid } = ctx, k = b.dataset.k, a = b.dataset.rd, dr = p.dataroom || {};
-      if (a === 'copy') { copy(k === 'pitch' ? p.tagline : (dr.traction || {}).text || '', k === 'pitch' ? 'Pitch' : 'Traction'); return; }
-      if (a === 'copylink') { copy('https://hentity.com/products/' + p.slug, 'Link'); return; }
-      if (a === 'edit') { location.href = `/products/${p.slug}/edit`; return; }
-      if (a === 'studio') { location.href = '/studio'; return; }
-      if (a === 'write') { writeTraction(pid, (dr.traction || {}).text || '', ctx.reload); return; }
-      if (a === 'upload' || a === 'replace') {
-        const f = await pickFile(k === 'deck' ? '.pdf,.pptx,.ppt' : undefined); if (!f) return;
-        const lab = b.innerHTML; b.disabled = true; b.textContent = 'Uploading…';
-        try { await API.dataroomUpload(pid, k, f); toast('Uploaded'); ctx.reload && ctx.reload(); } catch (er) { H.fail(er); b.disabled = false; b.innerHTML = lab; }
-        return;
-      }
-      if (a === 'download' && k === 'beta') {
-        const txt = `${p.name}: beta results\n\nTesters: ${p.testers}${p.beta_rating ? `\nAverage ease rating: ${p.beta_rating} / 5` : ''}${p.comments ? `\nComments on Hentity: ${p.comments}` : ''}\n\nProduct page: https://hentity.com/products/${p.slug}\nFrom Hentity Studio, ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}\n`;
-        const u = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); const l = document.createElement('a'); l.href = u; l.download = p.slug + '-beta-results.txt'; l.click(); setTimeout(() => URL.revokeObjectURL(u), 2000); return;
-      }
-      if (a === 'download') {
-        try { const rows = await API.dataroom(pid); const r = rows.find(x => x.kind === k && x.path); if (!r) throw new Error('File not found'); window.open(await API.dataroomLink(r.path, 0.02), '_blank', 'noopener'); } catch (er) { H.fail(er); }
-      }
-    });
-  }
-  function writeTraction(pid, cur, done) {
-    const sh = sheet(`<p class="t-h4">Traction</p><p class="t-body-sm c-2" style="margin-top:6px">Users, revenue, growth or pilots, in a line. You can copy it into any application.</p>
-      <textarea class="input" id="wt" rows="3" maxlength="300" style="margin-top:12px" placeholder="400 farmers · 61% weekly active">${esc(cur)}</textarea>
-      <div class="row gap-8" style="justify-content:flex-end;margin-top:12px"><button class="btn btn--ghost btn--sm" type="button" data-x>Cancel</button><button class="btn btn--primary btn--sm" type="button" id="ws">Save</button></div>`, { label: 'Traction' });
-    const t = sh.el.querySelector('#wt'); t.focus();
-    sh.el.querySelector('#ws').onclick = async () => { try { await API.dataroomText(pid, 'traction', t.value.trim()); sh.close(); toast('Saved'); done && done(); } catch (e) { H.fail(e); } };
+  // The copy button in the funder link box
+  function bindLink(el) {
+    el.addEventListener('click', e => { const cl = e.target.closest('[data-copylink]'); if (cl) copy(cl.dataset.copylink, 'Link'); });
   }
 
-  // Investor sheet: checked link, what to have ready, Save and Apply on site
+  // Investor sheet: checked link, Save and Apply on site
   function investorSheet(o, p, pid, onChange) {
     const f = fit(o);
     const html = () => { const t = o.track, applied = t && t.status === 'applied';
@@ -176,10 +121,10 @@
       <p class="t-caption c-3" style="font-weight:400;margin-top:12px">${applied ? `Marked applied. <button class="link" type="button" id="iunapply">Undo</button>` : 'Mark it applied to move it to “Applied”.'} <a class="link" href="/funding/${o.id}?p=${pid}">Full details</a></p>`; };
     const sh = sheet(html(), { label: o.name, w: 480 });
     const reload = async () => { try { const x = await API.fundingOpp(o.id, pid); Object.assign(o, { track: x.track }); p = x.product; sh.el.innerHTML = '<span class="fu-grab" aria-hidden="true"></span>' + html(); onChange && onChange(); } catch (e) { H.fail(e); } };
-    bindReady(sh.el, { o, get p() { return p; }, pid, reload });
+    bindLink(sh.el);
     sh.el.addEventListener('click', async e => {
       const act = async (fn, msg) => { try { await fn(); toast(msg); await reload(); } catch (er) { H.fail(er); } };
-      if (e.target.closest('#isave')) { if (o.track && o.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; act(() => o.track ? API.fundingUntrack(o.id) : API.fundingTrack(o.id, pid, { status: 'saved', remind: true }), o.track ? 'Removed' : 'Saved'); return; }
+      if (e.target.closest('#isave')) { if (o.track && o.track.status === 'applied' && !(await H.confirm('Remove this from your tracker?', { body: 'It’s marked as applied, so you’ll stop getting its results reminder.', ok: 'Remove' }))) return; act(() => o.track ? API.fundingUntrack(o.id) : API.fundingTrack(o.id, pid, { status: 'saved', remind: true }), o.track ? 'Removed' : 'Saved'); return; }
       if (e.target.closest('#iapplied')) { if (!o.track || o.track.status !== 'applied') act(() => API.fundingTrack(o.id, pid, { status: 'applied', applied_at: new Date().toISOString() }), 'Marked as applied'); return; }
       if (e.target.closest('#iunapply')) { act(() => API.fundingTrack(o.id, pid, { status: 'saved', applied_at: null }), 'Moved back to saved'); return; }
       if (e.target.closest('#igo') && !o.track) API.fundingTrack(o.id, pid, { status: 'saved', remind: true }).then(reload).catch(() => {});
@@ -187,5 +132,5 @@
     return sh;
   }
 
-  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, pickFile, copy, sheet, linkBox, readyItems, readyList, bindReady, writeTraction, investorSheet, editSheet, editBtn };
+  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, copy, sheet, linkBox, bindLink, investorSheet, editSheet, editBtn };
 })();

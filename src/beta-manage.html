@@ -42,7 +42,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
   let b = await API.beta(id).catch(() => null);
   const isAdmin = API.profile && ['admin', 'moderator'].includes(API.profile.role);
-  if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/betas">Beta tests</a></div>`; return; }
+  if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/studio">Your beta tests</a></div>`; return; }
   const p = b.product || {};
   document.title = `${b.title} | Beta dashboard | Hentity`;
   let apps = [], fbs = [], tab = H.params().get('tab') || 'applicants', room = null;
@@ -77,7 +77,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     M.countUp(qs('#bm'));
     qsa('[data-tab]').forEach(t => t.onclick = () => { tab = t.dataset.tab; history.replaceState(null, '', '?tab=' + tab); qsa('[data-tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); panel(); });
     if (qs('#nudge')) qs('#nudge').onclick = async e => { e.target.disabled = true; try { const n = await API.nudgeTesters(b.id); toast(`Nudged ${n} tester${n === 1 ? '' : 's'}`); } catch (err) { e.target.disabled = false; H.fail(err); } };
-    if (qs('#close-early')) qs('#close-early').onclick = async () => { if (!confirm('Close applications now? Accepted testers keep their access.')) return; try { await API.saveBeta(b.id, { status: 'closed' }); b.status = 'closed'; toast('Applications closed'); frame(); } catch (e) { H.fail(e); } };
+    if (qs('#close-early')) qs('#close-early').onclick = async () => { if (!(await H.confirm('Close applications now?', { body: 'Accepted testers keep their access.', ok: 'Close applications' }))) return; try { await API.saveBeta(b.id, { status: 'closed' }); b.status = 'closed'; toast('Applications closed'); frame(); } catch (e) { H.fail(e); } };
     if (qs('#reopen')) qs('#reopen').onclick = async () => { if (new Date(b.closes_at) <= new Date()) { location.href = '/studio/' + (b.product || {}).slug + '/' + b.id + '?step=details'; return; } try { await API.saveBeta(b.id, { status: 'open' }); b.status = 'open'; toast('Reopened'); frame(); } catch (e) { H.fail(e); } };
     panel(); H.contentShown();
   }
@@ -141,7 +141,7 @@ H.mount({ active: 'my-products', tab: 'you' });
       el.onchange = async e => { const t = e.target.closest('[data-tag]'); if (!t) return; const f = fbs.find(x => x.id === t.dataset.tag); f.tag = t.value.trim(); try { await API.updateFeedback(f.id, { tag: f.tag }); panel(); } catch (err) { H.fail(err); } };
       el.onclick = async e => {
         const fx = e.target.closest('[data-fixed]'); if (fx) { const f = fbs.find(x => x.id === fx.dataset.fixed); f.fixed = !f.fixed; try { await API.updateFeedback(f.id, { fixed: f.fixed }); toast(f.fixed ? 'Marked as fixed' : 'Marked as open'); panel(); } catch (err) { H.fail(err); } return; }
-        const rp = e.target.closest('[data-reply]'); if (rp) { const f = fbs.find(x => x.id === rp.dataset.reply); const txt = prompt('Reply to ' + f.name.split(' ')[0] + ' (they see it on their beta page)', f.maker_reply || ''); if (txt == null) return; f.maker_reply = txt.trim() || null; try { await API.updateFeedback(f.id, { maker_reply: f.maker_reply }); toast('Reply sent'); panel(); } catch (err) { H.fail(err); } }
+        const rp = e.target.closest('[data-reply]'); if (rp) { const f = fbs.find(x => x.id === rp.dataset.reply); const txt = await H.ask('Reply to ' + f.name.split(' ')[0], { body: 'They see it on their beta page.', value: f.maker_reply || '', multiline: true, optional: true, ok: 'Send reply' }); if (txt == null) return; f.maker_reply = txt.trim() || null; try { await API.updateFeedback(f.id, { maker_reply: f.maker_reply }); toast('Reply sent'); panel(); } catch (err) { H.fail(err); } }
       };
     }
   }

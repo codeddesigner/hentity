@@ -23,25 +23,27 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
+<link rel="stylesheet" href="/assets/styles.css?v=c9a5c77cbc">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
 (function () {
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
-  function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
   // A page that fails while loading its data shows the readable server copy instead of a blank screen
-  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
-  function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=65457c8848"></script>
-<script src="/assets/app.js?v=960cdd2c4a"></script>
+<script src="/assets/app.js?v=7a854471d7"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -85,7 +87,7 @@
 <div data-header></div>
 <main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=2b1eaa5ed3"></script>
+<script src="/assets/find.js?v=b6d36be2b8"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -137,7 +139,7 @@ H.mount({ active: 'find', tab: 'chats' });
     if (r.my_interest) {
       const mi = r.my_interest, done = mi.status === 'accepted';
       box.innerHTML = grab + `<h2 class="t-h3">${done ? 'It’s a match' : mi.mine ? (job ? 'Application sent' : 'Interest sent') : `${esc(pName)} invited you`}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${done ? 'You both said yes.' : mi.mine ? `${esc(pName)} ${job ? 'has your application' : 'gets your intro'}. If they say yes too, you’ll both see each other and a chat opens.` : 'Answer in My matches.'}</p>${r.match_id ? `<a class="btn btn--primary btn--block" href="/find/m/${r.match_id}">Open match</a>` : `<div class="stack gap-8"><a class="btn btn--secondary btn--block" href="/find/matches">My matches</a>${mi.mine && mi.status === 'pending' && mi.id ? `<button class="btn btn--ghost btn--block" type="button" id="wd">Withdraw</button>` : ''}</div>`}`;
-      const wd = qs('#wd'); wd && (wd.onclick = async () => { if (!confirm(job ? 'Withdraw your application?' : 'Withdraw your interest?')) return; try { await API.findWithdraw(mi.id); r.my_interest = null; r.interest_count = Math.max(0, r.interest_count - 1); toast('Withdrawn'); panel(); } catch (e) { H.fail(e); } });
+      const wd = qs('#wd'); wd && (wd.onclick = async () => { if (!(await H.confirm(job ? 'Withdraw your application?' : 'Withdraw your interest?', { ok: 'Withdraw' }))) return; try { await API.findWithdraw(mi.id); r.my_interest = null; r.interest_count = Math.max(0, r.interest_count - 1); toast('Withdrawn'); panel(); } catch (e) { H.fail(e); } });
       return;
     }
     if (!API.uid) { box.innerHTML = grab + `<h2 class="t-h3">${verb}</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">Sign in to ${job ? 'apply' : 'send a short intro'}. ${job ? `This role asks for ${{ cv: 'your CV', linkedin: 'your LinkedIn profile', both: 'your CV and LinkedIn profile', either: 'your CV or LinkedIn profile' }[r.apply_with || 'either']}.` : 'Your name stays hidden until you both say yes.'}</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname)}">Sign in</a>`; return; }

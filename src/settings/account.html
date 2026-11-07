@@ -104,7 +104,7 @@ H.mount({ active: '', tab: 'you' });
         qs('#mfa-ok').onclick = async () => { const { error: ve } = await mfa.challengeAndVerify({ factorId: data.id, code: qs('#mfa-code').value.trim() }); if (ve) { qs('#mfa-code').classList.add('is-error'); toast('That code didn’t match. Try the newest one.', 'error'); return; } box.hidden = true; await mfaState(); toast('Two-step verification is on'); };
       } else {
         const f = await (async () => { const { data } = await mfa.listFactors(); return (data.totp || [])[0]; })();
-        if (f && confirm('Turn off two-step verification?')) { const { error } = await mfa.unenroll({ factorId: f.id }); if (error) throw error; toast('Two-step verification is off'); } else e.target.checked = true;
+        if (f && await H.confirm('Turn off two-step verification?', { body: 'Signing in will only need your password.', ok: 'Turn off', danger: true })) { const { error } = await mfa.unenroll({ factorId: f.id }); if (error) throw error; toast('Two-step verification is off'); } else e.target.checked = true;
         await mfaState();
       }
     } catch (err) { e.target.checked = !e.target.checked; H.fail(err); }

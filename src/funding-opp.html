@@ -39,6 +39,8 @@ H.mount({ active: 'funding', tab: 'you' });
   let pid = FU.pickPid(products), O;
   async function load() {
     try { O = await API.fundingOpp(oid, pid); } catch (e) { root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">${esc(e.message || 'Not found')}</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; return; }
+    // A removed or hidden listing (old link, saved item) gets a clear message instead of a blank page
+    if (!O) { document.title = 'Listing not found | Hentity Funding'; root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">This listing isn’t available any more</p><p class="t-body-sm c-2" style="margin-top:6px">It may have been removed or merged with another one.</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; H.contentShown && H.contentShown(); return; }
     document.title = O.name + ' | Hentity Funding';
     render();
   }
@@ -84,10 +86,10 @@ H.mount({ active: 'funding', tab: 'you' });
     H.contentShown && H.contentShown();
   }
   const track = async (patch, msg) => { try { await API.fundingTrack(oid, pid, patch); msg && toast(msg); await load(); } catch (e) { H.fail(e); } };
-  FU.bindReady(root, { get o() { return O; }, get p() { return O.product; }, get pid() { return pid; }, reload: load });
+  FU.bindLink(root);
   root.addEventListener('click', async e => {
     if (e.target.closest('#fo-edit')) { FU.editSheet(O, load); return; }
-    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else { const r = root.querySelector('#remind'), on = r ? r.checked : true; track({ status: 'saved', remind: on }, on ? 'Saved. We’ll remind you before it closes.' : 'Saved'); } return; }
+    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !(await H.confirm('Remove this from your tracker?', { body: 'It’s marked as applied, so you’ll stop getting its results reminder.', ok: 'Remove' }))) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else { const r = root.querySelector('#remind'), on = r ? r.checked : true; track({ status: 'saved', remind: on }, on ? 'Saved. We’ll remind you before it closes.' : 'Saved'); } return; }
     if (e.target.closest('#applied')) { if (!O.track || O.track.status !== 'applied') track({ status: 'applied', applied_at: new Date().toISOString() }, 'Marked as applied'); return; }
     if (e.target.closest('#unapply')) { track({ status: 'saved', applied_at: null }, 'Moved back to saved'); return; }
     // Opening their site saves it, so it shows in the tracker and reminders work

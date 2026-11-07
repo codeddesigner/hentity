@@ -258,9 +258,17 @@ H.mount({ active: '', tab: 'launch' });
   qs('#company').addEventListener('click', () => {
     if (qs('#co-pick')) { qs('#co-pick').remove(); return; }
     qs('#company').insertAdjacentHTML('afterend', `<div id="co-pick" class="card card--pad stack gap-12 reveal" style="margin-top:8px">${companies.map(c => `<button type="button" class="cmdk__opt" data-co="${c.id}">${H.plogo({ name: c.name, color: '#000' }, 28)}<span class="grow" style="text-align:left">${esc(c.name)}</span>${c.id === s.company_id ? icon('check') : ''}</button>`).join('')}
-      <form class="stack gap-8" id="co-new"><p class="t-label">New company</p><input class="input" name="name" placeholder="Registered name" required><div class="grid-2" style="gap:8px"><select class="input" name="stage"><option>Bootstrapped</option><option selected>Pre-seed</option><option>Seed</option><option>Series A+</option></select><input class="input" name="team" type="number" min="1" value="1" aria-label="Team size"></div><input class="input" name="city" placeholder="City" value="${esc(form.city.value)}"><button class="btn btn--primary btn--sm" style="align-self:flex-start">Add company</button></form></div>`);
+      <div class="stack gap-8" id="co-new" role="group" aria-label="New company"><p class="t-label">New company</p><input class="input" name="co_name" placeholder="Registered name" aria-label="Registered name"><div class="grid-2" style="gap:8px"><select class="input" name="co_stage" aria-label="Stage"><option>Bootstrapped</option><option selected>Pre-seed</option><option>Seed</option><option>Series A+</option></select><input class="input" name="co_team" type="number" min="1" value="1" aria-label="Team size"></div><input class="input" name="co_city" placeholder="City" aria-label="City" value="${esc(form.city.value)}"><button class="btn btn--primary btn--sm" type="button" data-co-add style="align-self:flex-start">Add company</button></div></div>`);
     qs('#co-pick').addEventListener('click', e => { const b = e.target.closest('[data-co]'); if (!b) return; s.company_id = b.dataset.co; renderCompany(); qs('#co-pick').remove(); scheduleSave(); });
-    qs('#co-new').addEventListener('submit', async e => { e.preventDefault(); const f = e.target; try { const c = await API.createCompany({ name: f.name.value.trim(), stage: f.stage.value, team_size: +f.team.value || 1, city: f.city.value.trim(), country: qs('#country').value }); companies.push(c); s.company_id = c.id; renderCompany(); qs('#co-pick').remove(); scheduleSave(); toast('Company added'); } catch (err) { H.fail(err); } });
+    // A plain group, not a <form>: forms can't nest inside the product form, and Enter here must not submit the product
+    const box = qs('#co-new'), val = n => box.querySelector(`[name="${n}"]`).value.trim();
+    const add = async () => {
+      if (!val('co_name')) { box.querySelector('[name="co_name"]').focus(); toast('Add the company’s registered name', 'error'); return; }
+      const b = box.querySelector('[data-co-add]'); b.disabled = true;
+      try { const c = await API.createCompany({ name: val('co_name'), stage: box.querySelector('[name="co_stage"]').value, team_size: +val('co_team') || 1, city: val('co_city'), country: qs('#country').value }); companies.push(c); s.company_id = c.id; renderCompany(); qs('#co-pick').remove(); scheduleSave(); toast('Company added'); }
+      catch (err) { b.disabled = false; H.fail(err); } };
+    box.querySelector('[data-co-add]').addEventListener('click', add);
+    box.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); add(); } });
   });
   let makers = [];
   async function loadMakers() { makers = p ? (await API.makers(p.id)).filter(m => m.user.id !== API.uid) : []; renderMakers(); }

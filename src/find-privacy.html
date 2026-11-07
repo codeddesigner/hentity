@@ -81,7 +81,7 @@ H.mount({ active: 'find', tab: 'chats' });
     try { await API.saveFindProfile(row); toast('Privacy settings saved'); } catch (e) { H.fail(e); }
   };
   qs('#dl').onclick = async () => { try { const d = await API.findExport(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'hentity-find-data.json'; a.click(); } catch (e) { H.fail(e); } };
-  qs('#del').onclick = async () => { if (!confirm('Delete your Find profile, applications, CV files and chats? Signed NDAs stay with the other party. This can’t be undone.')) return; try { const n = await API.findDeleteHistory(); toast(n ? `Find history and ${n} CV file${n === 1 ? '' : 's'} deleted` : 'Find history deleted'); setTimeout(() => location.href = '/find', 600); } catch (e) { H.fail(e); } };
+  qs('#del').onclick = async () => { if (!(await H.confirm('Delete your Find profile?', { body: 'Your profile, applications, CV files and chats are deleted. Signed NDAs stay with the other party. This can’t be undone.', ok: 'Delete everything', danger: true }))) return; try { const n = await API.findDeleteHistory(); toast(n ? `Find history and ${n} CV file${n === 1 ? '' : 's'} deleted` : 'Find history deleted'); setTimeout(() => location.href = '/find', 600); } catch (e) { H.fail(e); } };
   H.contentShown();
 })();
 </script>

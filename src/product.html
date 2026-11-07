@@ -212,7 +212,7 @@ H.mount({ active: 'products', tab: 'products' });
     qs('#uc-follow').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } fol = !fol; followers += fol ? 1 : -1; setF(); setA(); try { await API.follow('product', p.id, fol); } catch (e) { fol = !fol; followers += fol ? 1 : -1; setF(); setA(); H.fail(e); } };
     qs('#uc-ask').onclick = async () => { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } ask = !ask; nAsk += ask ? 1 : -1; setA(); try { await API.notifyMe(p.id, ask); toast(ask ? `We’ll tell the ${p.name} team you asked` : 'Request removed'); } catch (e) { ask = !ask; nAsk += ask ? 1 : -1; setA(); H.fail(e); } };
     qs('#getit') && qs('#getit').addEventListener('click', () => API.trackClick(p.id));
-    qs('#uc-report') && (qs('#uc-report').onclick = async () => { const why = prompt('What did we get wrong? Tell us the fact and the correct value.'); if (!why) return; try { await API.report('product', p.id, why); toast('Thanks. We’ll check it against the sources.'); } catch (e) { H.fail(e); } });
+    qs('#uc-report') && (qs('#uc-report').onclick = async () => { const why = await H.ask('What did we get wrong?', { body: 'Tell us the fact and the correct value.', multiline: true, ok: 'Send' }); if (!why) return; try { await API.report('product', p.id, why); toast('Thanks. We’ll check it against the sources.'); } catch (e) { H.fail(e); } });
     const removal = () => {
       const el = document.createElement('div'); el.className = 'scrim';
       el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Request removal"><h2 class="t-h3">Remove ${esc(p.name)} from Hentity</h2>
@@ -294,8 +294,8 @@ H.mount({ active: 'products', tab: 'products' });
       f.querySelector('[data-cancel]').onclick = () => f.remove();
       f.onsubmit = async ev => { ev.preventDefault(); const v = f.querySelector('textarea').value.trim(); if (!v) return; try { const c = await API.comment({ product: p.id, parent: r.dataset.reply, body: v }); all.push(c); renderComments(); toast('Reply posted'); } catch (err) { H.fail(err); } };
     }
-    if (d) { if (!confirm('Delete this comment?')) return; try { await API.deleteComment(d.dataset.del); const c = all.find(x => x.id === d.dataset.del); c.deleted = true; renderComments(); toast('Comment deleted'); } catch (err) { H.fail(err); } }
-    if (rp) { const why = prompt('Why are you reporting this comment?'); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
+    if (d) { if (!(await H.confirm('Delete this comment?', { ok: 'Delete', danger: true }))) return; try { await API.deleteComment(d.dataset.del); const c = all.find(x => x.id === d.dataset.del); c.deleted = true; renderComments(); toast('Comment deleted'); } catch (err) { H.fail(err); } }
+    if (rp) { const why = await H.ask('Why are you reporting this comment?', { placeholder: 'Spam, abuse, wrong information…', multiline: true, ok: 'Report' }); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
   });
   API.here('p:' + p.id, n => { const el = qs('#here'); if (!el) return; if (n < 2) { el.hidden = true; return; } el.hidden = false; M.roll(qs('#here-n'), `${n} people viewing now`); });
   API.live('pc', 'comments', 'product_id=eq.' + p.id, async ({ eventType, new: n }) => {

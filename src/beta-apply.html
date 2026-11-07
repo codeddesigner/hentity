@@ -198,7 +198,7 @@ H.mount({});
       </div>
       <p class="t-caption c-3" style="font-weight:400;margin-top:14px;text-align:center">Changed your mind? <button class="link" type="button" id="wd" style="color:var(--color-text-primary)">Withdraw application</button></p></div>`);
     if (fresh) M.burst(qs('.icon-badge'));
-    qs('#wd').onclick = async () => { if (!confirm('Withdraw your application?')) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); location.reload(); } catch (e) { H.fail(e); } };
+    qs('#wd').onclick = async () => { if (!(await H.confirm('Withdraw your application?', { ok: 'Withdraw' }))) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); location.reload(); } catch (e) { H.fail(e); } };
   }
   function closedStep(t, m) {
     show(`<div class="tp">${brand()}<h1>${esc(t)}</h1><p class="tp-lead">${esc(m)}</p><div class="row gap-8" style="margin-top:20px"><a class="btn btn--secondary" href="/products/${esc(p.slug)}">See ${esc(pn)}</a></div></div>`);
@@ -238,7 +238,7 @@ H.mount({});
       try { await API.updateMyApp(app.id, { tasks_done: app.tasks_done }); } catch (err) { H.fail(err); }
     });
     qsa('[data-copy]').forEach(x => x.onclick = () => { B.copy(x.dataset.copy); toast('Copied'); });
-    qs('#leave').onclick = async () => { if (!confirm(`Leave the ${pn} beta? Your access ends today.`)) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
+    qs('#leave').onclick = async () => { if (!(await H.confirm(`Leave the ${pn} beta?`, { body: 'Your access ends today.', ok: 'Leave', danger: true }))) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
   }
 
   // ------------------------------------------------------------------ the signed agreement (printable)

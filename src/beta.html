@@ -48,7 +48,7 @@ H.mount({ active: 'products', tab: 'products' });
   const id = location.pathname.split('/').filter(Boolean)[1];
   await API.ready;
   const b = id && await API.beta(id).catch(() => null);
-  if (!b) { qs('#bd').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that beta</h1><p class="c-2" style="margin:8px 0 20px">It may have closed or been removed.</p><a class="btn btn--secondary btn--sm" href="/betas">All beta tests</a></div>`; return; }
+  if (!b) { qs('#bd').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that beta</h1><p class="c-2" style="margin:8px 0 20px">It may have closed or been removed.</p><a class="btn btn--secondary btn--sm" href="/">Browse products</a></div>`; return; }
   const p = b.product || {}, owner = b.owner || {};
   document.title = `${b.title} | ${p.name} beta | Hentity`;
   const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', (b.why || b.title).slice(0, 155));
@@ -84,7 +84,7 @@ H.mount({ active: 'products', tab: 'products' });
     qs('#bd').innerHTML = `
       <div class="bd-grid">
         <div class="bd-main">
-          <a class="link row gap-6 t-body-sm reveal" href="/betas" style="width:max-content">${icon('arrow-left', 'ic-14')}Beta tests</a>
+          <a class="link row gap-6 t-body-sm reveal" href="/products/${esc(p.slug)}" style="width:max-content">${icon('arrow-left', 'ic-14')}${esc(p.name)}</a>
           ${staff ? `<p class="t-caption c-3 reveal" style="font-weight:400">Admin: <a class="link link--accent" href="/betas/${b.id}/manage">open this beta’s dashboard</a></p>` : ''}
           ${mine ? `<div class="alert alert--accent reveal"><span>${icon('flask')}</span><div><p class="alert__title">This is your beta call</p><p class="alert__body">${b.applied_count} applied · ${b.accepted_count} of ${b.spots} accepted</p></div><a class="link alert__action" href="/betas/${b.id}/manage">Open dashboard</a></div>` : ''}
           <div class="row gap-12 reveal" style="--i:1">${plogo(p, 48)}<div class="grow" style="min-width:0"><p class="row gap-6" style="font-size:17px;font-weight:600"><a href="/products/${esc(p.slug)}">${esc(p.name)}</a>${p.verified ? verified() : ''}</p><p class="t-caption c-3 truncate" style="font-weight:400">${esc(p.tagline || '')}</p></div><a class="btn btn--ghost btn--sm" href="/products/${esc(p.slug)}" id="prod-room">${icon('arrow-up-right', 'ic-14')}View product</a>${mine ? '' : `<button class="nav__icon fsave" type="button" id="bsave" aria-pressed="${isSaved}" aria-label="${isSaved ? 'Saved' : 'Save'}" title="${isSaved ? 'Saved · tap to remove' : 'Save this beta'}">${icon('bookmark', 'ic-18')}</button>`}</div>
@@ -133,14 +133,14 @@ H.mount({ active: 'products', tab: 'products' });
     let body;
     if (mine) body = `<p class="t-h4">Your beta</p><p class="t-body-sm c-2" style="margin:6px 0 14px">${b.applied_count} applied · ${b.accepted_count} accepted · ${b.feedback_count} sent feedback</p><a class="btn btn--primary btn--block" href="/betas/${b.id}/manage">${icon('users', 'ic-14')}Open dashboard</a><a class="btn btn--ghost btn--block" style="margin-top:8px" href="/betas/new?id=${b.id}">${icon('edit', 'ic-14')}Edit call</a>`;
     else if (app && ['applied', 'waitlist'].includes(app.status)) body = `<p class="row gap-8 t-h4">${icon('check')}${app.status === 'waitlist' ? 'You’re on the waitlist' : 'Application sent'}</p><p class="t-body-sm c-2" style="margin:6px 0 14px">${esc(makerFirst)} picks testers by ${esc(closeDay)}. You’ll hear back in your Hentity notifications either way.</p><span class="bmatch ${app.match_score === app.match_total ? '' : 'is-part'}">${icon('check', 'ic-12')}Match ${app.match_score} of ${app.match_total}</span><button class="btn btn--ghost btn--sm btn--block" style="margin-top:14px" id="withdraw">Withdraw application</button>`;
-    else if (app && app.status === 'declined') body = `<p class="t-h4">${esc(p.name)} filled this beta</p><p class="t-body-sm c-2" style="margin-top:6px">Thanks for applying. You keep your place for their next beta.</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/betas">See other betas</a>`;
+    else if (app && app.status === 'declined') body = `<p class="t-h4">${esc(p.name)} filled this beta</p><p class="t-body-sm c-2" style="margin-top:6px">Thanks for applying. You keep your place for their next beta.</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/">Browse products</a>`;
     else if (app && app.status === 'left') body = `<p class="t-h4">You left this beta</p><p class="t-body-sm c-2" style="margin-top:6px">Thanks for trying it.</p>`;
-    else if (!B.canApply(b)) body = `<p class="t-h4">Applications are closed</p><p class="t-body-sm c-2" style="margin-top:6px">${ph.k === 'testing' ? 'Testing is under way.' : ph.k === 'picking' ? esc(makerFirst) + ' is picking testers now.' : 'This beta has finished.'}</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/betas">See open betas</a>`;
+    else if (!B.canApply(b)) body = `<p class="t-h4">Applications are closed</p><p class="t-body-sm c-2" style="margin-top:6px">${ph.k === 'testing' ? 'Testing is under way.' : ph.k === 'picking' ? esc(makerFirst) + ' is picking testers now.' : 'This beta has finished.'}</p><a class="btn btn--secondary btn--block" style="margin-top:14px" href="/">Browse products</a>`;
     else if (!API.uid) body = `<p class="t-h4">Apply in one step</p><p class="t-body-sm c-2" style="margin:6px 0 14px">Sign in to check if you match and send your application.</p><a class="btn btn--accent btn--block" href="/signin?next=${encodeURIComponent(location.pathname + '#apply')}">${icon('flask', 'ic-14')}Sign in to apply</a>`;
     else body = formHTML();
     box.innerHTML = head + body;
     renderWho(app && app.confirmed ? app.confirmed : []);
-    if (qs('#withdraw')) qs('#withdraw').onclick = async () => { if (!confirm('Withdraw your application?')) return; try { app = await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); renderApply(); } catch (e) { H.fail(e); } };
+    if (qs('#withdraw')) qs('#withdraw').onclick = async () => { if (!(await H.confirm('Withdraw your application?', { ok: 'Withdraw' }))) return; try { app = await API.updateMyApp(app.id, { status: 'left' }); toast('Application withdrawn'); renderApply(); } catch (e) { H.fail(e); } };
     if (qs('#apply-form')) bindForm(qs('#apply-form'));
     // mobile bar
     const mb = qs('#mbar');
@@ -250,7 +250,7 @@ H.mount({ active: 'products', tab: 'products' });
       app.tasks_done = [...set].sort((a, c) => a - c); renderTasks();
       try { await API.updateMyApp(app.id, { tasks_done: app.tasks_done }); } catch (err) { H.fail(err); }
     });
-    if (qs('#leave')) qs('#leave').onclick = async () => { if (!confirm(`Leave the ${p.name} beta? Your spot goes to someone on the waitlist.`)) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
+    if (qs('#leave')) qs('#leave').onclick = async () => { if (!(await H.confirm(`Leave the ${p.name} beta?`, { body: 'Your spot goes to someone on the waitlist.', ok: 'Leave', danger: true }))) return; try { await API.updateMyApp(app.id, { status: 'left' }); toast('You left the beta'); location.reload(); } catch (e) { H.fail(e); } };
     if (fb) { qs('#fb').innerHTML = `<h2>Your feedback</h2><p class="row gap-8 t-body-sm"><span class="bmatch">${icon('check', 'ic-12')}Sent ${H.ago(fb.created_at)}</span><span class="c-3">Ease ${fb.ease}/5 · ${{ yes: 'Worked', mostly: 'Mostly worked', no: 'Didn’t work' }[fb.verdict]}</span></p><p class="body" style="margin-top:12px;white-space:pre-wrap">${esc(fb.details)}</p>${fb.maker_reply ? `<div class="card card--pad" style="margin-top:14px;background:var(--color-bg-subtle)"><p class="t-caption c-3">${esc(makerFirst)} replied</p><p class="t-body-sm" style="margin-top:4px">${esc(fb.maker_reply)}</p></div>` : ''}`; return; }
     feedbackForm();
   }

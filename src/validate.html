@@ -260,7 +260,7 @@ H.mount({ active: 'validate', tab: 'launch' });
     qs('#edit') && (qs('#edit').onclick = () => { history.pushState(null, '', '/validate'); form({ idea: check.idea, who: check.who || '', cc: check.country || '', city: check.city || '', money: check.money || 'Subscription', stage: check.stage || 'idea' }); });
     qs('#share') && (qs('#share').onclick = async () => {
       const u = location.origin + '/validate/' + check.id;
-      if (!check.shared) { if (!confirm('Anyone with the link will be able to see this report and your idea. Share it?')) return; try { await API.updateIdeaCheck(check.id, { shared: true }); check.shared = true; } catch (e) { H.fail(e); return; } }
+      if (!check.shared) { if (!(await H.confirm('Share this report?', { body: 'Anyone with the link will be able to see this report and your idea.', ok: 'Share' }))) return; try { await API.updateIdeaCheck(check.id, { shared: true }); check.shared = true; } catch (e) { H.fail(e); return; } }
       if (navigator.share && innerWidth < 769) navigator.share({ title: 'My idea validation | Hentity', url: u }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(u); toast('Link copied. Anyone with it can see this report.'); }
       qs('#share').innerHTML = icon('share', 'ic-14') + 'Copy link';
     });

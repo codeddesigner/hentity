@@ -23,25 +23,27 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
+<link rel="stylesheet" href="/assets/styles.css?v=c9a5c77cbc">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
 (function () {
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
-  function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
   // A page that fails while loading its data shows the readable server copy instead of a blank screen
-  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
-  function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=65457c8848"></script>
-<script src="/assets/app.js?v=960cdd2c4a"></script>
+<script src="/assets/app.js?v=7a854471d7"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -130,7 +132,7 @@ H.mount({ active: 'my-products', tab: 'me' });
       <div class="st-grid${step === 'results' ? ' st-grid--wide' : ''}" id="grid"><nav class="st-steps" aria-label="Steps">${steps}</nav><section class="st-main" id="main"></section><aside class="st-aside" id="aside"></aside></div></div>`;
     qsa('[data-step]').forEach(x => x.onclick = () => go(x.dataset.step));
     qs('#publish') && (qs('#publish').onclick = publish);
-    qs('#close') && (qs('#close').onclick = async () => { if (!confirm('Close this beta? New applications stop, personal links stop working, and results stay here.')) return; try { await API.completeBeta(b.id); b = await API.beta(b.id); step = 'results'; frame(); toast('Beta closed'); } catch (e) { H.fail(e); } });
+    qs('#close') && (qs('#close').onclick = async () => { if (!(await H.confirm('Close this beta?', { body: 'New applications stop and personal links stop working. Results stay here.', ok: 'Close beta' }))) return; try { await API.completeBeta(b.id); b = await API.beta(b.id); step = 'results'; frame(); toast('Beta closed'); } catch (e) { H.fail(e); } });
     qs('#csv') && (qs('#csv').onclick = exportCsv);
     qs('#again') && (qs('#again').onclick = async () => { try { const nb = await API.createBetaDraft(p.id, b.title.slice(0, 70)); const copy = { why: b.why, countries: b.countries, platforms: b.platforms, steps: b.steps, form: b.form, agreement: b.agreement, access: b.access, settings: b.settings, time_needed: b.time_needed, perk: b.perk, perk_type: b.perk_type, spots: b.spots }; await API.updateBeta(nb.id, copy); await API.saveBetaAccessConfig(nb.id, cfg); location.href = `/studio/${p.slug}/${nb.id}`; } catch (e) { H.fail(e); } });
     VIEWS[step](); H.mount(); H.contentShown();
@@ -151,7 +153,7 @@ H.mount({ active: 'my-products', tab: 'me' });
     if ((b.access || {}).web && !cfg.web_url) miss.push(['access', 'Add the web address for private invite links']);
     if (miss.length) { go(miss[0][0]); toast(miss[0][1], 'error'); return; }
     const total = B.budget(b).total;
-    if (b.airtime_amount > 0 && !confirm(`Publish and pay ${B.naira(total)}? Hentity will email you how to pay. The link goes live once the money is in.`)) return;
+    if (b.airtime_amount > 0 && !(await H.confirm(`Publish and pay ${B.naira(total)}?`, { body: 'Hentity will email you how to pay. The link goes live once the money is in.', ok: 'Publish' }))) return;
     try { await save({ status: 'open' }, true); b = await API.beta(b.id); step = 'share'; frame(); toast(b.status === 'open' ? 'Your beta is live. Share the link!' : 'Saved. Waiting for payment'); if (b.status === 'open') M.burst(qs('.st-title h1')); } catch (e) { H.fail(e); }
   }
 
@@ -290,7 +292,7 @@ H.mount({ active: 'my-products', tab: 'me' });
     }).join('') : `<p class="t-body-sm c-2">Nobody yet. Testers you accept appear here with their signature and access status.</p>`;
     if (unsigned) aside().insertAdjacentHTML('beforeend', `<button class="btn btn--secondary btn--block btn--sm" type="button" id="remind">${icon('bell', 'ic-14')}Remind ${unsigned} to sign</button>`);
     qs('#remind') && (qs('#remind').onclick = async () => { try { const n = await API.remindSign(b.id); toast(`Reminder sent to ${n} tester${n === 1 ? '' : 's'} by email and notification`); } catch (e) { H.fail(e); } });
-    qsa('[data-rv]').forEach(x => x.onclick = async () => { const on = x.dataset.on === '1'; if (!on && !confirm('Revoke this tester’s access? Their personal link stops working now.')) return; try { await API.setTesterAccess(x.dataset.rv, on); toast(on ? 'Access restored' : 'Access revoked'); whoHasAccess(); } catch (e) { H.fail(e); } });
+    qsa('[data-rv]').forEach(x => x.onclick = async () => { const on = x.dataset.on === '1'; if (!on && !(await H.confirm('Revoke this tester’s access?', { body: 'Their personal link stops working now.', ok: 'Revoke', danger: true }))) return; try { await API.setTesterAccess(x.dataset.rv, on); toast(on ? 'Access restored' : 'Access revoked'); whoHasAccess(); } catch (e) { H.fail(e); } });
   }
 
   // ------------------------------------------------------------------ 5 · Share
@@ -319,7 +321,7 @@ H.mount({ active: 'my-products', tab: 'me' });
     qs('#msg').addEventListener('input', e => { st.wa_message = e.target.value; save({ settings: Object.assign({}, st) }); qs('#wa-send').href = wa('whatsapp', e.target.value); });
     qs('#msg-copy').onclick = () => { B.copy(qs('#msg').value + '\n' + B.betaUrl(b, 'whatsapp')); toast('Message copied'); };
     ['show_on_product', 'close_when_full', 'auto_accept'].forEach(k => qs('#set-' + k).addEventListener('change', e => { st[k] = e.target.checked; save({ settings: Object.assign({}, st) }); }));
-    qs('#addl').onclick = async () => { const label = prompt('Name this link, e.g. “WhatsApp · Balogun traders group” or “QR at Ikeja market”'); if (!label || !label.trim()) return; const code = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20) || 'link'; try { const l = await API.addBetaLink(b.id, code + (Math.random() * 90 + 10 | 0), label.trim().slice(0, 60)); B.copy(B.betaUrl(b, l.code)); toast('Tracked link copied'); sources(); } catch (e) { H.fail(e); } };
+    qs('#addl').onclick = async () => { const label = await H.ask('Name this link', { placeholder: 'e.g. WhatsApp · Balogun traders group', ok: 'Create link' }); if (!label || !label.trim()) return; const code = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20) || 'link'; try { const l = await API.addBetaLink(b.id, code + (Math.random() * 90 + 10 | 0), label.trim().slice(0, 60)); B.copy(B.betaUrl(b, l.code)); toast('Tracked link copied'); sources(); } catch (e) { H.fail(e); } };
     async function sources() {
       const [S, links] = await Promise.all([API.betaSources(b.id).catch(() => []), API.betaLinks(b.id).catch(() => [])]);
       const builtin = { product: 'Hentity product page', whatsapp: 'WhatsApp', status: 'WhatsApp status', linkedin: 'LinkedIn', x: 'X', qr: 'QR code', '': 'Direct link' };

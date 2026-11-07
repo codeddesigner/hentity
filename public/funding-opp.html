@@ -23,25 +23,27 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
+<link rel="stylesheet" href="/assets/styles.css?v=c9a5c77cbc">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
 (function () {
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
-  function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
   // A page that fails while loading its data shows the readable server copy instead of a blank screen
-  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
-  function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=65457c8848"></script>
-<script src="/assets/app.js?v=960cdd2c4a"></script>
+<script src="/assets/app.js?v=7a854471d7"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -79,7 +81,7 @@ body{background:var(--color-bg-subtle)}
 <div data-header></div>
 <main id="main" class="fo"><div class="skel" style="height:520px;border-radius:16px"></div><div class="skel" style="height:520px;border-radius:16px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/funding.js?v=2c154c95d5"></script>
+<script src="/assets/funding.js?v=f1967c1e5d"></script>
 <script>
 H.mount({ active: 'funding', tab: 'you' });
 (async function () {
@@ -93,6 +95,8 @@ H.mount({ active: 'funding', tab: 'you' });
   let pid = FU.pickPid(products), O;
   async function load() {
     try { O = await API.fundingOpp(oid, pid); } catch (e) { root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">${esc(e.message || 'Not found')}</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; return; }
+    // A removed or hidden listing (old link, saved item) gets a clear message instead of a blank page
+    if (!O) { document.title = 'Listing not found | Hentity Funding'; root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">This listing isn’t available any more</p><p class="t-body-sm c-2" style="margin-top:6px">It may have been removed or merged with another one.</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; H.contentShown && H.contentShown(); return; }
     document.title = O.name + ' | Hentity Funding';
     render();
   }
@@ -138,10 +142,10 @@ H.mount({ active: 'funding', tab: 'you' });
     H.contentShown && H.contentShown();
   }
   const track = async (patch, msg) => { try { await API.fundingTrack(oid, pid, patch); msg && toast(msg); await load(); } catch (e) { H.fail(e); } };
-  FU.bindReady(root, { get o() { return O; }, get p() { return O.product; }, get pid() { return pid; }, reload: load });
+  FU.bindLink(root);
   root.addEventListener('click', async e => {
     if (e.target.closest('#fo-edit')) { FU.editSheet(O, load); return; }
-    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !confirm('Remove this from your tracker? It’s marked as applied.')) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else { const r = root.querySelector('#remind'), on = r ? r.checked : true; track({ status: 'saved', remind: on }, on ? 'Saved. We’ll remind you before it closes.' : 'Saved'); } return; }
+    if (e.target.closest('#save')) { if (O.track) { if (O.track.status === 'applied' && !(await H.confirm('Remove this from your tracker?', { body: 'It’s marked as applied, so you’ll stop getting its results reminder.', ok: 'Remove' }))) return; try { await API.fundingUntrack(oid); toast('Removed from saved'); await load(); } catch (er) { H.fail(er); } } else { const r = root.querySelector('#remind'), on = r ? r.checked : true; track({ status: 'saved', remind: on }, on ? 'Saved. We’ll remind you before it closes.' : 'Saved'); } return; }
     if (e.target.closest('#applied')) { if (!O.track || O.track.status !== 'applied') track({ status: 'applied', applied_at: new Date().toISOString() }, 'Marked as applied'); return; }
     if (e.target.closest('#unapply')) { track({ status: 'saved', applied_at: null }, 'Moved back to saved'); return; }
     // Opening their site saves it, so it shows in the tracker and reminders work

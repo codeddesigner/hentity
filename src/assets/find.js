@@ -99,9 +99,9 @@
   function tagList(root, sel, items, addLabel, ph) {
     const el = root.querySelector(sel); let list = (items || []).slice();
     const draw = () => { el.innerHTML = `<div class="ftags">${list.map((t, i) => `<span class="ftag">${esc(t)}<button type="button" data-rm="${i}" aria-label="Remove ${esc(t)}">${icon('x', 'ic-12')}</button></span>`).join('')}<button type="button" class="ftag ftag--add" data-add>${icon('plus', 'ic-12')}${esc(addLabel)}</button></div>`; };
-    el.addEventListener('click', e => {
+    el.addEventListener('click', async e => {
       const rm = e.target.closest('[data-rm]'); if (rm) { list.splice(+rm.dataset.rm, 1); draw(); el.dispatchEvent(new Event('change')); return; }
-      if (e.target.closest('[data-add]')) { const v = prompt(ph || addLabel); if (v && v.trim()) { v.split(',').map(x => x.trim()).filter(Boolean).forEach(x => { if (!list.includes(x)) list.push(x.slice(0, 60)); }); draw(); el.dispatchEvent(new Event('change')); } }
+      if (e.target.closest('[data-add]')) { const v = await H.ask(addLabel || 'Add', { placeholder: ph || 'Separate several with commas', ok: 'Add' }); if (v && v.trim()) { v.split(',').map(x => x.trim()).filter(Boolean).forEach(x => { if (!list.includes(x)) list.push(x.slice(0, 60)); }); draw(); el.dispatchEvent(new Event('change')); } }
     });
     draw();
     return { get: () => list.slice(), set: v => { list = v.slice(); draw(); } };

@@ -73,8 +73,8 @@ H.mount({ active: 'news', tab: 'news' });
   });
   qs('#suggest').addEventListener('click', async () => {
     if (!API.uid) { location.href = '/signin?next=/news'; return; }
-    const url = prompt('Link to the story'); if (!url) return; if (!/^https?:\/\//.test(url)) { toast('Paste a full link starting with https://', 'error'); return; }
-    const note = prompt('Why should makers read it? (optional)') || '';
+    const url = await H.ask('Suggest a story', { placeholder: 'https://…', ok: 'Next' }); if (!url) return; if (!/^https?:\/\//.test(url)) { toast('Paste a full link starting with https://', 'error'); return; }
+    const note = (await H.ask('Why should makers read it?', { placeholder: 'Optional', multiline: true, optional: true, ok: 'Send' })) || '';
     try { await API.suggestStory(url, note); toast('Thanks — the editors will take a look'); } catch (err) { H.fail(err); }
   });
 })();

@@ -23,25 +23,27 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
+<link rel="stylesheet" href="/assets/styles.css?v=c9a5c77cbc">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
 (function () {
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
-  function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
   // A page that fails while loading its data shows the readable server copy instead of a blank screen
-  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
-  function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=65457c8848"></script>
-<script src="/assets/app.js?v=960cdd2c4a"></script>
+<script src="/assets/app.js?v=7a854471d7"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -96,7 +98,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
   let b = await API.beta(id).catch(() => null);
   const isAdmin = API.profile && ['admin', 'moderator'].includes(API.profile.role);
-  if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/betas">Beta tests</a></div>`; return; }
+  if (!b || (b.owner_id !== API.uid && !isAdmin)) { qs('#bm').innerHTML = `<div style="padding:96px 0;text-align:center"><h1 class="t-h2">This dashboard is for the beta’s maker</h1><p class="c-2" style="margin:8px 0 20px">Sign in with the account that posted it.</p><a class="btn btn--secondary btn--sm" href="/studio">Your beta tests</a></div>`; return; }
   const p = b.product || {};
   document.title = `${b.title} | Beta dashboard | Hentity`;
   let apps = [], fbs = [], tab = H.params().get('tab') || 'applicants', room = null;
@@ -131,7 +133,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     M.countUp(qs('#bm'));
     qsa('[data-tab]').forEach(t => t.onclick = () => { tab = t.dataset.tab; history.replaceState(null, '', '?tab=' + tab); qsa('[data-tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); panel(); });
     if (qs('#nudge')) qs('#nudge').onclick = async e => { e.target.disabled = true; try { const n = await API.nudgeTesters(b.id); toast(`Nudged ${n} tester${n === 1 ? '' : 's'}`); } catch (err) { e.target.disabled = false; H.fail(err); } };
-    if (qs('#close-early')) qs('#close-early').onclick = async () => { if (!confirm('Close applications now? Accepted testers keep their access.')) return; try { await API.saveBeta(b.id, { status: 'closed' }); b.status = 'closed'; toast('Applications closed'); frame(); } catch (e) { H.fail(e); } };
+    if (qs('#close-early')) qs('#close-early').onclick = async () => { if (!(await H.confirm('Close applications now?', { body: 'Accepted testers keep their access.', ok: 'Close applications' }))) return; try { await API.saveBeta(b.id, { status: 'closed' }); b.status = 'closed'; toast('Applications closed'); frame(); } catch (e) { H.fail(e); } };
     if (qs('#reopen')) qs('#reopen').onclick = async () => { if (new Date(b.closes_at) <= new Date()) { location.href = '/studio/' + (b.product || {}).slug + '/' + b.id + '?step=details'; return; } try { await API.saveBeta(b.id, { status: 'open' }); b.status = 'open'; toast('Reopened'); frame(); } catch (e) { H.fail(e); } };
     panel(); H.contentShown();
   }
@@ -195,7 +197,7 @@ H.mount({ active: 'my-products', tab: 'you' });
       el.onchange = async e => { const t = e.target.closest('[data-tag]'); if (!t) return; const f = fbs.find(x => x.id === t.dataset.tag); f.tag = t.value.trim(); try { await API.updateFeedback(f.id, { tag: f.tag }); panel(); } catch (err) { H.fail(err); } };
       el.onclick = async e => {
         const fx = e.target.closest('[data-fixed]'); if (fx) { const f = fbs.find(x => x.id === fx.dataset.fixed); f.fixed = !f.fixed; try { await API.updateFeedback(f.id, { fixed: f.fixed }); toast(f.fixed ? 'Marked as fixed' : 'Marked as open'); panel(); } catch (err) { H.fail(err); } return; }
-        const rp = e.target.closest('[data-reply]'); if (rp) { const f = fbs.find(x => x.id === rp.dataset.reply); const txt = prompt('Reply to ' + f.name.split(' ')[0] + ' (they see it on their beta page)', f.maker_reply || ''); if (txt == null) return; f.maker_reply = txt.trim() || null; try { await API.updateFeedback(f.id, { maker_reply: f.maker_reply }); toast('Reply sent'); panel(); } catch (err) { H.fail(err); } }
+        const rp = e.target.closest('[data-reply]'); if (rp) { const f = fbs.find(x => x.id === rp.dataset.reply); const txt = await H.ask('Reply to ' + f.name.split(' ')[0], { body: 'They see it on their beta page.', value: f.maker_reply || '', multiline: true, optional: true, ok: 'Send reply' }); if (txt == null) return; f.maker_reply = txt.trim() || null; try { await API.updateFeedback(f.id, { maker_reply: f.maker_reply }); toast('Reply sent'); panel(); } catch (err) { H.fail(err); } }
       };
     }
   }

@@ -179,11 +179,11 @@ H.mount({ active: 'chats', tab: 'chats' });
   }
   qs('#chead').addEventListener('click', async e => {
     if (e.target.closest('[data-back]')) { history.pushState(null, '', '/chats'); qs('#chat').classList.remove('in-conv'); cur = null; renderList(); return; }
-    if (e.target.closest('#search-in')) { const t = prompt('Search #' + cur.name); if (!t) return; const { data } = await API.sb.from('messages').select('id').eq('channel_id', cur.id).ilike('body', `%${t}%`).order('created_at', { ascending: false }).limit(1); if (data && data[0]) { const el = qs(`[data-mid="${data[0].id}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); } else toast('Found an older message — scroll up to load more'); } else toast('No messages match “' + t + '”'); }
+    if (e.target.closest('#search-in')) { const t = await H.ask('Search #' + cur.name, { placeholder: 'Words in a message', ok: 'Search' }); if (!t) return; const { data } = await API.sb.from('messages').select('id').eq('channel_id', cur.id).ilike('body', `%${t}%`).order('created_at', { ascending: false }).limit(1); if (data && data[0]) { const el = qs(`[data-mid="${data[0].id}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); } else toast('Found an older message — scroll up to load more'); } else toast('No messages match “' + t + '”'); }
     if (e.target.closest('#more')) {
       const items = [['Copy link', () => { navigator.clipboard && navigator.clipboard.writeText(location.href); toast('Link copied'); }], ['Mark as read', async () => { await API.markChannelRead(cur.id); unread[cur.id] = 0; renderList(); H.setCount('chats', Object.values(unread).reduce((a, b) => a + b, 0)); toast('Marked as read'); }]];
       if (cur.kind !== 'dm') items.push(['Leave channel', async () => { await API.sb.from('channel_members').delete().eq('channel_id', cur.id).eq('user_id', API.uid); toast('You left #' + cur.name); }]);
-      if (cur.kind === 'dm' && cur.other) items.push(['Block ' + cur.other.name.split(' ')[0], async () => { if (!confirm('Block ' + cur.other.name + '? They won’t be able to message you.')) return; await API.block(cur.other.id, true); toast('Blocked'); }]);
+      if (cur.kind === 'dm' && cur.other) items.push(['Block ' + cur.other.name.split(' ')[0], async () => { if (!(await H.confirm('Block ' + cur.other.name + '?', { body: 'They won’t be able to message you.', ok: 'Block', danger: true }))) return; await API.block(cur.other.id, true); toast('Blocked'); }]);
       const m = document.createElement('div'); m.className = 'menu'; m.dataset.menu = ''; m.style.position = 'fixed'; const r = e.target.closest('#more').getBoundingClientRect(); m.style.top = r.bottom + 6 + 'px'; m.style.right = (innerWidth - r.right) + 'px';
       m.innerHTML = items.map(([l], i) => `<button class="menu__item" data-i="${i}">${esc(l)}</button>`).join(''); document.body.appendChild(m);
       m.addEventListener('click', ev => { const b = ev.target.closest('[data-i]'); if (b) { items[+b.dataset.i][1](); m.remove(); } });
@@ -251,8 +251,8 @@ H.mount({ active: 'chats', tab: 'chats' });
     if (rc || qk) { const el = rc || qk; const emoji = rc ? rc.dataset.react : qk.dataset.quick; const mid = el.dataset.mid; const m = msgs.find(x => x.id === mid) || (thread && thread._all.find(x => x.id === mid)); const mine = (m.reactions || []).some(r => r.emoji === emoji && r.user_id === API.uid);
       try { m.reactions = mine ? m.reactions.filter(r => !(r.emoji === emoji && r.user_id === API.uid)) : [...(m.reactions || []), { emoji, user_id: API.uid }]; renderMsgs(); if (thread) renderThread(); await API.react(mid, emoji, !mine); } catch (err) { H.fail(err); } return; }
     const pk = e.target.closest('[data-pick]'); if (pk) { qsa('.emoji-pop').forEach(x => x.remove()); const pop = document.createElement('div'); pop.className = 'emoji-pop'; pop.innerHTML = [['upvote', icon('upvote', 'ic-14')], ['rocket', icon('rocket', 'ic-14')], ['check', icon('check', 'ic-14')], ['heart', '❤️'], ['fire', '🔥'], ['clap', '👏']].map(([k, v]) => `<button type="button" data-react="${k}" data-mid="${pk.dataset.pick}" aria-label="${k}">${v}</button>`).join(''); pk.parentElement.style.position = 'relative'; pk.parentElement.appendChild(pop); setTimeout(() => document.addEventListener('click', () => pop.remove(), { once: true }), 0); return; }
-    const dl = e.target.closest('[data-delmsg]'); if (dl) { if (!confirm('Delete this message?')) return; try { await API.deleteMessage(dl.dataset.delmsg); const m = msgs.find(x => x.id === dl.dataset.delmsg); if (m) m.deleted = true; renderMsgs(); } catch (err) { H.fail(err); } return; }
-    const rp = e.target.closest('[data-reportmsg]'); if (rp) { const why = prompt('Why are you reporting this message?'); if (why) { try { await API.report('message', rp.dataset.reportmsg, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } } return; }
+    const dl = e.target.closest('[data-delmsg]'); if (dl) { if (!(await H.confirm('Delete this message?', { ok: 'Delete', danger: true }))) return; try { await API.deleteMessage(dl.dataset.delmsg); const m = msgs.find(x => x.id === dl.dataset.delmsg); if (m) m.deleted = true; renderMsgs(); } catch (err) { H.fail(err); } return; }
+    const rp = e.target.closest('[data-reportmsg]'); if (rp) { const why = await H.ask('Why are you reporting this message?', { placeholder: 'Spam, abuse, scam…', multiline: true, ok: 'Report' }); if (why) { try { await API.report('message', rp.dataset.reportmsg, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } } return; }
     const v = e.target.closest('.voice__play'); if (v) playVoice(v.closest('.voice'));
   });
   let audio = null;
@@ -306,7 +306,7 @@ H.mount({ active: 'chats', tab: 'chats' });
   }
   qs('#share-prod').addEventListener('click', async () => {
     if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; }
-    const t = prompt('Share a product — type its name'); if (!t) return;
+    const t = await H.ask('Share a product', { placeholder: 'Type its name', ok: 'Find' }); if (!t) return;
     const { data } = await API.sb.from('product_feed').select('id,slug,name,tagline,color,logo_url,verified,upvote_count,effective_status').in('status', ['scheduled', 'live']).ilike('name', `%${t.replace(/[%,()]/g, '')}%`).limit(1);
     if (!data || !data[0]) { toast('No product called “' + t + '”', 'error'); return; }
     shareProduct = data[0]; D.remember([shareProduct]);
@@ -338,7 +338,7 @@ H.mount({ active: 'chats', tab: 'chats' });
   // New DM
   qs('#new-dm').addEventListener('click', async () => {
     if (!API.uid) { location.href = '/signin?next=/chats'; return; }
-    const t = prompt('Message who? Type a name or @username'); if (!t) return;
+    const t = await H.ask('Message who?', { placeholder: 'A name or @username', ok: 'Find' }); if (!t) return;
     const r = await API.searchProfiles(t.replace(/^@/, '').replace(/[%,()]/g, '')); const u = r.find(x => x.id !== API.uid);
     if (!u) { toast('No maker called “' + t + '”', 'error'); return; }
     try { const id = await API.openDM(u.id); await loadList(); history.pushState(null, '', '/chats/dm/' + id); open(channels.find(c => c.id === id)); } catch (e) { H.fail(e); }

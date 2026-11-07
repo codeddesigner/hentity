@@ -23,25 +23,27 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=aaace3c110">
+<link rel="stylesheet" href="/assets/styles.css?v=c9a5c77cbc">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
 (function () {
   var d = document.documentElement, n = 0; d.classList.add('js-boot');
-  function log(m, s) { if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
   window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
   // A page that fails while loading its data shows the readable server copy instead of a blank screen
-  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
-  function check() { if (window.H && window.API) return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
     try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
   window.addEventListener('load', function () { setTimeout(check, 1500); });
-  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 5s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); check(); }, 5000);
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=65457c8848"></script>
-<script src="/assets/app.js?v=960cdd2c4a"></script>
+<script src="/assets/app.js?v=7a854471d7"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -122,8 +124,8 @@ H.mount({ active: 'news', tab: 'news' });
   qs('#comments').addEventListener('click', async e => {
     const r = e.target.closest('[data-reply]'), d = e.target.closest('[data-del]'), rp = e.target.closest('[data-report]');
     if (r) { if (!API.uid) { location.href = '/signin?next=' + location.pathname; return; } const box = qs(`[data-replies="${r.dataset.reply}"]`); if (box.querySelector('form')) return; box.insertAdjacentHTML('beforeend', `<form class="stack gap-8 reveal"><textarea class="input" rows="2" placeholder="Write a reply" aria-label="Reply"></textarea><div class="row gap-8"><button class="btn btn--primary btn--sm">Reply</button><button class="btn btn--ghost btn--sm" type="button" data-cancel>Cancel</button></div></form>`); const f = box.querySelector('form'); f.querySelector('textarea').focus(); f.querySelector('[data-cancel]').onclick = () => f.remove(); f.onsubmit = async ev => { ev.preventDefault(); const v = f.querySelector('textarea').value.trim(); if (!v) return; try { const c = await API.comment({ article: a.id, parent: r.dataset.reply, body: v }); all.push(c); render(); } catch (err) { H.fail(err); } }; }
-    if (d) { if (!confirm('Delete this comment?')) return; try { await API.deleteComment(d.dataset.del); all.find(x => x.id === d.dataset.del).deleted = true; render(); } catch (err) { H.fail(err); } }
-    if (rp) { const why = prompt('Why are you reporting this comment?'); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
+    if (d) { if (!(await H.confirm('Delete this comment?', { ok: 'Delete', danger: true }))) return; try { await API.deleteComment(d.dataset.del); all.find(x => x.id === d.dataset.del).deleted = true; render(); } catch (err) { H.fail(err); } }
+    if (rp) { const why = await H.ask('Why are you reporting this comment?', { placeholder: 'Spam, abuse, wrong information…', multiline: true, ok: 'Report' }); if (!why) return; try { await API.report('comment', rp.dataset.report, why); toast('Thanks — a moderator will take a look'); } catch (err) { H.fail(err); } }
   });
   API.live('ac', 'comments', 'article_id=eq.' + a.id, async ({ eventType, new: n }) => { if (eventType !== 'INSERT' || all.some(c => c.id === n.id)) return; const [u] = await API.profilesByIds([n.user_id]); all.push(Object.assign({}, n, { user: u })); render(); const el = qs('#c-' + n.id); el && el.classList.add('flash'); });
 })();

@@ -274,7 +274,7 @@
     r.querySelector('#fx-emb').onclick = () => { const code = `<iframe src="${location.origin}/insights?tab=explore&embed=1&q=${encodeURIComponent(btoa(JSON.stringify(Q)))}" width="100%" height="720" style="border:0" title="${esc(title())} | Hentity"></iframe>`; navigator.clipboard.writeText(code).then(() => toast('Embed code copied')); };
     r.querySelector('#fx-save').onclick = async () => {
       if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname + location.search); return; }
-      const name = prompt('Name this view', title()); if (!name) return;
+      const name = await H.ask('Name this view', { value: title(), ok: 'Save view' }); if (!name) return;
       try { await API.saveInsightView(name.trim().slice(0, 120), Q); toast('View saved'); savedList(root, ctx); } catch (e) { H.fail(e); }
     };
   }

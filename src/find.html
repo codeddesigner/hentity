@@ -88,7 +88,7 @@ H.mount({ active: 'find', tab: 'chats' });
   async function invite(key) {
     if (!API.uid) { location.href = '/signin?next=/find/people'; return; }
     const roles = (await API.myFindRoles()).filter(r => r.status === 'open');
-    if (!roles.length) { if (confirm('Post a role first, then invite people to it. Post one now?')) location.href = '/find/post'; return; }
+    if (!roles.length) { if (await H.confirm('Post a role first', { body: 'You invite people to one of your open roles. Post one now?', ok: 'Post a role', cancel: 'Not now' })) location.href = '/find/post'; return; }
     API.findView(key);
     const el = document.createElement('div'); el.className = 'scrim';
     el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Invite to a role"><h2 class="t-h3">Invite to a role</h2>

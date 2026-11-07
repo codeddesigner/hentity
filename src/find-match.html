@@ -111,7 +111,7 @@ H.mount({ active: 'find', tab: 'chats' });
     const sum = qs('#fit-sum'); if (sum) sum.textContent = co ? `${FIT.filter(([k]) => status(k)[0] === 'a').length} of ${FIT.length} aligned` : `${Object.values((mine.steps || {})).filter(Boolean).length} of 3 done`;
     const put = async patch => { m.fit_mine = Object.assign({}, m.fit_mine, patch); try { await API.findSetFit(id, m.fit_mine); m = await API.findMatch(id); fit(); } catch (e) { H.fail(e); } };
     qsa('#fit [data-save]').forEach(b => b.onclick = () => { const k = b.dataset.save, v = qs(`#fit [data-ans="${k}"]`).value.trim(); if (v) put({ [k]: v.slice(0, 300) }); });
-    qsa('#fit [data-edit]').forEach(b => b.onclick = () => { const k = b.dataset.edit; const v = prompt('Your answer', mine[k] || ''); if (v !== null) put({ [k]: v.trim().slice(0, 300), [k + '_ok']: null }); });
+    qsa('#fit [data-edit]').forEach(b => b.onclick = async () => { const k = b.dataset.edit; const v = await H.ask('Your answer', { value: mine[k] || '', multiline: true, optional: true, max: 300, ok: 'Save' }); if (v !== null) put({ [k]: v.trim().slice(0, 300), [k + '_ok']: null }); });
     qsa('#fit [data-ok]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.ok.split(':'); put({ [k + '_ok']: v }); });
     qsa('#fit [data-step]').forEach(c => c.onchange = () => put({ steps: Object.assign({}, mine.steps, { [c.dataset.step]: c.checked }) }));
     qs('#agree').onclick = draftAgreement;

@@ -411,6 +411,32 @@
   const catShort = c => ({ Agriculture: 'Agritech', Education: 'Edtech', 'Energy & Climate': 'Climate' })[c] || c;
   // "Inactive" tag for startups that have shut down, been renamed or acquired
   function inactiveTag(p, lg) { return p && p.active === false ? `<span class="off-tag${lg ? ' off-tag--lg' : ''}" title="${esc(p.inactive_note || 'No longer operating')}">Inactive</span>` : ''; }
+  // ---------------------------------------------------------------- Dialogs
+  // Styled stand-ins for confirm() and prompt(): they match the app, work inside the installed app, and return promises.
+  function dialog({ title, body, input, ok, cancel, danger }) {
+    return new Promise(res => {
+      const prev = document.activeElement, sc = document.createElement('div'); sc.className = 'scrim h-dlg'; sc.style.zIndex = 130;
+      const field = input ? (input.multiline
+        ? `<textarea class="input" rows="3" maxlength="${input.max || 1000}" placeholder="${esc(input.placeholder || '')}">${esc(input.value || '')}</textarea>`
+        : `<input class="input" maxlength="${input.max || 300}" placeholder="${esc(input.placeholder || '')}" value="${esc(input.value || '')}">`) : '';
+      sc.innerHTML = `<form class="modal stack gap-14" role="${input ? 'dialog' : 'alertdialog'}" aria-modal="true" aria-labelledby="h-dlg-t" style="max-width:420px">
+        <p class="t-h4" id="h-dlg-t">${esc(title)}</p>${body ? `<p class="t-body-sm c-2">${esc(body)}</p>` : ''}${field}
+        <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-no>${esc(cancel || 'Cancel')}</button><button class="btn ${danger ? 'btn--danger' : 'btn--primary'}" type="submit">${esc(ok || 'OK')}</button></div></form>`;
+      document.body.append(sc);
+      const f = sc.querySelector('form'), el = f.querySelector('input,textarea');
+      const done = v => { sc.remove(); document.removeEventListener('keydown', esc_); if (prev && prev.focus) prev.focus(); res(v); };
+      const esc_ = e => { if (e.key === 'Escape') done(input ? null : false); };
+      document.addEventListener('keydown', esc_);
+      sc.addEventListener('click', e => { if (e.target === sc || e.target.closest('[data-no]')) done(input ? null : false); });
+      f.onsubmit = e => { e.preventDefault(); if (input) { const v = el.value.trim(); if (!v && !input.optional) { el.focus(); return; } done(v); } else done(true); };
+      (el || f.querySelector('[type=submit]')).focus();
+    });
+  }
+  // H.confirm('Delete this comment?', { ok: 'Delete', danger: true }) -> true / false
+  const confirmDlg = (title, o = {}) => dialog(Object.assign({ title }, o));
+  // H.ask('Why are you reporting this?', { placeholder, value, multiline, optional }) -> text, or null when cancelled
+  const ask = (title, o = {}) => dialog({ title, body: o.body, ok: o.ok || 'Done', input: o });
+
   // ---------------------------------------------------------------- Installable app (PWA)
   const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -465,5 +491,5 @@
   // Unread notifications show as a badge on the installed app's icon where the system supports it
   function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
 
-  window.H = { pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
