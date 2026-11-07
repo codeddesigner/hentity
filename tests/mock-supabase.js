@@ -3,7 +3,9 @@
   const D = window.__FIXTURE__;
   const T = {};
   Object.keys(D).forEach(k => T[k] = (D[k] || []).map(r => Object.assign({}, r)));
-  ['upvotes', 'follows', 'bookmarks', 'notify_requests', 'notifications', 'channel_members', 'reactions', 'reports', 'newsletter', 'story_suggestions', 'audit_log', 'blocks'].forEach(k => T[k] = T[k] || []);
+  ['upvotes', 'follows', 'bookmarks', 'notify_requests', 'notifications', 'channel_members', 'reactions', 'reports', 'newsletter', 'story_suggestions', 'audit_log', 'blocks', 'radar'].forEach(k => T[k] = T[k] || []);
+  if (!T.radar.length) T.radar.push({ id: 'rd1', name: 'Raynest', website: 'https://raynest.com', tagline: '', country: 'NG', city: 'Lagos', categories: ['Fintech'], status: 'review', confidence: 40, facts: [{ label: 'Founded', value: '2023', source: 'raynest.com' }], news: [], checks: {}, created_at: new Date().toISOString(), verified: false },
+    { id: 'rd2', name: 'Payce', website: 'https://payce.africa', tagline: 'Your movement has value', country: 'NG', city: 'Lagos', categories: ['Apps'], status: 'review', confidence: 70, facts: [], news: [], checks: {}, created_at: new Date().toISOString(), verified: true, registration: 'RC 99' });
   const ME = '11111111-1111-4111-8111-111111111111';
   const signedIn = localStorage.getItem('mock.signedIn') === '1';
   if (!T.profiles.find(p => p.id === ME)) T.profiles.push({ id: ME, username: 'chidera', name: 'Chidera Okeke', email: 'encircode@gmail.com', role: localStorage.getItem('mock.role') || 'admin', country: 'NG', city: 'Lagos', headline: 'Founder', bio: '', website: '', x: '', linkedin: '', settings: { showUpvotes: true, showCity: true, liveFeed: false, indexable: true, notif: {} }, created_at: new Date().toISOString() });
@@ -162,6 +164,7 @@
     admin_nudge_audience: a => ({ counts: { photo: 9, bio: 14, headline: 11, location: 6, links: 12, p_logo: 3, p_media: 5, p_desc: 4, p_cac: 7, p_founder: 2, p_draft: 4, p_changes: 1, p_website: 0 }, people: [{ id: 'u1', name: 'Ada Obi', email: 'ada@haul54.com', missing: (a.kinds || []).slice(0, 3), last: null }, { id: 'u2', name: 'Kofi Mensah', email: 'kofi@farmcast.gh', missing: (a.kinds || []).slice(0, 1), last: new Date(Date.now() - 864e5).toISOString() }, { id: 'u3', name: 'Thandi Bhengu', email: 'thandi@wardhealth.co.za', missing: (a.kinds || []).slice(1, 2), tips_off: true }] }),
     admin_send_nudges: () => ({ sent: 1, skipped: 0 }),
     email_unsubscribe: () => ({ ok: true }),
+    radar_dupe: () => null,
     admin_find_roles: () => [Object.assign({}, FR[3], { status: 'review', startup_name: 'Haul54', startup_line: 'Shared trucks for small traders', country: 'UG', working: 'hybrid', visibility: 'public', updated_at: new Date(Date.now() - 5 * 36e5).toISOString(), owner: { name: 'Ada Obi', email: 'ada@haul54.com', username: 'ada', is_verified: false }, product: null })],
     find_review_role: () => null,
     product_edit_state: a => { const p = T.products.find(x => x.slug === a.pslug) || T.products.find(x => ['live', 'scheduled'].includes(x.status)); if (!p) return null; const cur = { name: p.name, tagline: p.tagline, description: p.description || '', website: p.website || '', logo_url: p.logo_url, color: p.color, media: p.media || [], video_url: p.video_url || '', categories: p.categories || [], country: p.country, city: p.city || '', pay_methods: p.pay_methods || [], stage: p.stage || 'Seed', platforms: 'Web', languages: 'English', currencies: 'NGN', registration: 'RC 1234567', founder_link: 'linkedin.com/in/founder' };

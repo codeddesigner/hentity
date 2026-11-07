@@ -345,6 +345,8 @@
     radarUpdate: (id, row) => q(sb.from('radar').update(row).eq('id', id)),
     radarDupe: rid => q(sb.rpc('radar_dupe', { rid })),
     radarPublish: (rid, invite) => q(sb.rpc('radar_publish', { rid, invite: !!invite })),
+    radarPush: rid => q(sb.rpc('radar_push', { rid })),
+    radarUnpublish: rid => q(sb.rpc('radar_unpublish', { rid })),
     claimsQueue: () => q(sb.from('claims').select('*,product:products(slug,name,website,color,logo_url,country,city),user:profiles!claims_user_id_fkey(id,name,username,avatar_url,avatar_color)').in('status', ['review', 'verified', 'started']).order('created_at', { ascending: false }).limit(100)),
     claimDecide: (cid, ok, why) => q(sb.rpc('claim_decide', { cid, ok, why: why || null })),
     claimDocUrl: path => sb.storage.from('claims').createSignedUrl(path, 600).then(r => { err(r.error); return r.data.signedUrl; }),

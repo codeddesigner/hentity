@@ -371,8 +371,8 @@ H.mount();
   const personal = /(\+?\d[\d\s-]{8,}\d)|([A-Z0-9._%+-]+@(gmail|yahoo|hotmail|outlook|icloud)\.)/i;
   // Mirrors radar_missing() in the database: what a sourced startup needs before it can go public
   const srcCount = r => new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean).map(x => String(x).toLowerCase())).size;
-  const missing = r => [[!(r.name || '').trim(), 'Name'], [!/^https?:\/\/[^/]+\.[a-z]/i.test(r.website || ''), 'Website'], [!(r.tagline || '').trim(), 'Tagline'], [(r.description || '').trim().length < 80, 'Description (at least 80 characters)'],
-    [!r.country, 'Country'], [!(r.city || '').trim(), 'City'], [!(r.categories || []).length, 'Category'], [srcCount(r) < 2, 'Two independent sources'], [!(r.checks && r.checks.vetted), 'Marked as vetted']].filter(x => x[0]).map(x => x[1]);
+  const missing = r => [[!(r.name || '').trim(), 'Name'], [!/^https?:\/\/[^/]+\.[a-z]/i.test(r.website || ''), 'Website'], [!(r.tagline || '').trim(), 'Tagline'],
+    [!r.country, 'Country'], [!(r.categories || []).length, 'Category'], [r.verified && !(r.registration || '').trim(), 'Registration number (for the Verified tick)']].filter(x => x[0]).map(x => x[1]);
   function radarChecks(r, dupe) {
     const srcs = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean));
     return [
@@ -380,30 +380,107 @@ H.mount();
       [!!r.website && !(r.checks && r.checks.dns === false), !r.website ? 'No website found' : r.checks && r.checks.dns === false ? `${esc(domainOf(r.website))} doesn’t resolve. The site may be gone.` : r.checks && r.checks.dns ? `Real product: ${esc(domainOf(r.website))} resolves` : `Real product: ${esc(domainOf(r.website))}`],
       [!dupe, dupe ? `Possible duplicate of <a class="link" href="/products/${esc(dupe.slug)}" target="_blank">${esc(dupe.name)}</a>` : 'Not already on Hentity (no domain or name match)'],
       [!(r.facts || []).some(f => personal.test(f.value || '')), (r.facts || []).some(f => personal.test(f.value || '')) ? 'A fact looks like a personal phone or email. Remove it.' : 'Only business information: no personal phone numbers or emails'],
-      [srcs.size >= 2, `${srcs.size} independent source${srcs.size === 1 ? '' : 's'}${srcs.size < 2 ? ': find one more before publishing' : ''}`],
-      [!missing(r).length, missing(r).length ? `Still needed: ${esc(missing(r).join(', '))}` : 'All required details added and vetted']];
+      [true, `${srcs.size} public source${srcs.size === 1 ? '' : 's'} on file`],
+      [!missing(r).length, missing(r).length ? `Still needed: ${esc(missing(r).join(', '))}` : 'Ready to publish']];
   }
   const conf = r => { const n = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(x => x.source)].filter(Boolean)).size; return Math.min(95, 25 + n * 15 + (r.website ? 10 : 0) + (r.country ? 5 : 0)); };
   const lines = (arr, keys) => (arr || []).map(o => keys.map(k => o[k] || '').join(' | ')).join('\n');
   const unlines = (txt, keys) => String(txt || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const p = l.split('|').map(x => x.trim()); const o = {}; keys.forEach((k, i) => { if (p[i]) o[k] = p[i]; }); return o; });
   const RCC = Object.assign({ EG: 'Egypt', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', SN: 'Senegal', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', BJ: 'Benin', TG: 'Togo', BF: 'Burkina Faso', CD: 'DR Congo', SL: 'Sierra Leone', GN: 'Guinea', SO: 'Somalia', SD: 'Sudan' }, H.COUNTRY);
   const FACT_KEYS = ['label', 'value', 'source', 'url', 'date'], NEWS_KEYS = ['title', 'source', 'url', 'date'];
+  // Radar editor: a pop-up to edit a startup and publish it, with the Verified tick and claim invite
+  const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Media', 'Mobility', 'Real Estate', 'HR & Work', 'Security'];
   function radarForm(r, done) {
-    drawer(r ? 'Edit ' + r.name : 'Add a startup by URL', [
-      ['logo_url', 'Logo (square image, at least 128 × 128)', 'image'], ['website', 'Website', 'text'], ['name', 'Name', 'text'], ['tagline', 'Tagline (what it does, one line)', 'text'], ['description', 'Description (what it does, who it’s for, how it works; at least 80 characters)', 'textarea', { rows: 4 }], ['country', 'Country', 'select', Object.entries(RCC).map(([k, v]) => [k, v])], ['city', 'City', 'text'],
-      ['categories', 'Categories', 'list'], ['facts_txt', 'Facts · Label | Value | Source | URL | Date', 'textarea', { rows: 6 }], ['news_txt', 'News · Title | Source | URL | Date', 'textarea', { rows: 3 }],
-      ['contact_email', 'Public business contact (for the claim invite)', 'text'], ['found_via', 'Found via', 'text'], ['vetted', 'I’ve checked this startup is real and every detail above is correct', 'bool']],
-      Object.assign({ country: 'NG', categories: [] }, r || {}, { facts_txt: lines(r && r.facts, FACT_KEYS), news_txt: lines(r && r.news, NEWS_KEYS), vetted: !!(r && r.checks && r.checks.vetted) }),
-      async v => {
-        const row = { logo_url: v.logo_url || null, website: v.website ? (/^https?:/.test(v.website) ? v.website : 'https://' + v.website) : '', name: v.name || domainOf(v.website).split('.')[0], tagline: v.tagline, description: v.description || '', country: v.country, city: v.city, categories: v.categories || [],
-          checks: Object.assign({}, (r && r.checks) || {}, { vetted: !!v.vetted, vetted_by: v.vetted ? API.uid : null, vetted_at: v.vetted ? new Date().toISOString() : null }),
-          facts: unlines(v.facts_txt, FACT_KEYS).map(f => Object.assign({ key: (f.label || 'fact').toLowerCase().replace(/[^a-z0-9]+/g, '_') }, f)), news: unlines(v.news_txt, NEWS_KEYS), contact_email: v.contact_email, found_via: v.found_via };
-        if (!row.name) throw new Error('Add a name or website');
-        if (row.contact_email && /@(gmail|yahoo|hotmail|outlook|icloud)\./i.test(row.contact_email)) throw new Error('Use a public business address, not a personal inbox');
-        row.confidence = conf(row);
-        if (r) await API.radarUpdate(r.id, row); else await API.radarAdd(row);
-        toast(r ? 'Saved' : 'Added to the radar'); done && done();
-      }, { top: `<p class="t-caption c-3" style="font-weight:400;margin-bottom:14px">Business facts only, each with its public source. No people’s names, phone numbers or personal emails.</p>` });
+    const isNew = !r; r = Object.assign({ country: 'NG', categories: [], facts: [], news: [], status: 'review', verified: false, registration: '' }, r || {});
+    qsa('.scrim').forEach(x => x.remove());
+    const sc = document.createElement('div'); sc.className = 'scrim'; sc.style.zIndex = 95;
+    const pub = r.status === 'published';
+    const cats = [...new Set([...RCATS, ...(r.categories || [])])];
+    sc.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="Edit startup" style="max-width:720px;padding:0">
+      <div class="row between gap-12" style="padding:20px 24px;border-bottom:1px solid var(--color-border-default);position:sticky;top:0;background:var(--color-bg-canvas);z-index:2">
+        <div class="row gap-12" style="min-width:0"><span id="rf-logo">${H.plogo({ name: r.name || '?', color: '#555', logo_url: r.logo_url }, 44)}</span><div style="min-width:0"><p class="t-h4 truncate">${esc(r.name || 'Add a startup')}</p><p class="t-caption c-3" style="font-weight:400">${isNew ? 'New on the radar' : pub ? 'Published · edits update the live page' : r.status === 'review' ? (r.product_id ? 'Taken off the site · in review' : 'In review') : esc(r.status)}</p></div></div>
+        <button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>
+      <form id="rf" style="padding:20px 24px" novalidate>
+        <div id="rf-checks" class="stack gap-6" style="margin-bottom:16px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="rf-grid">
+          <label class="field" style="grid-column:1/-1"><span class="field__label">Website</span><input class="input" name="website" value="${esc(r.website || '')}" placeholder="https://raynest.com" inputmode="url"></label>
+          <label class="field"><span class="field__label">Name</span><input class="input" name="name" value="${esc(r.name || '')}" maxlength="80"></label>
+          <div class="field"><span class="field__label">Logo</span><div class="row gap-8"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload')}Upload<input type="file" accept="image/*" class="sr-only" id="rf-up"></label><input class="input grow" name="logo_url" value="${esc(r.logo_url || '')}" placeholder="or paste an image link" style="height:36px"></div></div>
+          <label class="field" style="grid-column:1/-1"><span class="field__label">Tagline <span class="c-3" style="font-weight:400">(what it does, one line)</span></span><input class="input" name="tagline" value="${esc(r.tagline || '')}" maxlength="140"></label>
+          <label class="field" style="grid-column:1/-1"><span class="field__label">Description <span class="c-3" style="font-weight:400">(optional, shown on the page)</span></span><textarea class="input" name="description" rows="3">${esc(r.description || '')}</textarea></label>
+          <label class="field"><span class="field__label">Country</span><select class="input" name="country">${Object.entries(RCC).map(([k, v]) => `<option value="${k}"${r.country === k ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
+          <label class="field"><span class="field__label">City <span class="c-3" style="font-weight:400">(optional)</span></span><input class="input" name="city" value="${esc(r.city || '')}"></label>
+          <div class="field" style="grid-column:1/-1"><span class="field__label">Category <span class="c-3" style="font-weight:400">(up to 3)</span></span><div class="chips" id="rf-cats" style="flex-wrap:wrap">${cats.map(c => `<button class="chip" type="button" data-chip data-v="${esc(c)}" aria-pressed="${(r.categories || []).includes(c)}">${icon('check')}${esc(c)}</button>`).join('')}</div></div>
+        </div>
+        <section style="margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--color-bg-subtle)">
+          <label class="check" style="display:flex"><input type="checkbox" name="verified"${r.verified ? ' checked' : ''}><span class="check__box">${icon('check')}</span><span class="row gap-6">Give it the Verified tick ${H.verified('verified--sm')}</span></label>
+          <label class="field" id="rf-reg" style="margin-top:10px${r.verified ? '' : ';display:none'}"><span class="field__label">Company registration number (CAC / RC)</span><input class="input" name="registration" value="${esc(r.registration || '')}" placeholder="RC 1234567" style="max-width:260px"></label>
+          <label class="field" style="margin-top:10px"><span class="field__label">Public business contact <span class="c-3" style="font-weight:400">(for the claim invite)</span></span><input class="input" name="contact_email" value="${esc(r.contact_email || '')}" placeholder="hello@raynest.com" style="max-width:320px"></label>
+          ${!pub ? `<label class="check" style="display:flex;margin-top:10px"><input type="checkbox" name="invite" checked><span class="check__box">${icon('check')}</span>Send a claim invite to that address when I publish</label>` : ''}
+        </section>
+        <details style="margin-top:14px"><summary class="t-body-sm c-2" style="cursor:pointer">Sources and facts <span class="c-3">(optional, shown on the unclaimed page)</span></summary>
+          <label class="field" style="margin-top:10px"><span class="field__label">Facts · Label | Value | Source | URL | Date</span><textarea class="input" name="facts_txt" rows="4" style="font-family:var(--font-mono);font-size:12px">${esc(lines(r.facts, FACT_KEYS))}</textarea></label>
+          <label class="field" style="margin-top:10px"><span class="field__label">News · Title | Source | URL | Date</span><textarea class="input" name="news_txt" rows="2" style="font-family:var(--font-mono);font-size:12px">${esc(lines(r.news, NEWS_KEYS))}</textarea></label>
+          <label class="field" style="margin-top:10px"><span class="field__label">Found via</span><input class="input" name="found_via" value="${esc(r.found_via || '')}"></label></details>
+      </form>
+      <div class="row gap-8 wrap" style="padding:16px 24px;border-top:1px solid var(--color-border-default);position:sticky;bottom:0;background:var(--color-bg-canvas)">
+        ${!isNew && !pub && r.status === 'review' ? `<button class="btn btn--ghost btn--sm" type="button" id="rf-rej" style="color:var(--color-danger)">Reject</button>` : ''}
+        ${!isNew && ['rejected', 'merged'].includes(r.status) ? `<button class="btn btn--ghost btn--sm" type="button" id="rf-back">Move back to review</button>` : ''}
+        ${pub ? `<button class="btn btn--ghost btn--sm" type="button" id="rf-down" style="color:var(--color-danger)">Take off the site</button><a class="btn btn--ghost btn--sm" id="rf-view" target="_blank" href="#">View page</a>` : ''}
+        <span class="grow"></span><span class="t-caption c-3" id="rf-miss" style="font-weight:400;align-self:center;max-width:260px;text-align:right"></span>
+        <button class="btn btn--secondary btn--sm" type="button" id="rf-save">${pub ? 'Save changes' : 'Save'}</button>
+        ${pub ? '' : `<button class="btn btn--primary btn--sm" type="button" id="rf-pub">${r.product_id ? 'Put back on the site' : 'Publish'}</button>`}
+      </div></div>`;
+    document.body.append(sc);
+    const fm = sc.querySelector('#rf'), q = n => fm.elements[n];
+    const close = () => { sc.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    sc.addEventListener('click', e => { if (e.target === sc || e.target.closest('[data-x]')) close(); });
+    H.bindChips(sc.querySelector('#rf-cats'), () => { const on = qsa('#rf-cats [aria-pressed="true"]', sc); if (on.length > 3) { document.activeElement.setAttribute('aria-pressed', 'false'); toast('Up to 3 categories', 'error'); } sync(); });
+    if (pub && r.product_id) API.productsByIds([r.product_id]).then(x => { const v = sc.querySelector('#rf-view'); if (v && x[0]) v.href = '/products/' + x[0].slug; }).catch(() => {});
+    const read = () => {
+      const w = q('website').value.trim();
+      const website = w ? (/^https?:/i.test(w) ? w : 'https://' + w) : '';
+      return { website, name: q('name').value.trim() || (website ? domainOf(website).split('.')[0].replace(/^./, c => c.toUpperCase()) : ''), tagline: q('tagline').value.trim(), description: q('description').value.trim(),
+        country: q('country').value, city: q('city').value.trim(), categories: qsa('#rf-cats [aria-pressed="true"]', sc).map(b => b.dataset.v).slice(0, 3), logo_url: q('logo_url').value.trim() || null,
+        verified: q('verified').checked, registration: q('registration').value.trim() || null, contact_email: q('contact_email').value.trim() || null,
+        facts: unlines(q('facts_txt').value, FACT_KEYS).map(f => Object.assign({ key: (f.label || 'fact').toLowerCase().replace(/[^a-z0-9]+/g, '_') }, f)), news: unlines(q('news_txt').value, NEWS_KEYS), found_via: q('found_via').value.trim() || null };
+    };
+    async function sync() {
+      const v = read(), m = missing(v);
+      sc.querySelector('#rf-reg').style.display = v.verified ? '' : 'none';
+      sc.querySelector('#rf-miss').textContent = m.length ? 'Needed to publish: ' + m.join(', ') : '';
+      const p = sc.querySelector('#rf-pub'); p && (p.disabled = !!m.length);
+      sc.querySelector('#rf-checks').innerHTML = radarChecks(Object.assign({}, r, v), null).slice(0, 4).filter(([ok]) => !ok).map(([, t]) => `<p class="row gap-8 t-body-sm" style="align-items:flex-start;color:var(--color-warning,#b45309)">${icon('alert-circle', 'ic-14')}<span>${t}</span></p>`).join('');
+    }
+    fm.addEventListener('input', sync); fm.addEventListener('change', sync);
+    q('website').addEventListener('blur', () => { if (!q('name').value.trim() && q('website').value.trim()) { q('name').value = read().name; sync(); } });
+    sc.querySelector('#rf-up').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { toast('Uploading…'); q('logo_url').value = await API.upload(f, 'admin'); sc.querySelector('#rf-logo').innerHTML = H.plogo({ name: q('name').value || '?', logo_url: q('logo_url').value }, 44); toast('Logo uploaded'); } catch (err) { H.fail(err); } });
+    async function save() {
+      const v = read();
+      if (!v.name && !v.website) throw new Error('Add a website or name');
+      if (v.contact_email && /@(gmail|yahoo|hotmail|outlook|icloud)\./i.test(v.contact_email)) throw new Error('Use a public business address, not a personal inbox');
+      // Saving from the pop-up counts as reviewing it, so it can go out with "Publish all vetted"
+      const row = Object.assign({}, v, { checks: Object.assign({}, r.checks || {}, { vetted: true, vetted_by: API.uid, vetted_at: new Date().toISOString() }) }); row.confidence = conf(row);
+      if (!r.id) { const out = await API.radarAdd(row); Object.assign(r, out); } else await API.radarUpdate(r.id, row);
+      Object.assign(r, row); return r;
+    }
+    const busy = async (btn, fn) => { btn.disabled = true; try { await fn(); } catch (err) { H.fail(err); } btn.disabled = false; };
+    sc.querySelector('#rf-save').onclick = e => busy(e.currentTarget, async () => { await save(); if (pub) await API.radarPush(r.id); toast(pub ? 'Saved · live page updated' : isNew ? 'Added to the radar' : 'Saved'); close(); done && done(); });
+    const pb = sc.querySelector('#rf-pub');
+    pb && (pb.onclick = e => busy(e.currentTarget, async () => {
+      await save();
+      const dupeId = await API.radarDupe(r.id).catch(() => null);
+      if (dupeId) { const d = (await API.productsByIds([dupeId]).catch(() => []))[0]; if (d && !confirm(`${d.name} may already be on Hentity. Publish anyway?`)) return; }
+      const out = await API.radarPublish(r.id, q('invite') && q('invite').checked);
+      toast(`${r.name} is live${r.verified ? ' with the Verified tick' : ''}`); close(); done && done();
+      setTimeout(() => window.open('/products/' + out.slug, '_blank'), 300);
+    }));
+    const rj = sc.querySelector('#rf-rej'); rj && (rj.onclick = e => busy(e.currentTarget, async () => { await API.radarUpdate(r.id, { status: 'rejected', decided_at: new Date().toISOString() }); toast('Rejected'); close(); done && done(); }));
+    const bk = sc.querySelector('#rf-back'); bk && (bk.onclick = e => busy(e.currentTarget, async () => { await API.radarUpdate(r.id, { status: 'review' }); toast('Back in review'); close(); done && done(); }));
+    const dn = sc.querySelector('#rf-down'); dn && (dn.onclick = e => busy(e.currentTarget, async () => { if (!confirm(`Take ${r.name} off the site? It goes back to review and keeps its page for later.`)) return; await API.radarUnpublish(r.id); toast('Taken off the site'); close(); done && done(); }));
+    sync(); setTimeout(() => (isNew ? q('website') : q('tagline')).focus(), 50);
   }
   V.radar = async (arg) => {
     nav('radar');
@@ -411,7 +488,7 @@ H.mount();
     const F = V.radar.f || (V.radar.f = { q: '', cc: '' });
     let rows, counts;
     try { [rows, counts] = await Promise.all([API.radar(tab, F), API.radarCounts()]); } catch (e) { H.fail(e); return; }
-    let sel = rows[0] || null;
+    const sel = null;
     const bar = n => `<span class="row" style="gap:3px">${[0, 1, 2, 3, 4].map(i => `<i style="width:14px;height:5px;border-radius:3px;background:${i < n ? 'var(--color-text-primary)' : 'var(--color-bg-muted)'}"></i>`).join('')}</span>`;
     const pct = c => `<span class="badge" style="background:${c >= 75 ? '#e9f8ee;color:#15803d' : c >= 50 ? '#fff6e5;color:#b45309' : '#fdecec;color:#b91c1c'}">${c}%</span>`;
     const nsrc = r => new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean)).size;
@@ -419,15 +496,15 @@ H.mount();
       + `<div class="chips" style="margin-bottom:12px">${[['review', 'To review'], ['published', 'Published'], ['rejected', 'Rejected'], ['merged', 'Merged']].map(([k, l]) => `<a class="chip" href="#radar/${k}" aria-pressed="${k === tab}">${k === tab ? icon('check') : ''}${l} · ${D.fmt ? D.fmt(counts[k] || 0) : counts[k] || 0}</a>`).join('')}</div>
       <div class="row gap-8 wrap" style="margin-bottom:16px"><input class="input" id="rd-q" placeholder="Search name or domain" value="${esc(F.q)}" style="max-width:260px;height:36px"><select class="input" id="rd-cc" style="max-width:200px;height:36px"><option value="">All countries</option>${Object.entries(RCC).map(([k, v]) => `<option value="${k}"${F.cc === k ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>
         <span class="t-caption c-3" style="font-weight:400">Showing ${rows.length}${rows.length === 200 ? '+' : ''}</span>${tab === 'review' ? `<button class="btn btn--secondary btn--sm" id="rd-bulk" style="margin-left:auto">${icon('check', 'ic-14')}Publish all vetted</button>` : ''}</div>
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start" class="rd-grid">
-        <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th></tr></thead><tbody>${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${r.product_id && r.status === 'review' ? '<span class="badge" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">Taken off site</span>' : ''}${r.status === 'review' && !missing(r).length ? '<span class="badge" style="background:#e9f8ee;color:#15803d">Ready</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td></tr>`).join('')}</tbody></table>` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
-        <div id="rd-detail"></div></div><style>@media(max-width:1100px){.rd-grid{grid-template-columns:1fr!important}}</style>`;
+      <div class="rd-grid">
+        <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th><th></th></tr></thead><tbody>${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${r.product_id && r.status === 'review' ? '<span class="badge" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">Taken off site</span>' : ''}${r.status === 'review' && r.checks && r.checks.vetted && !missing(r).length ? '<span class="badge" style="background:#e9f8ee;color:#15803d">Vetted</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td><td style="text-align:right">${r.verified ? H.verified('verified--sm') : ''}<span class="btn btn--ghost btn--sm">${r.status === 'review' ? 'Open' : 'Edit'}</span></td></tr>`).join('')}</tbody></table>` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
+        </div><style>@media(max-width:640px){.rf-grid{grid-template-columns:1fr!important}}</style>`;
     qs('#add').onclick = () => radarForm(null, () => V.radar('review'));
     let tq; qs('#rd-q').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { F.q = e.target.value.trim(); V.radar(tab); }, 350); };
     qs('#rd-cc').onchange = e => { F.cc = e.target.value; V.radar(tab); };
     // Bulk: publish every row shown here whose website resolves, that isn't already on Hentity and has no personal details
     qs('#rd-bulk') && (qs('#rd-bulk').onclick = async () => {
-      const ok = rows.filter(r => !missing(r).length && !(r.checks && r.checks.dns === false) && !(r.facts || []).some(f => personal.test(f.value || '')));
+      const ok = rows.filter(r => r.checks && r.checks.vetted && !missing(r).length && !(r.checks && r.checks.dns === false) && !(r.facts || []).some(f => personal.test(f.value || '')));
       if (!ok.length) { toast('None shown here is vetted with every required detail yet', 'error'); return; }
       if (!confirm(`Publish the ${ok.length} you’ve vetted (of ${rows.length} shown)? Possible duplicates are skipped.`)) return;
       const b = qs('#rd-bulk'); b.disabled = true; let done = 0, skipped = 0;
@@ -436,34 +513,7 @@ H.mount();
       }
       toast(`Published ${done}${skipped ? `, skipped ${skipped} (possible duplicates or errors)` : ''}`); V.radar(tab);
     });
-    async function detail(r) {
-      const box = qs('#rd-detail'); if (!r) { box.innerHTML = ''; return; }
-      const dupeId = r.status === 'review' ? await API.radarDupe(r.id).catch(() => null) : null;
-      const dupe = dupeId ? (await API.productsByIds([dupeId]).catch(() => []))[0] : null;
-      const checks = radarChecks(r, dupe);
-      box.innerHTML = `<section class="card card--pad" style="position:sticky;top:20px">
-        <div class="row between gap-12" style="align-items:flex-start"><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url }, 40)}<div><p class="t-h4">${esc(r.name)}</p><p class="t-caption c-3" style="font-weight:400">First seen ${new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}${r.found_via ? ' · ' + esc(r.found_via) : ''}</p></div></div>${pct(r.confidence)}</div>
-        <p class="t-eyebrow c-3" style="margin:18px 0 8px">Checks</p><div class="stack gap-8">${checks.map(([ok, t]) => `<p class="row gap-8 t-body-sm" style="align-items:flex-start"><span style="color:${ok ? 'var(--color-success)' : 'var(--color-warning,#b45309)'};flex:none;margin-top:1px">${icon(ok ? 'check' : 'alert-circle', 'ic-14')}</span><span>${t}</span></p>`).join('')}</div>
-        <p class="t-eyebrow c-3" style="margin:18px 0 8px">Extracted</p>
-        ${r.tagline ? `<p class="t-caption c-3" style="font-weight:400">Tagline</p><p class="t-body-sm" style="margin:2px 0 6px">${esc(r.tagline)}</p>${r.website ? `<span class="src">${icon('link', 'ic-12')}${esc(domainOf(r.website))}</span>` : ''}` : ''}
-        ${(r.facts || []).map(f => `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">${esc(f.label)}</p><p class="t-body-sm" style="margin:2px 0 6px">${esc(f.value)}</p>${f.source ? `<a class="src" href="${esc(f.url || '#')}" target="_blank" rel="noopener">${icon('link', 'ic-12')}${esc(f.source)}</a>` : ''}`).join('')}
-        ${r.status === 'review' ? `<div class="row gap-8 t-caption c-2" style="font-weight:400;margin-top:18px;padding:12px;border-radius:10px;background:var(--color-bg-subtle);align-items:flex-start">${icon('mail', 'ic-14')}${r.contact_email ? `<label class="check" style="font-size:12px"><input type="checkbox" id="rd-inv" checked><span class="check__box">${icon('check')}</span><span>On publish, send a claim invite to ${esc(r.contact_email)} (public business contact)</span></label>` : '<span>No public business contact, so no claim invite will be sent.</span>'}</div>
-        <div class="row gap-8" style="margin-top:16px"><button class="btn btn--ghost btn--sm" id="rd-rej">Reject</button><button class="btn btn--ghost btn--sm" id="rd-edit">Edit</button>${dupe ? `<button class="btn btn--secondary btn--sm" id="rd-merge">Merge</button>` : ''}<button class="btn btn--primary btn--sm grow" id="rd-pub"${missing(r).length ? ' disabled title="Add the missing details first"' : ''}>${r.product_id ? 'Put back on the site' : 'Publish as unclaimed'}</button></div>${missing(r).length ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Edit to add: ${esc(missing(r).join(', '))}.</p>` : ''}`
-        : r.product_id ? `<a class="btn btn--secondary btn--sm" style="margin-top:16px" href="/products/${esc((r.slug || ''))}" id="rd-view">View page</a>` : ''}
-      </section>`;
-      if (r.status !== 'review') { if (qs('#rd-view') && r.product_id) API.productsByIds([r.product_id]).then(x => x[0] && (qs('#rd-view').href = '/products/' + x[0].slug)).catch(() => {}); return; }
-      qs('#rd-edit').onclick = () => radarForm(r, () => V.radar(tab));
-      qs('#rd-rej').onclick = async () => { await API.radarUpdate(r.id, { status: 'rejected', decided_at: new Date().toISOString() }); toast('Rejected'); V.radar(tab); };
-      qs('#rd-merge') && (qs('#rd-merge').onclick = async () => { await API.radarUpdate(r.id, { status: 'merged', dup_of: dupe.id, decided_at: new Date().toISOString() }); toast('Merged with ' + dupe.name); V.radar(tab); });
-      qs('#rd-pub').onclick = async () => {
-        if (checks.some(([ok], i) => !ok && i === 3)) { toast('Remove personal details first', 'error'); return; }
-        if (dupe && !confirm(`${dupe.name} may already be on Hentity. Publish anyway?`)) return;
-        const b = qs('#rd-pub'); b.disabled = true;
-        try { const out = await API.radarPublish(r.id, qs('#rd-inv') && qs('#rd-inv').checked); toast('Published as unclaimed'); V.radar(tab); setTimeout(() => window.open('/products/' + out.slug, '_blank'), 300); } catch (e) { H.fail(e); b.disabled = false; }
-      };
-    }
-    detail(sel);
-    qs('#main').addEventListener('click', e => { const tr = e.target.closest('[data-r]'); if (!tr) return; sel = rows.find(x => x.id === tr.dataset.r); qsa('[data-r]').forEach(x => x.style.background = x === tr ? 'var(--color-accent-subtle)' : ''); detail(sel); });
+    qs('#main').onclick = e => { const tr = e.target.closest('[data-r]'); if (!tr) return; radarForm(rows.find(x => x.id === tr.dataset.r), () => V.radar(tab)); };
   };
   V.claims = async () => {
     nav('claims'); const rows = await API.claimsQueue();
