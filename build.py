@@ -9,7 +9,7 @@ head = (SRC / 'partials/head.html').read_text()
 
 # Signed-in or transactional pages that should never appear in search results
 NOINDEX = {'me', 'my-products', 'notifications', 'saved', 'submit', 'under-review', 'changes-requested', 'scheduled',
-           'launch-week', 'launch-recap', 'welcome',
+           'launch-week', 'launch-recap', 'welcome', 'offline',
            'admin', '404', 'maker', 'product', 'article', 'beta', 'beta-new', 'beta-manage', 'beta-apply', 'studio', 'betas', 'directory-index'}  # templates: real URLs are server-rendered by api/ssr.js
 
 def seo(page: str, rel: pathlib.Path) -> str:
