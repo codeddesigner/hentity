@@ -518,6 +518,32 @@
     publicStats: () => q(sb.rpc('public_stats')),   // counted from real data
     settings: async (key) => { if (Object.prototype.hasOwnProperty.call(PRE, 'settings:' + key)) return pre('settings:' + key); const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
 
+    // ---------------- push notifications (Web Push; the installed app on iPhone, any modern browser elsewhere)
+    push: (() => {
+      // The public key comes from /api/push (kept in Vault); cached for the session
+      let vapid = null; const key = async () => vapid || (vapid = await fetch('/api/push').then(r => r.ok ? r.json() : {}).then(j => j.key).catch(() => null));
+      const u8 = b => { const s = atob((b + '='.repeat((4 - b.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+      const device = () => { const u = navigator.userAgent; return (/iPhone|iPad/.test(u) ? 'iPhone' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : 'Browser') + (matchMedia('(display-mode: standalone)').matches || navigator.standalone ? ' app' : ''); };
+      const save = sub => { const j = sub.toJSON(); return q(sb.rpc('push_subscribe', { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, device: device() })); };
+      const P = {
+        supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window,
+        permission: () => ('Notification' in window ? Notification.permission : 'unsupported'),
+        async current() { if (!P.supported()) return null; const reg = await navigator.serviceWorker.getRegistration(); return reg ? reg.pushManager.getSubscription() : null; },
+        async enable() {
+          requireAuth();
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') throw new Error(perm === 'denied' ? 'Notifications are blocked for Hentity. Allow them in your browser or phone settings, then try again.' : 'Push notifications weren’t turned on.');
+          const reg = await navigator.serviceWorker.ready;
+          const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(await key() || (() => { throw new Error('Push isn’t available right now. Try again in a minute.'); })()) });
+          await save(sub); return true;
+        },
+        async disable() { const sub = await P.current(); if (sub) { await q(sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)).catch(() => {}); await sub.unsubscribe().catch(() => {}); } },
+        // Keep this device's subscription saved (browsers rotate them; signing in on a shared device moves it)
+        async sync() { if (!uid() || P.permission() !== 'granted') return; const sub = await P.current().catch(() => null); if (sub) await save(sub).catch(() => {}); },
+        test: () => q(sb.rpc('push_test'))
+      };
+      return P;
+    })(),
     // ---------------- realtime
     live(name, table, filter, cb) {
       const ch = sb.channel(name + ':' + Math.random().toString(36).slice(2));

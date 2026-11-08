@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=5e09b9a5c1"></script>
-<script src="/assets/app.js?v=3223e6dc13"></script>
+<script src="/assets/api.js?v=f1b7974807"></script>
+<script src="/assets/app.js?v=85b60478a9"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -78,6 +78,13 @@
   <div data-sidenav="notifications"></div>
   <main class="stack gap-24">
     <div class="page-head" style="margin:0"><div><h1>Notifications</h1><p>Choose what reaches you and where. Changes save as you go.</p></div></div>
+    <section class="card card--pad" id="push-card">
+      <div class="row gap-16 wrap" style="align-items:center">
+        <span class="icon-tile"><span data-icon="bell"></span></span>
+        <div class="grow" style="min-width:220px"><p class="list-row__title">Push notifications on this device</p><p class="list-row__desc" id="push-desc">Checking this device…</p></div>
+        <div class="row gap-8" id="push-act"></div>
+      </div>
+    </section>
     <div class="alert alert--accent" style="align-items:center"><span data-icon="bell"></span><p class="alert__body grow">WhatsApp messages go to <span id="wa">+234 803 ••• 4471</span>. Only launch-day events can use WhatsApp.</p><a class="link link--accent alert__action" href="/settings/account">Change number</a></div>
     <section class="card" style="padding:4px 20px 8px"><div class="matrix-wrap"><table class="matrix" id="matrix"></table></div></section>
     <section class="card card--pad">
@@ -123,6 +130,33 @@ H.mount({ active: '', tab: 'you' });
     ${rows.map(([k, t, d, ...def], ri) => `<tr${ri === rows.length - 1 ? ' class="group-end"' : ''}><td><p class="ev">${esc(t)}</p><p class="ev-d">${esc(d)}</p></td>
       ${def.map((v, ci) => { const key = k + '.' + ci; const on = key in prefs ? prefs[key] : v; return v === null ? '<td><span class="dash" aria-label="Not available">—</span></td>' : `<td><label class="toggle"><input type="checkbox" data-pref="${key}" ${on ? 'checked' : ''} aria-label="${esc(t)} by ${ch[ci]}"><span class="toggle__track"></span></label></td>`; }).join('')}</tr>`).join('')}</tbody>`).join('');
   qs('#matrix').addEventListener('change', async e => { const i = e.target.closest('[data-pref]'); if (!i) return; prefs[i.dataset.pref] = i.checked; try { await API.updateProfile({ settings: Object.assign(st(), { notif: prefs }) }); toast('Saved'); } catch (err) { i.checked = !i.checked; H.fail(err); } });
+  // ---- Push on this device
+  const P = API.push;
+  async function pushCard() {
+    const desc = qs('#push-desc'), act = qs('#push-act');
+    const ios = H.pwa && H.pwa.isIOS, app = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (!P.supported()) {
+      if (ios && !app) { desc.textContent = 'On iPhone and iPad, push works in the installed app. Add Hentity to your Home Screen, open it from there, and turn this on.'; act.innerHTML = `<button class="btn btn--secondary btn--sm" type="button" data-pwa-install>Install the app</button>`; }
+      else { desc.textContent = 'This browser doesn’t support push notifications. Try Chrome, Edge, Firefox or Safari, or the installed app.'; act.innerHTML = ''; }
+      return;
+    }
+    if (P.permission() === 'denied') { desc.textContent = 'Notifications are blocked for Hentity on this device. Allow them in your browser or phone settings, then come back here.'; act.innerHTML = ''; return; }
+    const on = P.permission() === 'granted' && !!(await P.current().catch(() => null));
+    desc.textContent = on ? 'On. You’ll get what’s switched on under In-app below, even when Hentity is closed. Pausing notifications pauses push too.' : 'Get replies, reviews and launch updates on this device, even when Hentity is closed.';
+    act.innerHTML = `${on ? '<button class="btn btn--ghost btn--sm" type="button" id="push-test">Send a test</button>' : ''}<label class="toggle"><input type="checkbox" id="push-on" ${on ? 'checked' : ''} aria-label="Push notifications on this device"><span class="toggle__track"></span></label>`;
+  }
+  qs('#push-act').addEventListener('change', async e => {
+    if (e.target.id !== 'push-on') return;
+    const want = e.target.checked; e.target.disabled = true;
+    try { if (want) { await P.enable(); toast('Push notifications are on'); } else { await P.disable(); toast('Push notifications are off on this device'); } }
+    catch (er) { H.fail(er); }
+    pushCard();
+  });
+  qs('#push-act').addEventListener('click', async e => {
+    if (!e.target.closest('#push-test')) return;
+    try { await P.test(); toast('Sent. It should arrive in a few seconds.'); } catch (er) { H.fail(er); }
+  });
+  pushCard();
   H.bindChips(qs('#pause-len'), () => { if (qs('#pause').checked) setPause(true); });
   async function setPause(on, silent) {
     const len = (qs('#pause-len [aria-pressed="true"]') || {}).dataset?.len || '1 week';

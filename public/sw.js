@@ -1,6 +1,6 @@
 /* Hentity service worker: makes the site installable and keeps recently opened pages working offline.
    build.py stamps VERSION with a hash of the build, so every deploy installs a fresh worker and drops old caches. */
-const VERSION = '6e71f11bf777';
+const VERSION = '36bec93e4145';
 const SHELL = 'shell-' + VERSION, PAGES = 'pages-' + VERSION, ASSETS = 'assets-' + VERSION, CDN = 'cdn-v1';
 const OFFLINE = '/offline.html';
 const PRECACHE = [OFFLINE, '/favicon.svg?v=3', '/icons/icon-192.png'];
@@ -74,3 +74,25 @@ self.addEventListener('fetch', e => {
 
 // Lets a page ask a waiting worker to take over right away
 self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipWaiting(); });
+
+// ---------------------------------------------------------------- push notifications
+// /api/push sends { title, body, url, tag, badge, icon }, encrypted for this device
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (er) { d = { title: 'Hentity', body: e.data ? e.data.text() : '' }; }
+  const jobs = [self.registration.showNotification(d.title || 'Hentity', {
+    body: d.body || '', icon: d.icon || '/icons/icon-192.png', badge: '/icons/badge-96.png',
+    tag: d.tag || undefined, renotify: !!d.tag, timestamp: Date.now(), data: { url: d.url || '/notifications' } })];
+  if (d.badge != null && self.navigator && self.navigator.setAppBadge) jobs.push((d.badge ? self.navigator.setAppBadge(d.badge) : self.navigator.clearAppBadge()).catch(() => {}));
+  e.waitUntil(Promise.all(jobs));
+});
+// Tapping a notification opens its page, reusing an open Hentity window when there is one
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || '/notifications', self.location.origin).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const w = list.find(c => c.url.startsWith(self.location.origin));
+    if (w) return w.focus().then(c => (c && c.navigate ? c.navigate(url) : null)).catch(() => self.clients.openWindow(url));
+    return self.clients.openWindow(url);
+  }));
+});

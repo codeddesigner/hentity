@@ -520,12 +520,27 @@
     document.body.append(b);
     b.addEventListener('click', e => { if (e.target.closest('[data-pwa-close]')) { store.set('pwa.dismissed', Date.now()); b.remove(); } else if (e.target.closest('[data-pwa-install]')) { b.remove(); pwa.install(); } });
   }
+  // In the installed app, offer push once the member is signed in (asked on a tap, never on page load)
+  function maybePushBanner() {
+    const P = window.API && API.push;
+    if (!P || !API.uid || !P.supported() || P.permission() !== 'default' || !standalone() || document.querySelector('.pwa-bar')) return;
+    if (/^\/(signin|signup|welcome|offline|admin|settings\/notifications)/.test(location.pathname)) return;
+    if (store.get('pwa.visits', 0) < 2 || Date.now() - store.get('push.dismissed', 0) < 14 * 864e5) return;
+    const b = document.createElement('div'); b.className = 'pwa-bar'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Turn on notifications');
+    b.innerHTML = `<span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">Turn on notifications</p><p class="t-caption c-3" style="font-weight:400">Replies, reviews and your launch, even when Hentity is closed</p></div><button class="btn btn--primary btn--sm" type="button" data-push-on>Turn on</button><button class="nav__icon" type="button" data-push-close aria-label="Not now">${icon('x', 'ic-16')}</button>`;
+    document.body.append(b);
+    b.addEventListener('click', async e => {
+      if (e.target.closest('[data-push-close]')) { store.set('push.dismissed', Date.now()); b.remove(); return; }
+      if (e.target.closest('[data-push-on]')) { b.remove(); try { await P.enable(); toast('Notifications are on'); } catch (er) { store.set('push.dismissed', Date.now()); fail(er); } }
+    });
+  }
   document.addEventListener('click', e => { if (e.target.closest('[data-pwa-install]') && !e.target.closest('.pwa-bar')) { e.preventDefault(); closeMenus(); pwa.install(); } });
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     window.addEventListener('load', () => {
       store.set('pwa.visits', store.get('pwa.visits', 0) + 1);
       navigator.serviceWorker.register('/sw.js').catch(() => {});
       if (isIOS) setTimeout(maybeInstallBanner, 4000);
+      if (window.API && API.ready) API.ready.then(() => { if (!API.push) return; API.push.sync(); setTimeout(maybePushBanner, 5000); }).catch(() => {});
     });
   }
   // Unread notifications show as a badge on the installed app's icon where the system supports it
