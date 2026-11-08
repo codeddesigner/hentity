@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=5760d06b53">
+<link rel="stylesheet" href="/assets/styles.css?v=78135394f3">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=ee220abd32"></script>
-<script src="/assets/app.js?v=65a9aeae46"></script>
+<script src="/assets/app.js?v=c076b5fd98"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -181,7 +181,7 @@ body{background:var(--color-bg-subtle)}
 </main>
 <div data-tabbar></div>
 <script src="/assets/data.js?v=10e6f8b49c"></script>
-<script src="/assets/find.js?v=b6d36be2b8"></script>
+<script src="/assets/find.js?v=18c2d96c3b"></script>
 <script src="/assets/funding.js?v=fc91b2c019"></script>
 <script>
 H.mount({ active: 'saved', tab: 'you' });
@@ -245,7 +245,7 @@ H.mount({ active: 'saved', tab: 'you' });
   const roleLine = r => [(r.startup || {}).name, r.city].filter(Boolean).join(' · ');
   const KPILL = { cofounder: 'orange', fulltime: 'blue', parttime: 'blue', internship: 'blue', contract: '' };
   const OPEN_LBL = { cofounder: 'Open to co-founding', fulltime: 'Open to full-time', parttime: 'Open to part-time', contract: 'Open to contract', internship: 'Open to internships' };
-  const personMark = u => u.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : u.avatar_url ? F.mini(u.name, u.avatar_url) : `<span class="fav">${esc(F.initials(u.name))}</span>`;
+  const personMark = u => u.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : u.avatar_url ? F.mini(u.name, u.avatar_url) : `<span class="fav" style="${H.tint(u.name)}">${esc(F.initials(u.name))}</span>`;
 
   // ---------------------------------------------------------------- rows
   const R = {

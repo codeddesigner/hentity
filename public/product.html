@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=5760d06b53">
+<link rel="stylesheet" href="/assets/styles.css?v=78135394f3">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=ee220abd32"></script>
-<script src="/assets/app.js?v=65a9aeae46"></script>
+<script src="/assets/app.js?v=c076b5fd98"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -83,7 +83,7 @@
 .share a:hover,.share button:hover{color:var(--color-accent-default)}
 @media (max-width:1180px){.pp{padding:24px 32px 80px}}
 @media (max-width:1024px){.pp-top,.pp-body{grid-template-columns:minmax(0,1fr)}.pp-top>:last-child{order:-1}.pp-top{gap:24px}.facts{grid-template-columns:repeat(2,1fr)}.facts>div{border-left:0;border-top:1px solid var(--color-border-default)}.facts>div:first-child{border-top:0}}
-@media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:32px!important;line-height:38px!important}.crumbs{display:none}}
+@media (max-width:768px){.pp{padding:12px 16px 32px}.kpis{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:minmax(0,1fr)}.pp-title{font-size:22px!important;line-height:28px!important}.crumbs{display:none}}
 .pp-alt{display:flex;gap:12px;align-items:flex-start;border-radius:10px;margin:-6px;padding:6px;transition:background .15s}.pp-alt:hover{background:var(--color-bg-subtle)}
 .pp-alt-tl{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
 .pp-alt-top{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;background:#E8F7EE;color:#15703D;font-size:11px;font-weight:500}[data-theme="dark"] .pp-alt-top{background:#12301f;color:#7ee2a8}
@@ -162,11 +162,11 @@ H.mount({ active: 'products', tab: 'products' });
     </div>
     <div class="stack gap-20 reveal" style="--i:2">
       ${plogo(p, 64)}
-      <div><h1 class="pp-title" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}${p.active === false ? '<span style="display:inline-flex;vertical-align:middle;margin-left:10px">' + H.inactiveTag(p, true) + '</span>' : ''}</h1><p class="t-body-lg c-2" style="margin-top:10px">${esc(p.tagline)}</p><div id="rv-hero"></div>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:8px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}</div>
+      <div><h1 class="pp-title" style="font-size:30px;line-height:36px;font-weight:600;letter-spacing:-0.025em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;vertical-align:middle;margin-left:10px;position:relative;top:-3px">${verified('ic-24')}</span>` : ''}${p.active === false ? '<span style="display:inline-flex;vertical-align:middle;margin-left:10px">' + H.inactiveTag(p, true) + '</span>' : ''}</h1><p class="t-body c-2" style="margin-top:6px">${esc(p.tagline)}</p><div id="rv-hero"></div>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:8px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}</div>
       ${rank && rank <= 3 ? `<div class="stack gap-8" style="align-items:flex-start"><span class="award"><i style="background:var(--award-${['gold', 'silver', 'bronze'][rank - 1]})"></i>#${rank} this week${p.week_id === (cur && cur.id) ? ' · live now' : ''}</span></div>` : `<div class="row gap-8 wrap">${(p.categories || []).map(c => `<a class="badge" href="/categories/${c.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}">${esc(c)}</a>`).join('')}${!live && p.status === 'scheduled' ? `<span class="badge badge--upcoming">Launches ${weekDate}</span>` : ''}</div>`}
       <div class="grid-2" style="gap:12px">
-        ${p.website ? `<a class="btn btn--secondary btn--lg" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
-        ${live ? `<button class="btn btn--lg ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent btn--lg" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary btn--lg" type="button" id="follow-p">${icon('plus')}Follow</button>`}
+        ${p.website ? `<a class="btn btn--secondary" href="${esc(p.website)}" target="_blank" rel="noopener" id="getit">${icon('arrow-up-right')}Visit website</a>` : ''}
+        ${live ? `<button class="btn ${D.voted.has(p.id) ? 'btn--secondary' : 'btn--accent'}" type="button" id="vote" data-vote-big>${icon('upvote')}<span id="vote-l">${voteLabel()}</span></button>` : p.status === 'scheduled' ? `<button class="btn btn--accent" type="button" id="notify">${icon('bell')}Notify me on launch day</button>` : `<button class="btn btn--secondary" type="button" id="follow-p">${icon('plus')}Follow</button>`}
       </div>
       ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<div class="row gap-16" style="align-self:flex-start"><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit">${icon('edit', 'ic-14')}Edit page</a><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/analytics">${icon('bar-chart', 'ic-14')}Analytics</a></div>` : ''}
       <div id="beta-callout"></div>
@@ -240,7 +240,7 @@ H.mount({ active: 'products', tab: 'products' });
     <div class="uc-head reveal" style="--i:1">
       ${plogo(p, 64)}
       <div class="grow" style="min-width:0">
-        <h1 class="pp-title row gap-12 wrap" style="font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.03em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;position:relative;top:-2px">${verified('ic-24')}</span>` : ''}${p.active === false ? H.inactiveTag(p, true) : '<span class="uc-tag uc-tag--lg" style="letter-spacing:0">Unclaimed</span>'}</h1>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:6px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}
+        <h1 class="pp-title row gap-12 wrap" style="font-size:30px;line-height:36px;font-weight:600;letter-spacing:-0.025em">${esc(p.name)}${p.verified ? `<span style="display:inline-flex;position:relative;top:-2px">${verified('ic-24')}</span>` : ''}${p.active === false ? H.inactiveTag(p, true) : '<span class="uc-tag uc-tag--lg" style="letter-spacing:0">Unclaimed</span>'}</h1>${p.active === false ? `<p class="off-note t-body-sm" style="margin-top:6px">${icon('alert-circle', 'ic-14')}No longer operating${p.inactive_note ? ' · ' + esc(p.inactive_note) : ''}</p>` : ''}
         <p class="t-body-lg c-2 row gap-8 wrap" style="margin-top:6px">${esc(p.tagline)}${dom ? `<span class="src d-only">${icon('link', 'ic-12')}${esc(dom)}</span>` : ''}</p>
         <p class="row gap-8 wrap t-body-sm c-2 uc-meta" style="margin-top:8px">${meta.join('<span class="c-3">·</span>')}</p>
       </div>
@@ -276,7 +276,7 @@ H.mount({ active: 'products', tab: 'products' });
       .uc-thumb{width:72px;height:48px;border-radius:8px;flex:none}
       .m-only,.m-only-f{display:none}
       @media (max-width:768px){.uc-head{grid-template-columns:56px minmax(0,1fr);margin-top:18px;gap:12px 14px}.uc-head>.grow{display:contents}.uc-head>.grow>p{grid-column:1/-1;margin-top:0!important}.uc-head h1{align-self:center}.uc-head .plogo{width:56px;height:56px}.uc-cta{grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;gap:8px}.uc-cta>#vote{grid-column:1/-1}
-        .uc-head h1{font-size:30px!important;line-height:36px!important}.d-only{display:none!important}.d-only-b{display:none!important}.m-only{display:inline}
+        .uc-head h1{font-size:22px!important;line-height:28px!important}.d-only{display:none!important}.d-only-b{display:none!important}.m-only{display:inline}
         .uc-row{grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px}.uc-row>span:first-child{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary)}
         .uc-banner{padding:12px 14px}.m-only-f{display:flex}
         .uc-bar{position:fixed;left:0;right:0;bottom:84px;z-index:49;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:#0a0a0a;color:#fff}

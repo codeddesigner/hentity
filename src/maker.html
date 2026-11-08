@@ -9,18 +9,19 @@
 @keyframes orb{from{transform:translate(120px,80px) scale(.85);opacity:.4}}
 .mk{max-width:1136px;margin:0 auto;padding:0 56px;box-sizing:content-box}
 .mk-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.mk-name{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-0.025em}
 .mk-avatar{margin-top:-52px;position:relative;z-index:1;border:4px solid var(--color-bg-canvas)}
 .mk-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--color-text-secondary)}
 .mk-links{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;font-weight:500;color:var(--color-text-secondary)}
 .mk-links a{display:inline-flex;align-items:center;gap:6px}
 .mk-links a:hover{color:var(--color-text-primary)}
 .mk-stats{display:flex;gap:28px;flex-wrap:wrap;font-size:13px;color:var(--color-text-secondary)}
-.mk-stats b{font-size:18px;font-weight:600;color:var(--color-text-primary);margin-right:6px;letter-spacing:-0.01em}
+.mk-stats b{font-size:17px;font-weight:600;color:var(--color-text-primary);margin-right:6px;letter-spacing:-0.01em}
 .mk-body{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:64px;padding:28px 0 96px}
 .mk-tabs{margin:28px 0 0}
 .medal{width:28px;height:28px;border-radius:50%;flex:none}
 @media (max-width:1024px){.mk-body{grid-template-columns:1fr;gap:24px}}
-@media (max-width:768px){.mk-tabs{margin:24px -16px 0;padding:0 16px}.cover{height:140px}.cover::after{width:420px;height:420px;right:-160px}.mk{padding:0 16px}.mk h1{font-size:30px!important;line-height:36px!important}.mk-head .row.gap-8{width:100%}.mk-head .row.gap-8 .btn{flex:1}}
+@media (max-width:768px){.mk-tabs{margin:24px -16px 0;padding:0 16px}.cover{height:140px}.cover::after{width:420px;height:420px;right:-160px}.mk{padding:0 16px}.mk-head{position:relative;display:block}.mk-head>.stack{gap:10px}.mk-avatar{width:72px;height:72px;font-size:22px;margin-top:-36px;border-width:2px}.mk .mk-name{font-size:17px;line-height:24px;letter-spacing:-0.01em}.mk-meta{font-size:12px;line-height:16px;font-weight:500;gap:6px}.mk-stats{gap:18px;font-size:12px;font-weight:500}.mk-stats b{font-size:13px;font-weight:500;margin-right:4px}.mk-head>.row.gap-8{position:absolute;top:12px;right:0;gap:6px}.mk-head>.row.gap-8 .btn{height:32px;padding:0 12px;font-size:12px}.mk-head>.row.gap-8 .btn .ic{width:14px;height:14px}.mk-tabs{margin-top:16px}}
 </style>
 </head>
 <body>
@@ -55,7 +56,7 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
   <div class="mk-head">
     <div class="stack gap-12">
       ${avatar(person, 104, 'mk-avatar reveal')}
-      <div class="row gap-12 wrap reveal" style="--i:1"><h1 style="font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.03em">${esc(person.name)}</h1>${person.is_verified ? `<span class="badge badge--pill" style="gap:6px">${H.verified('verified--sm')}Verified maker</span>` : ''}${person.role !== 'user' ? `<span class="badge badge--accent badge--pill">Hentity ${esc(person.role)}</span>` : ''}</div>
+      <div class="row gap-12 wrap reveal" style="--i:1"><h1 class="mk-name">${esc(person.name)}</h1>${person.is_verified ? `<span class="badge badge--pill" style="gap:6px">${H.verified('verified--sm')}Verified maker</span>` : ''}${person.role !== 'user' ? `<span class="badge badge--accent badge--pill">Hentity ${esc(person.role)}</span>` : ''}</div>
       <div class="mk-meta reveal" style="--i:2"><span>@${esc(person.username)}</span>${settings.showCity !== false && person.city ? `<span>·</span><span class="row gap-8">${flag(person.country || 'NG')}${esc(person.city)}, ${H.COUNTRY[person.country] || ''}</span>` : ''}<span>·</span><span>${esc(person.headline || 'Maker')} · joined ${new Date(person.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span></div>
       ${person.bio ? `<p style="max-width:640px" class="reveal" style="--i:3">${esc(person.bio)}</p>` : ''}
       <div class="mk-links reveal" style="--i:3">${person.website ? `<a href="${esc(/^https?:/.test(person.website) ? person.website : 'https://' + person.website)}" target="_blank" rel="noopener nofollow">${icon('globe', 'ic-14')}${esc(person.website.replace(/^https?:\/\//, ''))}</a>` : ''}${person.linkedin ? `<a href="https://${esc(person.linkedin.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}${esc(person.linkedin)}</a>` : ''}${person.x ? `<a href="https://x.com/${esc(person.x.replace('@', ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}x.com/${esc(person.x.replace('@', ''))}</a>` : ''}</div>

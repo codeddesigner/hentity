@@ -185,7 +185,7 @@ H.mount({ active: 'saved', tab: 'you' });
   const roleLine = r => [(r.startup || {}).name, r.city].filter(Boolean).join(' · ');
   const KPILL = { cofounder: 'orange', fulltime: 'blue', parttime: 'blue', internship: 'blue', contract: '' };
   const OPEN_LBL = { cofounder: 'Open to co-founding', fulltime: 'Open to full-time', parttime: 'Open to part-time', contract: 'Open to contract', internship: 'Open to internships' };
-  const personMark = u => u.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : u.avatar_url ? F.mini(u.name, u.avatar_url) : `<span class="fav">${esc(F.initials(u.name))}</span>`;
+  const personMark = u => u.stealth ? `<span class="flock" style="width:32px;height:32px">${icon('lock', 'ic-14')}</span>` : u.avatar_url ? F.mini(u.name, u.avatar_url) : `<span class="fav" style="${H.tint(u.name)}">${esc(F.initials(u.name))}</span>`;
 
   // ---------------------------------------------------------------- rows
   const R = {

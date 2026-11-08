@@ -17,7 +17,7 @@
   const pill = (t, cls) => `<span class="fpill ${cls || ''}">${t}</span>`;
   const catPill = c => c ? `<span class="fpill"><i class="dot" style="background:${H.catColor(c)}"></i>${esc(H.catShort ? H.catShort(c) : c)}</span>` : '';
   const initials = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  const mini = (name, avatar, color) => avatar ? `<span class="fav" style="background:#fff url('${esc(avatar)}') center/cover"></span>` : `<span class="fav">${esc(initials(name))}</span>`;
+  const mini = (name, avatar, color) => avatar ? `<span class="fav" style="background:#fff url('${esc(avatar)}') center/cover"></span>` : `<span class="fav" style="${H.tint(name)}">${esc(initials(name))}</span>`;
   function startupMark(r, size) {
     const s = r.startup || {};
     if (r.stealth) return `<span class="flock" style="width:${size}px;height:${size}px">${icon('lock', size > 36 ? 'ic-20' : 'ic-16')}</span>`;

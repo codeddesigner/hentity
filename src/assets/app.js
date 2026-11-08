@@ -120,7 +120,9 @@
   function user() { return (window.API && API.profile) || GUEST; }
   function session() { return window.API ? API.session : null; }
   function initials(name) { return (name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('') || '?'; }
-  const AV_COLORS = ['linear-gradient(140deg,#f6a26b,#a83a12)', 'linear-gradient(140deg,#22c55e,#14532d)', 'linear-gradient(140deg,#a78bfa,#5b21b6)', 'linear-gradient(140deg,#38bdf8,#1e3a8a)', 'linear-gradient(140deg,#f2c14e,#9a5b0c)', 'linear-gradient(140deg,#fb7185,#9f1239)'];
+  // Figma avatars: soft tint with dark initials in the same hue (Profile photo 47:149, Avatar 10:80)
+  const AV_COLORS = [['#e3f6f8', '#0e7490'], ['#fff3d1', '#8a5a00'], ['#ffe8dc', '#b4430e'], ['#f0edff', '#5b3fd1'], ['#eef2e3', '#4d6b12'], ['#ffe6f0', '#b0306a'], ['#e3f0ff', '#1e5fa8'], ['#e3f9ee', '#127a45']];
+  function tint(seed) { let h = 0; for (const c of String(seed || '')) h = (h * 31 + c.charCodeAt(0)) | 0; const [bg, fg] = AV_COLORS[Math.abs(h) % AV_COLORS.length]; return `--av-bg:${bg};--av-fg:${fg}`; }
   function avatarBg(u) {
     if (u.avatar_color) return u.avatar_color;
     if (!u.username || u.username === 'guest') return null;
@@ -132,7 +134,8 @@
     const cls = 'avatar' + (size ? ' avatar--' + size : '') + (extra ? ' ' + extra : '');
     if (u.avatar_url || u.photo) return `<span class="${cls} avatar--img" style="background-image:url('${esc(u.avatar_url || u.photo)}')" role="img" aria-label="${esc(u.name)}"></span>`;
     const bg = avatarBg(u);
-    return `<span class="${cls}"${bg ? ` style="background:${bg};color:#fff"` : ''} aria-hidden="true">${initials(u.name)}</span>`;
+    const st = !bg ? '' : Array.isArray(bg) ? `--av-bg:${bg[0]};--av-fg:${bg[1]}` : `background:${bg};color:#fff`;
+    return `<span class="${cls}"${st ? ` style="${st}"` : ''} aria-hidden="true">${initials(u.name)}</span>`;
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   function ago(ts) {
@@ -590,5 +593,5 @@
   // Unread notifications show as a badge on the installed app's icon where the system supports it
   function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
 
-  window.H = { push, communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { push, communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, tint, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
