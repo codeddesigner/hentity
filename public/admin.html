@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=4d04c9a8c7">
+<link rel="stylesheet" href="/assets/styles.css?v=f019748061">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=027d3faa67"></script>
-<script src="/assets/app.js?v=7da4e03a6f"></script>
+<script src="/assets/api.js?v=ee220abd32"></script>
+<script src="/assets/app.js?v=2b28fac32f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -444,12 +444,18 @@ H.mount();
   const srcCount = r => new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean).map(x => String(x).toLowerCase())).size;
   const missing = r => [[!(r.name || '').trim(), 'Name'], [!/^https?:\/\/[^/]+\.[a-z]/i.test(r.website || ''), 'Website'], [!(r.tagline || '').trim(), 'Tagline'],
     [!r.country, 'Country'], [!(r.categories || []).length, 'Category'], [r.verified && !(r.registration || '').trim(), 'Registration number (for the Verified tick)']].filter(x => x[0]).map(x => x[1]);
+  // Research batches added by script: the site was fetched and matched (or blocked automated checks)
+  const RBATCH = [['proptech-2026-11', 'Proptech · Nov 2026'], ['fintech-2026-11', 'Fintech · Nov 2026'], ['healthtech-2026-11', 'Healthtech · Nov 2026']];
+  const siteOk = r => !!(r.checks && r.checks.site === 'loaded and matched');
+  const siteBlocked = r => !!(r.checks && r.checks.site === 'site blocks automated checks');
+  const vetted = r => !!(r.checks && (r.checks.vetted || siteOk(r)));
   function radarChecks(r, dupe) {
     const srcs = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean));
     return [
       [!!r.country, r.country ? `Built in Africa: HQ ${esc([r.city, H.COUNTRY[r.country] || r.country].filter(Boolean).join(', '))}` : 'Country unknown'],
       [!!r.website && !(r.checks && r.checks.dns === false), !r.website ? 'No website found' : r.checks && r.checks.dns === false ? `${esc(domainOf(r.website))} doesn’t resolve. The site may be gone.` : r.checks && r.checks.dns ? `Real product: ${esc(domainOf(r.website))} resolves` : `Real product: ${esc(domainOf(r.website))}`],
       [!dupe, dupe ? `Possible duplicate of <a class="link" href="/products/${esc(dupe.slug)}" target="_blank">${esc(dupe.name)}</a>` : 'Not already on Hentity (no domain or name match)'],
+      ...(siteOk(r) || siteBlocked(r) ? [[siteOk(r), siteOk(r) ? 'Website loaded and names this company (checked automatically)' : 'The website blocks automated checks. Open it yourself before publishing.']] : []),
       [!(r.facts || []).some(f => personal.test(f.value || '')), (r.facts || []).some(f => personal.test(f.value || '')) ? 'A fact looks like a personal phone or email. Remove it.' : 'Only business information: no personal phone numbers or emails'],
       [true, `${srcs.size} public source${srcs.size === 1 ? '' : 's'} on file`],
       [!missing(r).length, missing(r).length ? `Still needed: ${esc(missing(r).join(', '))}` : 'Ready to publish']];
@@ -457,7 +463,7 @@ H.mount();
   const conf = r => { const n = new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(x => x.source)].filter(Boolean)).size; return Math.min(95, 25 + n * 15 + (r.website ? 10 : 0) + (r.country ? 5 : 0)); };
   const lines = (arr, keys) => (arr || []).map(o => keys.map(k => o[k] || '').join(' | ')).join('\n');
   const unlines = (txt, keys) => String(txt || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const p = l.split('|').map(x => x.trim()); const o = {}; keys.forEach((k, i) => { if (p[i]) o[k] = p[i]; }); return o; });
-  const RCC = Object.assign({ EG: 'Egypt', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', SN: 'Senegal', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', BJ: 'Benin', TG: 'Togo', BF: 'Burkina Faso', CD: 'DR Congo', SL: 'Sierra Leone', GN: 'Guinea', SO: 'Somalia', SD: 'Sudan' }, H.COUNTRY);
+  const RCC = Object.fromEntries(Object.entries(H.COUNTRY).sort((a, b) => a[1].localeCompare(b[1])));
   const FACT_KEYS = ['label', 'value', 'source', 'url', 'date'], NEWS_KEYS = ['title', 'source', 'url', 'date'];
   // Radar editor: a pop-up to edit a startup and publish it, with the Verified tick and claim invite
   const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Media', 'Mobility', 'HR & Work', 'Security'];
@@ -569,29 +575,34 @@ H.mount();
   V.radar = async (arg) => {
     nav('radar');
     const tab = ['review', 'published', 'rejected', 'merged'].includes(String(arg || '').split('?')[0]) ? String(arg).split('?')[0] : 'review';
-    const F = V.radar.f || (V.radar.f = { q: '', cc: '' });
+    const F = V.radar.f || (V.radar.f = { q: '', cc: '', cat: '', batch: '' });
     let rows, counts;
-    try { [rows, counts] = await Promise.all([API.radar(tab, F), API.radarCounts()]); } catch (e) { H.fail(e); return; }
+    const pages = F.pages || 1;
+    try { const [pg, c] = await Promise.all([Promise.all(Array.from({ length: pages }, (_, i) => API.radar(tab, Object.assign({}, F, { from: i * 200 })))), API.radarCounts()]); rows = pg.flat(); counts = c; } catch (e) { H.fail(e); return; }
     const sel = null;
     const bar = n => `<span class="row" style="gap:3px">${[0, 1, 2, 3, 4].map(i => `<i style="width:14px;height:5px;border-radius:3px;background:${i < n ? 'var(--color-text-primary)' : 'var(--color-bg-muted)'}"></i>`).join('')}</span>`;
     const pct = c => `<span class="badge" style="background:${c >= 75 ? '#e9f8ee;color:#15803d' : c >= 50 ? '#fff6e5;color:#b45309' : '#fdecec;color:#b91c1c'}">${c}%</span>`;
     const nsrc = r => new Set([...(r.facts || []).map(f => f.source), ...(r.news || []).map(n => n.source)].filter(Boolean)).size;
     qs('#main').innerHTML = head('Radar', 'Startups found in public sources. None goes public until you’ve vetted it and added every required detail.', `<button class="btn btn--secondary btn--sm" id="add">${icon('link', 'ic-14')}Add a startup by URL</button>`)
       + `<div class="chips" style="margin-bottom:12px">${[['review', 'To review'], ['published', 'Published'], ['rejected', 'Rejected'], ['merged', 'Merged']].map(([k, l]) => `<a class="chip" href="#radar/${k}" aria-pressed="${k === tab}">${k === tab ? icon('check') : ''}${l} · ${D.fmt ? D.fmt(counts[k] || 0) : counts[k] || 0}</a>`).join('')}</div>
-      <div class="row gap-8 wrap" style="margin-bottom:16px"><input class="input" id="rd-q" placeholder="Search name or domain" value="${esc(F.q)}" style="max-width:260px;height:36px"><select class="input" id="rd-cc" style="max-width:200px;height:36px"><option value="">All countries</option>${Object.entries(RCC).map(([k, v]) => `<option value="${k}"${F.cc === k ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>
-        <span class="t-caption c-3" style="font-weight:400">Showing ${rows.length}${rows.length === 200 ? '+' : ''}</span>${tab === 'review' ? `<button class="btn btn--secondary btn--sm" id="rd-bulk" style="margin-left:auto">${icon('check', 'ic-14')}Publish all vetted</button>` : ''}</div>
+      <div class="row gap-8 wrap" style="margin-bottom:16px"><input class="input" id="rd-q" placeholder="Search name or domain" value="${esc(F.q)}" style="max-width:260px;height:36px"><select class="input" id="rd-cc" style="max-width:200px;height:36px"><option value="">All countries</option>${Object.entries(RCC).map(([k, v]) => `<option value="${k}"${F.cc === k ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select><select class="input" id="rd-cat" style="max-width:180px;height:36px"><option value="">All categories</option>${RCATS.map(c => `<option${F.cat === c ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select><select class="input" id="rd-batch" style="max-width:200px;height:36px"><option value="">All sources</option>${RBATCH.map(([k, l]) => `<option value="${k}"${F.batch === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>
+        <span class="t-caption c-3" style="font-weight:400" id="rd-n">Showing ${rows.length}${rows.length === pages * 200 ? '+' : ''}</span>${tab === 'review' ? `<button class="btn btn--secondary btn--sm" id="rd-bulk" style="margin-left:auto">${icon('check', 'ic-14')}Publish all vetted</button>` : ''}</div>
       <div class="rd-grid">
-        <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th><th></th></tr></thead><tbody>${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url, active: r.active }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${H.inactiveTag(r)}${r.product_id && r.status === 'review' ? '<span class="badge" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">Taken off site</span>' : ''}${r.status === 'review' && r.checks && r.checks.vetted && !missing(r).length ? '<span class="badge" style="background:#e9f8ee;color:#15803d">Vetted</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td><td style="text-align:right">${r.verified ? H.verified('verified--sm') : ''}<span class="btn btn--ghost btn--sm">${r.status === 'review' ? 'Open' : 'Edit'}</span></td></tr>`).join('')}</tbody></table>` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
-        </div><style>@media(max-width:640px){.rf-grid{grid-template-columns:1fr!important}}
+        <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl rd-tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th><th></th></tr></thead><tbody id="rd-body">${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url, active: r.active }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${H.inactiveTag(r)}${r.product_id && r.status === 'review' ? '<span class="badge" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">Taken off site</span>' : ''}${r.status === 'review' && vetted(r) && !missing(r).length ? `<span class="badge" style="background:#e9f8ee;color:#15803d">${r.checks.vetted ? 'Vetted' : 'Site checked'}</span>` : ''}${r.status === 'review' && siteBlocked(r) ? '<span class="badge" style="background:#fff6e5;color:#b45309">Check site</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td><td style="text-align:right">${r.verified ? H.verified('verified--sm') : ''}<span class="btn btn--ghost btn--sm">${r.status === 'review' ? 'Open' : 'Edit'}</span></td></tr>`).join('')}</tbody></table>${rows.length === pages * 200 ? '<div style="padding:12px;text-align:center"><button class="btn btn--secondary btn--sm" id="rd-more">Load more</button></div>' : ''}` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
+        </div><style>@media(max-width:640px){.rf-grid{grid-template-columns:1fr!important}.rd-tbl th:nth-child(2),.rd-tbl td:nth-child(2){display:none}}
 </style>`;
     qs('#add').onclick = () => radarForm(null, () => V.radar('review'));
-    let tq; qs('#rd-q').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { F.q = e.target.value.trim(); V.radar(tab); }, 350); };
-    qs('#rd-cc').onchange = e => { F.cc = e.target.value; V.radar(tab); };
+    let tq; qs('#rd-q').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { F.q = e.target.value.trim(); F.pages = 1; V.radar(tab); }, 350); };
+    qs('#rd-cc').onchange = e => { F.cc = e.target.value; F.pages = 1; V.radar(tab); };
+    qs('#rd-cat').onchange = e => { F.cat = e.target.value; F.pages = 1; V.radar(tab); };
+    qs('#rd-batch').onchange = e => { F.batch = e.target.value; F.pages = 1; V.radar(tab); };
+    qs('#rd-more') && (qs('#rd-more').onclick = e => { e.stopPropagation(); F.pages = pages + 1; V.radar(tab); });
     // Bulk: publish every row shown here whose website resolves, that isn't already on Hentity and has no personal details
     qs('#rd-bulk') && (qs('#rd-bulk').onclick = async () => {
-      const ok = rows.filter(r => r.checks && r.checks.vetted && !missing(r).length && !(r.checks && r.checks.dns === false) && !(r.facts || []).some(f => personal.test(f.value || '')));
+      const ok = rows.filter(r => vetted(r) && !missing(r).length && !(r.checks && r.checks.dns === false) && !(r.facts || []).some(f => personal.test(f.value || '')));
       if (!ok.length) { toast('None shown here is vetted with every required detail yet', 'error'); return; }
-      if (!confirm(`Publish the ${ok.length} you’ve vetted (of ${rows.length} shown)? Possible duplicates are skipped.`)) return;
+      const auto = ok.filter(r => !r.checks.vetted).length;
+      if (!confirm(`Publish ${ok.length} of the ${rows.length} shown?${auto ? ` ${auto === 1 ? '1 is a research entry' : auto + ' are research entries'} whose website was checked automatically.` : ''} Possible duplicates are skipped, and anything marked “Check site” is left in review.`)) return;
       const b = qs('#rd-bulk'); b.disabled = true; let done = 0, skipped = 0;
       for (const r of ok) {
         try { if (await API.radarDupe(r.id)) { skipped++; continue; } await API.radarPublish(r.id, false); done++; b.textContent = `Publishing… ${done}/${ok.length}`; } catch (e) { skipped++; }

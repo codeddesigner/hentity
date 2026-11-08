@@ -27,7 +27,7 @@
   // One line on why: what fits, or the rule that rules it out
   const why = (o, name) => o.tier === 'closed' ? (o.round_note || 'This round has closed') : o.eligible === false ? 'Not eligible: ' + (o.miss || 'a rule doesn’t fit') : (o.why || []).length ? 'Fits on ' + o.why.join(' · ') : o.status === 'unknown' ? 'Dates not announced yet' : 'Open to any sector, stage and country';
   const dots = o => `<span class="fu-dots" aria-hidden="true">${Array.from({ length: o.total }, (_, i) => `<i${i < o.meets ? ' class="on"' : ''}></i>`).join('')}</span>`;
-  const productLine = p => [(p.categories || [])[0], p.stage, [p.city, CN[p.country] || p.country].filter(Boolean).join(', '), p.team ? TEAM[p.team] : 'Founding team not set'].filter(Boolean).join(' · ');
+  const productLine = p => [(p.categories || [])[0], p.stage, [p.city, (window.H && H.COUNTRY[p.country]) || CN[p.country] || p.country].filter(Boolean).join(', '), p.team ? TEAM[p.team] : 'Founding team not set'].filter(Boolean).join(' · ');
   const host = u => { try { const x = new URL(u); return (x.host.replace(/^www\./, '') + x.pathname).replace(/\/$/, ''); } catch (e) { return u || ''; } };
   const applyUrl = o => o.apply_url || o.website;
   const isOpen = o => o.status ? ['open', 'rolling'].includes(o.status) : (!!o.deadline || !o.round_note);   // closed rounds carry a round note and no date

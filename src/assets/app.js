@@ -97,9 +97,10 @@
     ZA: '<path d="M18 0H0V12H18V0Z" fill="#E03C31"/><path d="M18 6H0V12H18V6Z" fill="#001489"/><path d="M0 0H2.8L9.6 4.8H18V7.2H9.6L2.8 12H0V0Z" fill="white"/><path d="M0 0.8L1.6 0L9 5.4H18V6.6H9L1.6 12L0 11.2V0.8Z" fill="#007749"/><path d="M0 2L6 6L0 10V2Z" fill="#FFB81C"/><path d="M0 3L4.4 6L0 9V3Z" fill="black"/>',
     MA: '<path d="M18 0H0V12H18V0Z" fill="#C1272D"/><path d="M9.00002 3.40002L10.52 8.10002L6.52002 5.20002H11.48L7.48002 8.10002L9.00002 3.40002Z" stroke="#006233" stroke-width="0.5"/>'
   };
-  const COUNTRY = { NG: 'Nigeria', GH: 'Ghana', KE: 'Kenya', RW: 'Rwanda', ZA: 'South Africa', MA: 'Morocco' };
+  const COUNTRY = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', AO: 'Angola', BJ: 'Benin', BW: 'Botswana', BF: 'Burkina Faso', BI: 'Burundi', CV: 'Cabo Verde', CF: 'Central African Republic', TD: 'Chad', KM: 'Comoros', CG: 'Congo', CD: 'DR Congo', DJ: 'Djibouti', GQ: 'Equatorial Guinea', ER: 'Eritrea', SZ: 'Eswatini', GA: 'Gabon', GM: 'The Gambia', GN: 'Guinea', GW: 'Guinea-Bissau', LS: 'Lesotho', LR: 'Liberia', LY: 'Libya', MG: 'Madagascar', MW: 'Malawi', ML: 'Mali', MR: 'Mauritania', MU: 'Mauritius', MZ: 'Mozambique', NA: 'Namibia', NE: 'Niger', ST: 'São Tomé and Príncipe', SC: 'Seychelles', SL: 'Sierra Leone', SO: 'Somalia', SS: 'South Sudan', SD: 'Sudan', TG: 'Togo', ZM: 'Zambia', ZW: 'Zimbabwe' };
   let flagN = 0;
   function flag(cc) {
+    if (cc && !FLAG_BODY[cc] && /^[A-Z]{2}$/.test(cc)) return `<span class="flag flag--emoji" role="img" aria-label="${COUNTRY[cc] || cc}">${String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0)))}</span>`;
     const id = 'fl' + (++flagN);
     return `<svg class="flag" viewBox="0 0 18 12" fill="none" role="img" aria-label="${COUNTRY[cc] || cc}"><g clip-path="url(#${id})">${FLAG_BODY[cc] || ''}</g><rect x="0.5" y="0.5" width="17" height="11" rx="1.5" stroke="black" stroke-opacity="0.12"/><defs><clipPath id="${id}"><rect width="18" height="12" rx="2" fill="white"/></clipPath></defs></svg>`;
   }

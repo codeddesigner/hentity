@@ -222,6 +222,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .plogo--80{width:80px;height:80px;border-radius:18px;font-size:34px}
 
 .flag{width:18px;height:12px;flex:none}
+.flag--emoji{display:inline-flex;align-items:center;justify-content:center;width:18px;height:12px;font-size:13px;line-height:1;overflow:hidden}
 .verified{width:20px;height:20px;flex:none;color:var(--verified)}
 .verified--sm{width:16px;height:16px}
 

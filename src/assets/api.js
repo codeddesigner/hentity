@@ -438,7 +438,7 @@
     claimPublish: (cid, e) => q(sb.rpc('claim_publish', { cid, e })),
     requestRemoval: (s, nm, em, rel, why) => q(sb.rpc('request_removal', { s, nm, em, rel, why })),
     // Ops
-    radar: (status, { q: term, cc, from } = {}) => { let s = sb.from('radar').select('*').eq('status', status || 'review'); if (term) s = s.or(`name.ilike.%${term.replace(/[%,()]/g, '')}%,website.ilike.%${term.replace(/[%,()]/g, '')}%`); if (cc) s = s.eq('country', cc); return q(s.order('confidence', { ascending: false }).order('created_at', { ascending: false }).range(from || 0, (from || 0) + 199)); },
+    radar: (status, { q: term, cc, cat, batch, from } = {}) => { let s = sb.from('radar').select('*').eq('status', status || 'review'); if (term) s = s.or(`name.ilike.%${term.replace(/[%,()]/g, '')}%,website.ilike.%${term.replace(/[%,()]/g, '')}%`); if (cc) s = s.eq('country', cc); if (cat) s = s.contains('categories', [cat]); if (batch) s = s.eq('checks->>batch', batch); return q(s.order('confidence', { ascending: false }).order('created_at', { ascending: false }).range(from || 0, (from || 0) + 199)); },
     radarCounts: async () => { const c = {}; await Promise.all(['review', 'published', 'rejected', 'merged'].map(async k => { const { count } = await sb.from('radar').select('id', { count: 'exact', head: true }).eq('status', k); c[k] = count || 0; })); return c; },
     radarAdd: row => q(sb.from('radar').insert(Object.assign({ created_by: uid() }, row)).select('*').single()),
     radarUpdate: (id, row) => q(sb.from('radar').update(row).eq('id', id)),

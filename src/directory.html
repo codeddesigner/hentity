@@ -67,7 +67,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   const { qs, qsa, icon, flag, esc, store, toast, plogo } = H;
   const prm = H.params();
   API.publicStats().then(st => { const n = st ? (st.listed || st.products) : 0; if (n) qs('#dir-count').textContent = `Directory · ${n.toLocaleString('en-US')} startup${n === 1 ? '' : 's'}`; }).catch(() => {});
-  const G = { profile: [['claimed', 'Claimed by the team'], ['unclaimed', 'Unclaimed (on the radar)']], country: [['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']], pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
+  const G = { profile: [['claimed', 'Claimed by the team'], ['unclaimed', 'Unclaimed (on the radar)']], country: ['NG', 'KE', 'ZA', 'GH', 'EG', 'MA', 'RW', 'UG', 'TZ', 'ET', 'SN', 'CI', 'CM', 'TN', 'ZM', 'ZW', 'DZ', 'CD'].map(k => [k, H.COUNTRY[k]]), pay: [['Paystack'], ['M-Pesa'], ['MTN MoMo'], ['USSD'], ['Card']], stage: [['Bootstrapped'], ['Pre-seed'], ['Seed'], ['Series A+']], lang: [['English'], ['Hausa'], ['Yoruba'], ['Swahili'], ['French'], ['Twi']] };
   // Every approved startup shows by default: claimed and unclaimed. Saved filters never hide a whole profile type.
   const saved = {}; ['dirFilters', 'dirFilters2', 'dirFilters3', 'dirScope'].forEach(k => store.del(k));   // every visit starts with the full list
   const state = Object.assign({ country: [], pay: [], stage: [], lang: [], sector: [] }, saved, { profile: ['claimed', 'unclaimed'] });
@@ -79,7 +79,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
   // Landing pages: /categories/<slug> and /countries/<slug> (server-rendered for search, filtered here)
   const SLUG = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const ALL_SECTORS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
-  const CN_ALL = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' };
+  const CN_ALL = H.COUNTRY;
   const seg = location.pathname.split('/').filter(Boolean);
   let landing = null;
   if (seg[0] === 'categories' && seg[1]) { const c = ALL_SECTORS.find(x => SLUG(x) === seg[1]); if (c) { landing = { h: `${c} products from Africa`, sector: c }; Object.assign(state, { sector: [c], pay: [], stage: [], country: [], lang: [] });
@@ -87,7 +87,7 @@ H.qs('#ptabs').innerHTML = H.productTabs('directory');
     const cc2 = seg[2] && Object.keys(CN_ALL).find(k => SLUG(CN_ALL[k]) === seg[2]);
     const NOUN = { Fintech: 'Fintech companies', SaaS: 'SaaS companies', Apps: 'Consumer apps', AI: 'AI startups', Commerce: 'E-commerce companies', Productivity: 'Productivity tools', 'Dev Tools': 'Developer tools', Health: 'Healthtech companies', Education: 'Edtech companies', Agriculture: 'Agritech companies', Logistics: 'Logistics startups', Infrastructure: 'Infrastructure startups', 'Energy & Climate': 'Climate tech companies', Proptech: 'Proptech companies' };
     if (cc2) { landing = { h: `${NOUN[c] || c} in ${CN_ALL[cc2]}`, sector: c, cc: cc2 }; state.country = [cc2]; } } }
-  if (seg[0] === 'countries' && seg[1]) { const CN = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia' }; const cc = Object.keys(CN).find(k => SLUG(CN[k]) === seg[1]); if (cc) { landing = { h: `Built in ${CN[cc]}`, cc }; Object.assign(state, { country: [cc], pay: [], stage: [], sector: [], lang: [] }); } }
+  if (seg[0] === 'countries' && seg[1]) { const CN = H.COUNTRY; const cc = Object.keys(CN).find(k => SLUG(CN[k]) === seg[1]); if (cc) { landing = { h: `Built in ${CN[cc]}`, cc }; Object.assign(state, { country: [cc], pay: [], stage: [], sector: [], lang: [] }); } }
   if (landing) { scope = 'all'; setTimeout(() => { qs('#title').firstChild.textContent = landing.h + ' '; }, 0); }
   if (term) { Object.keys(state).forEach(k => state[k] = []); scope = 'all'; }
   if (prm.get('sort')) qs('#sort').value = prm.get('sort');
