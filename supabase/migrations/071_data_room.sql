@@ -197,9 +197,9 @@ begin
 end $$;
 
 -- Analytics for one file, or the whole room (fid null). Optional link filter.
-create or replace function public.dr_analytics(fid uuid default null, lid uuid default null, days int default 30) returns jsonb
+create or replace function public.dr_analytics(fid uuid default null, lid uuid default null, ndays int default 30) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
-declare r dr_rooms; since timestamptz := now() - make_interval(days => greatest(1, least(coalesce(days, 30), 3650)));
+declare r dr_rooms; since timestamptz := now() - greatest(1, least(coalesce(ndays, 30), 3650)) * interval '1 day';
 begin
   select * into r from dr_rooms where owner_id = auth.uid();
   if r.id is null then return null; end if;
@@ -220,7 +220,7 @@ begin
                 from (select page, sum(seconds) s, count(distinct session_id) n from v group by page) x),
       'sessions', (select count(*) from per),
       'viewers', (select coalesce(jsonb_agg(jsonb_build_object('email', email, 'verified', verified, 'device', device, 'label', label, 'mode', mode,
-                    'secs', round(secs), 'pages', pages, 'opens', opens, 'last_at', last_at) order by last_at desc), '[]') from per));
+                    'secs', round(secs), 'pages', pages, 'opens', opens, 'last_at', last_at) order by last_at desc), '[]') from per)));
 end $$;
 
 grant execute on function public.dr_my_room(), public.dr_setup(text, uuid, text), public.dr_add_file(text, text, text, text, bigint, text, int),

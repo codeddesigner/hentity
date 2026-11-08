@@ -401,7 +401,7 @@
     drFileBlob: path => sb.storage.from('dataroom').download(path).then(r => { err(r.error); return r.data; }),
     drSaveLink: (id, l) => q(sb.rpc('dr_save_link', { lid: id || null, lbl: l.label, fids: l.file_ids || null, md: l.mode, allw: l.allow || [], dl: !!l.download, wm: l.watermark !== false, trk: l.track !== false, exp: l.expires_at || null })),
     drRevoke: (id, on) => q(sb.rpc('dr_revoke_link', { lid: id, on_: on !== false })),
-    drAnalytics: (fid, lid, days) => q(sb.rpc('dr_analytics', { fid: fid || null, lid: lid || null, days: days || 30 })),
+    drAnalytics: (fid, lid, days) => q(sb.rpc('dr_analytics', { fid: fid || null, lid: lid || null, ndays: days || 30 })),
     drOpen: tok => q(sb.rpc('dr_open', { tok })),
     drCode: (tok, em) => q(sb.rpc('dr_request_code', { tok, em })),
     drStart: (tok, em, code, dev) => q(sb.rpc('dr_start', { tok, em: em || null, code: code || null, dev: dev || '' })),
