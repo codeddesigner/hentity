@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d6cc07945a"></script>
-<script src="/assets/app.js?v=f5cb46ccdd"></script>
+<script src="/assets/api.js?v=db4c3f1107"></script>
+<script src="/assets/app.js?v=7da4e03a6f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -110,12 +110,13 @@ H.mount({ tab: 'you' });
   H.qs('#pub').href = '/makers/' + u.username;
   // Push on this device: shows its state; tap to turn on or off
   const ph = H.qs('#push-row'), pm = H.qs('#push-meta');
-  const pushRow = async () => { const st = await H.push.state(); ph.hidden = ['na', 'unsupported'].includes(st); pm.textContent = { on: 'On', off: 'Off', blocked: 'Blocked in settings', install: 'Install the app first' }[st] || ''; ph.dataset.st = st; };
+  const pushRow = async () => { const st = await H.push.state(); ph.hidden = ['na', 'unsupported'].includes(st); pm.textContent = { on: 'On', off: 'Off', blocked: 'Blocked in settings', install: 'Install the app first', browser: 'Not in this browser' }[st] || ''; ph.dataset.st = st; };
   API.ready.then(pushRow);
   ph.addEventListener('click', async e => {
     e.preventDefault();
     const st = ph.dataset.st;
     if (st === 'install') H.pwa.install();
+    else if (st === 'browser') H.toast(API.push.noServiceMsg());
     else if (st === 'blocked') H.toast('Allow notifications for Hentity in your browser or phone settings, then try again.');
     else if (st === 'off') await H.push.on();
     else if (st === 'on' && await H.confirm('Turn off push notifications on this device?', { body: 'You’ll still see everything in Notifications on Hentity.', ok: 'Turn off' })) await H.push.off();

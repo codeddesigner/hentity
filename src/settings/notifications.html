@@ -76,7 +76,7 @@ H.mount({ active: '', tab: 'you' });
     const ios = H.pwa && H.pwa.isIOS, app = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     if (!P.supported()) {
       if (ios && !app) { desc.textContent = 'On iPhone and iPad, push works in the installed app. Add Hentity to your Home Screen, open it from there, and turn this on.'; act.innerHTML = `<button class="btn btn--secondary btn--sm" type="button" data-pwa-install>Install the app</button>`; }
-      else { desc.textContent = 'This browser doesn’t support push notifications. Try Chrome, Edge, Firefox or Safari, or the installed app.'; act.innerHTML = ''; }
+      else { desc.textContent = P.noService() ? P.noServiceMsg() : 'This browser doesn’t support push notifications. Try Chrome, Edge, Firefox or Safari, or the installed app.'; act.innerHTML = ''; }
       return;
     }
     if (P.permission() === 'denied') { desc.textContent = 'Notifications are blocked for Hentity on this device. Allow them in your browser or phone settings, then come back here.'; act.innerHTML = ''; return; }

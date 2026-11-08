@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=d6cc07945a"></script>
-<script src="/assets/app.js?v=f5cb46ccdd"></script>
+<script src="/assets/api.js?v=db4c3f1107"></script>
+<script src="/assets/app.js?v=7da4e03a6f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -137,7 +137,7 @@ H.mount({ active: '', tab: 'you' });
     const ios = H.pwa && H.pwa.isIOS, app = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     if (!P.supported()) {
       if (ios && !app) { desc.textContent = 'On iPhone and iPad, push works in the installed app. Add Hentity to your Home Screen, open it from there, and turn this on.'; act.innerHTML = `<button class="btn btn--secondary btn--sm" type="button" data-pwa-install>Install the app</button>`; }
-      else { desc.textContent = 'This browser doesn’t support push notifications. Try Chrome, Edge, Firefox or Safari, or the installed app.'; act.innerHTML = ''; }
+      else { desc.textContent = P.noService() ? P.noServiceMsg() : 'This browser doesn’t support push notifications. Try Chrome, Edge, Firefox or Safari, or the installed app.'; act.innerHTML = ''; }
       return;
     }
     if (P.permission() === 'denied') { desc.textContent = 'Notifications are blocked for Hentity on this device. Allow them in your browser or phone settings, then come back here.'; act.innerHTML = ''; return; }

@@ -526,7 +526,15 @@
       const device = () => { const u = navigator.userAgent; return (/iPhone|iPad/.test(u) ? 'iPhone' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : 'Browser') + (matchMedia('(display-mode: standalone)').matches || navigator.standalone ? ' app' : ''); };
       const save = sub => { const j = sub.toJSON(); return q(sb.rpc('push_subscribe', { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, device: device() })); };
       const P = {
-        supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window,
+        // Some browsers expose the Push API but have no push service behind it (Edge on Android; Chrome on phones
+        // without Google services): subscribing always fails with "push service error". Treat them as unsupported.
+        noService: () => /\bEdgA\//.test(navigator.userAgent) || (() => { try { return localStorage.getItem('h-push-noservice') === navigator.userAgent; } catch (e) { return false; } })(),
+        supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && !P.noService(),
+        // What to tell someone whose browser can't do push
+        noServiceMsg: () => { const ua = navigator.userAgent;
+          return /\bEdgA\//.test(ua) ? 'This browser can’t receive push notifications. Open hentity.com in Chrome, Samsung Internet or Firefox and turn them on there.'
+            : /Android/i.test(ua) ? 'Push notifications aren’t available in this browser on this phone. Open hentity.com in Firefox and turn them on there.'
+            : 'This browser can’t receive push notifications. Try Chrome, Edge, Firefox or Safari.'; },
         permission: () => ('Notification' in window ? Notification.permission : 'unsupported'),
         async current() { if (!P.supported()) return null; const reg = await navigator.serviceWorker.getRegistration(); return reg ? reg.pushManager.getSubscription() : null; },
         async enable() {
@@ -534,7 +542,13 @@
           const perm = await Notification.requestPermission();
           if (perm !== 'granted') throw new Error(perm === 'denied' ? 'Notifications are blocked for Hentity. Allow them in your browser or phone settings, then try again.' : 'Push notifications weren’t turned on.');
           const reg = await navigator.serviceWorker.ready;
-          const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(await key() || (() => { throw new Error('Push isn’t available right now. Try again in a minute.'); })()) });
+          const k = await key(); if (!k) throw new Error('Push isn’t available right now. Try again in a minute.');
+          let sub = await reg.pushManager.getSubscription();
+          if (!sub) try { sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(k) }); } catch (e) {
+            // No push service in this browser: remember it (so we stop offering) and say what to do instead
+            if (e && (e.name === 'AbortError' || /push service/i.test(e.message || ''))) { try { localStorage.setItem('h-push-noservice', navigator.userAgent); } catch (er) {} throw new Error(P.noServiceMsg()); }
+            throw e;
+          }
           await save(sub); return true;
         },
         async disable() { const sub = await P.current(); if (sub) { await q(sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)).catch(() => {}); await sub.unsubscribe().catch(() => {}); } },

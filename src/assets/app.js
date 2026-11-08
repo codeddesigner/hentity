@@ -524,6 +524,7 @@
   const push = {
     async state() {
       const P = window.API && API.push; if (!P || !API.uid) return 'na';
+      if (P.noService && P.noService()) return 'browser';
       if (!P.supported()) return isIOS && !standalone() ? 'install' : 'unsupported';
       if (P.permission() === 'denied') return 'blocked';
       return P.permission() === 'granted' && await P.current().catch(() => null) ? 'on' : 'off';
@@ -534,8 +535,9 @@
     async card(el) {
       if (!el) return;
       const st = await push.state();
-      if (!['off', 'install', 'blocked'].includes(st) || (st !== 'blocked' && Date.now() - store.get('push.card', 0) < 7 * 864e5)) { el.innerHTML = ''; return; }
+      if (!['off', 'install', 'blocked', 'browser'].includes(st) || (st !== 'blocked' && Date.now() - store.get('push.card', 0) < 7 * 864e5)) { el.innerHTML = ''; return; }
       const txt = st === 'install' ? ['Get notifications on your iPhone', 'Add Hentity to your Home Screen, open it from there, and turn on notifications.', 'Install the app', 'data-pwa-install']
+        : st === 'browser' ? ['Push doesn’t work in this browser', API.push.noServiceMsg().replace(/^[^.]*\.\s*/, ''), '', '']
         : st === 'blocked' ? ['Notifications are blocked', 'Allow notifications for Hentity in your browser or phone settings to get these on this device.', '', '']
         : ['Get these on your phone', 'Replies, reviews and your launch, even when Hentity is closed.', 'Turn on', 'data-push-on'];
       el.innerHTML = `<div class="push-card"><span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">${txt[0]}</p><p class="t-caption c-3" style="font-weight:400">${txt[1]}</p></div>${txt[2] ? `<button class="btn btn--primary btn--sm" type="button" ${txt[3]}>${txt[2]}</button>` : ''}${st !== 'blocked' ? `<button class="nav__icon" type="button" data-push-hide aria-label="Not now">${icon('x', 'ic-16')}</button>` : ''}</div>`;
