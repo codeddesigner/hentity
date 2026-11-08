@@ -164,10 +164,11 @@
 .dr-who__h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
 .dr-who table{width:100%;border-collapse:collapse;font-size:13px}.dr-who th{font:400 12px/16px var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:8px 16px;background:var(--color-bg-subtle)}
 .dr-who td{padding:10px 16px;border-top:1px solid var(--color-border-default)}.dr-who td.mono{font-family:var(--font-mono);font-weight:500}
+.dr-who th,.dr-who td.mono{white-space:nowrap}.dr-fil{margin:20px 0 16px}
 .dr-empty{padding:40px 16px;text-align:center;color:var(--color-text-secondary);font-size:13px}
 @media (max-width:1180px){.dr{padding:24px 32px 64px}.dr-grid{grid-template-columns:160px minmax(0,1fr)}.dr-side{grid-column:1/-1;position:static;flex-direction:row;flex-wrap:wrap}.dr-side>*{flex:1;min-width:220px}}
 @media (max-width:960px){.dr-stages,.dr-two,.dr-ins{grid-template-columns:minmax(0,1fr)}.dr-kpis{grid-template-columns:1fr 1fr}}
-@media (max-width:768px){.dr{padding:16px 16px 32px}.dr-row .m{display:none}.dr-head h1{font-size:24px;line-height:30px}.dr-grid{grid-template-columns:minmax(0,1fr)}.dr-nav{display:none}.dr-cmp th+th,.dr-cmp td+td{width:auto;padding-left:6px;padding-right:6px}.dr-cmp{overflow-x:auto}.dr-ready .r{display:none}.dr-ln{grid-template-columns:minmax(0,1fr) auto}.dr-ln>.ic,.dr-ln .v{display:none}.dr-who{overflow-x:auto}}
+@media (max-width:768px){.dr{padding:16px 16px 32px}.dr-head>.row{flex-wrap:wrap}.dr-row .m{display:none}.dr-head h1{font-size:24px;line-height:30px}.dr-grid{grid-template-columns:minmax(0,1fr)}.dr-nav{display:none}.dr-cmp th+th,.dr-cmp td+td{width:auto;padding-left:6px;padding-right:6px}.dr-cmp{overflow-x:auto}.dr-ready .r{display:none}.dr-ln{grid-template-columns:minmax(0,1fr) auto}.dr-ln>.ic,.dr-ln .v{display:none}.dr-who{overflow-x:auto}}
 </style>
 <meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
 <meta property="og:title" content="Data room | Hentity">
@@ -196,7 +197,7 @@ H.mount({ active: 'dataroom', tab: 'you' });
   let D;
   async function load() { D = await API.drRoom(); D.files = D.files || []; D.links = D.links || []; }
   try { await load(); } catch (e) { H.fail(e); root.innerHTML = `<div class="dr-empty">Couldn’t open your data room. ${esc(e.message || '')}</div>`; H.contentShown(); return; }
-  if (!D.room || seg[1] === 'setup') setup(); else if (seg[1] === 'files' && seg[2]) filePage(seg[2]); else room();
+  if (!D.room || seg[1] === 'setup') setup(); else if (seg[1] === 'files' && seg[2]) filePage(seg[2]); else if (seg[1] === 'analytics') roomAnalytics(); else room();
   H.contentShown();
 
   // ================================================================ setup: pick a stage (Figma 302:3757)
@@ -242,14 +243,15 @@ H.mount({ active: 'dataroom', tab: 'you' });
     const live = D.links.filter(l => !l.revoked_at && (!l.expires_at || new Date(l.expires_at) > new Date()));
     root.innerHTML = `<nav class="dr-crumbs"><span>Data room</span>${company ? `<span>/</span><b>${esc(company)}</b>` : ''}</nav>
       <div class="dr-head"><div><h1>${S.title}<span class="dr-stage">${esc(S.short)}${icon('chevron-down')}<select id="stg" aria-label="Stage">${['ff', 'seed', 'growth'].map(s => `<option value="${s}"${s === R.stage ? ' selected' : ''}>${DR.STAGES[s].short}</option>`).join('')}</select></span></h1><p>${S.lead}</p></div>
-        <div class="row gap-8"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload', 'ic-14')}Upload<input type="file" class="sr-only" id="up-any" multiple></label><button class="btn btn--primary btn--sm" id="share-room">${icon('link', 'ic-14')}Share with an investor</button></div></div>
+        <div class="row gap-8"><a class="btn btn--secondary btn--sm" href="/data-room/analytics">${icon('bar-chart', 'ic-14')}Analytics</a><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload', 'ic-14')}Upload<input type="file" class="sr-only" id="up-any" multiple></label><button class="btn btn--primary btn--sm" id="share-room">${icon('link', 'ic-14')}Share with an investor</button></div></div>
       <div class="dr-ready"><b>${ready}/${req.length}</b><span>required ready</span><span class="dr-bars">${req.map((_, i) => `<i${i < ready ? ' class="on"' : ''}></i>`).join('')}</span><span class="r">${D.files.length} file${D.files.length === 1 ? '' : 's'} · ${live.length} active link${live.length === 1 ? '' : 's'}</span></div>
       <div class="dr-grid"><nav class="dr-nav"><a href="#all" aria-current="true">${icon('folder')}All files<span>${D.files.length}</span></a>${folders.map(x => `<a href="#f-${x.k}">${icon('folder')}${esc(x.n)}<span>${x.it.filter(i => byItem[i.key]).length + x.ex.length}/${x.it.length + x.ex.length}</span></a>`).join('')}</nav>
         <div>${folders.map(x => `<section class="dr-sec" id="f-${x.k}"><div class="dr-sec__h">${esc(x.n)}<span>${x.it.filter(i => byItem[i.key]).length + x.ex.length}/${x.it.length + x.ex.length}</span></div>${x.it.map(row).join('')}${x.ex.map(xrow).join('')}</section>`).join('')}
           <label class="dr-drop" id="drop">${icon('upload', 'ic-18')}<br>Drop any other file here, or <span class="c-accent" style="font-weight:500;cursor:pointer">choose a file</span><br><span class="t-caption c-3" style="font-weight:400">PDF, images, video, spreadsheets · up to 50 MB · only you can see it until you share a link</span><input type="file" class="sr-only" id="up-drop" multiple></label></div>
         <aside class="dr-side">
           <section class="dr-card"><p class="t">Shared with</p>${D.links.length ? `<div class="dr-share">${D.links.slice(0, 5).map(l => `<a href="#links"><b>${esc(l.label)}</b><small>${l.revoked_at ? 'Revoked' : l.last_view ? 'Viewed ' + H.ago(l.last_view) : 'Not opened yet'}</small></a>`).join('')}</div>` : '<p class="d">No links yet. Share the whole room, or open a file to share just that one.</p>'}
-            <button class="btn btn--secondary btn--sm btn--block" style="margin-top:12px" id="share-room2">${icon('link', 'ic-14')}Create a share link</button></section>
+            <button class="btn btn--secondary btn--sm btn--block" style="margin-top:12px" id="share-room2">${icon('link', 'ic-14')}Create a share link</button>
+            <a class="link link--accent t-caption" href="/data-room/analytics" style="display:inline-block;margin-top:10px">See who’s viewing →</a></section>
           ${next ? `<section class="dr-card"><span class="dr-tag ${DR.STAGES[next].tagCls}">${DR.STAGES[next].name} room</span><p class="d" style="margin-top:10px">When you raise ${next === 'growth' ? 'a Series A' : 'from angels and seed funds'}, your room grows to ${DR.stageCount(next)} items: ${esc(DR.STAGES[next].bullets.slice(next === 'growth' ? 1 : 0, 3).map((b, i) => i ? b.charAt(0).toLowerCase() + b.slice(1) : b.charAt(0).toLowerCase() + b.slice(1)).join(', ').replace('kPIs', 'KPIs'))}.</p><a class="link link--accent t-caption" href="/data-room/setup" style="display:inline-block;margin-top:10px">Preview ${DR.STAGES[next].short.toLowerCase()} room →</a></section>` : ''}
           <section class="dr-card dr-card--soft"><p class="t">Templates are in Resources</p><p class="d">Financial model, one-pager, SAFE and founder agreement templates, with how to use them.</p><a class="link link--accent t-caption" href="/resources/raise-money" style="display:inline-block;margin-top:8px">Open Resources →</a></section>
         </aside></div>
@@ -401,6 +403,46 @@ H.mount({ active: 'dataroom', tab: 'you' });
         for (let n = 1; n <= Math.min(doc.numPages, 40); n++) { const b = document.createElement('button'); b.dataset.p = n; b.setAttribute('aria-label', 'Page ' + n); const c = document.createElement('canvas'); b.append(c); thumbs.append(b); b.onclick = () => showPage(n); await DR.renderPage(doc, n, c, 120); }
         thumbs.querySelector('button').setAttribute('aria-current', '');
       } catch (e) { big.innerHTML = `<p class="t-body-sm c-2">${esc(e.message || '')}</p>`; }
+    }
+  }
+
+  // ================================================================ whole-room analytics: every file, every link
+  function roomAnalytics() {
+    const R = D.room, S = DR.STAGES[R.stage];
+    document.title = `Analytics | ${S.title} | Hentity`;
+    let lid = '', days = 30;
+    root.innerHTML = `<nav class="dr-crumbs"><a href="/data-room">Data room</a>${icon('arrow-right')}<b>Analytics</b></nav>
+      <div class="dr-head"><div><h1>Analytics</h1><p>Who opened your ${esc(S.short.toLowerCase())} room, which files they read, and for how long.</p></div>
+        <div class="row gap-8"><a class="btn btn--secondary btn--sm" href="/data-room">${icon('folder', 'ic-14')}Back to files</a></div></div>
+      <div class="row between gap-12 wrap dr-fil"><div class="chips" data-single id="lf"><button class="chip" data-l="" aria-pressed="true">${icon('check')}All links</button>${D.links.map(l => `<button class="chip" data-l="${l.id}" aria-pressed="false">${icon('check')}${esc(l.label)}</button>`).join('')}</div>
+        <label class="fu-sel"><select id="days" aria-label="Period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="3650">All time</option></select>${icon('chevron-down', 'ic-14')}</label></div>
+      <div id="ab"><div class="skel" style="height:300px;border-radius:14px"></div></div>`;
+    qs('#lf').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; qsa('#lf .chip').forEach(x => x.setAttribute('aria-pressed', x === b)); lid = b.dataset.l; draw(); };
+    qs('#days').onchange = e => { days = +e.target.value; draw(); };
+    root.onclick = e => { const o = e.target.closest('[data-open]'); if (o) location.href = '/data-room/files/' + o.dataset.open + '#analytics'; };
+    draw();
+    async function draw() {
+      const ab = qs('#ab'); let A, per;
+      try { [A, per] = await Promise.all([API.drAnalytics(null, lid, days), Promise.all(D.files.map(f => API.drAnalytics(f.id, lid, days).then(a => ({ f, a })).catch(() => ({ f, a: null }))))]); }
+      catch (e) { ab.innerHTML = `<div class="dr-empty">${esc(e.message || 'Couldn’t load analytics')}</div>`; return; }
+      if (!D.links.length) { ab.innerHTML = `<div class="dr-who"><div class="dr-empty">No share links yet. Create one from your data room and you’ll see who opens it here.<br><a class="btn btn--primary btn--sm" href="/data-room" style="margin-top:12px">Go to your files</a></div></div>`; return; }
+      if (!A || !A.sessions) { ab.innerHTML = `<div class="dr-who"><div class="dr-empty">No views yet${lid ? ' on this link' : ''}. When an investor opens a link, you’ll see who, which files and for how long.</div></div>`; return; }
+      const files = per.filter(x => x.a && x.a.sessions).sort((x, y) => y.a.sessions - x.a.sessions);
+      const endPct = (f, a) => { const P = f.pages || Math.max(1, ...a.pages.map(p => p.page)), last = a.pages.find(p => p.page === P); return Math.round(((last && last.reach) || 0) / (a.sessions || 1) * 100); };
+      ab.innerHTML = `<div class="dr-kpis">
+          <div class="dr-kpi"><p>${icon('eye')}Views</p><b>${A.views}</b><small>${A.views_week ? `▲ ${A.views_week} this week` : 'None this week'}</small></div>
+          <div class="dr-kpi"><p>${icon('users')}People</p><b>${A.people}</b><small>${A.verified} verified email${A.verified === 1 ? '' : 's'}</small></div>
+          <div class="dr-kpi"><p>${icon('clock')}Avg. time per visit</p><b>${DR.secs(A.avg_secs)}</b><small>Median ${DR.secs(A.median_secs)}</small></div>
+          <div class="dr-kpi"><p>${icon('file-text')}Files opened</p><b>${files.length}/${D.files.length}</b><small>${A.viewers.filter(v => v.opens > 1).length} came back</small></div></div>
+        <section class="dr-who"><div class="dr-who__h"><h2>Files</h2><span class="t-caption c-3" style="font-weight:400">Open one for page-by-page detail</span></div>
+          <table><thead><tr><th>File</th><th>People</th><th>Avg. time</th><th>Read to the end</th></tr></thead><tbody>
+          ${files.length ? files.map(({ f, a }) => `<tr data-open="${f.id}" style="cursor:pointer"><td><span class="row gap-8">${icon('file-text', 'ic-14')}<b style="font-weight:500">${esc(f.item ? DR.itemName(f.item) : f.name)}</b></span></td><td class="mono">${a.people}</td><td class="mono">${DR.secs(a.avg_secs)}</td><td class="mono">${endPct(f, a)}%</td></tr>`).join('') : '<tr><td colspan="4" class="c-3">No file opened yet.</td></tr>'}</tbody></table></section>
+        <section class="dr-who"><div class="dr-who__h"><h2>Who viewed it</h2><button class="link link--accent t-body-sm" id="csv">Export CSV</button></div>
+          <table><thead><tr><th>Viewer</th><th>Link</th><th>Last viewed</th><th>Time</th><th>Pages</th><th>Visits</th><th>Device</th></tr></thead><tbody>
+          ${A.viewers.map(v => `<tr><td><span class="row gap-10">${v.email ? `<span class="fav" style="${H.tint(v.email)}">${esc(v.email.slice(0, 2).toUpperCase())}</span><span class="row gap-4" style="white-space:nowrap">${esc(v.email)}${v.verified ? icon('check', 'ic-12') : ''}</span>` : `<span class="fav">${icon('user', 'ic-12')}</span><span class="c-3">Anonymous</span>`}</span></td><td>${esc(v.label)}</td><td>${esc(H.ago(v.last_at))}</td><td class="mono">${DR.secs(v.secs)}</td><td class="mono">${v.pages}</td><td class="mono">${v.opens}</td><td class="c-2">${esc(v.device || '')}</td></tr>`).join('')}</tbody></table>
+          <p class="row gap-6 t-caption c-3" style="font-weight:400;padding:12px 16px;border-top:1px solid var(--color-border-default)">${icon('lock', 'ic-12')}Viewers are told about tracking before opening. “Anyone with the link” views show as Anonymous unless they give an email.</p></section>`;
+      qs('#csv').onclick = () => { const rows = [['Email', 'Verified', 'Link', 'Last viewed', 'Seconds', 'Pages', 'Visits', 'Device'], ...A.viewers.map(v => [v.email || 'Anonymous', v.verified ? 'yes' : 'no', v.label, v.last_at, v.secs, v.pages, v.opens, v.device])];
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(x => `"${String(x == null ? '' : x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv' })); a.download = 'data-room-viewers.csv'; a.click(); };
     }
   }
 
