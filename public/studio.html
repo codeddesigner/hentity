@@ -25,9 +25,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=f019748061">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=04c508b844">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -345,14 +345,14 @@ H.mount({ active: 'my-products', tab: 'me' });
   function poster(qr) {
     const W = 1240, Hh = 1754, c = document.createElement('canvas'); c.width = W; c.height = Hh; const x = c.getContext('2d');
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, Hh); x.fillStyle = '#FF5A1F'; x.fillRect(0, 0, W, 24);
-    x.fillStyle = '#0a0a0a'; x.font = '600 44px Geist, Arial'; x.fillText(p.name + ' · Beta program', 100, 170);
-    const wrap = (t, y, size, color, max) => { x.font = `600 ${size}px Geist, Arial`; x.fillStyle = color; const words = t.split(' '); let line = ''; for (const w of words) { if (x.measureText(line + w).width > (max || W - 200)) { x.fillText(line, 100, y); y += size * 1.15; line = ''; } line += w + ' '; } x.fillText(line, 100, y); return y + size * 1.4; };
+    x.fillStyle = '#0a0a0a'; x.font = '600 44px Inter, Arial'; x.fillText(p.name + ' · Beta program', 100, 170);
+    const wrap = (t, y, size, color, max) => { x.font = `600 ${size}px Inter, Arial`; x.fillStyle = color; const words = t.split(' '); let line = ''; for (const w of words) { if (x.measureText(line + w).width > (max || W - 200)) { x.fillText(line, 100, y); y += size * 1.15; line = ''; } line += w + ' '; } x.fillText(line, 100, y); return y + size * 1.4; };
     let y = wrap(b.title, 290, 84, '#0a0a0a');
     if (B.perkText(b)) y = wrap('Perk: ' + B.perkText(b), y, 40, '#FF5A1F');
     const n = qr.getModuleCount(), size = 760, cell = size / n, ox = (W - size) / 2, oy = Math.max(y + 40, 720);
     x.fillStyle = '#0a0a0a'; for (let r = 0; r < n; r++) for (let col = 0; col < n; col++) if (qr.isDark(r, col)) x.fillRect(ox + col * cell, oy + r * cell, Math.ceil(cell), Math.ceil(cell));
-    x.font = '500 36px Geist, Arial'; x.fillStyle = '#555'; x.textAlign = 'center'; x.fillText('Scan to apply · ' + B.betaUrl(b).replace(/^https?:\/\//, ''), W / 2, oy + size + 80);
-    x.font = '400 28px Geist, Arial'; x.fillText('Testing is free. You never need to upvote anything. Runs on Hentity.', W / 2, oy + size + 130);
+    x.font = '500 36px Inter, Arial'; x.fillStyle = '#555'; x.textAlign = 'center'; x.fillText('Scan to apply · ' + B.betaUrl(b).replace(/^https?:\/\//, ''), W / 2, oy + size + 80);
+    x.font = '400 28px Inter, Arial'; x.fillText('Testing is free. You never need to upvote anything. Runs on Hentity.', W / 2, oy + size + 130);
     const a = document.createElement('a'); a.download = `${b.slug}-qr-poster.png`; a.href = c.toDataURL('image/png'); a.click();
   }
 

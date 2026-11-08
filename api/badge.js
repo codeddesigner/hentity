@@ -25,16 +25,16 @@ function svg(b, theme, scale, name) {
   const W = wide ? 250 : 206, H = 54;
   const css = `.bg{fill:#fff;stroke:#e5e5e5}.fg{fill:#0a0a0a}.sub{fill:#737373}.ci{fill:#0a0a0a}.mk{fill:#fff}.ln{stroke:#e5e5e5}.dark .bg{fill:#0a0a0a;stroke:#0a0a0a}.dark .fg{fill:#fff}.dark .sub{fill:#a3a3a3}.dark .ci{fill:#fff}.dark .mk{fill:#0a0a0a}.dark .ln{stroke:#333}`
     + (theme === 'auto' ? `@media (prefers-color-scheme: dark){.bg{fill:#0a0a0a;stroke:#0a0a0a}.fg{fill:#fff}.sub{fill:#a3a3a3}.ci{fill:#fff}.mk{fill:#0a0a0a}.ln{stroke:#333}}` : '');
-  const right = b.medal ? `<circle cx="${W - 30}" cy="27" r="15" fill="${MEDAL[b.medal]}"/><text x="${W - 30}" y="32.5" text-anchor="middle" font-family="Geist,Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="#fff">${b.medal}</text>`
-    : b.count != null ? `<line class="ln" x1="${W - 64}" y1="12" x2="${W - 64}" y2="42"/><path class="fg" d="M${W - 32} 13l7.5 12h-15z"/><text class="fg" x="${W - 32}" y="43" text-anchor="middle" font-family="Geist,Inter,Arial,sans-serif" font-size="12" font-weight="500">${x(fmt(b.count))}</text>` : '';
+  const right = b.medal ? `<circle cx="${W - 30}" cy="27" r="15" fill="${MEDAL[b.medal]}"/><text x="${W - 30}" y="32.5" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="#fff">${b.medal}</text>`
+    : b.count != null ? `<line class="ln" x1="${W - 64}" y1="12" x2="${W - 64}" y2="42"/><path class="fg" d="M${W - 32} 13l7.5 12h-15z"/><text class="fg" x="${W - 32}" y="43" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="500">${x(fmt(b.count))}</text>` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(W * scale)}" height="${Math.round(H * scale)}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${x(name ? name + ' · ' : '')}${x(b.alt || 'Hentity')}">
 <title>${x(name ? name + ' · ' : '')}${x(b.alt || 'Hentity')}</title><style>${css}</style>
 <g class="${theme === 'dark' ? 'dark' : ''}">
 <rect class="bg" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="10"/>
 <circle class="ci" cx="28" cy="27" r="16"/>
 <path class="mk" transform="translate(28 27) scale(.08) translate(-208 -208)" d="M184 90H232V184H326V232A94 94 0 0 0 232 326H184V232H90V184A94 94 0 0 0 184 90Z"/>
-<text class="sub" x="54" y="22" font-family="Geist,Inter,Arial,sans-serif" font-size="8.5" letter-spacing=".5">${x(b.label)}</text>
-<text class="fg" x="54" y="40" font-family="Geist,Inter,Arial,sans-serif" font-size="17" font-weight="600">Hentity</text>
+<text class="sub" x="54" y="22" font-family="Inter,Arial,sans-serif" font-size="8.5" letter-spacing=".5">${x(b.label)}</text>
+<text class="fg" x="54" y="40" font-family="Inter,Arial,sans-serif" font-size="17" font-weight="600">Hentity</text>
 ${right}</g></svg>`;
 }
 

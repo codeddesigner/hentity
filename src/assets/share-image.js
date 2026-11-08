@@ -8,8 +8,8 @@
     dark: { bg: '#0a0a0a', fg: '#ffffff', mute: '#8c8c8c', sub: '#a3a3a3', line: '#2a2a2a', chip: '#141414', track: '#262626', other: '#525252' }
   };
   const ACCENT = '#FF5B14', LIME = '#E2F200', SKY = '#AEE6FB';
-  const SANS = '"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
-  const MONO = 'Geist, system-ui, sans-serif';
+  const SANS = '"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+  const MONO = '"Geist Mono", ui-monospace, monospace';
   const fmt = v => (v || 0).toLocaleString('en-US');
   const compact = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + 'm' : v >= 1e4 ? Math.round(v / 1e3) + 'k' : fmt(v);
 
@@ -21,7 +21,7 @@
     return (logoCache[k] = new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }));
   }
   let fontsReady;
-  const fonts = () => fontsReady || (fontsReady = Promise.all(['400 20px Geist', '500 20px Geist', '600 20px Geist'].map(f => document.fonts && document.fonts.load(f).catch(() => {}))).catch(() => {}));
+  const fonts = () => fontsReady || (fontsReady = Promise.all(['400 20px Inter', '500 20px Inter', '600 20px Inter', '400 20px "Geist Mono"', '500 20px "Geist Mono"'].map(f => document.fonts && document.fonts.load(f).catch(() => {}))).catch(() => {}));
 
   // ---------------------------------------------------------------- drawing helpers
   function font(ctx, size, weight, mono) { ctx.font = `${weight || 400} ${size}px ${mono ? MONO : SANS}`; }
