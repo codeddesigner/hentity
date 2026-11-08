@@ -158,11 +158,13 @@ body.embed .ins{padding:16px}
 @media (max-width:768px){
   .ins{padding:12px 16px 32px}.ins h1{font-size:28px;line-height:34px;margin:4px 0 14px}
   .ins-bar{display:none}.chipsx{display:flex;margin:0 -16px 18px;padding:0 16px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
-  .kpis4{grid-template-columns:1fr 1fr;gap:0;margin-top:0;border:0;border-radius:0;overflow:visible}.kpis4>div{border:0;border-radius:0;padding:2px 0 18px 16px;border-left:1px solid var(--color-border-default)}
-  .kpis4>div:nth-child(1){order:0;padding-left:0;border-left:0}.kpis4>div:nth-child(3){order:1}.kpis4>div:nth-child(2){order:2;padding-left:0;border-left:0}.kpis4>div:nth-child(4){order:3}
-  .kpis4>div:nth-child(2),.kpis4>div:nth-child(4){padding-top:18px;border-top:1px solid var(--color-border-default)}
-  .kpis4 b{font-size:28px;line-height:36px;margin:8px 0 6px}
-  .kp-head,.heat-sec,.concs,.cc-sec,.tlegend .dm,.d-only,.ins-eyebrow .d-only{display:none!important}.m-only{display:inline}.tree{height:180px}
+  .kpis4{grid-template-columns:1fr 1fr;margin-top:0}.kpis4>div{padding:14px;border-left:1px solid var(--color-border-default);border-top:0}
+  .kpis4>div:nth-child(1){order:0;border-left:0}.kpis4>div:nth-child(3){order:1;border-left:1px solid var(--color-border-default)}.kpis4>div:nth-child(2){order:2;border-left:0}.kpis4>div:nth-child(4){order:3}
+  .kpis4>div:nth-child(2),.kpis4>div:nth-child(4){border-top:1px solid var(--color-border-default)}
+  .kpis4 b{font-size:26px;line-height:32px;margin:8px 0 4px}
+  .cc-sec{grid-template-columns:minmax(0,1fr)!important;gap:28px!important}
+  .heat-m{display:none}.heat-wrap{overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.heat-wrap::-webkit-scrollbar{display:none}.heat{overflow:visible!important}.heat-d{position:sticky;left:0;background:var(--color-bg-canvas);z-index:1;padding-right:4px}
+  .kp-head,.tlegend .dm,.d-only,.ins-eyebrow .d-only{display:none!important}.m-only{display:inline}.tree{height:180px}
   .mseg{display:flex;width:100%;margin:0 0 18px}.mseg a{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;border-radius:8px;font-size:13px;font-weight:500;color:var(--color-text-secondary)}.mseg a[aria-current]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06)}
   .ins-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.mshare{display:inline-flex}
   .ins-sec{padding-bottom:20px;margin-bottom:20px}
@@ -326,7 +328,7 @@ H.mount({ active: 'insights', tab: 'products' });
     try {
       [D, ALL] = await Promise.all([API.insights(cc, days), cc ? (ALL || API.insights('', days)) : null]);
       if (!cc) ALL = D;
-      render(); H.contentShown();
+      render(); H.contentShown(); const hw = qs(".heat-wrap"); if (hw) hw.scrollLeft = hw.scrollWidth;
     } catch (e) { H.fail(e); qs('#view').innerHTML = '<p class="c-2">Couldn’t load insights. Try again in a moment.</p>'; }
     qs('#view').style.opacity = 1;
     const u = new URLSearchParams(); if (tab !== 'overview') u.set('tab', tab); if (cc) u.set('country', cc); if (days !== 30) u.set('days', days); if (EMBED) u.set('embed', '1');
