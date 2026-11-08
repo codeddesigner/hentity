@@ -62,7 +62,7 @@ body{background:var(--color-bg-subtle)}
 .fo-h{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .fo-crit{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:14px}
 .fo-crit .ev{margin-left:auto;color:var(--color-text-tertiary);font-size:13px;text-align:right}
-.fo-judge{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:var(--color-text-secondary)}.fo-judge b{color:var(--color-text-primary);font-weight:500;font-variant-numeric:tabular-nums}
+.fo-judge{display:flex;justify-content:space-between;gap:16px;padding:6px 0;font-size:14px;color:var(--color-text-secondary)}.fo-judge b{color:var(--color-text-primary);font-weight:500;font-variant-numeric:tabular-nums}
 .fo-panel{padding:24px;position:sticky;top:24px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 12px 32px -8px rgba(16,24,40,.10)}
 .fo-panel hr{border:0;border-top:1px solid var(--color-border-default);margin:12px 0}
 .fo-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
@@ -86,17 +86,17 @@ body{background:var(--color-bg-subtle)}
 <div data-header></div>
 <main id="main" class="fo"><div class="skel" style="height:520px;border-radius:16px"></div><div class="skel" style="height:520px;border-radius:16px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/funding.js?v=0cdab35984"></script>
+<script src="/assets/funding.js?v=570a490684"></script>
 <script>
 H.mount({ active: 'funding', tab: 'you' });
 (async function () {
   const { qs, esc, icon, toast } = H;
   const root = qs('#main');
   await API.ready;
-  if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname + location.search); return; }
-  const oid = location.pathname.split('/').filter(Boolean)[1];
-  const products = await API.myFundingProducts().catch(() => []);
-  if (!products.length) { location.href = '/funding'; return; }
+  const oid = FU.idFrom(location.pathname.split('/').filter(Boolean)[1]);
+  const products = API.uid ? await API.myFundingProducts().catch(() => []) : [];
+  // Signed out, or no product listed yet: the public listing. Matching, the apply link and the tracker are for members.
+  if (!products.length) return publicView();
   let pid = FU.pickPid(products), O;
   async function load() {
     try { O = await API.fundingOpp(oid, pid); } catch (e) { root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">${esc(e.message || 'Not found')}</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; return; }
@@ -104,6 +104,46 @@ H.mount({ active: 'funding', tab: 'you' });
     if (!O) { document.title = 'Listing not found | Hentity Funding'; root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">This listing isn’t available any more</p><p class="t-body-sm c-2" style="margin-top:6px">It may have been removed or merged with another one.</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">Back to Funding</a></div>`; H.contentShown && H.contentShown(); return; }
     document.title = O.name + ' | Hentity Funding';
     render();
+  }
+
+  async function publicView() {
+    const COLS = 'id,mode,kind,name,org,color,logo_url,amount_text,amount_note,categories,stages,countries,region_label,women_only,needs_incorporation,needs_live,deadline,deadline_note,decision_by,slots_text,round_note,judging,description,checked_at,portfolio';
+    const get = async q => { try { const r = await q; return r && !r.error ? r.data : null; } catch (e) { return null; } };
+    const o = await get(API.sb.from('funding_opps').select(COLS).eq('id', oid).eq('active', true).maybeSingle());
+    if (!o) { document.title = 'Listing not found | Hentity Funding'; root.innerHTML = `<div class="card card--pad" style="grid-column:1/-1;text-align:center;padding:48px"><p class="t-h4">This listing isn’t available any more</p><p class="t-body-sm c-2" style="margin-top:6px">It may have been removed or merged with another one.</p><a class="btn btn--secondary btn--sm" href="/funding" style="margin-top:16px">See all funding</a></div>`; H.contentShown && H.contentShown(); return; }
+    const grant = o.mode === 'grant', kind = FU.KIND[o.kind] || (grant ? 'Grant' : 'Investor');
+    if (location.pathname !== FU.path(o)) history.replaceState(null, '', FU.path(o) + location.search);
+    const where = o.region_label || ((o.countries || []).length ? o.countries.map(c => FU.CN[c] || c).join(', ') : 'Startups across Africa');
+    const open = FU.isOpen(o) && !(o.deadline && FU.daysLeft(o.deadline) < 0);
+    const rules = [['Sector', (o.categories || []).length ? o.categories.join(', ') : 'Any sector'], ['Stage', (o.stages || []).length ? o.stages.join(', ') : 'Any stage'], ['Where', where],
+      o.women_only && ['Team', 'Women-founded or co-founded'], o.needs_incorporation && ['Company', 'Must be a registered company'], o.needs_live && ['Product', 'Must have a live product']].filter(Boolean);
+    const chips = [`<span class="fu-chip fu-chip--green">${esc(o.amount_text || '—')}${o.amount_note ? ' · ' + esc(o.amount_note.split('·')[0].trim().toLowerCase()) : ''}</span>`, grant ? FU.deadlineChip(o, true) : '',
+      o.slots_text ? `<span class="fu-chip">${esc(o.slots_text)}</span>` : '', o.decision_by ? `<span class="fu-chip">Decision by ${FU.fmtDate(o.decision_by)}</span>` : ''].join('');
+    const next = encodeURIComponent(location.pathname);
+    const more = await get(API.sb.from('funding_opps').select('id,name,org,kind,amount_text,deadline,round_note,mode').eq('active', true).eq('mode', o.mode).neq('id', o.id)
+      .overlaps('categories', (o.categories || []).length ? o.categories : ['__none__']).limit(8));
+    document.title = `${o.name}: ${kind.toLowerCase()} for ${(o.countries || []).length === 1 ? (FU.CN[o.countries[0]] || 'African') : 'African'} startups | Hentity Funding`;
+    root.innerHTML = `<div>
+      <nav class="row gap-8 t-body-sm c-2" aria-label="Breadcrumb" style="margin-bottom:14px"><a class="row gap-8" href="/funding${grant ? '' : '?tab=equity'}">${icon('arrow-left', 'ic-16')}${grant ? 'Grants' : 'Investors'}</a></nav>
+      <section class="card fo-sec" style="margin-top:0"><div class="row gap-16" style="align-items:center">${FU.logo(o, 48)}<div style="min-width:0"><p class="t-caption c-3" style="font-weight:400">${esc(o.org && o.org !== o.name ? o.org + ' · ' + kind : kind)}</p><h1 class="t-h2" style="margin-top:2px">${esc(o.name)}</h1></div></div>
+        <div class="fu-chips" style="margin-top:14px">${chips}</div>
+        ${o.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(o.description)}</p>` : ''}
+        ${!open && o.round_note ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(o.round_note)}</b></p>` : ''}
+        ${o.checked_at ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity on ${FU.fmtDate(o.checked_at, true)}</p>` : ''}</section>
+      <section class="card fo-sec"><h2 class="fo-h">Who ${grant ? 'can apply' : 'they back'}</h2><div style="margin-top:10px">${rules.map(([k, v]) => `<div class="fo-judge"><span>${k}</span><b style="text-align:right">${esc(v)}</b></div>`).join('')}</div></section>
+      ${(o.judging || []).length ? `<section class="card fo-sec"><h2 class="fo-h">How it’s judged</h2><div style="margin-top:10px">${o.judging.map(j => `<div class="fo-judge"><span>${esc(j.label)}</span><b>${esc(String(j.pct))}%</b></div>`).join('')}</div></section>` : ''}
+      ${(o.portfolio || []).length ? `<section class="card fo-sec"><h2 class="fo-h">Portfolio</h2><p class="t-body-sm c-2" style="margin-top:8px">${esc(o.portfolio.join(', '))}</p></section>` : ''}
+      ${(more || []).length ? `<section class="card fo-sec"><h2 class="fo-h">Similar ${grant ? 'grants' : 'investors'}</h2><div style="margin-top:6px">${more.map(m => `<a class="fo-judge" href="${FU.path(m)}"><span>${esc(m.name)}</span><b>${esc(m.amount_text || '')}</b></a>`).join('')}</div></section>` : ''}
+    </div>
+    <aside class="card fo-panel" id="panel">
+      <span class="icon-badge" style="background:var(--color-accent-subtle,#fff1ea);color:var(--color-accent-default)">${icon('lock')}</span>
+      <h2 class="fo-h" style="margin-top:14px">See if you qualify</h2>
+      <p class="t-body-sm c-2" style="margin:10px 0 14px">Hentity checks ${esc(o.name)} against your product’s sector, stage, country and team, then gives you the application link, deadline reminders and a tracker.</p>
+      ${API.uid ? `<a class="btn btn--accent btn--block" href="/submit">${icon('plus', 'ic-16')}List your product</a><a class="btn btn--secondary btn--block" style="margin-top:8px" href="/directory?profile=unclaimed">Claim your startup</a>`
+        : `<a class="btn btn--accent btn--block" href="/signup?next=${next}">Create a free account</a><a class="btn btn--secondary btn--block" style="margin-top:8px" href="/signin?next=${next}">Sign in</a>`}
+      <hr><a class="link t-body-sm" href="/funding">Browse all ${grant ? 'grants' : 'investors'} for African startups</a>
+    </aside>`;
+    H.contentShown && H.contentShown();
   }
   const isGrant = () => O.mode === 'grant';
   function render() {
