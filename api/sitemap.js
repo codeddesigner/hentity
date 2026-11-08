@@ -26,6 +26,8 @@ module.exports = async (req, res) => {
     ...STATIC.map(p => ({ loc: SITE + p, pr: prio[p] || '0.5', cf: p === '/' || p === '/news' ? 'hourly' : 'weekly', mod: p === '/' || p === '/directory' ? newest : p === '/funding' && funding[0] ? funding[0].updated_at : null })),
     ...[...cats].map(c => ({ loc: SITE + S.catUrl(c), pr: '0.8', cf: 'daily', mod: newest })),
     ...[...countries].map(c => ({ loc: SITE + S.countryUrl(c), pr: '0.8', cf: 'daily', mod: newest })),
+    // Sector in a country (/categories/fintech/nigeria), once it has enough companies to be useful
+    ...Object.entries(S.comboCounts(products)).filter(([k, v]) => v >= S.COMBO_MIN).map(([k]) => { const [c, cc] = k.split('|'); return { loc: SITE + S.comboUrl(c, cc), pr: '0.8', cf: 'daily', mod: newest }; }),
     ...products.map(p => ({ loc: `${SITE}/products/${p.slug}`, mod: p.updated_at, pr: p.effective_status === 'live' ? '0.9' : '0.7', cf: 'daily',
       img: [...(p.media || []).filter(m => m && m.url).map(m => m.url), p.logo_url].filter(Boolean).slice(0, 5), name: p.name })),
     // Discuss: public threads that have replies or votes (spam and empty threads stay out), and their communities

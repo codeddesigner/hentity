@@ -23,4 +23,11 @@ const nav = () => `<nav aria-label="Browse"><p><strong>Browse by category:</stro
 // Wrapper: visible until the app hydrates, then removed (same content, so it's not cloaking)
 const block = inner => `<div class="ssr" data-ssr>${inner}</div>`;
 
-module.exports = { SITE, CATEGORIES, COUNTRY, slugify, CAT_BY_SLUG, COUNTRY_BY_SLUG, catUrl, countryUrl, appCategory, esc, trimP, item, list, nav, block };
+// Sector + country landing pages (/categories/fintech/nigeria): how people actually search
+const CAT_NOUN = { Fintech: 'Fintech companies', SaaS: 'SaaS companies', Apps: 'Consumer apps', AI: 'AI startups', Commerce: 'E-commerce companies', Productivity: 'Productivity tools', 'Dev Tools': 'Developer tools', Health: 'Healthtech companies', Education: 'Edtech companies', Agriculture: 'Agritech companies', Logistics: 'Logistics startups', Infrastructure: 'Infrastructure startups', 'Energy & Climate': 'Climate tech companies', Proptech: 'Proptech companies' };
+const DEMONYM = { NG: 'Nigerian', KE: 'Kenyan', GH: 'Ghanaian', ZA: 'South African', RW: 'Rwandan', EG: 'Egyptian', MA: 'Moroccan', SN: 'Senegalese', ET: 'Ethiopian', UG: 'Ugandan', TZ: 'Tanzanian', CI: 'Ivorian', CM: 'Cameroonian', TN: 'Tunisian' };
+const comboUrl = (c, cc) => COUNTRY[cc] ? `/categories/${slugify(c)}/${slugify(COUNTRY[cc])}` : null;
+const COMBO_MIN = 3;   // fewer companies than this: the page exists but stays out of search (thin)
+// Count products per sector+country, from rows with { categories, country }
+const comboCounts = rows => { const m = {}; (rows || []).forEach(p => (p.categories || []).forEach(c => { if (CAT_BY_SLUG[slugify(c)] && COUNTRY[p.country]) { const k = c + '|' + p.country; m[k] = (m[k] || 0) + 1; } })); return m; };
+module.exports = { CAT_NOUN, DEMONYM, comboUrl, COMBO_MIN, comboCounts, SITE, CATEGORIES, COUNTRY, slugify, CAT_BY_SLUG, COUNTRY_BY_SLUG, catUrl, countryUrl, appCategory, esc, trimP, item, list, nav, block };

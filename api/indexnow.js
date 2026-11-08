@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
   ]);
   const fslug = n => S.slugify(n).slice(0, 70).replace(/-$/, '');
   const urls = new Set();
-  products.forEach(p => { urls.add(`${S.SITE}/products/${p.slug}`); (p.categories || []).forEach(c => urls.add(S.SITE + S.catUrl(c))); if (S.countryUrl(p.country)) urls.add(S.SITE + S.countryUrl(p.country)); });
+  products.forEach(p => { urls.add(`${S.SITE}/products/${p.slug}`); (p.categories || []).forEach(c => urls.add(S.SITE + S.catUrl(c))); if (S.countryUrl(p.country)) urls.add(S.SITE + S.countryUrl(p.country)); (p.categories || []).forEach(c => { const u = S.CAT_BY_SLUG[S.slugify(c)] && S.comboUrl(c, p.country); if (u) urls.add(S.SITE + u); }); });
   articles.forEach(a => urls.add(`${S.SITE}/news/${a.slug}`));
   funding.forEach(o => urls.add(`${S.SITE}/funding/${fslug(o.name) ? fslug(o.name) + '-' : ''}${o.id}`));
   if (funding.length) urls.add(S.SITE + '/funding');

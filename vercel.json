@@ -34,6 +34,10 @@
       "destination": "/api/ssr?type=directory&slug=all"
     },
     {
+      "source": "/categories/:slug/:country",
+      "destination": "/api/ssr?type=catcountry&slug=:slug&post=:country"
+    },
+    {
       "source": "/categories/:slug",
       "destination": "/api/ssr?type=category&slug=:slug"
     },

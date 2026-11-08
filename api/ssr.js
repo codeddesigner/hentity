@@ -245,6 +245,46 @@ async function build(type, slug) {
       main: `<h1>${esc(b.title)}</h1><p>${esc(p.name)} · ${esc(b.why || '')}</p>`
     };
   }
+  // Sector in a country: "Fintech companies in Nigeria"
+  if (type === 'catcountry') {
+    const [cs, ks] = String(slug).split('~'); const cat = S.CAT_BY_SLUG[cs], cc = S.COUNTRY_BY_SLUG[ks];
+    if (!cat || !cc) return null;
+    const cname = COUNTRY[cc], noun = S.CAT_NOUN[cat] || cat + ' companies', dem = S.DEMONYM[cc] || cname;
+    const [rows, all, funds] = await Promise.all([
+      rest(`product_feed?status=in.(scheduled,live,unclaimed)&country=eq.${cc}&categories=cs.${encodeURIComponent('{"' + cat + '"}')}&select=slug,name,tagline,city,country,categories,pay_methods,stage,upvote_count,created_at&order=upvote_count.desc,created_at.desc&limit=300`).catch(() => []),
+      rest('product_feed?status=in.(scheduled,live,unclaimed)&select=categories,country&limit=5000').catch(() => []),
+      rest(`funding_opps?active=eq.true&categories=cs.${encodeURIComponent('{"' + cat + '"}')}&or=(countries.eq.{},countries.cs.{${cc}})&select=id,name,org,kind,mode,amount_text,deadline&order=deadline.asc.nullslast&limit=12`).catch(() => [])]);
+    const n = rows.length, counts = S.comboCounts(all);
+    const tally = arr => { const m = {}; arr.forEach(x => x && (m[x] = (m[x] || 0) + 1)); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+    const cities = tally(rows.map(p => p.city && p.city.trim())), pays = tally(rows.flatMap(p => p.pay_methods || [])), stages = tally(rows.map(p => p.stage));
+    const newest = rows.slice().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).slice(0, 5);
+    const yr = new Date().getFullYear(), path = S.comboUrl(cat, cc);
+    const lead = `${n} ${dem} ${noun.toLowerCase().replace(/^ai /, 'AI ').replace(/^saas /, 'SaaS ')} on Hentity${rows.length ? ', including ' + rows.slice(0, 3).map(p => p.name).join(', ') : ''}. Ranked by the community, with what each does, where it’s based and how it takes payments.`;
+    const facts = [cities.length && `Most are based in ${cities.slice(0, 3).map(([c, k]) => `${c} (${k})`).join(', ')}.`,
+      pays.length && `The most common ways to pay: ${pays.slice(0, 4).map(([c, k]) => `${c} (${k})`).join(', ')}.`,
+      stages.length && `By stage: ${stages.map(([c, k]) => `${k} ${c.toLowerCase()}`).join(', ')}.`].filter(Boolean);
+    const fpath = o => `/funding/${S.slugify(o.name).slice(0, 70).replace(/-$/, '')}-${o.id}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const other = (list, fn) => list.filter(([k, v]) => v >= S.COMBO_MIN).map(fn).filter(Boolean);
+    const otherCountries = other(Object.entries(counts).filter(([k]) => k.startsWith(cat + '|') && !k.endsWith('|' + cc)).sort((a, b) => b[1] - a[1]), ([k, v]) => { const c2 = k.split('|')[1]; return `<a href="${S.comboUrl(cat, c2)}">${esc(noun)} in ${esc(COUNTRY[c2])}</a> (${v})`; });
+    const otherCats = other(Object.entries(counts).filter(([k]) => k.endsWith('|' + cc) && !k.startsWith(cat + '|')).sort((a, b) => b[1] - a[1]), ([k, v]) => { const c2 = k.split('|')[0]; return `<a href="${S.comboUrl(c2, cc)}">${esc(S.CAT_NOUN[c2] || c2)} in ${esc(cname)}</a> (${v})`; });
+    const h1 = `${noun} in ${cname}`;
+    const item = p => `<li><a href="/products/${esc(p.slug)}"><strong>${esc(p.name)}</strong></a> — ${esc(S.trimP(p.tagline))}${[p.city, p.stage, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).length ? ` <small>(${esc([p.city, p.stage, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).join(' · '))})</small>` : ''}</li>`;
+    return {
+      title: `${h1} (${yr}): ${n} ${dem} ${cat === 'AI' ? 'AI' : cat === 'SaaS' ? 'SaaS' : noun.split(' ')[0].toLowerCase()} startup${n === 1 ? '' : 's'} | Hentity`,
+      desc: clip(lead, 160), path, type: 'website', noindex: n < S.COMBO_MIN, h1,
+      ld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: h1, description: lead, url: SITE + path, about: [{ '@type': 'Thing', name: cat }, { '@type': 'Country', name: cname }],
+        mainEntity: { '@type': 'ItemList', numberOfItems: n, itemListElement: rows.slice(0, 100).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/products/${p.slug}`, name: p.name })) } },
+        crumbs([['Products', '/directory'], [cat, S.catUrl(cat)], [cname, path]])],
+      ssr: `<h2>${esc(h1)}</h2><p>${esc(lead)}</p>${facts.length ? `<p>${esc(facts.join(' '))}</p>` : ''}
+        ${n ? `<h2>${n === 1 ? 'The' : 'All ' + n} ${esc(noun.toLowerCase())} in ${esc(cname)}</h2><ol>${rows.map(item).join('')}</ol>` : ''}
+        ${newest.length > 2 ? `<h2>Newest ${esc(noun.toLowerCase())} in ${esc(cname)}</h2><ul>${newest.map(p => `<li><a href="/products/${esc(p.slug)}">${esc(p.name)}</a> — ${esc(S.trimP(p.tagline))}</li>`).join('')}</ul>` : ''}
+        ${funds.length ? `<h2>Funding for ${esc(cat === 'Fintech' ? 'fintech' : cat)} startups in ${esc(cname)}</h2><ul>${funds.map(o => `<li><a href="${fpath(o)}">${esc(o.name)}</a>${o.org && o.org !== o.name ? ` (${esc(o.org)})` : ''}${o.amount_text ? ' — ' + esc(o.amount_text) : ''}${o.deadline && o.deadline >= today ? ', deadline ' + esc(o.deadline) : ''}</li>`).join('')}</ul><p><a href="/funding">All grants and investors for African startups</a></p>` : ''}
+        ${otherCountries.length ? `<h2>${esc(noun)} in other countries</h2><p>${otherCountries.join(' · ')}</p>` : ''}
+        ${otherCats.length ? `<h2>Other startups in ${esc(cname)}</h2><p>${otherCats.join(' · ')}</p>` : ''}
+        <p><a href="${S.catUrl(cat)}">All ${esc(cat)} across Africa</a> · <a href="${S.countryUrl(cc)}">All startups in ${esc(cname)}</a></p>`
+    };
+  }
   if (type === 'category' || type === 'country' || type === 'directory') {
     const cat = type === 'category' ? S.CAT_BY_SLUG[slug] : null, cc = type === 'country' ? S.COUNTRY_BY_SLUG[slug] : null;
     if ((type === 'category' && !cat) || (type === 'country' && !cc)) return null;
@@ -257,11 +297,15 @@ async function build(type, slug) {
       : cc ? `${rows.length} product${rows.length === 1 ? '' : 's'} built by founders in ${cname}, ranked by the Hentity community. Find tools that work with local payments and languages.`
       : `${rows.length} products built by makers across Africa. Filter by country, payment method (Paystack, M-Pesa, MTN MoMo, USSD), stage and sector.`;
     const path = cat ? S.catUrl(cat) : cc ? S.countryUrl(cc) : '/directory';
+    // Links to the sector-in-country pages that have enough companies
+    const counts = cat || cc ? S.comboCounts(await rest('product_feed?status=in.(scheduled,live,unclaimed)&select=categories,country&limit=5000').catch(() => [])) : {};
+    const pairs = Object.entries(counts).filter(([k, v]) => v >= S.COMBO_MIN && (cat ? k.startsWith(cat + '|') : k.endsWith('|' + cc))).sort((a, b) => b[1] - a[1]);
+    const combos = pairs.length ? `<h2>${cat ? esc(S.CAT_NOUN[cat] || cat) + ' by country' : 'Startups in ' + esc(COUNTRY[cc]) + ' by sector'}</h2><p>${pairs.map(([k, v]) => { const [c2, k2] = k.split('|'); return `<a href="${S.comboUrl(c2, k2)}">${esc(S.CAT_NOUN[c2] || c2)} in ${esc(COUNTRY[k2])}</a> (${v})`; }).join(' · ')}</p>` : '';
     return {
       title, desc: clip(lead, 160), path, type: 'website', noindex: !rows.length && type !== 'directory', h1,
       ld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: h1, description: lead, url: SITE + path, mainEntity: { '@type': 'ItemList', numberOfItems: rows.length, itemListElement: rows.slice(0, 100).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/products/${p.slug}`, name: p.name })) } },
         crumbs([['Products', '/directory'], ...(cat || cc ? [[cat || cname, path]] : [])])],
-      ssr: `<h2>${esc(h1)}</h2><p>${esc(lead)}</p>${S.list(rows)}${S.nav()}`
+      ssr: `<h2>${esc(h1)}</h2><p>${esc(lead)}</p>${combos}${S.list(rows)}${S.nav()}`
     };
   }
   return null;
@@ -279,7 +323,7 @@ function withPreload(page, data) {
   if (!data || !Object.keys(data).length) return page;
   const json = JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
   // right after <meta charset>, which browsers expect within the first 1 KB
-  return page.replace(/(<meta charset="utf-8">)/i, `$1\n<script>window.__PRELOAD__=${json}</script>`);
+  return page.replace(/(<meta charset="utf-8">)/i, m => `${m}\n<script>window.__PRELOAD__=${json}</script>`);
 }
 
 let warm = false;  // false only on the first request after a cold start
@@ -290,7 +334,7 @@ module.exports = async (req, res) => {
   res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
   const { type } = req.query;
   const slug = req.query.post ? `${req.query.slug}~${req.query.post}` : req.query.slug;
-  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', country: '/directory-index', directory: '/directory-index', funding: '/funding-index', fopp: '/funding-opp', insights: '/insights-index', radar: '/radar-index' }[type];
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', catcountry: '/directory-index', country: '/directory-index', directory: '/directory-index', funding: '/funding-index', fopp: '/funding-opp', insights: '/insights-index', radar: '/radar-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
@@ -317,7 +361,7 @@ module.exports = async (req, res) => {
       const arts = Object.values(data).find(v => Array.isArray(v) && v[0] && v[0].dek !== undefined) || [];
       extra = arts.length ? `<h2>Latest African tech news</h2><ul>${arts.map(a => `<li><a href="/news/${esc(a.slug)}">${esc(a.title)}</a> — ${esc(a.dek || '')}</li>`).join('')}</ul>` : '';
     }
-    if (extra) page = page.replace(/(<\/main>)/, S.block(extra) + '$1');
+    if (extra) page = page.replace(/(<\/main>)/, m => S.block(extra) + m);
     return res.end(withPreload(page, data));
   }
   let meta = null, data = null;
@@ -353,12 +397,12 @@ module.exports = async (req, res) => {
     .replace(/<title>[\s\S]*?<\/title>/, '')
     .replace(/<meta (name|property)="(description|robots|og:[a-z:_]+|twitter:[a-z]+)"[^>]*>/g, '')
     .replace(/<link rel="canonical"[^>]*>/g, '')
-    .replace('</head>', tags + '\n</head>')
+    .replace('</head>', () => tags + '\n</head>')
     ;
   // Real, crawlable content in the page itself (search engines and AI crawlers that don't run JavaScript read it;
   // the app replaces it as soon as it renders)
-  if (meta.main) page = page.replace(/(<main\b[^>]*>)[\s\S]*?(<\/main>)/, (m, a, b) => type === 'article' ? m.replace(a, a + S.block(meta.main)) : a + S.block(meta.main) + b);
-  if (meta.ssr) page = page.replace(/(<\/main>)/, S.block(meta.ssr) + '$1');
+  if (meta.main) page = page.replace(/(<main\b[^>]*>)[\s\S]*?(<\/main>)/, (m, a, b) => type === 'article' ? m.replace(a, () => a + S.block(meta.main)) : a + S.block(meta.main) + b);
+  if (meta.ssr) page = page.replace(/(<\/main>)/, m => S.block(meta.ssr) + m);
   if (meta.h1) page = page.replace(/(<h1\b[^>]*id="title"[^>]*>)[^<]*/, (m, a) => a + esc(meta.h1) + ' ');
   res.setHeader('Cache-Control', CACHE);
   res.end(withPreload(page, data));
