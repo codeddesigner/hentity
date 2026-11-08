@@ -162,12 +162,12 @@ end $$;
 
 create or replace function public.badge_sync_all() returns int
 language plpgsql security definer set search_path = public as $$
-declare p record; c int := 0;
+declare who record; c int := 0;
 begin
-  for p in select id from profiles where not coalesce(banned, false) loop
-    c := c + cardinality(public.badge_sync(p.id, true));
+  for who in select id from profiles where not coalesce(banned, false) loop
+    c := c + cardinality(public.badge_sync(who.id, true));
   end loop;
-  delete from user_badges b using profiles p where p.id = b.user_id and p.banned;
+  delete from user_badges ub using profiles pr where pr.id = ub.user_id and pr.banned;
   return c;
 end $$;
 
@@ -275,3 +275,6 @@ do $$ begin
   perform cron.unschedule(jobid) from cron.job where jobname = 'hentity-badges';
   perform cron.schedule('hentity-badges', '17 * * * *', 'select public.badge_sync_all()');
 end $$;
+
+-- 074_badge_sync_all_fix (applied): the loop variable in badge_sync_all() is named `who`, not `p`,
+-- so the clean-up delete no longer clashes with the profiles alias.
