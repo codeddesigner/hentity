@@ -519,14 +519,6 @@
     settings: async (key) => { if (Object.prototype.hasOwnProperty.call(PRE, 'settings:' + key)) return pre('settings:' + key); const r = await q(sb.from('site_settings').select('value').eq('key', key).maybeSingle()); return r ? r.value : null; },
 
     // ---------------- realtime
-    // How many people have this page open right now (Supabase presence; no database writes)
-    here(room, cb) {
-      let key; try { key = sessionStorage.getItem('hentity.pk') || Math.random().toString(36).slice(2); sessionStorage.setItem('hentity.pk', key); } catch (e) { key = Math.random().toString(36).slice(2); }
-      const ch = sb.channel('here:' + room, { config: { presence: { key } } });
-      ch.on('presence', { event: 'sync' }, () => { try { cb(Object.keys(ch.presenceState()).length); } catch (e) {} });
-      ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.track({ at: Date.now() }).catch(() => {}); });
-      return () => sb.removeChannel(ch);
-    },
     live(name, table, filter, cb) {
       const ch = sb.channel(name + ':' + Math.random().toString(36).slice(2));
       ch.on('postgres_changes', Object.assign({ event: '*', schema: 'public', table }, filter ? { filter } : {}), cb).subscribe();

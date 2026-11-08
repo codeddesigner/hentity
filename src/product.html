@@ -110,7 +110,6 @@ H.mount({ active: 'products', tab: 'products' });
       </div>
       ${API.uid && (p.owner_id === API.uid || makerIds.has(API.uid)) && ['live', 'scheduled'].includes(p.status) ? `<div class="row gap-16" style="align-self:flex-start"><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/edit">${icon('edit', 'ic-14')}Edit page</a><a class="row gap-6 t-body-sm c-2" href="/products/${esc(p.slug)}/analytics">${icon('bar-chart', 'ic-14')}Analytics</a></div>` : ''}
       <div id="beta-callout"></div>
-      <span class="here" id="here" hidden><i></i><span id="here-n"></span></span>
       <div class="share"><span class="c-3" style="font-weight:400">Share</span>
         <a href="https://wa.me/?text=${encodeURIComponent(p.name + ' on Hentity ' + location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}WhatsApp</a>
         <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">${icon('share', 'ic-14')}LinkedIn</a>
@@ -288,7 +287,6 @@ H.mount({ active: 'products', tab: 'products' });
   // Reviews (stars, written reviews, Helpful votes, maker replies)
   R.mount(qs('#reviews'), p);
   if (location.hash) setTimeout(() => { const t = document.querySelector(location.hash); t && t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-  API.here('p:' + p.id, n => { const el = qs('#here'); if (!el) return; if (n < 2) { el.hidden = true; return; } el.hidden = false; M.roll(qs('#here-n'), `${n} people viewing now`); });
 })();
 </script>
 </body>

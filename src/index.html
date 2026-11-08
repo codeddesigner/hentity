@@ -52,7 +52,7 @@
 <main class="home" id="main">
   <div id="ptabs"></div>
   <section class="hero" id="hero">
-    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Board resets Mon 06:00 WAT</span></a><span class="here" id="here" hidden><i></i><span id="here-n"></span></span></div>
+    <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Board resets Mon 06:00 WAT</span></a></div>
     <h1><span class="long" id="headline">Discover what’s being built across Africa.</span><span class="h-short" style="display:none">This week’s launches</span></h1>
     <p class="lead-copy">This week’s new products from founders across Africa, ranked by the community.</p>
   </section>
@@ -214,7 +214,6 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
     (recent || []).forEach(c => c.user && liveItem({ n: c.user.name.split(' ')[0], u: c.user }, `${c.user.name.split(' ')[0]} commented on ${c.product ? c.product.name : c.article ? 'a story' : 'a launch'}`, `${H.ago(c.created_at)}${c.user.city ? ' · ' + c.user.city : ''}`));
     if (!(recent || []).length) qs('#live').innerHTML = '<li class="t-body-sm c-3">Quiet right now. Upvotes and comments show up here live.</li>';
   })().catch(() => {});
-  API.here('home', n => { const el = qs('#here'); if (n < 2) { el.hidden = true; return; } el.hidden = false; M.roll(qs('#here-n'), `${n} people here now`); });
   API.live('live-comments', 'comments', null, async ({ eventType, new: n }) => { if (eventType !== 'INSERT' || !n || !n.product_id) return; const who = await nameOf(n.user_id); const p = D.byId.get(n.product_id); if (!p) return; liveItem(who, `${who.n} commented on ${p.name}`, `just now${who.c ? ' · ' + who.c : ''}`, true); });
   API.live('live-launches', 'products', null, ({ eventType, new: n, old }) => { if (!n || n.status !== 'live' || !cur || n.week_id !== cur.id || D.byId.has(n.id) || (old && old.status === 'live')) return; D.byId.set(n.id, n); liveItem({ n: n.name }, `${n.name} just launched`, 'just now', true); if (board === 'this') { clearTimeout(window.__reloadT); window.__reloadT = setTimeout(() => load(true), 800); } });
   API.live('live-votes', 'upvotes', null, async ({ eventType, new: n }) => { if (eventType !== 'INSERT') return; const who = await nameOf(n.user_id); const p = D.byId.get(n.product_id); liveItem(who, `${who.n} upvoted ${p ? p.name : 'a launch'}`, `just now${who.c ? ' · ' + who.c : ''}`, true); });

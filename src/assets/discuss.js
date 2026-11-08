@@ -237,7 +237,7 @@
           : `<p class="t-body-sm c-3 dnone">No replies yet. ${signedIn() ? 'Be the first to help.' : ''}</p>`}
         </div>
         <aside class="drail">
-          <section class="card drail-c"><a class="row gap-10" href="/d/${esc(C.slug)}" style="align-items:center">${dot(Object.assign({}, C, { logo_url: pr && C.kind === 'product' ? pr.logo_url : null }))}<span><b>h/${esc(C.slug)}</b><small class="c-3" style="display:block"><span data-members="${esc(C.slug)}">${k(C.member_count)} member${C.member_count === 1 ? '' : 's'}</span>${C.online ? ' · ' + n(C.online) + ' active now' : ''}</small></span></a>
+          <section class="card drail-c"><a class="row gap-10" href="/d/${esc(C.slug)}" style="align-items:center">${dot(Object.assign({}, C, { logo_url: pr && C.kind === 'product' ? pr.logo_url : null }))}<span><b>h/${esc(C.slug)}</b><small class="c-3" style="display:block"><span data-members="${esc(C.slug)}">${k(C.member_count)} member${C.member_count === 1 ? '' : 's'}</span></small></span></a>
             <p class="t-body-sm c-2" style="margin:10px 0 12px">${esc(C.about || '')}</p><button class="btn btn--sm btn--block ${C.joined ? 'btn--secondary' : 'btn--primary'}" type="button" data-join="${esc(C.slug)}" data-lbl="Join community" aria-pressed="${!!C.joined}">${C.joined ? icon('check', 'ic-14') + 'Joined' : 'Join community'}</button></section>
           ${(T.related || []).length ? `<section class="card drail-c"><p class="t-label">Related discussions</p>${T.related.map(r => `<a class="drel" href="/d/${esc(r.community)}/${esc(r.slug)}"><span>${esc(r.title)}</span><small>h/${esc(r.community)} · ${n(r.comment_count)} comment${r.comment_count === 1 ? '' : 's'}</small></a>`).join('')}</section>` : ''}
         </aside></div>
