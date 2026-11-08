@@ -539,7 +539,13 @@
         },
         async disable() { const sub = await P.current(); if (sub) { await q(sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)).catch(() => {}); await sub.unsubscribe().catch(() => {}); } },
         // Keep this device's subscription saved (browsers rotate them; signing in on a shared device moves it)
-        async sync() { if (!uid() || P.permission() !== 'granted') return; const sub = await P.current().catch(() => null); if (sub) await save(sub).catch(() => {}); },
+        async sync() {
+          if (!uid() || !P.supported() || P.permission() !== 'granted') return;
+          let sub = await P.current().catch(() => null);
+          // Allowed but this device has no subscription (cleared, expired or never finished): make one, no prompt needed
+          if (!sub) { const k = await key(); if (!k) return; const reg = await navigator.serviceWorker.ready; sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(k) }).catch(() => null); }
+          if (sub) await save(sub).catch(() => {});
+        },
         test: () => q(sb.rpc('push_test'))
       };
       return P;

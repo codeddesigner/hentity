@@ -545,27 +545,32 @@
       };
     }
   };
-  // In the installed app, offer push once the member is signed in (asked on a tap, never on page load)
-  function maybePushBanner() {
+  // In the installed app, every time it opens: if push isn't on for this device, say so straight away.
+  // The system "Allow" prompt itself still needs a tap (browsers ignore it otherwise); "Not now" hides it until the app is next opened.
+  async function maybePushBanner() {
     const P = window.API && API.push;
-    if (!P || !API.uid || !P.supported() || P.permission() !== 'default' || !standalone() || document.querySelector('.pwa-bar')) return;
-    if (/^\/(signin|signup|welcome|offline|admin|settings\/notifications|notifications|me)/.test(location.pathname)) return;
-    if (Date.now() - store.get('push.dismissed', 0) < 14 * 864e5) return;
-    const b = document.createElement('div'); b.className = 'pwa-bar'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Turn on notifications');
-    b.innerHTML = `<span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">Turn on notifications</p><p class="t-caption c-3" style="font-weight:400">Replies, reviews and your launch, even when Hentity is closed</p></div><button class="btn btn--primary btn--sm" type="button" data-push-on>Turn on</button><button class="nav__icon" type="button" data-push-close aria-label="Not now">${icon('x', 'ic-16')}</button>`;
+    if (!P || !API.uid || !P.supported() || !standalone() || document.querySelector('.pwa-bar[data-push]')) return;
+    if (/^\/(signin|signup|welcome|offline|notifications|settings\/notifications)/.test(location.pathname)) return;
+    try { if (sessionStorage.getItem('push.later')) return; } catch (e) {}
+    const st = await push.state();
+    if (st !== 'off' && st !== 'blocked') return;
+    document.querySelector('.pwa-bar')?.remove();
+    const blocked = st === 'blocked';
+    const b = document.createElement('div'); b.className = 'pwa-bar'; b.dataset.push = ''; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Turn on notifications');
+    b.innerHTML = `<span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">${blocked ? 'Notifications are off' : 'Turn on notifications'}</p><p class="t-caption c-3" style="font-weight:400">${blocked ? (isIOS ? 'Settings → Notifications → Hentity → Allow Notifications' : 'Allow notifications for Hentity in your phone’s settings') : 'Replies, reviews and your launch, even when Hentity is closed'}</p></div>${blocked ? '' : '<button class="btn btn--primary btn--sm" type="button" data-push-on>Turn on</button>'}<button class="nav__icon" type="button" data-push-close aria-label="Not now">${icon('x', 'ic-16')}</button>`;
     document.body.append(b);
     b.addEventListener('click', async e => {
-      if (e.target.closest('[data-push-close]')) { store.set('push.dismissed', Date.now()); b.remove(); return; }
-      if (e.target.closest('[data-push-on]')) { b.remove(); try { await P.enable(); toast('Notifications are on'); } catch (er) { store.set('push.dismissed', Date.now()); fail(er); } }
+      if (e.target.closest('[data-push-close]')) { try { sessionStorage.setItem('push.later', '1'); } catch (er) {} b.remove(); return; }
+      if (e.target.closest('[data-push-on]')) { b.remove(); if (await push.on()) return; try { sessionStorage.setItem('push.later', '1'); } catch (er) {} }
     });
   }
   document.addEventListener('click', e => { if (e.target.closest('[data-pwa-install]') && !e.target.closest('.pwa-bar')) { e.preventDefault(); closeMenus(); pwa.install(); } });
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  if ('serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', () => {
       store.set('pwa.visits', store.get('pwa.visits', 0) + 1);
       navigator.serviceWorker.register('/sw.js').catch(() => {});
       if (isIOS) setTimeout(maybeInstallBanner, 4000);
-      if (window.API && API.ready) API.ready.then(() => { if (!API.push) return; API.push.sync(); setTimeout(maybePushBanner, 5000); }).catch(() => {});
+      if (window.API && API.ready) API.ready.then(() => { if (!API.push) return; API.push.sync().catch(() => {}).then(maybePushBanner); }).catch(() => {});
     });
   }
   // Unread notifications show as a badge on the installed app's icon where the system supports it
