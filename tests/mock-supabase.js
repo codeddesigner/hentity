@@ -203,6 +203,8 @@
     d_post_create: a => ({ community: a.comm, slug: 'new-post' }),
     d_vote: a => 100 + a.val, d_join: () => 101,
     d_comment_create: a => ({ id: 'n' + Date.now(), parent_id: a.parent, depth: a.parent ? 1 : 0, score: 1, body: a.body, created_at: new Date().toISOString(), author: { username: 'chidera', name: 'Chidera', tag: null }, mine: true, my_vote: 1 }),
+    admin_broadcast_preview: a => ({ people: a.aud.who === 'all' ? 52 : 9, push_people: a.aud.who === 'all' ? 7 : 2, devices: a.aud.who === 'all' ? 9 : 2 }),
+    admin_broadcast_send: () => ({ id: 'b1', people: 52, devices: 9 }),
     track_events: () => 0,
     product_alternatives: () => [{ slug: 'ward-health', name: 'Ward Health', tagline: 'Clinic records and patient follow-ups on WhatsApp', country: 'KE', color: '#0f766e', score: 78, tags: ['Health'], words: ['patients', 'clinics', 'records'] }, { slug: 'harbor-kyc', name: 'Harbor KYC', tagline: 'Identity checks for African fintechs in one API', country: 'NG', color: '#0e7490', score: 52, tags: ['Fintech'], words: ['identity'] }, { slug: 'swahili-speech-kit', name: 'Swahili Speech Kit', tagline: 'Speech recognition for Swahili apps', country: 'TZ', color: '#7c3aed', score: 31, tags: [], words: ['voice', 'apps'] }],
     product_analytics: a => { const d = a.days || 40, L = 8, daily = Array.from({ length: d + 1 }, (_, i) => { const t = new Date(Date.now() - (d - i) * 864e5).toISOString().slice(0, 10); const bump = i === L ? 6 : i > L ? Math.max(1, 3 - (i - L) * .08) : .6; const v = Math.round((160 + 60 * Math.sin(i)) * bump); return { d: t, views: v, clicks: Math.round(v * (.12 + .04 * Math.cos(i))) }; });

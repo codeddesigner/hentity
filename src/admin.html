@@ -522,7 +522,8 @@ H.mount();
         <span class="t-caption c-3" style="font-weight:400">Showing ${rows.length}${rows.length === 200 ? '+' : ''}</span>${tab === 'review' ? `<button class="btn btn--secondary btn--sm" id="rd-bulk" style="margin-left:auto">${icon('check', 'ic-14')}Publish all vetted</button>` : ''}</div>
       <div class="rd-grid">
         <div class="card" style="overflow:hidden">${rows.length ? `<table class="tbl"><thead><tr><th>Startup</th><th>Signals</th><th>Confidence</th><th></th></tr></thead><tbody>${rows.map(r => `<tr data-r="${r.id}" style="cursor:pointer${sel && sel.id === r.id ? ';background:var(--color-accent-subtle)' : ''}"><td><div class="row" style="gap:10px">${H.plogo({ name: r.name, color: '#555', logo_url: r.logo_url, active: r.active }, 28)}<div><p class="t-label row gap-6">${esc(r.name)}${H.flag(r.country)}${H.inactiveTag(r)}${r.product_id && r.status === 'review' ? '<span class="badge" style="background:var(--color-bg-muted);color:var(--color-text-secondary)">Taken off site</span>' : ''}${r.status === 'review' && r.checks && r.checks.vetted && !missing(r).length ? '<span class="badge" style="background:#e9f8ee;color:#15803d">Vetted</span>' : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([(r.categories || [])[0], r.city || 'Unknown'].filter(Boolean).join(' · '))}</p></div></div></td><td><span class="row gap-8">${bar(nsrc(r))}<span class="t-caption c-3" style="font-weight:400">${nsrc(r)} source${nsrc(r) === 1 ? '' : 's'}</span></span></td><td>${pct(r.confidence)}</td><td style="text-align:right">${r.verified ? H.verified('verified--sm') : ''}<span class="btn btn--ghost btn--sm">${r.status === 'review' ? 'Open' : 'Edit'}</span></td></tr>`).join('')}</tbody></table>` : `<div class="empty" style="padding:48px 20px;text-align:center"><p class="t-h4">Nothing ${tab === 'review' ? 'to review' : 'here'}</p><p class="t-body-sm c-2" style="margin-top:6px">Add a startup by URL to start.</p></div>`}</div>
-        </div><style>@media(max-width:640px){.rf-grid{grid-template-columns:1fr!important}}</style>`;
+        </div><style>@media(max-width:640px){.rf-grid{grid-template-columns:1fr!important}}
+</style>`;
     qs('#add').onclick = () => radarForm(null, () => V.radar('review'));
     let tq; qs('#rd-q').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { F.q = e.target.value.trim(); V.radar(tab); }, 350); };
     qs('#rd-cc').onchange = e => { F.cc = e.target.value; V.radar(tab); };
@@ -677,12 +678,75 @@ H.mount();
     qs('#main').onclick = async e => { const b = e.target.closest('[data-rm]'); if (b && confirm('Unsubscribe ' + b.dataset.rm + '?')) { await A.removeSubscriber(b.dataset.rm); V.newsletter(); } };
   };
 
-  // ---- broadcast
+  // ---- broadcast: push and/or in-app, to an audience, with reach before sending and delivery after
   V.broadcast = async () => {
     nav('broadcast');
-    qs('#main').innerHTML = head('Broadcast', 'Send an in-app notification to every member. It appears under System in their notifications.') + `<form class="card stack gap-16" id="bf" style="padding:24px;max-width:640px;gap:16px"><div class="field"><label class="field__label" for="bt">Title</label><input class="input" id="bt" maxlength="80" placeholder="Launch week 46 opens Monday"></div><div class="field"><label class="field__label" for="bb">Message</label><textarea class="input" id="bb" rows="4" maxlength="280" placeholder="Book your slot before Friday."></textarea></div><div class="field"><label class="field__label" for="bl">Link (optional)</label><input class="input" id="bl" placeholder="/launch"></div><div class="card" style="padding:14px;background:var(--color-bg-subtle)"><p class="t-caption c-3" style="font-weight:400">Preview</p><div class="row gap-10" style="margin-top:8px;gap:10px;align-items:flex-start"><span class="icon-badge" style="width:32px;height:32px">${icon('bell', 'ic-16')}</span><div><p class="t-label" id="pt">Title</p><p class="t-body-sm c-2" id="pb">Message</p></div></div></div><button class="btn btn--primary" style="align-self:flex-start">${icon('send')}Send to everyone</button></form>`;
-    const sync = () => { qs('#pt').textContent = qs('#bt').value || 'Title'; qs('#pb').textContent = qs('#bb').value || 'Message'; }; qs('#bf').addEventListener('input', sync);
-    qs('#bf').onsubmit = async e => { e.preventDefault(); const t = qs('#bt').value.trim(), b = qs('#bb').value.trim(); if (!t || !b) return toast('Add a title and message', 'error'); if (!confirm('Send “' + t + '” to every member?')) return; try { const n = await A.broadcast(t, b, qs('#bl').value.trim()); toast(`Sent to ${n} members`); e.target.reset(); sync(); } catch (err) { H.fail(err); } };
+    const CATS = ['Fintech', 'Health', 'Education', 'Agriculture', 'Logistics', 'Commerce', 'Energy & Climate', 'AI', 'SaaS', 'Proptech', 'Dev Tools', 'Infrastructure', 'Apps', 'Productivity'];
+    const WHO = [['all', 'Everyone'], ['founders', 'Founders (have a product)'], ['investors', 'Investors'], ['testers', 'Beta testers'], ['city', 'People in a city'], ['category', 'Makers in a category']];
+    const MODE = [['push', 'Push only', 'Phones and browsers with push on. Nothing added to their notifications.'], ['both', 'Push and in-app', 'A push, plus a notice under System in their notifications.'], ['inapp', 'In-app only', 'Only in their notifications on Hentity. No push.']];
+    const { data: cities } = await API.sb.from('profiles').select('city').neq('city', '').limit(2000);
+    const cityList = [...new Set((cities || []).map(r => r.city.trim()).filter(Boolean))].sort();
+    qs('#main').innerHTML = `<style>.bc-grid{display:grid;grid-template-columns:minmax(0,640px) 300px;gap:24px;align-items:start}
+@media (max-width:1000px){.bc-grid{grid-template-columns:1fr}}
+.bc-mode{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--color-border-default);border-radius:10px;cursor:pointer}
+.bc-mode:has(input:checked){border-color:var(--color-text-primary)}.bc-mode input{margin-top:3px;accent-color:var(--color-text-primary)}
+.bc-mode b{display:block;font-size:14px;font-weight:500}.bc-mode small{display:block;font-size:12.5px;color:var(--color-text-tertiary)}
+.bc-reach{font-size:13.5px;color:var(--color-text-secondary);padding:10px 12px;border-radius:10px;background:var(--color-bg-subtle)}
+.bc-phone{border-radius:28px;padding:56px 12px 120px;background:linear-gradient(160deg,#3b3b6d,#1e2a4a 60%,#0e1525)}
+.bc-note{display:flex;gap:10px;padding:12px;border-radius:16px;background:rgba(245,245,245,.92);color:#0a0a0a;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.bc-note img{border-radius:8px;flex:none}.bc-app{font-size:11px;letter-spacing:.04em;color:#555;display:flex;justify-content:space-between}.bc-app span{letter-spacing:0}
+.bc-t{font-size:14px;font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bc-b{font-size:13.5px;line-height:18px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}</style>` + head('Broadcast', 'Send a push notification to members’ phones and browsers, an in-app notice, or both. Only members who turned on push get pushes; paused members are skipped.') + `
+      <div class="bc-grid">
+      <form class="card stack" id="bf" style="padding:24px;gap:16px">
+        <div class="field"><label class="field__label" for="bt">Title</label><input class="input" id="bt" maxlength="60" placeholder="Launch week 46 opens Monday"><span class="field__hint" id="bt-n">Keep it under 40 characters so it isn’t cut off on phones</span></div>
+        <div class="field"><label class="field__label" for="bb">Message</label><textarea class="input" id="bb" rows="3" maxlength="180" placeholder="Book your slot before Friday. 12 spots left."></textarea></div>
+        <div class="field"><label class="field__label" for="bl">Opens (optional)</label><input class="input" id="bl" placeholder="/launch"><span class="field__hint">A Hentity page like /launch or /discuss, or a full https:// link. Empty opens their notifications.</span></div>
+        <div class="field"><label class="field__label" for="bw">Who gets it</label><select class="input" id="bw">${WHO.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+        <div class="field" id="bc-city" hidden><label class="field__label" for="bcity">City</label><select class="input" id="bcity">${cityList.map(c => `<option>${esc(c)}</option>`).join('') || '<option value="">No cities on profiles yet</option>'}</select></div>
+        <div class="field" id="bc-cat" hidden><label class="field__label" for="bcat">Category</label><select class="input" id="bcat">${CATS.map(c => `<option>${esc(c)}</option>`).join('')}</select></div>
+        <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="field__label">How to send it</legend><div class="stack" style="gap:8px;margin-top:6px">${MODE.map(([v, l, d], i) => `<label class="bc-mode"><input type="radio" name="bm" value="${v}"${i === 0 ? ' checked' : ''}><span><b>${l}</b><small>${d}</small></span></label>`).join('')}</div></fieldset>
+        <p class="bc-reach" id="reach">Counting…</p>
+        <button class="btn btn--primary" style="align-self:flex-start" id="bsend">${icon('send')}Send</button>
+      </form>
+      <aside><p class="t-caption c-3" style="font-weight:400;margin-bottom:8px">How it looks on a phone</p>
+        <div class="bc-phone"><div class="bc-note"><img src="/icons/icon-192.png" alt="" width="36" height="36"><div style="min-width:0;flex:1"><p class="bc-app">HENTITY <span>now</span></p><p class="bc-t" id="pt">Title</p><p class="bc-b" id="pb">Message</p></div></div></div>
+      </aside></div>
+      <h2 class="t-h4" style="margin:32px 0 12px">Sent</h2><div id="bhist"></div>`;
+    const aud = () => { const who = qs('#bw').value; return Object.assign({ who }, who === 'city' ? { city: qs('#bcity').value } : {}, who === 'category' ? { category: qs('#bcat').value } : {}); };
+    const mode = () => (qs('[name="bm"]:checked') || {}).value;
+    let rt, last = null;
+    const reach = async () => {
+      qs('#bc-city').hidden = qs('#bw').value !== 'city'; qs('#bc-cat').hidden = qs('#bw').value !== 'category';
+      clearTimeout(rt); rt = setTimeout(async () => {
+        try { last = await A.broadcastPreview(aud()); } catch (e) { qs('#reach').textContent = 'Couldn’t count the audience.'; return; }
+        const m = mode();
+        qs('#reach').innerHTML = !last.people ? 'Nobody matches this audience.' :
+          m === 'inapp' ? `Reaches <b>${last.people.toLocaleString()}</b> member${last.people === 1 ? '' : 's'} in their notifications.` :
+          `<b>${last.people.toLocaleString()}</b> member${last.people === 1 ? '' : 's'} match. <b>${last.push_people.toLocaleString()}</b> ha${last.push_people === 1 ? 's' : 've'} push on, on <b>${last.devices.toLocaleString()}</b> device${last.devices === 1 ? '' : 's'}.${m === 'both' ? ' Everyone also gets it in-app.' : last.devices ? '' : ' Nobody here has push on yet, so try “Push and in-app”.'}`;
+        qs('#bsend').innerHTML = `${icon('send')}Send to ${(m === 'inapp' ? last.people : m === 'push' ? last.push_people : last.people).toLocaleString()}`;
+      }, 200);
+    };
+    const sync = () => { const t = qs('#bt').value; qs('#pt').textContent = t || 'Title'; qs('#pb').textContent = qs('#bb').value || 'Message'; qs('#bt-n').textContent = t.length > 40 ? `${t.length} characters: phones may cut this off` : 'Keep it under 40 characters so it isn’t cut off on phones'; };
+    qs('#bf').addEventListener('input', e => { sync(); if (e.target.matches('#bw,#bcity,#bcat,[name="bm"]')) reach(); });
+    qs('#bf').addEventListener('change', e => { if (e.target.matches('#bw,#bcity,#bcat,[name="bm"]')) reach(); });
+    const WHO_L = Object.fromEntries(WHO);
+    const hist = async () => {
+      const rows = await A.broadcasts().catch(() => []);
+      qs('#bhist').innerHTML = tbl(['Sent', 'Title', 'Audience', 'How', 'People', 'Push delivered'], (rows || []).map(r => `<tr><td style="white-space:nowrap">${when(r.created_at)}</td><td><b>${esc(r.title)}</b><br><span class="c-3 t-caption" style="font-weight:400">${esc(r.body)}</span></td><td>${esc(WHO_L[r.audience.who] || r.audience.who)}${r.audience.city ? ': ' + esc(r.audience.city) : ''}${r.audience.category ? ': ' + esc(r.audience.category) : ''}</td><td>${{ push: 'Push', both: 'Push + in-app', inapp: 'In-app' }[r.mode]}</td><td>${r.people.toLocaleString()}</td><td>${r.mode === 'inapp' ? '—' : `${r.delivered.toLocaleString()} of ${r.devices.toLocaleString()} device${r.devices === 1 ? '' : 's'}${r.gone ? ` <span class="c-3">(${r.gone} no longer exist)</span>` : ''}`}</td></tr>`), 'Nothing sent yet');
+    };
+    qs('#bf').onsubmit = async e => {
+      e.preventDefault();
+      const t = qs('#bt').value.trim(), b = qs('#bb').value.trim(), m = mode();
+      if (!t) return toast('Add a title', 'error');
+      if (!last || !last.people) return toast('Nobody matches this audience', 'error');
+      const n = m === 'push' ? last.push_people : last.people;
+      if (m === 'push' && !last.devices) return toast('Nobody in this audience has push on yet', 'error');
+      if (!(await H.confirm(`Send “${t}”?`, { body: `${n.toLocaleString()} member${n === 1 ? '' : 's'} (${WHO_L[aud().who]}). ${m === 'inapp' ? 'In-app only.' : m === 'both' ? 'Push and in-app.' : 'Push only.'} This can’t be undone.`, ok: 'Send' }))) return;
+      const btn = qs('#bsend'); btn.disabled = true;
+      try { const r = await A.broadcastSend(t, b, qs('#bl').value.trim(), aud(), m); toast(m === 'inapp' ? `Sent to ${r.people} members` : `Sending to ${r.devices} device${r.devices === 1 ? '' : 's'}`); qs('#bf').reset(); sync(); reach(); setTimeout(hist, 4000); hist(); }
+      catch (err) { H.fail(err); } finally { btn.disabled = false; }
+    };
+    sync(); reach(); hist();
   };
 
   // ---- settings

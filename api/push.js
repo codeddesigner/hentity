@@ -81,7 +81,8 @@ module.exports = async (req, res) => {
   const results = await Promise.all(subs.map(s => send(s, msg, env, key).catch(() => 0)));
   const gone = subs.filter((s, i) => results[i] === 404 || results[i] === 410).map(s => s.endpoint);
   const ok = subs.filter((s, i) => results[i] >= 200 && results[i] < 300).map(s => s.endpoint);
-  if (gone.length || ok.length) await rpc('push_result', { secret, gone, ok });
+  const bid = /^[0-9a-f-]{36}$/.test(String(b.bid || '')) ? b.bid : null;
+  if (gone.length || ok.length) await rpc('push_result', { secret, gone, ok, bid });
   res.status(200).json({ sent: ok.length, gone: gone.length, failed: subs.length - ok.length - gone.length, codes: results });
 };
 module.exports._test = { encrypt, vapidAuth, vapidKey };
