@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=39406b5204"></script>
-<script src="/assets/app.js?v=15d89bcea4"></script>
+<script src="/assets/api.js?v=9e758afa3f"></script>
+<script src="/assets/app.js?v=6f2abe5fcc"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -108,7 +108,7 @@ API.ready.then(() => H.push.card(document.getElementById('push-card'))).catch(()
   const F = [['all', 'All'], ['unread', 'Unread'], ['launches', 'Your launches'], ['comments', 'Comments & replies'], ['followers', 'Followers'], ['system', 'From Hentity']];
   const unread = () => N.filter(n => !n.read_at).length;
   function renderFilters() { qs('#filters').innerHTML = F.map(([k, l]) => `<button role="tab" aria-selected="${k === filter}" data-f="${k}">${l}${k === 'unread' && unread() ? `<span class="count">${unread()}</span>` : ''}</button>`).join(''); }
-  function av(n) { if (n.product) return plogo(n.product, 32); if (n.actor) return avatar(n.actor, 32); if (n.type === 'system') return `<span class="avatar" style="background:#000;color:#fff">H</span>`; if (n.type === 'upvotes') return `<span class="avatar" style="background:var(--color-accent-subtle);color:var(--color-accent-default)">${icon('upvote', 'ic-14')}</span>`; return `<span class="avatar">${icon('bell', 'ic-14')}</span>`; }
+  function av(n) { if (n.product) return plogo(n.product, 32); if (n.actor) return avatar(n.actor, 32); if (n.type === 'system') return `<span class="avatar" style="background:#000;color:#fff">H</span>`; if (n.type === 'badge') return `<span class="avatar" style="background:#ffe8dc;color:#b4430e;border-radius:10px">${icon('star', 'ic-14')}</span>`; if (n.type === 'upvotes') return `<span class="avatar" style="background:var(--color-accent-subtle);color:var(--color-accent-default)">${icon('upvote', 'ic-14')}</span>`; return `<span class="avatar">${icon('bell', 'ic-14')}</span>`; }
   function bucket(ts) { const d = (Date.now() - new Date(ts)) / 864e5; return d < 1 && new Date(ts).getDate() === new Date().getDate() ? 'today' : d < 7 ? 'week' : 'older'; }
   function render() {
     renderFilters(); H.setCount('notifs', unread());

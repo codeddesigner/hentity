@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<!-- Google shows a favicon only when it is a multiple of 48px square (48, 96, 144...) -->
+<link rel="icon" href="/favicon-96.png?v=4" type="image/png" sizes="96x96">
+<link rel="icon" href="/favicon-48.png?v=4" type="image/png" sizes="48x48">
+<link rel="icon" href="/favicon-144.png?v=4" type="image/png" sizes="144x144">
+<link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=4" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hentity">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="application-name" content="Hentity">
+<link rel="shortcut icon" href="/favicon.ico?v=4">
+<link rel="manifest" href="/site.webmanifest?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=7ad363435c">
+<script>
+/* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
+   and if the app never starts, reload once and then fall back to the readable server copy. */
+(function () {
+  var d = document.documentElement, n = 0; d.classList.add('js-boot');
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
+  // A page that fails while loading its data shows the readable server copy instead of a blank screen
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+    try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
+  window.addEventListener('load', function () { setTimeout(check, 1500); });
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=9e758afa3f"></script>
+<script src="/assets/app.js?v=6f2abe5fcc"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Badges | Hentity</title>
+<meta name="robots" content="noindex">
+<script src="/assets/badges.js?v=4e35e0c3b6"></script>
+<style>
+/* Your badges (Figma 350:5 desktop · 350:2354 mobile · 350:2045 detail) */
+.bd{max-width:1116px;margin:0 auto;padding:28px 40px 80px;box-sizing:content-box}
+.bd-crumbs{display:flex;align-items:center;gap:8px;font-size:13px;line-height:16px;color:var(--color-text-tertiary)}
+.bd-crumbs a,.bd-crumbs b{padding:4px 8px;border-radius:6px}.bd-crumbs a{background:var(--color-bg-subtle)}.bd-crumbs b{background:var(--color-bg-muted,#f2f2f2);color:var(--color-text-primary);font-weight:500}
+.bd-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:20px}
+.bd-head h1{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em}.bd-head p{font-size:13px;line-height:18px;color:var(--color-text-secondary);margin-top:6px}
+.bd-count{text-align:right;flex:none}.bd-count b{font-size:30px;line-height:32px;font-weight:600;letter-spacing:-.02em}.bd-count span{font-size:13px;color:var(--color-text-tertiary);margin-left:6px}
+.bd-ticks{display:flex;gap:3px;margin-top:8px;justify-content:flex-end}.bd-ticks i{width:12px;height:4px;border-radius:2px;background:var(--color-bg-muted,#f2f2f2)}.bd-ticks i.on{background:#ff5b14}
+.bd-feat{margin-top:24px;border:1px solid var(--color-border-default);border-radius:14px;padding:18px 18px 18px;background:var(--color-bg-canvas)}
+.bd-feat__h{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.bd-feat__h b{font-size:13px;font-weight:500}.bd-feat__h small{display:block;font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.bd-feat__tg{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--color-text-secondary);cursor:pointer}
+.bd-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.bd-slot{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--color-bg-subtle);min-height:65px;text-align:left;border:0;width:100%;cursor:pointer}
+.bd-slot b{display:block;font-size:13px;font-weight:500}.bd-slot small{display:block;font-size:12px;color:var(--color-text-tertiary)}.bd-slot .grip{margin-left:auto;color:#a3a3a3;cursor:grab}.bd-slot.is-drag{opacity:.4}.bd-slot.is-over{outline:2px dashed var(--color-border-strong,#d4d4d4)}
+.bd-slot--empty{border:1px dashed var(--color-border-strong,#d4d4d4);background:none;color:var(--color-text-tertiary);font-size:13px;justify-content:center}
+.bd-off .bd-slots{opacity:.45}
+.bd h2{font-size:15px;line-height:20px;font-weight:600;margin:28px 0 14px;display:flex;align-items:baseline;gap:8px}.bd h2 small{font-size:12px;font-weight:400;color:var(--color-text-tertiary)}
+.bd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.bd-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);text-align:left;width:100%;cursor:pointer;font:inherit;color:inherit;transition:border-color .15s,box-shadow .15s}
+.bd-card:hover{border-color:var(--color-border-strong,#d4d4d4);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.bd-card .t{min-width:0;display:flex;flex-direction:column;gap:3px}.bd-card .n{display:flex;align-items:center;gap:6px;font-size:13px;line-height:16px;font-weight:500}
+.bd-card .l{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-secondary)}.bd-card .m{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-tertiary)}
+.bd-pill{background:#f2f2f2;color:#525252;font-size:12px;line-height:16px;font-weight:500;padding:3px 8px;border-radius:8px}
+.bd-card--locked{background:var(--color-bg-subtle)}.bd-card--locked .n,.bd-card--locked .l{color:var(--color-text-tertiary)}
+.bd-almost{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);text-align:left}
+.bd-almost .h{display:flex;align-items:center;gap:12px;cursor:pointer}.bd-almost .h b{display:block;font-size:13px;font-weight:500}.bd-almost .h div>span{display:block;font:500 14px/16px var(--font-mono);color:var(--color-text-secondary);margin-top:2px}
+.bd-bar{display:flex;gap:3px}.bd-bar i{flex:1;height:6px;border-radius:2px;background:var(--color-bg-muted,#f2f2f2)}.bd-bar i.on{background:#ff5b14}
+.bd-almost p{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-secondary)}.bd-almost a{font-size:13px;font-weight:500}
+.bd-note{display:flex;gap:10px;margin-top:28px;padding:12px 14px;border-radius:12px;background:var(--color-bg-subtle);font-size:12px;line-height:16px;color:var(--color-text-secondary)}.bd-note .ic{width:14px;height:14px;flex:none;margin-top:1px}
+/* phones (Figma 350:2354) */
+.bd .bd-m{display:none}
+.bd-next{display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);margin-top:16px;text-align:left;width:100%;font:inherit;color:inherit}
+.bd-next b{display:block;font-size:13px;font-weight:500}.bd-next p{font-size:12px;line-height:16px;color:var(--color-text-secondary);margin-top:2px}
+.bd-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 8px}
+.bd-tile{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer}.bd-tile span.nm{font-size:12px;line-height:16px;font-weight:500;text-align:center}
+.bd-tile.is-locked span.nm{color:var(--color-text-tertiary)}
+@media (max-width:1080px){.bd{padding:24px 24px 64px}.bd-grid,.bd-slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:768px){.bd{padding:16px 16px 32px}.bd .bd-d{display:none}.bd .bd-m{display:block}.bd .bd-next.bd-m{display:flex}.bd-head{margin-top:4px;align-items:center}.bd-head h1{font-size:24px;line-height:30px}.bd-head p,.bd-crumbs{display:none}
+  .bd-slots{grid-template-columns:minmax(0,1fr)}.bd-feat{margin-top:16px}.bd h2{margin:24px 0 12px}}
+</style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Badges | Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.com/badges">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Badges | Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
+</head>
+<body>
+<div data-header></div>
+<main class="bd" id="main"><div class="skel" style="height:420px;border-radius:16px"></div></main>
+<div data-tabbar></div>
+<script>
+H.mount({ active: '', tab: 'you' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  await API.ready;
+  if (!API.uid) { location.href = '/signin?next=/badges'; return; }
+  let M;
+  try { M = await API.badgeMe(); } catch (e) { root.innerHTML = `<p class="t-body-sm c-2" style="padding:48px 0;text-align:center">Couldn’t load your badges. ${esc(e.message || '')}</p>`; H.contentShown(); return; }
+  const me = API.profile || {};
+  const E = M.eval || {}, earned = M.earned || {};
+  let featured = (M.featured || []).slice(), hidden = !!M.hidden;
+  const has = k => !!earned[k];
+  const total = B.KEYS.length, got = B.KEYS.filter(has).length;
+
+  // How far along a locked badge is (0..1), and the line under it
+  const ratio = k => { const v = E[k] || {}, d = B.D[k]; if (has(k)) return 1; if (d.levels) return Math.min(1, (v.n || 0) / d.levels[0]); if (k === 'room_ready') return v.target ? v.n / v.target : 0; return v.target > 1 ? Math.min(1, (v.n || 0) / v.target) : 0; };
+  const nameOf = key => (DR_NAMES[key] || key);
+  const DR_NAMES = { deck: 'pitch deck', onepager: 'one-pager', problem: 'proof of the problem', usefunds: 'use of funds', agreement: 'agreement for the money', demo: 'demo video', traction: 'traction', beta: 'beta results', model: 'financial model', burn: 'burn and runway', cap: 'cap table', cac: 'company registration', founders: 'founder agreement', safes: 'earlier SAFEs' };
+  function almostText(k) {
+    const v = E[k] || {};
+    if (k === 'room_ready') return `${v.n} of ${v.target} required documents for ${B.STAGE[v.stage] || 'your round'}.${(v.missing || []).length ? ' Missing: ' + v.missing.slice(0, 3).map(nameOf).join(', ') + (v.missing.length > 3 ? ` and ${v.missing.length - 3} more` : '') + '.' : ''}`;
+    if (k === 'good_listener') return `${v.n} of 20 replies to reviews and beta notes.${v.waiting ? ` ${v.waiting} review${v.waiting === 1 ? ' is' : 's are'} waiting for a reply.` : ''}`;
+    if (k === 'reviewer') return `${v.n} of 5 reviews of other founders’ products.`;
+    if (k === 'beta_host') return `${v.n} of 10 testers finished ${v.ref ? esc(v.ref) : 'your beta'}.`;
+    if (k === 'shipper') return `${v.n} of 3 product updates shipped.`;
+    if (k === 'helpful') return `${v.n} of 25 upvotes from verified members on your answers.`;
+    return B.D[k].line + '.';
+  }
+  function meta(k) {
+    const v = E[k] || {}, e = earned[k], d = B.D[k];
+    if (e) {
+      if (d.levels) { const nx = d.levels[e.level]; return `Level ${B.ROMAN[e.level]} · ${Number(v.n || e.stat || 0).toLocaleString('en-GB')} ${d.unit}s${nx ? ` · ${nx - (v.n || 0)} more for ${B.ROMAN[e.level + 1]}` : ''}`; }
+      if (k === 'early_builder') return 'Joined ' + B.month(e.earned_at);
+      if (k === 'beta_host') return `Earned ${B.day(e.earned_at)} · ${e.stat} testers`;
+      return `Earned ${B.day(e.earned_at)}${e.ref && ['first_launch', 'top_day'].includes(k) ? ' · ' + esc(e.ref) : ''}`;
+    }
+    if (k === 'room_ready') return v.stage ? `${v.n} of ${v.target} required (${B.STAGE[v.stage]})` : 'Not started';
+    if (d.levels) return v.n ? `${v.n} of ${d.levels[0]} ${d.unit}s` : 'Not started';
+    if ((v.target || 1) > 1) return v.n ? `${v.n} of ${v.target}` : 'Not started';
+    return 'Not started';
+  }
+  const card = k => { const e = earned[k], d = B.D[k];
+    return `<button class="bd-card${e ? '' : ' bd-card--locked'}" type="button" data-b="${k}">${B.tile(k, { level: e && e.level, locked: !e })}<span class="t"><span class="n">${esc(d.name)}${e && d.levels ? `<span class="bd-pill">Level ${B.ROMAN[e.level]}</span>` : ''}</span><span class="l">${esc(d.line)}</span><span class="m">${meta(k)}</span></span></button>`; };
+  const almost = B.KEYS.filter(k => !has(k) && ratio(k) > 0 && k !== 'resource_giver').sort((a, b) => ratio(b) - ratio(a)).slice(0, 3);
+  const bar = (k, segs) => { const v = E[k] || {}, tgt = B.D[k].levels ? B.D[k].levels[0] : v.target || 1, cnt = Math.min(segs, tgt), on = Math.round(ratio(k) * cnt); return `<div class="bd-bar">${Array.from({ length: cnt }, (_, i) => `<i${i < on ? ' class="on"' : ''}></i>`).join('')}</div>`; };
+
+  function draw() {
+    const slots = [0, 1, 2].map(i => featured[i] && has(featured[i]) ? featured[i] : null);
+    root.innerHTML = `<nav class="bd-crumbs"><a href="/makers/${esc(me.username || '')}">${esc(me.name || 'You')}</a><span>/</span><b>Badges</b></nav>
+      <div class="bd-head"><div><h1>Badges</h1><p>Earned by using Hentity: launching, testing, helping other founders and getting ready to raise.</p></div>
+        <div class="bd-count"><b>${got}</b><span>of ${total} earned</span><div class="bd-ticks">${B.KEYS.map((_, i) => `<i${i < got ? ' class="on"' : ''}></i>`).join('')}</div></div></div>
+      ${almost[0] ? `<button class="bd-next bd-m" type="button" data-b="${almost[0]}">${B.tile(almost[0], { size: 56, locked: true })}<span><b>Next up: ${esc(B.D[almost[0]].name)}</b><p>${almostText(almost[0])}</p></span></button>` : ''}
+      <section class="bd-feat${hidden ? ' bd-off' : ''}"><div class="bd-feat__h"><div><b>Shown on your profile</b><small>Pick up to 3. The first one also appears next to your name in Discuss.</small></div>
+        <label class="bd-feat__tg">Show badges on my profile<span class="toggle"><input type="checkbox" id="show"${hidden ? '' : ' checked'}><span class="toggle__track"></span></span></label></div>
+        <div class="bd-slots" id="slots">${slots.map((k, i) => k ? `<div class="bd-slot" draggable="true" data-slot="${i}" data-b="${k}">${B.tile(k, { size: 45, level: earned[k].level })}<span><b>${esc(B.title(k, earned[k].level))}</b><small>${i === 0 ? 'Shown next to your name' : 'On your profile'}</small></span><span class="grip" aria-hidden="true">${icon('grip', 'ic-16')}</span></div>`
+          : `<button class="bd-slot bd-slot--empty" type="button" data-pick="${i}">${got ? icon('plus', 'ic-14') + 'Pick a badge' : 'Earn a badge to feature it'}</button>`).join('')}</div></section>
+      <div class="bd-d">
+        ${almost.length ? `<h2>Almost there</h2><div class="bd-grid">${almost.map(k => { const d = B.D[k]; return `<div class="bd-almost"><div class="h" data-b="${k}">${B.tile(k, { locked: true })}<div><b>${esc(d.name)}</b><span>${B.progText(k, E[k] || {})}</span></div></div>${bar(k, 10)}<p>${almostText(k)}</p>${d.cta ? `<a href="${d.cta[1]}">${esc(d.cta[0])} →</a>` : ''}</div>`; }).join('')}</div>` : ''}
+        ${B.AREAS.map(([a, label]) => { const ks = B.KEYS.filter(k => B.D[k].area === a); return `<h2>${label}<small>${ks.filter(has).length} of ${ks.length}</small></h2><div class="bd-grid">${ks.map(card).join('')}</div>`; }).join('')}
+      </div>
+      <div class="bd-m">
+        <h2>Earned<small>${got}</small></h2>${got ? `<div class="bd-tiles">${B.KEYS.filter(has).map(k => `<button class="bd-tile" type="button" data-b="${k}">${B.tile(k, { level: earned[k].level })}<span class="nm">${esc(B.D[k].name)}</span></button>`).join('')}</div>` : '<p class="t-body-sm c-2">Nothing yet. Launch, test an idea or start a discussion to earn your first.</p>'}
+        <h2>To earn<small>${total - got}</small></h2><div class="bd-tiles">${B.KEYS.filter(k => !has(k)).map(k => `<button class="bd-tile is-locked" type="button" data-b="${k}">${B.tile(k, { locked: true })}<span class="nm">${esc(B.D[k].name)}</span></button>`).join('')}</div>
+      </div>
+      <p class="bd-note">${icon('info')}<span>Badges come from things you did on Hentity, checked by us. Upvotes only count from verified members, never your own. A badge is removed if the thing behind it is (for example, a product taken down for breaking the rules).</span></p>`;
+    H.contentShown();
+    wire();
+  }
+  async function saveFeatured(next) { featured = next; draw(); try { await API.badgeSet({ featured }); } catch (e) { H.fail(e); } }
+  const onFeature = (k, on) => {
+    let f = featured.filter(x => x !== k && has(x));
+    if (on) { if (f.length >= 3) { toast(`Featured. It replaced ${B.D[f[2]].name}: you can show 3.`); f = f.slice(0, 2); } else toast('Featured on your profile'); f.push(k); }
+    else toast('Removed from your profile');
+    saveFeatured(f);
+  };
+  function open(k) { B.detail(k, earned[k], { mine: true, locked: !has(k), eval: E[k], holders: M.holders, featured, username: me.username, onFeature }); }
+  function pick(i) {
+    const avail = B.KEYS.filter(k => has(k) && !featured.includes(k));
+    if (!avail.length) return toast(got ? 'All your badges are already featured' : 'Earn a badge first');
+    const el = document.createElement('div'); el.className = 'scrim';
+    el.innerHTML = `<div class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Pick a badge" style="max-width:420px"><h2 class="t-h3">Feature a badge</h2><div class="stack gap-8">${avail.map(k => `<button class="bd-slot" type="button" data-k="${k}">${B.tile(k, { size: 45, level: earned[k].level })}<span><b>${esc(B.title(k, earned[k].level))}</b><small>${esc(B.D[k].line)}</small></span></button>`).join('')}</div><button class="btn btn--ghost" type="button" data-x>Cancel</button></div>`;
+    document.body.append(el);
+    el.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { const f = featured.filter(x => has(x)); f.splice(Math.min(i, f.length), 0, b.dataset.k); el.remove(); saveFeatured(f.slice(0, 3)); toast('Featured on your profile'); } else if (e.target === el || e.target.closest('[data-x]')) el.remove(); });
+  }
+  function wire() {
+    root.onclick = e => { const p = e.target.closest('[data-pick]'); if (p) return pick(+p.dataset.pick); const b = e.target.closest('[data-b]'); if (b && !e.target.closest('a')) open(b.dataset.b); };
+    qs('#show').onchange = async e => { hidden = !e.target.checked; qs('.bd-feat').classList.toggle('bd-off', hidden); try { await API.badgeSet({ hidden }); toast(hidden ? 'Badges hidden from your profile and Discuss' : 'Badges shown on your profile'); } catch (er) { H.fail(er); } };
+    // Drag to reorder: the first slot is the one shown in Discuss
+    let from = null;
+    qsa('#slots [draggable]').forEach(s => {
+      s.addEventListener('dragstart', e => { from = +s.dataset.slot; s.classList.add('is-drag'); e.dataTransfer.effectAllowed = 'move'; });
+      s.addEventListener('dragend', () => { s.classList.remove('is-drag'); qsa('#slots .is-over').forEach(x => x.classList.remove('is-over')); });
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('is-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('is-over'));
+      s.addEventListener('drop', e => { e.preventDefault(); const to = +s.dataset.slot; if (from == null || from === to) return; const f = featured.filter(has); const [m] = f.splice(from, 1); f.splice(to, 0, m); saveFeatured(f); });
+    });
+  }
+  draw();
+  const want = new URLSearchParams(location.search).get('badge'); if (want && B.D[want]) open(want);
+})();
+</script>
+</body>
+</html>

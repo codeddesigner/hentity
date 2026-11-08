@@ -396,13 +396,19 @@
   }
   // Refresh the shell once the real session is known, and keep counts live
   if (window.API) {
-    let stopN = null;
+    let stopN = null, newBadgeShown = false;
     async function refreshCounts() {
       if (!API.session) return;
       try {
         const b = await API.badges();
         setCount('notifs', b.notifications || 0);
         setCount('chats', Object.values(b.by_channel || {}).reduce((a, n) => a + n, 0));
+        // A badge earned since the last visit: show it once (Figma 350:2585), then it lives in Badges
+        if (b.new_badge && !newBadgeShown && !/^\/(r\/|offline|welcome|onboarding)/.test(location.pathname)) {
+          newBadgeShown = true;
+          const go = () => window.B && B.celebrate(b.new_badge, { username: API.profile && API.profile.username });
+          if (window.B) go(); else { const sc = document.createElement('script'); sc.src = '/assets/badges.js?d=' + new Date().toISOString().slice(0, 10); sc.onload = go; document.head.append(sc); }
+        }
       } catch (e) {}
     }
     // New chat messages and notifications update the badges on every page, not just Chats

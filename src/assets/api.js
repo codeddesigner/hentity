@@ -406,6 +406,12 @@
     drCode: (tok, em) => q(sb.rpc('dr_request_code', { tok, em })),
     drStart: (tok, em, code, dev) => q(sb.rpc('dr_start', { tok, em: em || null, code: code || null, dev: dev || '' })),
     drResume: sec => q(sb.rpc('dr_resume', { sec })),
+    // Founder badges (073_founder_badges.sql)
+    badgeMe: () => { requireAuth(); return q(sb.rpc('badge_me')); },
+    badgeSet: o => q(sb.rpc('badge_set', { featured: o.featured || null, hidden: o.hidden == null ? null : !!o.hidden })),
+    badgeSeen: k => q(sb.rpc('badge_seen', { k })),
+    badgePublic: uid => q(sb.rpc('badge_public', { uid })),
+    badgeMarks: ids => q(sb.rpc('badge_marks', { uids: ids })),
     drTrack: (sec, fid, pg, secs, opened) => sb.rpc('dr_track', { sec, fid, pg, secs, opened: !!opened }).then(() => {}, () => {}),
     findBoard: (f = {}) => q(sb.rpc('find_board', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cat: f.cat || null, cc: f.cc || null, lim: 60 })),
     findPeople: (f = {}) => q(sb.rpc('find_people', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cc: f.cc || null, lim: 60 })),

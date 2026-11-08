@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=39406b5204"></script>
-<script src="/assets/app.js?v=15d89bcea4"></script>
+<script src="/assets/api.js?v=9e758afa3f"></script>
+<script src="/assets/app.js?v=6f2abe5fcc"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -69,6 +69,14 @@
 .mk-body{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:64px;padding:28px 0 96px}
 .mk-tabs{margin:28px 0 0}
 .medal{width:28px;height:28px;border-radius:50%;flex:none}
+/* Badges (Figma 352:718 · 352:2417) */
+.mk-fb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.mk-fb button{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
+.mk-fb button:hover{border-color:var(--color-border-strong,#d4d4d4)}.mk-fb b{display:block;font-size:13px;line-height:16px;font-weight:500}.mk-fb small{display:block;font-size:12px;line-height:16px;color:var(--color-text-tertiary);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mk-bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:20px 12px}
+.mk-bgrid button{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:center}
+.mk-bgrid b{font-size:13px;line-height:16px;font-weight:500}.mk-bgrid small{font-size:12px;line-height:16px;color:var(--color-text-tertiary);margin-top:-4px}
+@media (max-width:768px){.mk-fb{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}.mk-fb button{flex-direction:column;text-align:center;padding:12px 6px;gap:8px}.mk-fb small{display:none}.mk-fb b{font-size:12px}.mk-bgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 8px}.mk-bgrid small{display:none}.mk-bgrid b{font-size:12px}.mk-bgrid .fb{--s:56px!important}}
 @media (max-width:1024px){.mk-body{grid-template-columns:1fr;gap:24px}}
 @media (max-width:768px){.mk-tabs{margin:24px -16px 0;padding:0 16px}.cover{height:140px}.cover::after{width:420px;height:420px;right:-160px}.mk{padding:0 16px}.mk-head{position:relative;display:block}.mk-head>.stack{gap:10px}.mk-avatar{width:72px;height:72px;font-size:22px;margin-top:-36px;border-width:2px}.mk .mk-name{font-size:17px;line-height:24px;letter-spacing:-0.01em}.mk-meta{font-size:12px;line-height:16px;font-weight:500;gap:6px}.mk-stats{gap:18px;font-size:12px;font-weight:500}.mk-stats b{font-size:13px;font-weight:500;margin-right:4px}.mk-head>.row.gap-8{position:absolute;top:12px;right:0;gap:6px}.mk-head>.row.gap-8 .btn{height:32px;padding:0 12px;font-size:12px}.mk-head>.row.gap-8 .btn .ic{width:14px;height:14px}.mk-tabs{margin-top:16px}}
 </style>
@@ -91,6 +99,7 @@
 <main class="mk" id="mk"></main>
 <div data-tabbar></div>
 <script src="/assets/data.js?v=10e6f8b49c"></script>
+<script src="/assets/badges.js?v=4e35e0c3b6"></script>
 <script>
 // Only your own profile lights up the You tab
 H.mount({ active: '', tab: (API.profile && API.profile.username && location.pathname.split('/')[2] === API.profile.username) ? 'you' : '' });
@@ -103,12 +112,15 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
   const isMe = person.id === API.uid;
   document.title = `${person.name} (@${person.username}) | Hentity`;
   if (person.avatar_color) qs('.cover').style.setProperty('--orb', person.avatar_color);
-  const [{ data: owned }, { data: made }, counts, fol] = await Promise.all([
+  const [{ data: owned }, { data: made }, counts, fol, bp] = await Promise.all([
     API.sb.from('product_feed').select('*').eq('owner_id', person.id).in('status', ['scheduled', 'live']).order('upvote_count', { ascending: false }),
     API.sb.from('product_makers').select('product:products(*)').eq('user_id', person.id),
     API.followCounts(person.id),
-    API.following('user', [person.id])
+    API.following('user', [person.id]),
+    API.badgePublic(person.id).catch(() => null)
   ]);
+  const badges = bp || { earned: {}, featured: [] }, bkeys = B.KEYS.filter(k => badges.earned[k]), nb = bkeys.length;
+  const feat = (badges.featured || []).filter(k => badges.earned[k]);
   const prods = [...(owned || []), ...((made || []).map(m => m.product).filter(x => x && ['scheduled', 'live'].includes(x.status) && !(owned || []).some(o => o.id === x.id)))];
   let following = fol.has(person.id); let followers = counts.followers;
   const settings = person.settings || {};
@@ -121,15 +133,16 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
       <div class="mk-meta reveal" style="--i:2"><span>@${esc(person.username)}</span>${settings.showCity !== false && person.city ? `<span>·</span><span class="row gap-8">${flag(person.country || 'NG')}${esc(person.city)}, ${H.COUNTRY[person.country] || ''}</span>` : ''}<span>·</span><span>${esc(person.headline || 'Maker')} · joined ${new Date(person.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span></div>
       ${person.bio ? `<p style="max-width:640px" class="reveal" style="--i:3">${esc(person.bio)}</p>` : ''}
       <div class="mk-links reveal" style="--i:3">${person.website ? `<a href="${esc(/^https?:/.test(person.website) ? person.website : 'https://' + person.website)}" target="_blank" rel="noopener nofollow">${icon('globe', 'ic-14')}${esc(person.website.replace(/^https?:\/\//, ''))}</a>` : ''}${person.linkedin ? `<a href="https://${esc(person.linkedin.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}${esc(person.linkedin)}</a>` : ''}${person.x ? `<a href="https://x.com/${esc(person.x.replace('@', ''))}" target="_blank" rel="noopener nofollow">${icon('link', 'ic-14')}x.com/${esc(person.x.replace('@', ''))}</a>` : ''}</div>
-      <div class="mk-stats reveal" style="--i:4"><span><b id="fcount" data-count-to="${followers}">0</b>followers</span><span><b data-count-to="${counts.following}">0</b>following</span><span><b>${prods.length}</b>products</span><span><b data-count-to="${counts.upvotes}">0</b>upvotes given</span></div>
+      <div class="mk-stats reveal" style="--i:4"><span><b id="fcount" data-count-to="${followers}">0</b>followers</span><span><b data-count-to="${counts.following}">0</b>following</span><span><b>${prods.length}</b>products</span>${nb ? `<span><b>${nb}</b>badge${nb === 1 ? '' : 's'}</span>` : ''}<span><b data-count-to="${counts.upvotes}">0</b>upvotes given</span></div>
     </div>
     <div class="row gap-8 reveal" style="--i:2">
       <button class="btn btn--ghost" type="button" id="share">${icon('share')}Share</button>
       ${isMe ? `<a class="btn btn--primary" href="/settings/profile">${icon('edit')}Edit profile</a>` : `<button class="btn btn--secondary" type="button" id="dm">${icon('chats')}Message</button><button class="btn btn--primary" type="button" id="follow"></button>`}
     </div>
   </div>
+  ${feat.length ? `<div class="mk-fb reveal" style="--i:5">${feat.map(k => `<button type="button" data-badge="${k}">${B.tile(k, { size: 48, level: badges.earned[k].level })}<span style="min-width:0"><b>${esc(B.title(k, badges.earned[k].level))}</b><small>${B.short(k, badges.earned[k])}</small></span></button>`).join('')}</div>` : ''}
   <div class="tabs mk-tabs" role="tablist" id="tabs">
-    ${[['products', 'Products · ' + prods.length], settings.showUpvotes !== false || isMe ? ['upvoted', 'Upvoted · ' + counts.upvotes] : null, ['activity', 'Activity'], isMe ? ['saved', 'Saved'] : null].filter(Boolean).map(([k, l], i) => `<button class="tab" role="tab" aria-selected="${i === 0}" data-tab="${k}">${l}</button>`).join('')}
+    ${[['products', 'Products · ' + prods.length], settings.showUpvotes !== false || isMe ? ['upvoted', 'Upvoted · ' + counts.upvotes] : null, ['activity', 'Activity'], nb || isMe ? ['badges', 'Badges · ' + nb] : null, isMe ? ['saved', 'Saved'] : null].filter(Boolean).map(([k, l], i) => `<button class="tab" role="tab" aria-selected="${i === 0}" data-tab="${k}">${l}</button>`).join('')}
   </div>
   <div class="mk-body">
     <div class="feed" id="panel"></div>
@@ -145,12 +158,22 @@ H.mount({ active: '', tab: (API.profile && API.profile.username && location.path
     const el = qs('#panel'); el.innerHTML = '<div class="skel" style="height:80px;border-radius:14px"></div>';
     if (k === 'products') { await D.loadVotes(prods); el.innerHTML = prods.length ? prods.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : `<p class="t-body-sm c-2" style="padding:16px 0">${isMe ? 'You haven’t launched anything yet. <a class="link link--accent" href="/launch">Start a launch</a>' : 'No launches yet.'}</p>`; }
     else if (k === 'upvoted') { const v = await API.upvotedBy(person.id); const ps = await API.productsByIds(v.map(x => x.product_id)); await D.loadVotes(ps); el.innerHTML = ps.length ? ps.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : '<p class="t-body-sm c-2" style="padding:16px 0">No upvotes yet.</p>'; }
+    else if (k === 'badges') {
+      el.innerHTML = (nb ? `<div class="mk-bgrid">${bkeys.map(b => `<button type="button" data-badge="${b}">${B.tile(b, { level: badges.earned[b].level })}<b>${esc(B.D[b].name)}</b><small>${B.D[b].levels ? 'Level ' + B.ROMAN[badges.earned[b].level] : B.month(badges.earned[b].earned_at)}</small></button>`).join('')}</div>`
+        : `<p class="t-body-sm c-2" style="padding:16px 0">${isMe ? (badges.hidden ? 'Your badges are hidden.' : 'No badges yet.') : 'No badges yet.'}</p>`)
+        + `<p class="t-caption c-3" style="font-weight:400;margin-top:20px">${isMe ? `Visitors only see badges you’ve earned. <a class="link link--accent" href="/badges">Manage your badges and see what’s next →</a>` : `Visitors only see badges ${esc(person.name.split(' ')[0])} has earned. Locked badges and progress stay private.`}</p>`;
+    }
     else if (k === 'saved') { const b = await API.bookmarks('product'); const ps = await API.productsByIds(b.map(x => x.target_id)); await D.loadVotes(ps); el.innerHTML = ps.length ? ps.map(x => D.row(x, 0, { noRank: true, noRails: true })).join('') : '<p class="t-body-sm c-2" style="padding:16px 0">Nothing saved yet.</p>'; }
     else { const { data } = await API.sb.from('comments').select('body,created_at,product:products(name,slug),article:articles(title,slug)').eq('user_id', person.id).eq('deleted', false).order('created_at', { ascending: false }).limit(20); el.innerHTML = (data || []).length ? `<ul class="stack gap-16" style="list-style:none;margin:0;padding:0">${data.map(c => `<li class="row gap-12" style="align-items:flex-start"><span class="icon-tile">${icon('comment')}</span><div><p class="t-body-sm">Commented on <a class="link" href="${c.product ? '/products/' + c.product.slug : '/news/' + (c.article && c.article.slug)}">${esc(c.product ? c.product.name : c.article ? c.article.title : 'a launch')}</a></p><p class="t-body-sm c-2" style="margin-top:2px">“${esc(c.body.slice(0, 160))}”</p><p class="t-caption c-3" style="font-weight:400">${H.ago(c.created_at)}</p></div></li>`).join('')}</ul>` : '<p class="t-body-sm c-2" style="padding:16px 0">No activity yet.</p>'; }
     M.stagger(el);
   }
   qsa('#tabs [role=tab]').forEach(t => t.addEventListener('click', () => { qsa('#tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o === t))); panel(t.dataset.tab); }));
-  panel('products');
+  const startTab = location.hash === '#badges' && qs('#tabs [data-tab="badges"]') ? 'badges' : 'products';
+  if (startTab === 'badges') qsa('#tabs [role=tab]').forEach(o => o.setAttribute('aria-selected', String(o.dataset.tab === 'badges')));
+  panel(startTab);
+  // Badges open their detail; ?badge= (from a shared link) opens one straight away
+  document.addEventListener('click', e => { const b = e.target.closest('[data-badge]'); if (b) B.detail(b.dataset.badge, badges.earned[b.dataset.badge], { mine: false, holders: badges.holders, featured: badges.featured, username: person.username }); });
+  const sb = new URLSearchParams(location.search).get('badge'); if (sb && badges.earned[sb]) B.detail(sb, badges.earned[sb], { mine: false, holders: badges.holders, featured: badges.featured, username: person.username });
   qs('#share').addEventListener('click', async () => { try { if (navigator.share) await navigator.share({ title: person.name + ' on Hentity', url: location.href }); else { await navigator.clipboard.writeText(location.href); toast('Profile link copied'); } } catch (e) {} });
   const f = qs('#follow');
   if (f) {

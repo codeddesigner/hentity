@@ -200,7 +200,7 @@
     function comment(c) {
       const kids = order(byParent[c.id] || []);
       return `<div class="dc" id="c-${c.id}" data-c="${c.id}">
-        <div class="dc-h">${c.deleted ? '<span class="avatar avatar--xs"></span><span class="c-3">deleted</span>' : `${avatar(c.author, 'xs')}<a class="dc-u" href="/makers/${esc(c.author.username)}">${esc(handle(c.author))}</a>${tagPill(c.author.tag)}`}<span class="c-3">${ago(c.created_at)}${c.edited_at ? ' · edited' : ''}</span></div>
+        <div class="dc-h">${c.deleted ? '<span class="avatar avatar--xs"></span><span class="c-3">deleted</span>' : `${avatar(c.author, 'xs')}<a class="dc-u" href="/makers/${esc(c.author.username)}">${esc(handle(c.author))}</a><span data-bm="${esc(c.author.id || '')}"></span>${tagPill(c.author.tag)}`}<span class="c-3">${ago(c.created_at)}${c.edited_at ? ' · edited' : ''}</span></div>
         <div class="dc-b">${c.deleted ? '<p class="c-3"><i>This reply was deleted.</i></p>' : rich(c.body)}</div>
         ${c.deleted ? '' : `<div class="dc-a">${votes('comment', c, true)}<button type="button" data-reply="${c.id}">${icon('reply', 'ic-14')}Reply</button><button type="button" data-share="/d/${C.slug}/${P.slug}#c-${c.id}" data-title="${esc(P.title)}">${icon('share', 'ic-14')}Share</button>
           ${c.mine ? `<button type="button" data-cedit="${c.id}">Edit</button><button type="button" data-cdel="${c.id}">Delete</button>` : `<button type="button" data-report="d_comment:${c.id}">Report</button>`}</div>`}
@@ -220,7 +220,7 @@
         <article class="dpost card">
           ${votes('post', P)}
           <div class="dpost-b">
-            <div class="dmeta"><a class="dmeta-c d-only" href="/d/${esc(C.slug)}">${dot(C)}h/${esc(C.slug)}</a><span class="c-3"><span class="d-only">· </span><a href="/makers/${esc(P.author.username)}">${esc(handle(P.author))}</a></span>${tagPill(P.author.tag)}<span class="c-3">· ${ago(P.created_at)}${P.edited_at ? ' · edited' : ''}</span>${P.pinned ? `<span class="dp dp--gray dmeta-pin">${icon('pin', 'ic-12')}Pinned</span>` : ''}</div>
+            <div class="dmeta"><a class="dmeta-c d-only" href="/d/${esc(C.slug)}">${dot(C)}h/${esc(C.slug)}</a><span class="c-3"><span class="d-only">· </span><a href="/makers/${esc(P.author.username)}">${esc(handle(P.author))}</a></span><span data-bm="${esc(P.author.id || '')}"></span>${tagPill(P.author.tag)}<span class="c-3">· ${ago(P.created_at)}${P.edited_at ? ' · edited' : ''}</span>${P.pinned ? `<span class="dp dp--gray dmeta-pin">${icon('pin', 'ic-12')}Pinned</span>` : ''}</div>
             <div class="dflair">${flairPill(P.flair)}${statusPill(P.status)}</div>
             <h1 class="dh1">${esc(P.title)}</h1>
             <div class="dbody">${rich(P.body)}</div>
@@ -244,6 +244,7 @@
         ${signedIn() ? '<button class="dmbar m-only-f" type="button" data-focus-reply>Add a comment</button>' : `<a class="dmbar m-only-f" href="/signin?next=${encodeURIComponent(location.pathname)}">Sign in to add a comment</a>`}
       </div>`;
       H.contentShown();
+      if (window.B) B.decorate(root);   // each person's first featured badge after their name
       if (location.hash.startsWith('#c-')) { const el = document.getElementById(location.hash.slice(1)); if (el) { el.classList.add('is-hl'); el.scrollIntoView({ block: 'center' }); } }
     }
     paint();
