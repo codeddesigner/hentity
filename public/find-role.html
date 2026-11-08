@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=78135394f3">
+<link rel="stylesheet" href="/assets/styles.css?v=7ad363435c">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -71,8 +71,8 @@
   .fr-x{display:grid!important;position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;place-items:center;color:var(--color-text-secondary)}
   .fr-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90}
   .fr-bg.is-open{display:block}
-  .fr-bar{display:flex;position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:60;padding:10px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);gap:10px;align-items:center}
-  .fd{padding-bottom:140px}
+  .fr-bar{display:flex;position:fixed;left:0;right:0;bottom:84px;z-index:60;padding:10px 16px;background:var(--color-bg-canvas);border-top:1px solid var(--color-border-default);gap:10px;align-items:center}
+  .fd{padding-bottom:170px}
 }
 @media (max-width:768px){.fr h1{font-size:22px;line-height:28px}}
 </style>
@@ -91,7 +91,7 @@
 <div data-header></div>
 <main id="main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=18c2d96c3b"></script>
+<script src="/assets/find.js?v=18970903aa"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -101,6 +101,7 @@ H.mount({ active: 'find', tab: 'chats' });
   await API.ready;
   const [r] = await Promise.all([id ? API.findRole(id).catch(() => null) : null, F.loadSaved().catch(() => {})]);
   if (!r) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This role isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be closed, invite-only, or the link is wrong.</p><a class="btn btn--secondary" href="/find">Back to Find</a></div>`; H.contentShown(); return; }
+  F.norm(r);
   document.title = `${r.title} | Find | Hentity`;
   const s = r.startup || {}, k = F.KIND[r.kind] || F.KIND.cofounder, pName = r.stealth ? 'The founder' : (r.poster.name || '').split(' ')[0];
   const me = r.me, job = r.kind !== 'cofounder';
@@ -109,7 +110,7 @@ H.mount({ active: 'find', tab: 'chats' });
   root.innerHTML = `<div class="fd">
     <a class="row gap-6 t-body-sm c-2" href="/find" style="margin-bottom:18px">${icon('arrow-left', 'ic-14')}Open roles</a>
     <div class="fr"><div class="stack gap-16">
-      <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div><span class="row gap-8">${s.slug ? `<a class="t-body-sm" style="font-weight:500" href="/products/${esc(s.slug)}">View product</a>` : ''}${r.mine ? '' : F.saveBtn('role', r.id)}</span></div>
+      <section class="card blk"><div class="row between gap-12" style="align-items:flex-start"><div class="row gap-12" style="min-width:0">${F.startupMark(r, 48)}<div style="min-width:0"><p class="row gap-6 t-body-sm" style="font-weight:500">${esc(s.name)}${s.verified && !r.stealth ? H.verified('ic-14') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc([s.line, r.stage].filter(Boolean).join(' · ') || (r.stealth ? 'Startup name hidden until you both say yes' : ''))}</p></div></div><span class="row gap-8">${s.slug ? `<a class="t-body-sm hide-sm" style="font-weight:500;white-space:nowrap" href="/products/${esc(s.slug)}">View product</a>` : ''}${r.mine ? '' : F.saveBtn('role', r.id)}</span></div>
         <h1>${esc(r.title)}</h1><div class="fpills">${tags}</div>
         ${(r.skills || []).length ? `<div class="fskills">${r.skills.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</section>
       ${blk(job ? 'What you’ll do' : 'What you’ll own', r.owns)}
@@ -180,11 +181,17 @@ H.mount({ active: 'find', tab: 'chats' });
     box.innerHTML = grab + `<h2 class="t-h3">Say you’re interested</h2><p class="t-body-sm c-2" style="margin:8px 0 16px">${esc(pName)} gets a short intro. If they say yes too, you’ll both see each other and a chat opens.</p>
       <form id="fi" class="stack gap-14"><label class="field"><span class="field__label">Your intro</span><textarea class="input" name="intro" rows="4" maxlength="800" required placeholder="What you’ve built, why this role, when you could start"></textarea></label>
       ${qsHtml}
+      <div class="field"><span class="field__label">Attach <span class="c-3" style="font-weight:400">(optional)</span></span><div id="cvbox"></div></div>
+      <div class="field"><label class="field__label" for="li">LinkedIn profile <span class="c-3" style="font-weight:400">(optional)</span></label>${F.liField('li', r.my_linkedin)}</div>
       <div class="fr-sees"><p class="row gap-6 t-body-sm" style="font-weight:500">${icon('eye', 'ic-14')}What ${esc(pName)} sees now</p>${sees}</div>
       ${warn}<button class="btn btn--accent btn--lg btn--block" type="submit">Send interest</button>${foot}</form>`;
+    const cvc = F.cvPicker(qs('#cvbox'), { cv: r.my_cv, profileCv: r.my_cv, sub: 'from your profile', allowOther: true }); F.bindLi(box, 'li');
     qs('#fi').onsubmit = async e => {
-      e.preventDefault(); const fd = new FormData(e.target), b = e.target.querySelector('[type=submit]'); b.disabled = true;
-      try { const x = await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || ''))); r.my_interest = { id: x.id, status: 'pending', mine: true }; r.interest_count++; r.intros_left = x.intros_left; toast('Sent. We’ll tell you when they answer.'); panel(); }
+      e.preventDefault(); const fd = new FormData(e.target), b = e.target.querySelector('[type=submit]'), li = qs('#li').value.trim();
+      if (String(fd.get('intro') || '').trim().length < 20) return toast('Write a short intro (a sentence or two)', 'error');
+      if (!F.liOk(li)) return toast('Use a LinkedIn profile link, like linkedin.com/in/your-name', 'error');
+      b.disabled = true;
+      try { const x = await API.findExpress(r.id, String(fd.get('intro') || ''), (r.questions || []).map((_, i) => String(fd.get('a' + i) || '')), cvc.get(), li); r.my_interest = { id: x.id, status: 'pending', mine: true }; r.interest_count++; r.intros_left = x.intros_left; toast('Sent. We’ll tell you when they answer.'); panel(); }
       catch (err) { H.fail(err); b.disabled = false; }
     };
   }

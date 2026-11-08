@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=78135394f3">
+<link rel="stylesheet" href="/assets/styles.css?v=7ad363435c">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -79,7 +79,7 @@
 <h2>How it works</h2><ul><li><a href="/find/post">Post a role</a>: co-founder, CTO, first engineer, designer, growth or operations.</li><li><a href="/find/open">Say you’re open to work</a>: set your skills, the stage you want to join and where you’re based.</li><li>Get matched, say yes, then talk.</li></ul>
 <p>Read <a href="/find/privacy">how privacy works on Find</a>, browse <a href="/directory">startups across Africa</a> or look for <a href="/funding">grants and investors</a>.</p></div><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=18c2d96c3b"></script>
+<script src="/assets/find.js?v=18970903aa"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -88,7 +88,7 @@ H.mount({ active: 'find', tab: 'chats' });
   const seg = location.pathname.split('/').filter(Boolean)[1] || '';
   const tab = ['people', 'matches'].includes(seg) ? seg : 'roles';
   await API.ready;
-  const f = { kinds: [], q: '', cat: '', cc: '' };
+  const f = { kinds: [], q: '', cat: '', cc: '', commit: '', eq: '' };
   const [counts, myProfile] = await Promise.all([API.findCounts().catch(() => ({})), API.myFindProfile().catch(() => null)]);
   const KINDS = [['cofounder', 'Co-founder'], ['fulltime', 'Full-time'], ['parttime', 'Part-time'], ['contract', 'Contract'], ['internship', 'Internship']];
   root.innerHTML = `<div class="fd reveal">
@@ -99,7 +99,9 @@ H.mount({ active: 'find', tab: 'chats' });
     ${tab === 'matches' ? '' : `<div class="fd-filters"><label class="fsearch">${icon('search', 'ic-16')}<input class="input" id="fq" placeholder="Role, skill or startup" aria-label="Search"></label>
       <div class="chips" id="fk"><button class="chip" type="button" data-all aria-pressed="true">${icon('check')}All</button>${KINDS.map(([v, l]) => `<button class="chip" type="button" data-v="${v}" aria-pressed="false">${icon('check')}${l}</button>`).join('')}</div>
       ${tab === 'roles' ? `<select class="input" id="fcat" aria-label="Category"><option value="">Category</option>${F.CATS.map(c => `<option>${esc(c)}</option>`).join('')}</select>` : ''}
-      <select class="input" id="fcc" aria-label="Location"><option value="">Location</option>${Object.entries(H.COUNTRY).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select></div>`}
+      <select class="input" id="fcc" aria-label="Location"><option value="">Location</option>${Object.entries(H.COUNTRY).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
+      ${tab === 'roles' ? `<select class="input" id="fcm" aria-label="Commitment"><option value="">Commitment</option><option value="fulltime">Full-time</option><option value="parttime">Part-time</option><option value="flexible">Flexible</option></select>
+      <select class="input" id="feq" aria-label="Equity"><option value="">Equity</option><option value="yes">Offers equity</option><option value="no">No equity</option></select>` : ''}</div>`}
     <div class="fd-grid"${tab === 'people' ? ' style="grid-template-columns:minmax(0,1fr)"' : ''}><div id="list"></div>${tab === 'people' ? '' : '<aside class="fside" id="side"></aside>'}</div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend', `<a class="btn btn--accent ffab" href="/find/post">${icon('plus', 'ic-16')}Post a role</a>`);
@@ -128,7 +130,9 @@ H.mount({ active: 'find', tab: 'chats' });
     box.innerHTML = `<div class="fd-cards${tab === 'people' ? ' three' : ''}">${'<div class="skel" style="height:260px;border-radius:16px"></div>'.repeat(4)}</div>`;
     try {
       if (tab === 'roles') {
-        const rows = await API.findBoard(f);
+        const fits = r => (!f.commit || (f.commit === 'fulltime' ? r.kind === 'fulltime' || (r.kind === 'cofounder' && r.commitment === 'fulltime') : f.commit === 'parttime' ? r.kind === 'parttime' || r.commitment === 'parttime_first' : r.kind === 'contract' || r.commitment === 'flexible'))
+          && (!f.eq || (f.eq === 'yes') === (r.kind === 'cofounder' || r.equity_max > 0));
+        const rows = (await API.findBoard(f)).filter(fits);
         box.innerHTML = rows.length ? `<div class="fd-cards">${rows.map(F.roleCard).join('')}</div>` : empty('No open roles match yet', 'Be the first: post a co-founder role, a job or an internship.', '/find/post', 'Post a role');
       } else if (tab === 'people') {
         const rows = API.uid ? await API.findPeople(f) : [];
@@ -143,6 +147,8 @@ H.mount({ active: 'find', tab: 'chats' });
       qsa('#fk .chip').forEach(c => c.setAttribute('aria-pressed', String(c.hasAttribute('data-all') ? !f.kinds.length : f.kinds.includes(c.dataset.v)))); load(); });
     qs('#fcat') && qs('#fcat').addEventListener('change', e => { f.cat = e.target.value; load(); });
     qs('#fcc').addEventListener('change', e => { f.cc = e.target.value; load(); });
+    qs('#fcm') && qs('#fcm').addEventListener('change', e => { f.commit = e.target.value; load(); });
+    qs('#feq') && qs('#feq').addEventListener('change', e => { f.eq = e.target.value; load(); });
     qs('#list').addEventListener('click', e => { if (e.target.closest('a,button')) return; const c = e.target.closest('[data-href]'); if (c) location.href = c.dataset.href; });
     qs('#list').addEventListener('click', e => { const b = e.target.closest('[data-invite]'); if (b) invite(b.dataset.invite); });
   }

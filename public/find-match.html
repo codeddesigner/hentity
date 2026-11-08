@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=78135394f3">
+<link rel="stylesheet" href="/assets/styles.css?v=7ad363435c">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -58,24 +58,26 @@ body.has-sidebar main.fm-main{padding:0}
 .fm{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-rows:minmax(0,1fr);height:100vh;height:100dvh}
 .fm>*{min-height:0}
 .fm-list{border-right:1px solid var(--color-border-default);overflow:auto;padding:20px 0}
-.fm-list h1{font-size:22px;font-weight:600;padding:0 16px 12px}
+.fm-list h1{font-size:17px;line-height:24px;font-weight:600;padding:0 16px 12px}
 .fm-item{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;padding:12px 16px}
 .fm-item[aria-current="page"]{background:var(--color-bg-subtle)}
 .fm-thread{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--color-border-default)}
 .fm-top{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--color-border-default)}
 .fm-msgs{flex:1;overflow:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
 .fm-sys{align-self:center;display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--color-text-tertiary);text-align:center}
-.fm-b{max-width:78%;padding:12px 14px;border-radius:14px;background:var(--color-bg-subtle);font-size:14px;line-height:21px;white-space:pre-wrap}
-.fm-b small{display:block;margin-top:6px;font-size:11.5px;color:var(--color-text-tertiary)}
+.fm-b{max-width:78%;padding:10px 14px;border-radius:14px;background:var(--color-bg-subtle);font-size:13px;line-height:18px;white-space:pre-wrap}
+.fm-b small{display:block;margin-top:4px;font-size:12px;color:var(--color-text-tertiary)}
 .fm-b.mine{align-self:flex-end;background:var(--color-bg-inverse);color:var(--color-text-inverse)}.fm-b.mine small{color:#a3a3a3}
 .fm-row{display:flex;gap:8px;align-items:flex-end}
 .fm-cta{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:12px;background:var(--color-accent-subtle,#fff1ea)}
 .fm-comp{display:flex;gap:10px;align-items:center;padding:12px 24px;border-top:1px solid var(--color-border-default)}
-.fm-comp textarea{flex:1;resize:none;min-height:42px;max-height:140px}
+.fm-comp textarea{flex:1;resize:none;min-height:40px;max-height:140px;background:var(--color-bg-subtle);border-color:var(--color-border-default);font-size:13px}
 .fm-fit{overflow:auto;padding:20px}
-.fm-fit h2{font-size:22px;font-weight:600}
+.fm-fit h2{font-size:17px;line-height:24px;font-weight:600}
 .fit-bar{display:grid;grid-auto-flow:column;gap:6px;margin:14px 0 8px}.fit-bar i{height:5px;border-radius:3px;background:var(--color-bg-muted)}
-.fit{padding:14px;border:1px solid var(--color-border-default);border-radius:12px;margin-top:10px}
+.fit{position:relative;padding:12px;border:1px solid var(--color-border-default);border-radius:12px;margin-top:10px}
+.fit-acts{margin-top:8px}.fit-acts .btn{height:28px;padding:0 10px}
+.fit-edit{display:block;margin:6px 0 0 auto;color:var(--color-text-tertiary)}.fit-edit:hover{color:var(--color-text-primary)}
 .fit .fst{font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px}
 .st-a{background:#E9F8EE;color:#15803D}.st-t{background:#FFF6DB;color:#A16207}.st-o{background:var(--color-bg-muted);color:var(--color-text-secondary)}
 .fm-reveal{max-width:520px;margin:0 auto;padding:48px 24px;text-align:center}
@@ -106,7 +108,7 @@ body.has-sidebar main.fm-main{padding:0}
 <div data-header></div>
 <main id="main" class="fm-main"><div class="fd"><div class="skel" style="height:420px;border-radius:16px"></div></div></main>
 <div data-tabbar></div>
-<script src="/assets/find.js?v=18c2d96c3b"></script>
+<script src="/assets/find.js?v=18970903aa"></script>
 <script>
 H.mount({ active: 'find', tab: 'chats' });
 (async function () {
@@ -158,7 +160,7 @@ H.mount({ active: 'find', tab: 'chats' });
       html = `<h2>Co-founder fit</h2><p class="t-caption c-3" style="font-weight:400;margin-top:4px">You each answer privately. You see their answer once you’ve given yours, then mark where you agree and what to talk about.</p>
         <div class="fit-bar">${st.map(x => `<i style="background:${x[0] === 'a' ? '#2FE0A5' : x[0] === 't' ? '#FFD43B' : ''}"></i>`).join('')}</div><p class="t-caption c-2" style="font-weight:400">${n('a')} aligned · ${n('t')} to talk about · ${FIT.length - n('a') - n('t')} open</p>
         ${FIT.map(([k, t, ph], i) => { const s = st[i]; return `<div class="fit"><div class="row between gap-8"><p class="t-body-sm" style="font-weight:500">${t}</p><span class="fst st-${s[0]}">${s[1]}</span></div>
-          ${mine[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:6px">You: ${esc(mine[k])}</p>${theirs[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:2px">${esc(oFirst)}: ${esc(theirs[k])}</p><div class="row gap-6" style="margin-top:8px"><button class="btn btn--ghost btn--sm" data-ok="${k}:agree"${mine[k + '_ok'] === 'agree' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>We agree</button><button class="btn btn--ghost btn--sm" data-ok="${k}:talk"${mine[k + '_ok'] === 'talk' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>Talk about it</button></div>` : ''}<button class="link t-caption" data-edit="${k}" style="margin-top:6px">Edit</button>`
+          ${mine[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:6px">You: ${esc(mine[k])}</p>${theirs[k] ? `<p class="t-caption c-2" style="font-weight:400;margin-top:2px">${esc(oFirst)}: ${esc(theirs[k])}</p>${status(k)[0] === 'a' ? '' : `<div class="row gap-6 fit-acts"><button class="btn btn--ghost btn--sm" data-ok="${k}:agree"${mine[k + '_ok'] === 'agree' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>We agree</button><button class="btn btn--ghost btn--sm" data-ok="${k}:talk"${mine[k + '_ok'] === 'talk' ? ' aria-pressed="true" style="background:var(--color-bg-muted)"' : ''}>Talk about it</button></div>`}` : ''}<button class="link t-caption fit-edit" data-edit="${k}">Edit</button>`
             : `<textarea class="input" rows="2" data-ans="${k}" placeholder="${esc(ph)}" style="margin-top:8px;font-size:13px"></textarea><button class="btn btn--secondary btn--sm" data-save="${k}" style="margin-top:6px">Save</button>`}</div>`; }).join('')}
         <button class="btn btn--secondary btn--sm btn--block" id="agree" style="margin-top:14px">${icon('file-text', 'ic-14')}Draft co-founder agreement</button>`;
     } else {

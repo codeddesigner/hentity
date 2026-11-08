@@ -28,7 +28,7 @@ H.mount({ active: 'find', tab: 'chats' });
   const seg = location.pathname.split('/').filter(Boolean)[1] || '';
   const tab = ['people', 'matches'].includes(seg) ? seg : 'roles';
   await API.ready;
-  const f = { kinds: [], q: '', cat: '', cc: '' };
+  const f = { kinds: [], q: '', cat: '', cc: '', commit: '', eq: '' };
   const [counts, myProfile] = await Promise.all([API.findCounts().catch(() => ({})), API.myFindProfile().catch(() => null)]);
   const KINDS = [['cofounder', 'Co-founder'], ['fulltime', 'Full-time'], ['parttime', 'Part-time'], ['contract', 'Contract'], ['internship', 'Internship']];
   root.innerHTML = `<div class="fd reveal">
@@ -39,7 +39,9 @@ H.mount({ active: 'find', tab: 'chats' });
     ${tab === 'matches' ? '' : `<div class="fd-filters"><label class="fsearch">${icon('search', 'ic-16')}<input class="input" id="fq" placeholder="Role, skill or startup" aria-label="Search"></label>
       <div class="chips" id="fk"><button class="chip" type="button" data-all aria-pressed="true">${icon('check')}All</button>${KINDS.map(([v, l]) => `<button class="chip" type="button" data-v="${v}" aria-pressed="false">${icon('check')}${l}</button>`).join('')}</div>
       ${tab === 'roles' ? `<select class="input" id="fcat" aria-label="Category"><option value="">Category</option>${F.CATS.map(c => `<option>${esc(c)}</option>`).join('')}</select>` : ''}
-      <select class="input" id="fcc" aria-label="Location"><option value="">Location</option>${Object.entries(H.COUNTRY).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select></div>`}
+      <select class="input" id="fcc" aria-label="Location"><option value="">Location</option>${Object.entries(H.COUNTRY).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
+      ${tab === 'roles' ? `<select class="input" id="fcm" aria-label="Commitment"><option value="">Commitment</option><option value="fulltime">Full-time</option><option value="parttime">Part-time</option><option value="flexible">Flexible</option></select>
+      <select class="input" id="feq" aria-label="Equity"><option value="">Equity</option><option value="yes">Offers equity</option><option value="no">No equity</option></select>` : ''}</div>`}
     <div class="fd-grid"${tab === 'people' ? ' style="grid-template-columns:minmax(0,1fr)"' : ''}><div id="list"></div>${tab === 'people' ? '' : '<aside class="fside" id="side"></aside>'}</div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend', `<a class="btn btn--accent ffab" href="/find/post">${icon('plus', 'ic-16')}Post a role</a>`);
@@ -68,7 +70,9 @@ H.mount({ active: 'find', tab: 'chats' });
     box.innerHTML = `<div class="fd-cards${tab === 'people' ? ' three' : ''}">${'<div class="skel" style="height:260px;border-radius:16px"></div>'.repeat(4)}</div>`;
     try {
       if (tab === 'roles') {
-        const rows = await API.findBoard(f);
+        const fits = r => (!f.commit || (f.commit === 'fulltime' ? r.kind === 'fulltime' || (r.kind === 'cofounder' && r.commitment === 'fulltime') : f.commit === 'parttime' ? r.kind === 'parttime' || r.commitment === 'parttime_first' : r.kind === 'contract' || r.commitment === 'flexible'))
+          && (!f.eq || (f.eq === 'yes') === (r.kind === 'cofounder' || r.equity_max > 0));
+        const rows = (await API.findBoard(f)).filter(fits);
         box.innerHTML = rows.length ? `<div class="fd-cards">${rows.map(F.roleCard).join('')}</div>` : empty('No open roles match yet', 'Be the first: post a co-founder role, a job or an internship.', '/find/post', 'Post a role');
       } else if (tab === 'people') {
         const rows = API.uid ? await API.findPeople(f) : [];
@@ -83,6 +87,8 @@ H.mount({ active: 'find', tab: 'chats' });
       qsa('#fk .chip').forEach(c => c.setAttribute('aria-pressed', String(c.hasAttribute('data-all') ? !f.kinds.length : f.kinds.includes(c.dataset.v)))); load(); });
     qs('#fcat') && qs('#fcat').addEventListener('change', e => { f.cat = e.target.value; load(); });
     qs('#fcc').addEventListener('change', e => { f.cc = e.target.value; load(); });
+    qs('#fcm') && qs('#fcm').addEventListener('change', e => { f.commit = e.target.value; load(); });
+    qs('#feq') && qs('#feq').addEventListener('change', e => { f.eq = e.target.value; load(); });
     qs('#list').addEventListener('click', e => { if (e.target.closest('a,button')) return; const c = e.target.closest('[data-href]'); if (c) location.href = c.dataset.href; });
     qs('#list').addEventListener('click', e => { const b = e.target.closest('[data-invite]'); if (b) invite(b.dataset.invite); });
   }

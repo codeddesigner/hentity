@@ -11,8 +11,19 @@
   const CATS = ['Fintech', 'Commerce', 'Agriculture', 'Health', 'Logistics', 'Education', 'AI', 'Energy & Climate', 'Proptech', 'SaaS', 'Dev Tools', 'Infrastructure', 'Productivity', 'Apps'];
   const pct = n => (n === null || n === undefined || n === '') ? '' : (+n % 1 ? (+n).toFixed(1) : String(+n));
   function pay(r) {
-    if (r.kind === 'cofounder' || r.pay === 'equity') return r.equity_min != null && r.equity_max != null ? `${pct(r.equity_min)}–${pct(r.equity_max)}% equity` : r.equity_min != null ? `${pct(r.equity_min)}% equity` : 'Equity';
-    return [r.salary, r.equity_max ? `${pct(r.equity_max)}%` : ''].filter(Boolean).join(' + ') || (r.pay === 'stipend' ? 'Stipend' : 'Salary');
+    if (r.kind === 'cofounder' || (r.pay === 'equity' && !r.salary)) return r.equity_min != null && r.equity_max != null ? `${pct(r.equity_min)}–${pct(r.equity_max)}% equity` : r.equity_min != null ? `${pct(r.equity_min)}% equity` : r.equity_max != null ? `Up to ${pct(r.equity_max)}% equity` : 'Equity';
+    const eq = r.equity_max ? `${r.equity_min != null && +r.equity_min !== +r.equity_max ? pct(r.equity_min) + '–' : ''}${pct(r.equity_max)}%` : '';
+    if (r.salary) return [r.salary, eq].filter(Boolean).join(' + ');
+    return eq ? `${r.pay === 'stipend' ? 'Stipend' : 'Salary'} + ${eq} equity` : (r.pay === 'stipend' ? 'Stipend' : 'Paid');
+  }
+  // Signed-out viewers get stealth/mine as null for hidden roles; and the server names them "Stealth saas"
+  const CAT_WORD = { SaaS: 'SaaS', AI: 'AI', 'Dev Tools': 'dev tools', 'Energy & Climate': 'climate' };
+  function norm(r) {
+    if (!r || r._n) return r; r._n = true;
+    if (r.mine == null) r.mine = false;
+    if (r.stealth == null) r.stealth = r.visibility !== 'public' && !r.mine;
+    if (r.stealth) { const c = r.category; r.startup = Object.assign({}, r.startup, { name: 'Stealth ' + (c ? (CAT_WORD[c] || c.toLowerCase()) : 'startup') }); }
+    return r;
   }
   const pill = (t, cls) => `<span class="fpill ${cls || ''}">${t}</span>`;
   const catPill = c => c ? `<span class="fpill"><i class="dot" style="background:${H.catColor(c)}"></i>${esc(H.catShort ? H.catShort(c) : c)}</span>` : '';
@@ -46,6 +57,7 @@
   }, true);
   // Role card (Figma 172:6)
   function roleCard(r) {
+    norm(r);
     const k = KIND[r.kind] || KIND.cofounder, s = r.startup || {}, p = r.poster || {};
     const cta = r.mine ? `<a class="btn btn--secondary btn--sm" href="/find/post?edit=${r.id}">Edit</a>`
       : r.my_interest ? `<span class="fpill k-ok">${icon('check', 'ic-12')}${r.my_interest.status === 'accepted' ? 'Matched' : r.my_interest.mine ? 'Interest sent' : 'Invited you'}</span>`
@@ -53,7 +65,7 @@
     return `<article class="card fcard" data-href="/find/roles/${r.id}">
       <div class="row between gap-12"><span class="row gap-10" style="min-width:0">${startupMark(r, 32)}<span class="t-body-sm c-2 truncate">${esc(s.name)}</span>${s.verified && !r.stealth ? H.verified('ic-14') : ''}</span><span class="row gap-4"><span class="t-caption c-3" style="font-weight:400">${esc(H.ago(r.created_at))}</span>${r.mine ? '' : saveBtn('role', r.id)}</span></div>
       <h3 class="fcard__t">${esc(r.title)}</h3>
-      <div class="fpills">${pill(k[0], k[1])}${catPill(r.category)}${pill(esc(pay(r)), 'k-pay')}${r.kind === 'cofounder' ? pill(COMMIT[r.commitment] || '') : r.duration ? pill(esc(r.duration)) : pill(k[0])}${r.stage ? pill(esc(r.stage)) : ''}</div>
+      <div class="fpills">${pill(k[0], k[1])}${catPill(r.category)}${pill(esc(pay(r)), 'k-pay')}${r.kind === 'cofounder' ? (COMMIT[r.commitment] ? pill(COMMIT[r.commitment]) : '') : r.duration ? pill(esc(r.duration)) : COMMIT[r.commitment] && COMMIT[r.commitment] !== k[0] ? pill(COMMIT[r.commitment]) : ''}${r.stage ? pill(esc(r.stage)) : ''}</div>
       ${r.city || r.working ? `<p class="row gap-6 t-caption c-2" style="font-weight:400;margin-top:12px">${icon('pin', 'ic-14')}${esc([r.city, WORK[r.working]].filter(Boolean).join(' · '))}</p>` : ''}
       ${(r.skills || []).length ? `<div class="fskills">${r.skills.slice(0, 4).map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
       ${r.stealth ? `<p class="fnote">${icon('eye', 'ic-14')}Startup and founder revealed when you both say yes</p>` : ''}
@@ -146,5 +158,5 @@
   const cvChip = c => c ? `<button class="fpill" type="button" data-open-cv="${H.esc(c.path)}">${H.icon('file-text', 'ic-12')}${H.esc(c.name || 'CV')}</button>` : '';
   const liChip = l => l ? `<a class="fpill" href="${H.esc(/^https?:/.test(l) ? l : 'https://' + l)}" target="_blank" rel="noopener nofollow"><b style="color:#0A66C2">in</b>LinkedIn</a>` : '';
   document.addEventListener('click', e => { const b = e.target.closest('[data-open-cv]'); if (b) { e.preventDefault(); openCv(b.dataset.openCv); } });
-  window.F = { SAVED, loadSaved, saveBtn, cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
+  window.F = { norm, SAVED, loadSaved, saveBtn, cvPicker, liOk, liField, bindLi, openCv, cvChip, liChip, kb, KIND, AREA, WORK, COMMIT, AVAIL, OPEN, STAGES, CATS, pay, pill, catPill, mini, initials, startupMark, roleCard, personCard, previewMe, chips, readChips, radioCards, bindRadio, toggle, tagList, mobileSwitch };
 })();

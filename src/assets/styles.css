@@ -1166,8 +1166,8 @@ a.src:hover{color:var(--color-text-primary);border-color:var(--color-border-stro
 .ftag button{display:grid;place-items:center;color:var(--color-text-tertiary)}
 .ftag--add{background:none;border:1px dashed var(--color-border-strong);color:var(--color-text-secondary);cursor:pointer}
 .fform{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
-.fsec{padding:24px}.fsec h2{font-size:22px;line-height:28px;font-weight:600;margin-bottom:16px}
-.flbl{display:block;font-size:13px;font-weight:500;margin:18px 0 8px}.fsec h2+.flbl{margin-top:0}
+.fsec{padding:24px}.fsec h2{font-size:17px;line-height:24px;font-weight:600;margin-bottom:14px}
+.flbl{display:block;font-size:13px;font-weight:500;line-height:16px;margin:16px 0 8px}.fsec h2+.flbl{margin-top:0}
 .fhint{font-size:12px;color:var(--color-text-tertiary);margin:-4px 0 8px}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .fswitch{display:none;padding:3px;border-radius:12px;background:var(--color-bg-muted);margin-bottom:14px}
