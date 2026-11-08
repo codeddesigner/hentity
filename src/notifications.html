@@ -30,6 +30,7 @@
   <nav class="filters-nav" role="tablist" aria-label="Filter notifications" id="filters"></nav>
   <main>
     <div class="row between wrap gap-12" style="margin-bottom:20px"><h1 class="t-h2">Notifications</h1><div class="row gap-4"><button class="btn btn--ghost btn--sm" type="button" id="readall"><span data-icon="check"></span>Mark all as read</button><a class="btn btn--ghost btn--sm" href="/settings/notifications"><span data-icon="settings"></span>Settings</a></div></div>
+    <div id="push-card" style="margin-bottom:12px"></div>
     <div id="list" class="stack gap-12"></div>
     <div style="text-align:center;margin-top:20px"><button class="btn btn--ghost btn--sm" type="button" id="older">Load older</button></div>
   </main>
@@ -37,6 +38,7 @@
 <div data-tabbar></div>
 <script>
 H.mount({ active: 'notifications', tab: 'you' });
+API.ready.then(() => H.push.card(document.getElementById('push-card'))).catch(() => {});
 (async function () {
   const { qs, qsa, icon, esc, store, toast, avatar, plogo } = H;
   await API.ready;

@@ -1499,3 +1499,6 @@ html.theme-fade,html.theme-fade *{transition:background-color .3s ease,border-co
 .cswitch,.cswitch-wrap{display:none}
 .has-cswitch .fswitch{display:none!important}
 @media (max-width:768px){.cswitch-wrap{display:block;padding:8px 16px 0}.cswitch-wrap .cswitch{margin:0}.cswitch{display:flex;padding:3px;border-radius:12px;background:var(--color-bg-muted);margin:0 0 12px}.cswitch a{flex:1;text-align:center;height:34px;line-height:34px;border-radius:9px;font-size:14px;font-weight:500;color:var(--color-text-secondary)}.cswitch a[aria-current]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 3px rgba(0,0,0,.08)}}
+
+.push-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-lg,14px);border:1px solid var(--color-border-default);background:var(--color-bg-canvas)}
+.push-card .icon-tile{flex:none}

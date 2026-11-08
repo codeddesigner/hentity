@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=f7bb8259d1">
+<link rel="stylesheet" href="/assets/styles.css?v=4d04c9a8c7">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=00020873f4"></script>
-<script src="/assets/app.js?v=85b60478a9"></script>
+<script src="/assets/app.js?v=ecbbb95b4b"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -85,6 +85,7 @@
     <a class="btn btn--secondary btn--sm btn--block" id="pub" href="/"><span data-icon="arrow-up-right"></span>View public profile</a>
   </section>
   <nav class="card me-menu" style="margin-top:16px;padding:6px 0;overflow:hidden">
+    <a href="#push" id="push-row" hidden><span data-icon="bell"></span>Push notifications<span class="meta" id="push-meta"></span></a>
     <a href="#install" id="pwa-row" data-pwa-install hidden><span data-icon="download"></span>Install the app<span class="meta">Home screen</span></a>
     <a href="/my-products"><span data-icon="rocket"></span>My products<span class="meta" id="mp-n"></span></a>
     <a href="/funding"><span data-icon="star"></span>Funding</a>
@@ -107,6 +108,19 @@ H.mount({ tab: 'you' });
   const u = H.user();
   H.qs('#me-av').outerHTML = H.avatar(u, 72); H.qs('#me-name').textContent = u.name; H.qs('#me-handle').textContent = u.username; H.qs('#me-city').innerHTML = H.flag(u.country || 'NG') + ' ' + H.esc(u.city || '');
   H.qs('#pub').href = '/makers/' + u.username;
+  // Push on this device: shows its state; tap to turn on or off
+  const ph = H.qs('#push-row'), pm = H.qs('#push-meta');
+  const pushRow = async () => { const st = await H.push.state(); ph.hidden = ['na', 'unsupported'].includes(st); pm.textContent = { on: 'On', off: 'Off', blocked: 'Blocked in settings', install: 'Install the app first' }[st] || ''; ph.dataset.st = st; };
+  API.ready.then(pushRow);
+  ph.addEventListener('click', async e => {
+    e.preventDefault();
+    const st = ph.dataset.st;
+    if (st === 'install') H.pwa.install();
+    else if (st === 'blocked') H.toast('Allow notifications for Hentity in your browser or phone settings, then try again.');
+    else if (st === 'off') await H.push.on();
+    else if (st === 'on' && await H.confirm('Turn off push notifications on this device?', { body: 'You’ll still see everything in Notifications on Hentity.', ok: 'Turn off' })) await H.push.off();
+    pushRow();
+  });
   const pr = H.qs('#pwa-row'), showPwa = () => { pr.hidden = !H.pwa.available(); }; showPwa(); window.addEventListener('beforeinstallprompt', () => setTimeout(showPwa)); window.addEventListener('appinstalled', showPwa);
   const c = await API.followCounts(u.id); H.qs('#f1').dataset.countTo = c.followers; H.qs('#f2').dataset.countTo = c.following;
   const mp = await API.myProducts(); H.qs('#f3').dataset.countTo = mp.length; H.qs('#mp-n').textContent = mp.length || ''; M.countUp();

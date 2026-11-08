@@ -520,12 +520,37 @@
     document.body.append(b);
     b.addEventListener('click', e => { if (e.target.closest('[data-pwa-close]')) { store.set('pwa.dismissed', Date.now()); b.remove(); } else if (e.target.closest('[data-pwa-install]')) { b.remove(); pwa.install(); } });
   }
+  // Push on this device: one place for the state and the switch (Settings, You, Notifications, the app bar)
+  const push = {
+    async state() {
+      const P = window.API && API.push; if (!P || !API.uid) return 'na';
+      if (!P.supported()) return isIOS && !standalone() ? 'install' : 'unsupported';
+      if (P.permission() === 'denied') return 'blocked';
+      return P.permission() === 'granted' && await P.current().catch(() => null) ? 'on' : 'off';
+    },
+    async on() { try { await API.push.enable(); toast('Push notifications are on'); return true; } catch (e) { fail(e); return false; } },
+    async off() { try { await API.push.disable(); toast('Push notifications are off on this device'); return true; } catch (e) { fail(e); return false; } },
+    // A card for the top of a page: shows only when there's something to do
+    async card(el) {
+      if (!el) return;
+      const st = await push.state();
+      if (!['off', 'install', 'blocked'].includes(st) || (st !== 'blocked' && Date.now() - store.get('push.card', 0) < 7 * 864e5)) { el.innerHTML = ''; return; }
+      const txt = st === 'install' ? ['Get notifications on your iPhone', 'Add Hentity to your Home Screen, open it from there, and turn on notifications.', 'Install the app', 'data-pwa-install']
+        : st === 'blocked' ? ['Notifications are blocked', 'Allow notifications for Hentity in your browser or phone settings to get these on this device.', '', '']
+        : ['Get these on your phone', 'Replies, reviews and your launch, even when Hentity is closed.', 'Turn on', 'data-push-on'];
+      el.innerHTML = `<div class="push-card"><span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">${txt[0]}</p><p class="t-caption c-3" style="font-weight:400">${txt[1]}</p></div>${txt[2] ? `<button class="btn btn--primary btn--sm" type="button" ${txt[3]}>${txt[2]}</button>` : ''}${st !== 'blocked' ? `<button class="nav__icon" type="button" data-push-hide aria-label="Not now">${icon('x', 'ic-16')}</button>` : ''}</div>`;
+      el.onclick = async e => {
+        if (e.target.closest('[data-push-hide]')) { store.set('push.card', Date.now()); el.innerHTML = ''; }
+        else if (e.target.closest('[data-push-on]')) { if (await push.on()) el.innerHTML = ''; else push.card(el); }
+      };
+    }
+  };
   // In the installed app, offer push once the member is signed in (asked on a tap, never on page load)
   function maybePushBanner() {
     const P = window.API && API.push;
     if (!P || !API.uid || !P.supported() || P.permission() !== 'default' || !standalone() || document.querySelector('.pwa-bar')) return;
-    if (/^\/(signin|signup|welcome|offline|admin|settings\/notifications)/.test(location.pathname)) return;
-    if (store.get('pwa.visits', 0) < 2 || Date.now() - store.get('push.dismissed', 0) < 14 * 864e5) return;
+    if (/^\/(signin|signup|welcome|offline|admin|settings\/notifications|notifications|me)/.test(location.pathname)) return;
+    if (Date.now() - store.get('push.dismissed', 0) < 14 * 864e5) return;
     const b = document.createElement('div'); b.className = 'pwa-bar'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Turn on notifications');
     b.innerHTML = `<span class="icon-tile">${icon('bell')}</span><div class="grow" style="min-width:0"><p class="t-label">Turn on notifications</p><p class="t-caption c-3" style="font-weight:400">Replies, reviews and your launch, even when Hentity is closed</p></div><button class="btn btn--primary btn--sm" type="button" data-push-on>Turn on</button><button class="nav__icon" type="button" data-push-close aria-label="Not now">${icon('x', 'ic-16')}</button>`;
     document.body.append(b);
@@ -546,5 +571,5 @@
   // Unread notifications show as a badge on the installed app's icon where the system supports it
   function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
 
-  window.H = { communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  window.H = { push, communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();
