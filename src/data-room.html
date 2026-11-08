@@ -232,7 +232,7 @@ H.mount({ active: 'dataroom', tab: 'you' });
     const L = fid ? links.filter(l => !l.file_ids || l.file_ids.includes(fid)) : links;
     if (!L.length) return `<p class="dr-empty" style="border-top:1px solid var(--color-border-default)">No links yet. One link per investor or event, so you know who’s looking.</p>`;
     return L.map(l => { const off = l.revoked_at || (l.expires_at && new Date(l.expires_at) < new Date());
-      const scope = !l.file_ids ? 'Whole room' : l.file_ids.length === 1 ? (D.files.find(f => f.id === l.file_ids[0]) || {}).name || '1 file' : l.file_ids.length + ' files';
+      const scope = !l.file_ids ? 'Whole room' : !l.file_ids.length ? 'No files left: edit to add some' : l.file_ids.length === 1 ? (D.files.find(f => f.id === l.file_ids[0]) || {}).name || '1 file' : l.file_ids.length + ' files';
       return `<div class="dr-ln${off ? ' is-off' : ''}">${icon('link')}<div style="min-width:0"><b>${esc(l.label)}</b><small>${esc(scope)} · ${{ anyone: 'Anyone with the link', email: 'Verified email', list: 'Only people you added' }[l.mode]} · ${esc(DR.linkUrl(l).replace(/^https?:\/\//, ''))}</small></div>
         <span class="v">${l.viewers || 0} viewer${l.viewers === 1 ? '' : 's'}</span><span class="dr-st ${off ? 'dr-st--opt' : 'dr-st--ok'}">${l.revoked_at ? 'Revoked' : off ? 'Expired' : 'Active'}</span>
         <span class="row gap-4">${off ? (l.revoked_at ? `<button class="btn btn--ghost btn--sm" data-unrevoke="${l.id}">Turn back on</button>` : '') : `<button class="nav__icon" data-copy="${esc(DR.linkUrl(l))}" aria-label="Copy link" title="Copy link">${icon('copy', 'ic-16')}</button><button class="nav__icon" data-edit-link="${l.id}" aria-label="Edit link" title="Edit">${icon('edit', 'ic-16')}</button><button class="nav__icon" data-revoke="${l.id}" aria-label="Revoke link" title="Revoke">${icon('x', 'ic-16')}</button>`}</span></div>`; }).join('');
@@ -240,13 +240,27 @@ H.mount({ active: 'dataroom', tab: 'you' });
   async function linkActions(e) {
     const c = e.target.closest('[data-copy]'), r = e.target.closest('[data-revoke]'), u = e.target.closest('[data-unrevoke]'), ed = e.target.closest('[data-edit-link]');
     try {
-      if (c) { await navigator.clipboard.writeText(c.dataset.copy).catch(() => {}); toast('Link copied'); }
-      if (r) { if (!(await H.confirm('Revoke this link?', { body: 'Anyone who has it loses access straight away, including people viewing right now.', ok: 'Revoke' }))) return; await API.drRevoke(r.dataset.revoke, true); toast('Link revoked'); await load(); refresh(); }
+      if (c) await copyLink(c.dataset.copy);
+      if (r) { if (!(await H.confirm('Revoke this link?', { body: 'Anyone who has it loses access straight away, including people viewing right now.', ok: 'Revoke', danger: true }))) return; await API.drRevoke(r.dataset.revoke, true); toast('Link revoked'); await load(); refresh(); }
       if (u) { await API.drRevoke(u.dataset.unrevoke, false); toast('Link is back on'); await load(); refresh(); }
       if (ed) linkSheet(D.links.find(l => l.id === ed.dataset.editLink), null);
     } catch (er) { H.fail(er); }
   }
   const refresh = () => seg[1] === 'files' ? filePage(seg[2]) : room();
+  // Clipboard can be blocked (older Safari, in-app browsers): then show the link so it can be copied by hand
+  async function copyLink(u) { try { await navigator.clipboard.writeText(u); toast('Link copied'); return true; } catch (e) { readySheet(u, 'Copy this link'); return false; } }
+  function readySheet(u, title) {
+    const el = document.createElement('div'); el.className = 'scrim';
+    el.innerHTML = `<div class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="max-width:480px">
+      <h2 class="t-h3">${esc(title)}</h2><p class="t-body-sm c-2">Send it to the investor. Only this link opens your files, and you can turn it off any time.</p>
+      <input class="input" readonly value="${esc(u)}" style="font-family:var(--font-mono);font-size:13px">
+      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Done</button><button class="btn btn--primary" type="button" data-c>${icon('copy', 'ic-14')}Copy link</button></div></div>`;
+    document.body.append(el);
+    const inp = el.querySelector('input'), close = () => { el.remove(); document.removeEventListener('keydown', k); }, k = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', k); inp.focus(); inp.select();
+    el.addEventListener('click', async e => { if (e.target === el || e.target.closest('[data-x]')) close();
+      if (e.target.closest('[data-c]')) { try { await navigator.clipboard.writeText(u); toast('Link copied'); close(); } catch (er) { inp.select(); toast('Press Ctrl+C (or ⌘C) to copy'); } } });
+  }
 
   // ---- create / edit a link (whole room, or chosen files)
   function linkSheet(link, fid) {
@@ -261,12 +275,14 @@ H.mount({ active: 'dataroom', tab: 'you' });
       <div class="field"><span class="field__label">Who can open it</span>
         ${[['anyone', 'globe', 'Anyone with the link', 'No sign-in. You see views but not who.'], ['email', 'mail', 'Verified email', 'They confirm their email with a code first, so you see exactly who opened it.'], ['list', 'users', 'Only people I add', 'Only these emails or @domains, after a code.']].map(([v, ic, t, d]) => `<label class="dr-radio${l.mode === v ? ' is-on' : ''}"><input type="radio" name="mode" value="${v}"${l.mode === v ? ' checked' : ''}><span class="o"></span><span><b>${icon(ic)}${t}</b><small>${d}</small></span></label>`).join('')}
         <textarea class="input" name="allow" rows="2" placeholder="ama@baobab.vc, @savannahangels.africa" style="margin-top:8px${l.mode === 'list' ? '' : ';display:none'}">${esc((l.allow || []).join(', '))}</textarea></div>
-      <div>${[['download', 'Allow download', 'Off: view in the browser only'], ['watermark', 'Watermark every page', 'Shows the viewer’s email and the date'], ['track', 'Track time per page', 'Viewers are told before they open it']].map(([k, t, d]) => `<label class="dr-tg"><span><b>${t}</b><small>${d}</small></span><span class="toggle"><input type="checkbox" name="${k}"${l[k] ? ' checked' : ''}><span class="toggle__track"></span></span></label>`).join('')}</div>
+      <div>${[['download', 'Allow download', 'Off: view in the browser only'], ['watermark', 'Watermark every page', 'Shows the viewer’s email and the date'], ['track', 'Track views and time per page', 'Viewers are told first. Off: this link shows no analytics']].map(([k, t, d]) => `<label class="dr-tg"><span><b>${t}</b><small>${d}</small></span><span class="toggle"><input type="checkbox" name="${k}"${l[k] ? ' checked' : ''}><span class="toggle__track"></span></span></label>`).join('')}</div>
       <label class="field"><span class="field__label">Link expires</span><select class="input" name="exp">${exp ? `<option value="keep" selected>${DR.day(l.expires_at)} (current)</option>` : ''}<option value=""${exp ? '' : ' selected'}>Never</option><option value="7">In 7 days</option><option value="30">In 30 days</option><option value="90">In 90 days</option></select></label>
       <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">${link ? 'Save' : 'Create link'}</button></div></form>`;
     document.body.appendChild(el);
     const f = el.querySelector('form');
-    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); const s = e.target.closest('#scope .chip'); if (s) { qsa('#scope .chip', el).forEach(b => b.setAttribute('aria-pressed', b === s)); el.querySelector('#files').style.display = s.dataset.v === 'some' ? '' : 'none'; } });
+    const close = () => { el.remove(); document.removeEventListener('keydown', k); }, k = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', k); setTimeout(() => f.label.focus(), 0);
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) close(); const s = e.target.closest('#scope .chip'); if (s) { qsa('#scope .chip', el).forEach(b => b.setAttribute('aria-pressed', b === s)); el.querySelector('#files').style.display = s.dataset.v === 'some' ? '' : 'none'; } });
     f.addEventListener('change', e => { if (e.target.name === 'mode') { qsa('.dr-radio', el).forEach(r => r.classList.toggle('is-on', r.querySelector('input').checked)); f.allow.style.display = e.target.value === 'list' ? '' : 'none'; } });
     f.onsubmit = async e => {
       e.preventDefault(); const b = f.querySelector('[type=submit]');
@@ -276,8 +292,8 @@ H.mount({ active: 'dataroom', tab: 'you' });
       b.disabled = true;
       try {
         const out = await API.drSaveLink(link && link.id, { label: f.label.value, file_ids: some ? ids : null, mode: f.mode.value, allow: f.allow.value.split(/[\s,;]+/).filter(Boolean), download: f.download.checked, watermark: f.watermark.checked, track: f.track.checked, expires_at: expires });
-        el.remove(); await navigator.clipboard.writeText(DR.linkUrl(out)).catch(() => {});
-        toast(link ? 'Link saved' : 'Link created and copied'); await load(); refresh();
+        close(); await load(); refresh();
+        if (link) toast('Link saved'); else readySheet(DR.linkUrl(out), `Link for ${out.label} is ready`);
       } catch (er) { H.fail(er); b.disabled = false; }
     };
   }
@@ -299,7 +315,7 @@ H.mount({ active: 'dataroom', tab: 'you' });
     qs('#rep').onclick = () => { const i = document.createElement('input'); i.type = 'file'; if (pdf) i.accept = '.pdf,application/pdf'; i.onchange = async () => { const x = i.files[0]; if (!x) return; if (f.item) return uploadMany([x], f.item, f.folder);
       // extra files: upload the new one, then remove the old
       try { const pages = /pdf/i.test(x.type) ? await DR.pdfPages(x) : null; const n = await API.drUpload(D.room.id, x, '', f.folder, pages); await API.drDelete(f.id); toast('File replaced'); location.href = '/data-room/files/' + n.id; } catch (e) { H.fail(e); } }; i.click(); };
-    qs('#del').onclick = async () => { if (!(await H.confirm('Delete this file?', { body: 'It’s removed from your data room and from every link that shares it. Its view history goes too.', ok: 'Delete' }))) return; try { await API.drDelete(f.id); toast('Deleted'); location.href = '/data-room'; } catch (e) { H.fail(e); } };
+    qs('#del').onclick = async () => { if (!(await H.confirm('Delete this file?', { body: 'It’s removed from your data room and from every link that shares it. Its view history goes too.', ok: 'Delete', danger: true }))) return; try { await API.drDelete(f.id); toast('Deleted'); location.href = '/data-room'; } catch (e) { H.fail(e); } };
     qsa('.dr-tabs button').forEach(b => b.onclick = () => { history.replaceState(null, '', '#' + b.dataset.tab); qsa('.dr-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); show(b.dataset.tab); });
     root.onclick = linkActions;
     show(tab);
@@ -315,7 +331,7 @@ H.mount({ active: 'dataroom', tab: 'you' });
           <section class="dr-links"><div class="dr-links__h"><div><h2>Share links</h2><p class="t-caption c-3" style="font-weight:400">Links that include this file, including whole-room links</p></div></div>${linksHtml(D.links, f.id)}</section>`;
         qs('#nl2').onclick = () => linkSheet(null, f.id);
         qs('#revall') && (qs('#revall').onclick = async () => { const L = D.links.filter(l => !l.revoked_at && l.file_ids && l.file_ids.includes(f.id)); const whole = D.links.filter(l => !l.revoked_at && !l.file_ids).length;
-          if (!(await H.confirm('Revoke all links to this file?', { body: `${L.length} link${L.length === 1 ? '' : 's'} stop working straight away.${whole ? ` ${whole} whole-room link${whole === 1 ? '' : 's'} still include it: revoke ${whole === 1 ? 'it' : 'them'} from the room page.` : ''}`, ok: 'Revoke' }))) return;
+          if (!(await H.confirm('Revoke all links to this file?', { body: `${L.length} link${L.length === 1 ? '' : 's'} stop working straight away.${whole ? ` ${whole} whole-room link${whole === 1 ? '' : 's'} still include it: revoke ${whole === 1 ? 'it' : 'them'} from the room page.` : ''}`, ok: 'Revoke', danger: true }))) return;
           try { for (const l of L) await API.drRevoke(l.id, true); toast('Links revoked'); await load(); show('share'); } catch (e) { H.fail(e); } });
         stage(qs('#big'), qs('#thumbs'));
         return;
@@ -378,10 +394,10 @@ H.mount({ active: 'dataroom', tab: 'you' });
           <table><thead><tr><th>File</th><th>People</th><th>Avg. time</th><th>Read to the end</th></tr></thead><tbody>
           ${files.length ? files.map(({ f, a }) => `<tr data-open="${f.id}" style="cursor:pointer"><td><span class="row gap-8">${icon('file-text', 'ic-14')}<b style="font-weight:500">${esc(f.item ? DR.itemName(f.item) : f.name)}</b></span></td><td class="mono">${a.people}</td><td class="mono">${DR.secs(a.avg_secs)}</td><td class="mono">${endPct(f, a)}%</td></tr>`).join('') : '<tr><td colspan="4" class="c-3">No file opened yet.</td></tr>'}</tbody></table></section>
         <section class="dr-who"><div class="dr-who__h"><h2>Who viewed it</h2><button class="link link--accent t-body-sm" id="csv">Export CSV</button></div>
-          <table><thead><tr><th>Viewer</th><th>Link</th><th>Last viewed</th><th>Time</th><th>Pages</th><th>Visits</th><th>Device</th></tr></thead><tbody>
-          ${A.viewers.map(v => `<tr><td><span class="row gap-10">${v.email ? `<span class="fav" style="${H.tint(v.email)}">${esc(v.email.slice(0, 2).toUpperCase())}</span><span class="row gap-4" style="white-space:nowrap">${esc(v.email)}${v.verified ? icon('check', 'ic-12') : ''}</span>` : `<span class="fav">${icon('user', 'ic-12')}</span><span class="c-3">Anonymous</span>`}</span></td><td>${esc(v.label)}</td><td>${esc(H.ago(v.last_at))}</td><td class="mono">${DR.secs(v.secs)}</td><td class="mono">${v.pages}</td><td class="mono">${v.opens}</td><td class="c-2">${esc(v.device || '')}</td></tr>`).join('')}</tbody></table>
+          <table><thead><tr><th>Viewer</th><th>Link</th><th>Last viewed</th><th>Time</th><th>Visits</th><th>Device</th></tr></thead><tbody>
+          ${A.viewers.map(v => `<tr><td><span class="row gap-10">${v.email ? `<span class="fav" style="${H.tint(v.email)}">${esc(v.email.slice(0, 2).toUpperCase())}</span><span class="row gap-4" style="white-space:nowrap">${esc(v.email)}${v.verified ? icon('check', 'ic-12') : ''}</span>` : `<span class="fav">${icon('user', 'ic-12')}</span><span class="c-3">Anonymous</span>`}</span></td><td>${esc(v.label)}</td><td>${esc(H.ago(v.last_at))}</td><td class="mono">${DR.secs(v.secs)}</td><td class="mono">${v.opens}</td><td class="c-2">${esc(v.device || '')}</td></tr>`).join('')}</tbody></table>
           <p class="row gap-6 t-caption c-3" style="font-weight:400;padding:12px 16px;border-top:1px solid var(--color-border-default)">${icon('lock', 'ic-12')}Viewers are told about tracking before opening. “Anyone with the link” views show as Anonymous unless they give an email.</p></section>`;
-      qs('#csv').onclick = () => { const rows = [['Email', 'Verified', 'Link', 'Last viewed', 'Seconds', 'Pages', 'Visits', 'Device'], ...A.viewers.map(v => [v.email || 'Anonymous', v.verified ? 'yes' : 'no', v.label, v.last_at, v.secs, v.pages, v.opens, v.device])];
+      qs('#csv').onclick = () => { const rows = [['Email', 'Verified', 'Link', 'Last viewed', 'Seconds', 'Visits', 'Device'], ...A.viewers.map(v => [v.email || 'Anonymous', v.verified ? 'yes' : 'no', v.label, v.last_at, v.secs, v.opens, v.device])];
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(x => `"${String(x == null ? '' : x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv' })); a.download = 'data-room-viewers.csv'; a.click(); };
     }
   }
@@ -398,7 +414,7 @@ H.mount({ active: 'dataroom', tab: 'you' });
     async function draw() {
       const ab = qs('#ab'); let A;
       try { A = await API.drAnalytics(f.id, lid, days); } catch (e) { ab.innerHTML = `<div class="dr-empty">${esc(e.message || 'Couldn’t load analytics')}</div>`; return; }
-      if (!A || !A.sessions) { ab.innerHTML = `<div class="dr-who"><div class="dr-empty">No views yet${lid ? ' on this link' : ''}. Share a link and you’ll see who opens ${esc(f.item === 'deck' ? 'your deck' : 'this file')}, for how long, and where they stop.</div></div>`; return; }
+      if (!A || !A.sessions) { ab.innerHTML = `<div class="dr-who"><div class="dr-empty">No views yet${lid ? ' on this link' : ''}. Share a link and you’ll see who opens ${esc(f.item === 'deck' ? 'your deck' : 'this file')}, for how long, and where they stop.<br><button class="btn btn--primary btn--sm" id="mk" style="margin-top:12px">${icon('link', 'ic-14')}Create a link</button></div></div>`; qs('#mk').onclick = () => linkSheet(null, f.id); return; }
       const P = f.pages || Math.max(1, ...A.pages.map(p => p.page)), pg = Array.from({ length: P }, (_, i) => A.pages.find(p => p.page === i + 1) || { page: i + 1, avg: 0, reach: 0 });
       const sess = A.sessions || 1, endPct = Math.round((pg[P - 1].reach || 0) / sess * 100);
       const top = [...pg].sort((a, b) => b.avg - a.avg).slice(0, 2).map(p => p.page);

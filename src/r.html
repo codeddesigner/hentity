@@ -67,8 +67,8 @@ H.mount({});
     root.innerHTML = `<div class="rv">${top}<div class="rv-cover" style="--c:${esc(L.color || '#0a0a0a')}"><span class="nm">${esc(L.company)}</span><span class="lk">${icon('lock', 'ic-18')}</span></div>
       <h1>${esc(L.company)} shared ${L.single ? '“' + what + '”' : what} with you</h1><p class="sub">${L.single && L.single.pages ? `${L.single.pages} pages · ` : ''}${L.label ? 'link for ' + esc(L.label) : 'private link'}</p>
       ${sentTo ? `<form id="f2"><p class="t-body-sm c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${esc(sentTo)}</b>. It works for 15 minutes.</p>
-          <input class="input rv-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required autofocus>
-          <button class="btn btn--accent btn--block" type="submit">Open</button><button class="link t-caption" type="button" id="back" style="align-self:center">Use a different email</button></form>`
+          <input class="input rv-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="000000" required autofocus>
+          <button class="btn btn--accent btn--block" type="submit">Open</button><p class="row gap-12" style="justify-content:center"><button class="link t-caption" type="button" id="again">Send a new code</button><span class="c-3">·</span><button class="link t-caption" type="button" id="back">Use a different email</button></p></form>`
         : L.mode === 'anyone' ? `<form id="f0"><label class="field"><span class="field__label">Your email <span class="c-3" style="font-weight:400">(optional)</span></span><input class="input" name="em" type="email" autocomplete="email" placeholder="you@fund.com"></label><button class="btn btn--accent btn--block" type="submit">Open</button></form>`
         : `<form id="f1"><label class="field"><span class="field__label">Your work email</span><input class="input" name="em" type="email" autocomplete="email" placeholder="you@fund.com" required></label><button class="btn btn--accent btn--block" type="submit">Send me a code</button></form>`}
       <div class="rv-notes">${notes.map(([ic, t]) => `<p>${ic}<span>${t}</span></p>`).join('')}</div>
@@ -79,6 +79,9 @@ H.mount({});
     f1 && (f1.onsubmit = async e => { e.preventDefault(); const b = f1.querySelector('button'), em = f1.em.value.trim(); b.disabled = true; try { await API.drCode(tok, em); gate(em); } catch (er) { H.fail(er); b.disabled = false; } });
     f2 && (f2.onsubmit = async e => { e.preventDefault(); const b = f2.querySelector('[type=submit]'); b.disabled = true; try { open(await API.drStart(tok, sentTo, f2.code.value.trim(), DR.device())); } catch (er) { H.fail(er); b.disabled = false; } });
     qs('#back') && (qs('#back').onclick = () => gate());
+    // Pasted codes often carry spaces or dashes; six digits sends it straight away
+    f2 && f2.code.addEventListener('input', () => { const v = f2.code.value.replace(/\D/g, '').slice(0, 6); f2.code.value = v; if (v.length === 6) f2.requestSubmit(); });
+    qs('#again') && (qs('#again').onclick = async e => { const b = e.currentTarget; b.disabled = true; try { await API.drCode(tok, sentTo); toast('New code sent. Check your inbox and spam folder.'); } catch (er) { H.fail(er); } setTimeout(() => { b.disabled = false; }, 20000); });
   }
 
   // ---- the files
@@ -88,7 +91,7 @@ H.mount({});
     const files = S.files || [];
     const mark = S.watermark ? `${S.email || 'Shared privately'} · ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : '';
     root.innerHTML = `<div class="rw"><div class="rv-top" style="margin-bottom:12px"><a class="logo" href="/" aria-label="Hentity">${H.logo()}</a><span class="t-caption c-3" style="font-weight:400">${S.email ? 'Viewing as ' + esc(S.email) : 'Shared privately'}</span></div>
-      <div class="rw-head"><div><h1>${esc(L.company)}${L.label ? ` · ${esc(L.label)}` : ''}</h1><p>${files.length} file${files.length === 1 ? '' : 's'}${S.track ? ' · time on each page is shared with ' + esc(L.company) : ''}</p></div></div>
+      <div class="rw-head"><div><h1>${esc(L.company)}${L.label ? ` · ${esc(L.label)}` : ''}</h1><p>${files.length} file${files.length === 1 ? '' : 's'}${S.owner ? ' · this is your own link, so your visit isn’t counted' : S.track ? ' · time on each page is shared with ' + esc(L.company) : ''}</p></div></div>
       ${files.length > 1 ? `<div class="rw-files" id="tabs">${files.map((f, i) => `<button data-i="${i}"${i === 0 ? ' aria-current="true"' : ''}>${icon(DR.kind(f) === 'pdf' ? 'file-text' : DR.kind(f) === 'image' ? 'image' : DR.kind(f) === 'video' ? 'video' : 'file-text', 'ic-14')}${esc(f.item ? DR.itemName(f.item) : f.name)}</button>`).join('')}</div>` : ''}
       <div id="doc" class="rw-doc${S.download ? '' : ' nosel'}"></div></div>`;
     H.contentShown();

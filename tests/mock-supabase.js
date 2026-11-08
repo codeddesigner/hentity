@@ -306,6 +306,8 @@
     dr_analytics: () => ({ views: 66, views_week: 18, people: 23, verified: 19, avg_secs: 348, median_secs: 250, sessions: 30,
       pages: [8, 22, 25, 31, 28, 52, 24, 47, 18, 15, 34, 12, 29, 4].map((a, i) => ({ page: i + 1, avg: a, reach: [30, 30, 29, 29, 28, 28, 26, 25, 16, 15, 15, 14, 13, 9][i] })),
       viewers: [{ email: 'ama@baobab.vc', verified: true, label: 'Baobab Ventures', secs: 580, pages: 14, opens: 3, device: 'desktop', last_at: ago(2) }, { email: 'kemi@kolacap.com', verified: true, label: 'Demo Day Nairobi', secs: 372, pages: 14, opens: 1, device: 'mobile', last_at: ago(20) }, { email: '', verified: false, label: 'Demo Day Nairobi', secs: 78, pages: 6, opens: 1, device: 'mobile', last_at: ago(60) }] }),
+    dr_save_link: a => ({ id: 'l-new', token: '9f2c4e7a1b3d5f60a8c2e4b1', label: a.lbl, mode: a.md }),
+    dr_request_code: () => ({ sent: true }),
     dr_open: () => ({ ok: true, company: 'Mazao Hub', color: '#0f3d2e', label: 'Baobab Ventures', mode: 'email', download: false, watermark: true, track: true, files: 1, single: { name: 'Mazao Hub pitch deck.pdf', pages: 14 } }),
     validate_idea: a => { T.idea_checks = T.idea_checks || []; const P = T.products.filter(p => ['live', 'unclaimed', 'scheduled'].includes(p.status));
       const words = a.idea.toLowerCase().match(/[a-z]{4,}/g) || [];
