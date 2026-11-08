@@ -53,7 +53,7 @@
 .fu-cheque{font-weight:500;font-variant-numeric:tabular-nums}
 .fu-fit{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
 .fu-empty{padding:40px 20px;text-align:center;color:var(--color-text-secondary)}
-.fu-lock{position:relative}
+.fu-lock{position:relative;min-height:560px}
 .fu-lock .fu-blur{filter:blur(6px);opacity:.55;pointer-events:none;user-select:none}
 .fu-lockcard{position:absolute;left:50%;top:80px;transform:translateX(-50%);width:min(430px,calc(100% - 32px));padding:26px;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.12);z-index:2}
 .fu-steps{display:flex;flex-direction:column;gap:10px;margin:16px 0 20px}
@@ -99,6 +99,7 @@
 .spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--color-border-default);border-top-color:var(--color-accent-default);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (max-width:768px){.fu-deck{align-items:flex-start;flex-wrap:wrap}.fu-deck .btn{margin-left:auto}}
+.fu-allrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--color-border-default);color:inherit;text-decoration:none}.fu-allrow:first-child{border-top:0}.fu-allrow:hover span:first-child span:first-child{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -139,7 +140,14 @@ H.mount({ active: 'funding', tab: 'you' });
           ${signed ? `<div class="grid-2" style="gap:8px"><a class="btn btn--accent" href="/submit">${icon('plus')}List your product</a><a class="btn btn--secondary" href="/directory?profile=unclaimed">Claim your startup</a></div><p class="t-caption c-3" style="font-weight:400;margin-top:12px">Your startup may already be on Hentity. Claiming takes a minute.</p>`
             : `<div class="grid-2" style="gap:8px"><a class="btn btn--accent" href="/signup?next=/funding">Create account</a><a class="btn btn--secondary" href="/signin?next=/funding">Sign in</a></div>`}
         </div></div>`;
-    root.addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) { mode = b.dataset.mode; root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); root.querySelector('.fu-sub').innerHTML = subtitle(''); } });
+    // Every listing, browsable: name, funder and amount are public; matching and apply links are for members
+    const all = await (async () => { try { const r = await API.sb.from('funding_opps').select('id,name,org,kind,mode,amount_text,deadline,round_note,categories').eq('active', true).order('name'); return (r && r.data) || []; } catch (e) { return []; } })();
+    const sec = document.createElement('section'); sec.className = 'fu-all'; sec.style.marginTop = '32px'; root.append(sec);
+    const drawAll = () => { const rows = all.filter(o => o.mode === mode);
+      sec.innerHTML = `<h2 class="t-h3">All ${rows.length} ${mode === 'grant' ? 'grants, prizes and competitions' : 'investors, angel networks and accelerators'} for African startups</h2>
+        <div class="card" style="margin-top:12px;padding:4px 16px">${rows.map(o => `<a class="fu-allrow" href="${FU.path(o)}"><span style="min-width:0"><span class="truncate" style="display:block;font-weight:500">${esc(o.name)}</span><span class="t-caption c-3 truncate" style="display:block;font-weight:400">${esc([o.org && o.org !== o.name ? o.org : FU.KIND[o.kind], (o.categories || []).slice(0, 3).join(', ')].filter(Boolean).join(' · '))}</span></span><span class="t-body-sm c-2" style="flex:none;text-align:right">${esc(o.amount_text || '')}${mode === 'grant' && o.deadline && FU.daysLeft(o.deadline) >= 0 ? `<span class="t-caption c-3" style="display:block;font-weight:400">Deadline ${FU.fmtDate(o.deadline)}</span>` : ''}</span></a>`).join('')}</div>`; };
+    drawAll();
+    root.addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) { mode = b.dataset.mode; root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); root.querySelector('.fu-sub').innerHTML = subtitle(''); drawAll(); } });
     H.contentShown && H.contentShown(); return;
   }
 

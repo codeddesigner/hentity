@@ -6,8 +6,20 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/funding",
+      "destination": "/api/ssr?type=funding"
+    },
+    {
+      "source": "/insights",
+      "destination": "/api/ssr?type=insights"
+    },
+    {
+      "source": "/radar",
+      "destination": "/api/ssr?type=radar"
+    },
+    {
       "source": "/funding/:id",
-      "destination": "/funding-opp"
+      "destination": "/api/ssr?type=fopp&slug=:id"
     },
     {
       "source": "/v1/insights",
@@ -297,7 +309,7 @@
   ],
   "functions": {
     "api/ssr.js": {
-      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply,directory-index}.html",
+      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply,directory-index,discuss-index,funding-index,funding-opp,insights-index,radar-index}.html",
       "maxDuration": 10
     },
     "api/sitemap.js": {

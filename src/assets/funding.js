@@ -32,6 +32,11 @@
   const applyUrl = o => o.apply_url || o.website;
   const isOpen = o => o.status ? ['open', 'rolling'].includes(o.status) : (!!o.deadline || !o.round_note);   // closed rounds carry a round note and no date
 
+  // Public, readable URL for a listing: /funding/<name>-<id> (the id alone still works)
+  const slug = n => String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70).replace(/-$/, '');
+  const path = o => '/funding/' + (slug(o.name) ? slug(o.name) + '-' : '') + o.id;
+  const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const idFrom = seg => ((seg || '').match(UUID) || [seg || ''])[0];
   const pickPid = list => { const want = H.params().get('p') || store.get('fundingPid', ''); return (list.find(p => p.id === want) || list[0] || {}).id; };
   const setPid = id => store.set('fundingPid', id);
   const copy = (text, what) => navigator.clipboard.writeText(text).then(() => toast((what || 'Text') + ' copied'), () => toast('Couldn’t copy', 'error'));
@@ -253,5 +258,5 @@
   }
   const deckLine = d => d ? [d.source === 'deck' ? (d.deck_name || 'Your deck') : 'Your description', (d.sectors || []).join(', '), d.stage, d.raise_usd ? 'raising ' + money(d.raise_usd) : ''].filter(Boolean).join(' · ') : '';
 
-  window.FU = { CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, copy, sheet, linkBox, bindLink, investorSheet, editSheet, editBtn, why, TIER, readDeck, deckSheet, deckLine, money };
+  window.FU = { slug, path, idFrom, CN, TEAM, KIND, TRACK, initials, logo, daysLeft, fmtDate, deadlineChip, deadlineText, howLabel, fit, dots, productLine, host, applyUrl, isOpen, pickPid, setPid, copy, sheet, linkBox, bindLink, investorSheet, editSheet, editBtn, why, TIER, readDeck, deckSheet, deckLine, money };
 })();

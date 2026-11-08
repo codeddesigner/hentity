@@ -9,7 +9,7 @@ head = (SRC / 'partials/head.html').read_text()
 
 # Signed-in or transactional pages that should never appear in search results
 NOINDEX = {'me', 'my-products', 'notifications', 'saved', 'submit', 'under-review', 'changes-requested', 'scheduled',
-           'launch-week', 'launch-recap', 'welcome', 'offline',
+           'launch-week', 'launch-recap', 'welcome', 'offline', 'chats', 'signin',
            'admin', '404', 'maker', 'product', 'article', 'beta', 'beta-new', 'beta-manage', 'beta-apply', 'studio', 'betas', 'directory-index'}  # templates: real URLs are server-rendered by api/ssr.js
 
 def seo(page: str, rel: pathlib.Path) -> str:
@@ -41,7 +41,9 @@ def seo(page: str, rel: pathlib.Path) -> str:
             f'<meta name="twitter:description" content="{html.escape(desc)}">',
             f'<meta name="twitter:image" content="{SITE}/og.png?v={OG_V}">',
         ]
-    return page.replace('</head>', '\n'.join(tags) + '\n</head>', 1), (None if private else path)
+    # Only indexable pages go in the sitemap (a noindex URL there is a Search Console error)
+    indexable = not private and not re.search(r'<meta name="robots" content="[^"]*noindex', page)
+    return page.replace('</head>', '\n'.join(tags) + '\n</head>', 1), (path if indexable else None)
 
 # Cache busting: every /assets/* reference gets ?v=<content hash>, so a changed file has a new URL and
 # browsers can't keep running a stale copy (Cloudflare tells browsers to keep scripts for hours).
@@ -61,7 +63,7 @@ def bust(page: str) -> str:
 
 # The home and news pages are served by api/ssr.js (which embeds their data), so their templates are written
 # under other names; a static /index.html or /news.html would otherwise take priority over the rewrite.
-SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html', 'directory.html': 'directory-index.html', 'discuss.html': 'discuss-index.html'}
+SERVED_BY_SSR = {'index.html': 'home.html', 'news.html': 'news-index.html', 'directory.html': 'directory-index.html', 'discuss.html': 'discuss-index.html', 'funding.html': 'funding-index.html', 'insights.html': 'insights-index.html', 'radar.html': 'radar-index.html'}
 
 if OUT.exists(): shutil.rmtree(OUT)
 public_paths = []

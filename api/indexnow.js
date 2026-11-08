@@ -8,13 +8,21 @@ const get = p => fetch(`${SB}/rest/v1/${p}`, { headers: { apikey: KEY } }).then(
 
 module.exports = async (req, res) => {
   const since = new Date(Date.now() - 2 * 864e5).toISOString();
-  const [products, articles] = await Promise.all([
+  // ?all=funding submits every funding listing once (e.g. after the pages first went public)
+  const fSince = req.query && req.query.all === 'funding' ? '1970-01-01' : since;
+  const [products, articles, funding, threads] = await Promise.all([
     get(`product_feed?status=in.(scheduled,live,unclaimed)&updated_at=gte.${since}&select=slug,categories,country&limit=1000`),
-    get(`articles?status=eq.published&published_at=gte.${since}&select=slug&limit=500`)
+    get(`articles?status=eq.published&published_at=gte.${since}&select=slug&limit=500`),
+    get(`funding_opps?active=eq.true&updated_at=gte.${fSince}&select=id,name&limit=2000`),
+    get('rpc/d_sitemap')
   ]);
+  const fslug = n => S.slugify(n).slice(0, 70).replace(/-$/, '');
   const urls = new Set();
   products.forEach(p => { urls.add(`${S.SITE}/products/${p.slug}`); (p.categories || []).forEach(c => urls.add(S.SITE + S.catUrl(c))); if (S.countryUrl(p.country)) urls.add(S.SITE + S.countryUrl(p.country)); });
   articles.forEach(a => urls.add(`${S.SITE}/news/${a.slug}`));
+  funding.forEach(o => urls.add(`${S.SITE}/funding/${fslug(o.name) ? fslug(o.name) + '-' : ''}${o.id}`));
+  if (funding.length) urls.add(S.SITE + '/funding');
+  (Array.isArray(threads) ? threads : []).filter(t => t.mod && t.mod >= since).forEach(t => urls.add(`${S.SITE}/d/${t.c}/${t.s}`));
   if (urls.size) { urls.add(S.SITE + '/'); urls.add(S.SITE + '/directory'); }
   let status = 'nothing new';
   if (urls.size) {

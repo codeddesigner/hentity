@@ -148,6 +148,91 @@ async function build(type, slug) {
         ${(T.related || []).length ? `<h2>Related discussions</h2><ul>${T.related.map(r => `<li><a href="/d/${esc(r.community)}/${esc(r.slug)}">${esc(r.title)}</a> — h/${esc(r.community)}</li>`).join('')}</ul>` : ''}`
     };
   }
+  // Funding: the public basics of every grant and investor (matching and apply links stay for members)
+  if (type === 'funding' || type === 'fopp') {
+    const KIND = { grant: 'Grant', prize: 'Prize', competition: 'Competition', vc: 'VC fund', angel: 'Angel network', accelerator: 'Accelerator', micro_vc: 'Micro-VC' };
+    const fslug = n => S.slugify(n).slice(0, 70).replace(/-$/, '');
+    const fpath = o => `/funding/${fslug(o.name) ? fslug(o.name) + '-' : ''}${o.id}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const fdate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    const row = o => `<li><a href="${fpath(o)}"><strong>${esc(o.name)}</strong></a>${o.org && o.org !== o.name ? ` (${esc(o.org)})` : ''} — ${esc(KIND[o.kind] || '')}${o.amount_text ? ', ' + esc(o.amount_text) : ''}${o.deadline && o.deadline >= today ? `, deadline ${fdate(o.deadline)}` : ''}${(o.categories || []).length ? ` · ${esc(o.categories.join(', '))}` : ''}</li>`;
+    if (type === 'funding') {
+      const rows = await rest('funding_opps?active=eq.true&select=id,name,org,kind,mode,amount_text,deadline,categories,countries&order=name').catch(() => []);
+      const g = rows.filter(o => o.mode === 'grant'), e = rows.filter(o => o.mode === 'equity');
+      const open = g.filter(o => o.deadline && o.deadline >= today).sort((a, b) => a.deadline.localeCompare(b.deadline));
+      const lead = `${g.length} grants, prizes and competitions and ${e.length} investors, angel networks and accelerators backing startups in Africa. Hentity matches them to your product’s sector, stage, country and team.`;
+      return { title: `Grants and investors for African startups (${new Date().getFullYear()}) | Hentity Funding`, desc: clip(lead, 160), path: '/funding', type: 'website',
+        ld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Funding for African startups', description: lead, url: SITE + '/funding',
+          mainEntity: { '@type': 'ItemList', numberOfItems: rows.length, itemListElement: rows.slice(0, 200).map((o, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + fpath(o), name: o.name })) } },
+          crumbs([['Funding', '/funding']])],
+        main: `<h1>Grants and investors for African startups</h1><p>${esc(lead)}</p>
+          ${open.length ? `<h2>Grants closing soon</h2><ul>${open.map(row).join('')}</ul>` : ''}
+          <h2>Grants, prizes and competitions (${g.length})</h2><ul>${g.map(row).join('')}</ul>
+          <h2>Investors, angel networks and accelerators (${e.length})</h2><ul>${e.map(row).join('')}</ul>
+          <p><a href="/signup?next=/funding">Create a free account</a> and list your product to see which ones you qualify for.</p>${S.nav()}` };
+    }
+    const id = (String(slug).match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || [])[0];
+    if (!id) return null;
+    const [o] = await rest(`funding_opps?id=eq.${id}&active=eq.true&select=id,mode,kind,name,org,logo_url,amount_text,amount_note,amount_usd,categories,stages,countries,region_label,women_only,needs_incorporation,needs_live,deadline,deadline_note,decision_by,slots_text,round_note,judging,description,checked_at,portfolio,updated_at`);
+    if (!o) return null;
+    const grant = o.mode === 'grant', kind = KIND[o.kind] || (grant ? 'Grant' : 'Investor');
+    const cs = o.countries || [], place = cs.length === 1 ? (COUNTRY[cs[0]] || cs[0]) : 'African';
+    const where = o.region_label || (cs.length ? cs.map(c => COUNTRY[c] || c).join(', ') : 'Startups across Africa');
+    const open = o.deadline && o.deadline >= today;
+    const rules = [['Sector', (o.categories || []).join(', ') || 'Any sector'], ['Stage', (o.stages || []).join(', ') || 'Any stage'], ['Where', where],
+      o.women_only && ['Team', 'Women-founded or co-founded'], o.needs_incorporation && ['Company', 'Must be a registered company'], o.needs_live && ['Product', 'Must have a live product']].filter(Boolean);
+    const similar = (o.categories || []).length ? await rest(`funding_opps?active=eq.true&mode=eq.${o.mode}&id=neq.${o.id}&categories=ov.${encodeURIComponent('{' + o.categories.map(c => '"' + c.replace(/"/g, '') + '"').join(',') + '}')}&select=id,name,org,kind,amount_text,deadline,categories&limit=8`).catch(() => []) : [];
+    const path = fpath(o);
+    const desc = clip(`${o.name}${o.org && o.org !== o.name ? ' by ' + o.org : ''}: ${kind.toLowerCase()}${o.amount_text ? ' of ' + o.amount_text : ''} for ${(o.categories || []).length ? o.categories.slice(0, 3).join(', ') + ' ' : ''}startups (${where}).${open ? ' Deadline ' + fdate(o.deadline) + '.' : ''} ${o.description || ''}`, 160);
+    const funder = { '@type': 'Organization', name: o.org || o.name, ...(o.logo_url ? { logo: o.logo_url } : {}) };
+    const ld = grant
+      ? { '@context': 'https://schema.org', '@type': 'MonetaryGrant', name: o.name, description: o.description || desc, url: SITE + path, funder,
+          ...(o.amount_usd ? { amount: { '@type': 'MonetaryAmount', currency: 'USD', value: Number(o.amount_usd) } } : {}),
+          areaServed: cs.length ? cs.map(c => ({ '@type': 'Country', name: COUNTRY[c] || c })) : { '@type': 'Place', name: 'Africa' } }
+      : { '@context': 'https://schema.org', '@type': 'Organization', name: o.name, description: o.description || desc, url: SITE + path, ...(o.logo_url ? { logo: o.logo_url } : {}),
+          knowsAbout: o.categories || [], areaServed: cs.length ? cs.map(c => ({ '@type': 'Country', name: COUNTRY[c] || c })) : { '@type': 'Place', name: 'Africa' } };
+    return {
+      title: `${o.name}: ${kind.toLowerCase()} for ${place} startups | Hentity Funding`, desc, path, image: o.logo_url, type: 'website',
+      ld: [ld, crumbs([['Funding', '/funding'], [o.name, path]])],
+      main: `<nav aria-label="Breadcrumb"><a href="/">Hentity</a> / <a href="/funding">Funding</a> / ${esc(o.name)}</nav>
+        <h1>${esc(o.name)}</h1><p><strong>${esc(o.org && o.org !== o.name ? o.org + ' · ' : '')}${esc(kind)}${o.amount_text ? ' · ' + esc(o.amount_text) : ''}${o.amount_note ? ' (' + esc(o.amount_note) + ')' : ''}</strong></p>
+        ${o.description ? `<p>${esc(o.description)}</p>` : ''}
+        ${open ? `<p>Deadline: ${fdate(o.deadline)}${o.deadline_note ? ', ' + esc(o.deadline_note) : ''}${o.decision_by ? `. Decision by ${fdate(o.decision_by)}` : ''}.</p>` : o.round_note ? `<p>${esc(o.round_note)}</p>` : ''}
+        ${o.slots_text ? `<p>${esc(o.slots_text)}</p>` : ''}
+        <h2>Who ${grant ? 'can apply' : 'they back'}</h2><dl>${rules.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+        ${(o.judging || []).length ? `<h2>How it’s judged</h2><ul>${o.judging.map(j => `<li>${esc(j.label)}: ${esc(String(j.pct))}%</li>`).join('')}</ul>` : ''}
+        ${(o.portfolio || []).length ? `<h2>Portfolio</h2><p>${esc(o.portfolio.join(', '))}</p>` : ''}
+        ${o.checked_at ? `<p>Details checked by Hentity on ${fdate(o.checked_at)}.</p>` : ''}
+        <p><a href="/signup?next=${encodeURIComponent(path)}">Create a free account</a> to see if your product qualifies, get the application link and deadline reminders.</p>
+        ${similar.length ? `<h2>Similar ${grant ? 'grants' : 'investors'}</h2><ul>${similar.map(row).join('')}</ul>` : ''}
+        <p><a href="/funding">All grants and investors for African startups</a></p>`
+    };
+  }
+  // Insights: the headline numbers as text, linking to the category and country pages
+  if (type === 'insights') {
+    const d = await rest('rpc/insights?days=30').catch(() => null);
+    if (!d) return null;
+    const ind = (d.industries || []).slice(0, 8), ctry = (d.countries || []).slice(0, 8), cities = (d.city_list || []).slice(0, 10);
+    const lead = `${d.total} startups and products on Hentity across ${(d.countries || []).length} African countries and ${d.cities} cities. ${ind[0] ? ind[0].name + ' leads with ' + ind[0].n + ' products' : ''}${ctry[0] ? ', and ' + (COUNTRY[ctry[0].cc] || ctry[0].cc) + ' has the most startups (' + ctry[0].n + ')' : ''}. Updated hourly.`;
+    const link = (url, t) => url ? `<a href="${url}">${esc(t)}</a>` : esc(t);
+    return { title: `The state of African startups: sectors, countries and cities (${new Date().getFullYear()}) | Hentity Insights`, desc: clip(lead, 160), path: '/insights', type: 'website',
+      ld: [{ '@context': 'https://schema.org', '@type': 'Dataset', name: 'The state of African startups', description: lead, url: SITE + '/insights', creator: { '@type': 'Organization', name: 'Hentity', url: SITE },
+        dateModified: new Date().toISOString(), isAccessibleForFree: true, spatialCoverage: { '@type': 'Place', name: 'Africa' }, keywords: ['African startups', 'startup ecosystem', ...ind.map(x => x.name)],
+        license: 'https://creativecommons.org/licenses/by/4.0/', distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: SITE + '/insights' }] }, crumbs([['Insights', '/insights']])],
+      ssr: `<h2>The state of African startups</h2><p>${esc(lead)}</p>
+        ${ind.length ? `<h2>Top sectors</h2><ul>${ind.map(x => `<li>${link(S.CAT_BY_SLUG[S.slugify(x.name)] ? S.catUrl(x.name) : null, x.name)}: ${x.n} products</li>`).join('')}</ul>` : ''}
+        ${ctry.length ? `<h2>Top countries</h2><ul>${ctry.map(x => `<li>${link(S.countryUrl(x.cc), COUNTRY[x.cc] || x.cc)}: ${x.n} startups</li>`).join('')}</ul>` : ''}
+        ${cities.length ? `<h2>Top cities</h2><ul>${cities.map(x => `<li>${esc(x.city)}, ${esc(COUNTRY[x.cc] || x.cc)}: ${x.n}</li>`).join('')}</ul>` : ''}
+        ${(d.stages || []).length ? `<h2>By stage</h2><ul>${d.stages.map(x => `<li>${esc(x.stage)}: ${x.n}</li>`).join('')}</ul>` : ''}` };
+  }
+  // Radar: new startups Hentity found in the news, app stores and registries
+  if (type === 'radar') {
+    const rows = await rest(`product_feed?status=eq.unclaimed&select=${LIST}&order=created_at.desc&limit=60`).catch(() => []);
+    const lead = `New African startups found by Hentity in the news, app stores and company registries${rows.length ? ': ' + rows.slice(0, 4).map(p => p.name).join(', ') + ' and more' : ''}. Follow them, or ask the team to join.`;
+    return { title: 'On the radar: new African startups this week | Hentity', desc: clip(lead, 160), path: '/radar', type: 'website',
+      ld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'New African startups on the radar', description: lead, url: SITE + '/radar', mainEntity: { '@type': 'ItemList', numberOfItems: rows.length, itemListElement: rows.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/products/${p.slug}`, name: p.name })) } }, crumbs([['Radar', '/radar']])],
+      ssr: `<h2>New startups on the radar</h2><p>${esc(lead)}</p>${S.list(rows)}${S.nav()}` };
+  }
   if (type === 'beta') {
     const [b] = await rest(`betas?slug=eq.${encodeURIComponent(slug)}&status=in.(open,closed)&select=slug,title,why,spots,accepted_count,perk,airtime_amount,closes_at,product:products(name,slug,logo_url,tagline)`);
     if (!b) return null;
@@ -205,7 +290,7 @@ module.exports = async (req, res) => {
   res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
   const { type } = req.query;
   const slug = req.query.post ? `${req.query.slug}~${req.query.post}` : req.query.slug;
-  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', country: '/directory-index', directory: '/directory-index' }[type];
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', country: '/directory-index', directory: '/directory-index', funding: '/funding-index', fopp: '/funding-opp', insights: '/insights-index', radar: '/radar-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
@@ -215,7 +300,7 @@ module.exports = async (req, res) => {
     try { const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } }); page = await r.text(); }
     catch (e2) { res.statusCode = 502; return res.end('Template unavailable'); }
   }
-  const key = type === 'discuss' ? 'discuss' : slug ? String(slug).toLowerCase() : '';
+  const key = ['discuss', 'funding', 'insights', 'radar'].includes(type) ? type : slug ? String(slug).toLowerCase() : '';
   // Short edge cache: repeat visits are served instantly, and nothing is more than ~a minute old
   // Browsers always re-check (so a new release shows on the next load); Vercel's edge keeps a 30s copy.
   const CACHE = 'public, max-age=0, must-revalidate';
