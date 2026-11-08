@@ -5,15 +5,15 @@
 <title>Validate an idea | Hentity</title>
 <meta name="description" content="Is anyone already building your idea? Check it against every African startup on Hentity and see how new it is, who's closest and where it's crowded.">
 <style>
-.va{max-width:1064px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+.va{max-width:1064px;margin:0 auto;padding:40px 56px 80px;box-sizing:content-box;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
 .va h1{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.03em;margin:8px 0 10px}
-.va-lead{font-size:17px;line-height:28px;color:var(--color-text-secondary);max-width:62ch}
-.va-card{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:16px;padding:20px}
-.va-lbl{font-size:13px;font-weight:500;margin:18px 0 8px;display:block}
+.va-lead{font-size:16px;line-height:24px;color:var(--color-text-secondary);max-width:62ch}
+.va-card{background:var(--color-bg-canvas);border:1px solid var(--color-border-default);border-radius:14px;padding:16px}
+.va-lbl{font-size:13px;line-height:16px;font-weight:500;margin:16px 0 8px;display:block}
 .va-lbl:first-child{margin-top:0}
-.va textarea.input{min-height:120px;font-size:15px;line-height:22px}
+.va textarea.input{min-height:100px;font-size:14px;line-height:20px}
 .va-hint{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--color-text-tertiary);margin-top:6px}
-.va-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.va-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
 .va-rail li{display:flex;gap:12px;align-items:flex-start}
 .va-rail .ib{width:28px;height:28px;border-radius:8px;background:var(--color-bg-subtle);display:grid;place-items:center;flex:none;color:var(--color-text-secondary)}
 .va-recent a{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0}
@@ -24,8 +24,8 @@
 .va-steps .now .dot{border:2px dashed var(--color-accent-default);animation:spin 2s linear infinite}
 .va-steps .todo{opacity:.55}
 @keyframes spin{to{transform:rotate(360deg)}}
-.voice{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 4px;border-radius:999px;border:1px solid var(--color-border-default);background:var(--color-bg-subtle);font-size:13px;font-weight:500;margin-top:12px}
-.voice i{width:32px;height:32px;border-radius:50%;background:var(--color-accent-default);color:#fff;display:grid;place-items:center}
+.voice{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 4px;border-radius:999px;border:1px solid var(--color-border-default);background:var(--color-bg-subtle);font-size:13px;font-weight:500;margin-top:12px}
+.voice i{width:26px;height:26px;border-radius:50%;background:var(--color-accent-default);color:#fff;display:grid;place-items:center}
 .voice.on i{animation:pulse 1.2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,91,20,.5)}70%{box-shadow:0 0 0 8px rgba(255,91,20,0)}100%{box-shadow:0 0 0 0 rgba(255,91,20,0)}}
 /* report */
@@ -128,7 +128,7 @@ H.mount({ active: 'validate', tab: 'launch' });
           <div class="va-2"><div><span class="va-lbl">How will it make money?</span>${chips('money', [['Subscription', 'Subscription'], ['Commission', 'Commission'], ['One-off', 'One-off sale'], ['Not sure', 'Not sure yet']], f.money)}</div>
             <div><span class="va-lbl">Where are you?</span>${chips('stage', [['idea', 'Just an idea'], ['building', 'Building'], ['users', 'Have users']], f.stage)}</div></div>
           <div class="row between gap-12 wrap" style="margin-top:22px"><p class="row gap-6 t-caption c-3" style="font-weight:400">${icon('lock', 'ic-14')}Private to you. Never shown to makers or used for anything public.</p>
-            <div class="va-sticky"><button class="btn btn--accent btn--lg btn--block" type="submit" id="go">${icon('sparkles', 'ic-16')}Validate idea</button></div></div>
+            <div class="va-sticky"><button class="btn btn--accent btn--block" type="submit" id="go">${icon('sparkles', 'ic-16')}Validate idea</button></div></div>
         </form>
       </div>
       <aside class="stack gap-16">

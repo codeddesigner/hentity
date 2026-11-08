@@ -110,6 +110,10 @@
       "destination": "/api/ssr?type=news"
     },
     {
+      "source": "/resources/:slug",
+      "destination": "/resources"
+    },
+    {
       "source": "/",
       "destination": "/api/ssr?type=home"
     },

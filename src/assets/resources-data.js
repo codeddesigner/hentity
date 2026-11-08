@@ -1,0 +1,126 @@
+/* Resources (Figma 274:850, 275:312). Curated by the Hentity team; links checked by hand. */
+window.RESOURCES = {
+  checked: '8 Nov 2026',
+  cats: [
+    {
+      slug: 'pitch-deck', icon: 'file-text', title: 'Build your pitch deck', sub: 'Inspiration, templates, design help and feedback',
+      tip: { t: 'Most seed decks have about 10 slides', d: 'Problem, solution, product, market, traction, business model, competition, team, the ask. Keep it short enough to read on a phone.' },
+      progress: ['Saved 3 decks I like', 'First draft written', 'Designed in Canva or Figma', 'Feedback from 3 founders', 'Shared as a link'],
+      steps: [
+        { t: 'Get inspiration', d: 'See how funded startups tell their story', items: [
+          { n: 'Pitch Deck Inspo', url: 'https://www.pitchdeckinspo.com', price: 'Free', d: 'A collection of real pitch decks from funded startups.', how: ['Filter by a stage and industry close to yours.', 'Save 3 to 5 decks you like.', 'Note the order of their slides and how they show traction and the ask.'] },
+          { n: 'YC Startup Library', url: 'https://www.ycombinator.com/library', price: 'Free', d: 'Guides from Y Combinator on what to put in a seed deck.', how: ['Search the library for “seed deck”.', 'Read the guide before you write a single slide.', 'Use its slide list as your outline.'] },
+        ] },
+        { t: 'Make your deck', d: 'Turn what you like into your own draft', items: [
+          { n: 'Claude', url: 'https://claude.ai', price: 'Free plan', d: 'An AI assistant that can turn a deck you like into a first draft of yours.', how: ['Download a deck you like as a PDF, or take screenshots of it.', 'Drop it into Claude with your notes: problem, product, traction, team and the ask.', 'Ask: “Make my deck using this structure, with my numbers.”', 'Edit the draft, then design it in Canva or Figma.'] },
+          { n: 'Canva', url: 'https://www.canva.com', price: 'Free plan', d: 'Pitch deck templates you can edit in the browser and share as a link or PDF.', how: ['Search templates for “pitch deck”.', 'Pick a simple one and paste in your draft.', 'Export as PDF and keep a share link.'] },
+          { n: 'Figma', url: 'https://www.figma.com', price: 'Free plan', d: 'Design tool with slide templates, good if a designer is helping you.', how: ['Start from Figma Slides or a community deck template.', 'Keep one font and two colours.', 'Present from the browser or export a PDF.'] },
+        ] },
+        { t: 'Test it before you send it', d: 'Get honest feedback and see what investors read', items: [
+          { n: 'Discuss: h/ask-founders', url: '/d/ask-founders', price: 'Free', host: 'On Hentity', d: 'Post your deck with the “Feedback wanted” tag. Founders and investors reply.', how: ['Share the deck as a view-only link.', 'Ask one clear question, like “Is the ask clear?”.', 'Fix the top three comments, then send it out.'] },
+          { n: 'DocSend', url: 'https://www.docsend.com', price: 'Paid', d: 'Share your deck as a tracked link and see which slides people read.', how: ['Upload the final PDF.', 'Create one link per investor.', 'Check which slides they spent time on before the follow-up call.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'register', icon: 'key', title: 'Register your business', sub: 'CAC, tax ID, bank account and permits in Nigeria',
+      tip: { t: 'Business name or company?', d: 'A business name is cheaper and fine for testing. Investors will ask for a limited company before they put in money.' },
+      progress: ['Name search done', 'Company registered', 'Tax ID received', 'Business bank account open'],
+      steps: [
+        { t: 'Register', d: 'Get your company on record', items: [
+          { n: 'Corporate Affairs Commission', url: 'https://www.cac.gov.ng', price: 'Fee', d: 'Register a business name or a limited company in Nigeria.', how: ['Run a name availability search first.', 'Choose business name or private limited company.', 'File online and keep your certificate and status report.'] },
+          { n: 'Business Registration Service Kenya', url: 'https://brs.go.ke', price: 'Fee', d: 'Register a business name or company in Kenya through eCitizen.', how: ['Reserve your name on eCitizen.', 'File the registration forms online.', 'Download your certificate once approved.'] },
+        ] },
+        { t: 'Tax and banking', d: 'Get a tax ID and open an account', items: [
+          { n: 'Federal Inland Revenue Service', url: 'https://www.firs.gov.ng', price: 'Free', d: 'Get your company tax ID in Nigeria.', how: ['Use your CAC number to apply.', 'Keep the TIN with your company documents.', 'Your bank will ask for it.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'learn-to-code', icon: 'type', title: 'Learn to code', sub: 'Free courses and docs to build your first version',
+      tip: { t: 'Build the smallest thing first', d: 'One screen that does one job is enough to show people. Most first versions are rebuilt later anyway.' },
+      progress: ['Picked a course', 'Built a first page', 'Shipped something people can use'],
+      steps: [
+        { t: 'Learn the basics', d: 'Free, self-paced courses', items: [
+          { n: 'freeCodeCamp', url: 'https://www.freecodecamp.org', price: 'Free', d: 'Free courses in web development with certificates.', how: ['Start with Responsive Web Design.', 'Do an hour a day.', 'Build the projects, not just the lessons.'] },
+          { n: 'The Odin Project', url: 'https://www.theodinproject.com', price: 'Free', d: 'A full-stack path built around real projects.', how: ['Pick the JavaScript path.', 'Set up your computer as the course says.', 'Join their Discord when you get stuck.'] },
+          { n: 'CS50', url: 'https://cs50.harvard.edu', price: 'Free', d: 'Harvard’s intro to computer science, free online.', how: ['Watch one lecture a week.', 'Do every problem set.', 'Use the CS50 Duck for hints.'] },
+        ] },
+        { t: 'Build and ship', d: 'Docs and tools for your first version', items: [
+          { n: 'MDN Web Docs', url: 'https://developer.mozilla.org', price: 'Free', d: 'The reference for HTML, CSS and JavaScript.', how: ['Search MDN before anything else.', 'Copy the examples and change them.', 'Check browser support at the bottom of each page.'] },
+          { n: 'Claude', url: 'https://claude.ai', price: 'Free plan', d: 'An AI assistant that can explain code and help you build.', how: ['Describe what you want the screen to do.', 'Ask it to explain each part of the code.', 'Paste errors in and ask what they mean.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'design', icon: 'image', title: 'Design your product', sub: 'Tools and guides for screens, logos and brand',
+      tip: { t: 'Copy the pattern, not the look', d: 'Look at how apps people already use solve the same screen. Then make it yours.' },
+      progress: ['Sketched the main screens', 'Picked fonts and colours', 'Made a clickable prototype'],
+      steps: [
+        { t: 'Design', d: 'Screens, prototypes and brand', items: [
+          { n: 'Figma', url: 'https://www.figma.com', price: 'Free plan', d: 'Design screens and clickable prototypes in the browser.', how: ['Start from a UI kit in the community.', 'Design the one screen people use most.', 'Share a prototype link to test it.'] },
+          { n: 'Mobbin', url: 'https://mobbin.com', price: 'Free plan', d: 'Screens from real apps, searchable by flow.', how: ['Search the flow you are designing, like “onboarding”.', 'Save 5 examples.', 'Note what they all have in common.'] },
+          { n: 'Google Fonts', url: 'https://fonts.google.com', price: 'Free', d: 'Free fonts you can use in your app and brand.', how: ['Pick one font for everything.', 'Use two weights at most.', 'Check it has the characters your users need.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'payments', icon: 'send', title: 'Accept payments', sub: 'Take card, transfer and USSD payments',
+      tip: { t: 'Offer how people already pay', d: 'In many markets that is bank transfer, USSD or mobile money, not cards.' },
+      progress: ['Picked a provider', 'Test payment worked', 'First real payment received'],
+      steps: [
+        { t: 'Payment providers', d: 'Start in test mode, go live after checks', items: [
+          { n: 'Paystack docs', url: 'https://paystack.com/docs', price: 'Per transaction', d: 'Card, transfer, USSD and mobile money in Nigeria, Ghana, Kenya and South Africa.', how: ['Create an account and use test keys first.', 'Start with a payment link before you write code.', 'Submit your business documents to go live.'] },
+          { n: 'Flutterwave', url: 'https://developer.flutterwave.com', price: 'Per transaction', d: 'Payments across many African countries and currencies.', how: ['Read the quickstart.', 'Test with sandbox keys.', 'Check which payment methods work in your country.'] },
+          { n: 'M-Pesa Daraja', url: 'https://developer.safaricom.co.ke', price: 'Per transaction', d: 'Safaricom’s API for M-Pesa payments in Kenya.', how: ['Register on the Daraja portal.', 'Try STK Push in the sandbox.', 'Apply for go-live with your till or paybill.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'first-users', icon: 'users', title: 'Find your first users', sub: 'Launch, outreach and feedback',
+      tip: { t: 'Talk to 10 people this week', d: 'Your first users usually come from people you message one by one, not from ads.' },
+      progress: ['Listed 20 people to message', 'Talked to 10 of them', 'Launched on Hentity'],
+      steps: [
+        { t: 'Launch and listen', d: 'Get it in front of people and learn', items: [
+          { n: 'Launch on Hentity', url: '/submit', price: 'Free', host: 'On Hentity', d: 'Launch to makers and early adopters across Africa.', how: ['Add a clear one-line tagline and screenshots.', 'Pick a launch week.', 'Reply to every comment on the day.'] },
+          { n: 'The Mom Test', url: 'https://www.momtestbook.com', price: 'Paid', d: 'A short book on asking customers questions that give honest answers.', how: ['Read it in an afternoon.', 'Ask about their life, not your idea.', 'Write down what they did, not what they say they’ll do.'] },
+          { n: 'Validate an idea', url: '/validate', price: 'Free', host: 'On Hentity', d: 'See who else is building it and what to test first.', how: ['Describe your idea in plain words.', 'Read the closest matches.', 'Test the riskiest assumption first.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'raise-money', icon: 'star', title: 'Raise money', sub: 'Grants, angels, term sheets and data rooms',
+      tip: { t: 'Grants first, if you can', d: 'Grants and prizes don’t take equity. Hentity Funding matches you to the ones you fit.' },
+      progress: ['Found 3 grants I fit', 'Deck ready', 'Spoke to 5 investors'],
+      steps: [
+        { t: 'Find money', d: 'Non-dilutive first, then equity', items: [
+          { n: 'Hentity Funding', url: '/funding', price: 'Free', host: 'On Hentity', d: 'Grants, prizes and investors matched to your product.', how: ['Pick your product to match on.', 'Save the ones you fit.', 'Apply before the deadline reminders.'] },
+          { n: 'Y Combinator SAFE', url: 'https://www.ycombinator.com/documents', price: 'Free', d: 'The standard simple agreement many early investors use.', how: ['Read the user guide first.', 'Agree the valuation cap with your investor.', 'Have a lawyer check it before you sign.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'hire', icon: 'user', title: 'Hire your first team', sub: 'Job posts, offers and contracts',
+      tip: { t: 'Hire for the next 6 months', d: 'Your first hires should be able to do the work in front of you now.' },
+      progress: ['Wrote the role', 'Posted it', 'Made an offer'],
+      steps: [
+        { t: 'Hire', d: 'Post, meet and agree', items: [
+          { n: 'Hentity Find', url: '/find', price: 'Free', host: 'On Hentity', d: 'Co-founders, first hires and team members for African startups.', how: ['Post a role with pay or equity.', 'Stay in stealth if you need to.', 'Chat once you both say yes.'] },
+          { n: 'Deel', url: 'https://www.deel.com', price: 'Paid', d: 'Hire and pay people in other countries with local contracts.', how: ['Check the country guide before you offer.', 'Use a contractor agreement for short work.', 'Use employer of record for full-time hires abroad.'] },
+        ] },
+      ],
+    },
+    {
+      slug: 'legal', icon: 'shield', title: 'Legal basics', sub: 'Agreements, privacy and terms of service',
+      tip: { t: 'Get the founder agreement done early', d: 'Who owns what, and what happens if someone leaves, is easier to agree on day one.' },
+      progress: ['Founder agreement signed', 'Privacy policy live', 'Terms of service live'],
+      steps: [
+        { t: 'Protect the company', d: 'Agreements and policies', items: [
+          { n: 'Nigeria Data Protection Commission', url: 'https://ndpc.gov.ng', price: 'Free', d: 'Rules for handling personal data in Nigeria.', how: ['Read the NDPA summary.', 'List the personal data you collect.', 'Publish a privacy policy that says how you use it.'] },
+          { n: 'Kenya Office of the Data Protection Commissioner', url: 'https://www.odpc.go.ke', price: 'Free', d: 'Registration and rules for data handlers in Kenya.', how: ['Check if you need to register.', 'Register as a data controller if so.', 'Keep a record of what you collect.'] },
+          { n: 'Y Combinator documents', url: 'https://www.ycombinator.com/documents', price: 'Free', d: 'Standard startup documents you can adapt with a lawyer.', how: ['Use them as a starting point.', 'Adapt them to your country’s law.', 'Have a local lawyer check them.'] },
+        ] },
+      ],
+    },
+  ],
+};

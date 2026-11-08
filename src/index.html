@@ -6,17 +6,18 @@
 <meta name="description" content="This week’s new products from founders across Africa, ranked by the community. Upvote, comment and follow makers from Lagos to Nairobi.">
 <link rel="canonical" href="https://hentity.com/">
 <style>
-.home{max-width:1136px;margin:0 auto;padding:28px 56px 96px;box-sizing:content-box}
+.home{max-width:1068px;margin:0 auto;padding:40px 56px 96px;box-sizing:content-box}
+@media (min-width:769px){#ptabs{display:none}}
 .hero-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#week-label{font-family:var(--font-sans);font-weight:500;letter-spacing:.02em}
-.hero h1{font-size:64px;line-height:68px;font-weight:600;letter-spacing:-0.03em;margin:20px 0 22px;text-wrap:balance}
+#week-label{font-family:var(--font-mono);font-weight:400;letter-spacing:.04em;text-transform:uppercase}
+.hero h1{font-size:64px;line-height:68px;font-weight:600;letter-spacing:-0.03em;margin:16px 0;text-wrap:balance}
 .hero p{font-size:16px;line-height:24px;color:var(--color-text-secondary)}
-.home-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;margin-top:36px}
+.home-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;margin-top:32px}
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pays{position:relative;display:inline-flex;align-items:center}
 .pays select{appearance:none;border:0;background:transparent;font-size:12px;font-weight:500;padding:0 0 0 22px;height:32px;cursor:pointer;color:var(--color-text-primary)}
 .pays .ic{position:absolute;left:4px;pointer-events:none}
-.feed-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:32px 0 12px;flex-wrap:wrap}
+.feed-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:32px 0 16px;flex-wrap:wrap}
 .live li{display:flex;gap:12px;align-items:flex-start}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--color-success);animation:pulse 2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 6px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
@@ -25,7 +26,7 @@
 .skel-row{display:flex;gap:16px;align-items:center;padding:16px}
 .empty{padding:48px 16px;text-align:center;color:var(--color-text-secondary)}
 .seg{position:relative}
-.seg .seg-ind{position:absolute;top:3px;bottom:3px;border-radius:8px;background:var(--color-bg-canvas);box-shadow:0 1px 2px rgba(0,0,0,.08);transition:left .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
+.seg .seg-ind{position:absolute;top:3px;bottom:3px;border-radius:6px;background:var(--color-bg-canvas);box-shadow:0 1px 2px rgba(0,0,0,.08);transition:left .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
 .seg button{position:relative;z-index:1}
 .seg button[aria-selected="true"]{background:transparent;box-shadow:none}
 @media (max-width:1180px){.home{padding:32px 32px 80px}.hero h1{font-size:56px;line-height:60px}}
@@ -53,7 +54,7 @@
   <div id="ptabs"></div>
   <section class="hero" id="hero">
     <div class="hero-meta"><span class="t-eyebrow c-3" id="week-label">Week · loading</span><a class="badge badge--accent badge--pill" href="/launch" id="spots"><span class="dot marquee-dot"></span><span>Board resets Mon 06:00 WAT</span></a></div>
-    <h1><span class="long" id="headline">Discover what’s being built across Africa.</span><span class="h-short" style="display:none">This week’s launches</span></h1>
+    <h1><span class="long" id="headline">Discover what’s being built in Africa.</span><span class="h-short" style="display:none">This week’s launches</span></h1>
     <p class="lead-copy">This week’s new products from founders across Africa, ranked by the community.</p>
   </section>
   <div class="home-grid">
@@ -75,8 +76,8 @@
     </div>
     <aside class="stack hide-sm" style="gap:40px">
       <section data-scroll-reveal>
-        <h2 class="t-h4 row gap-8" style="margin-bottom:16px">Live <span class="live-dot" aria-hidden="true"></span></h2>
-        <ul class="live stack gap-16" id="live" style="list-style:none;margin:0;padding:0"></ul>
+        <h2 class="t-h4 row gap-8" style="margin-bottom:12px">Live <span class="live-dot" aria-hidden="true"></span></h2>
+        <ul class="live stack gap-12" id="live" style="list-style:none;margin:0;padding:0"></ul>
       </section>
       <section class="card card--pad how" data-scroll-reveal>
         <h2 class="t-label" style="margin-bottom:16px;font-size:13px">How launching works</h2>

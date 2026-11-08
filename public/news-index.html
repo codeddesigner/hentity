@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/styles.css?v=04c508b844">
+<link rel="stylesheet" href="/assets/styles.css?v=5760d06b53">
 <script>
 /* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
    and if the app never starts, reload once and then fall back to the readable server copy. */
@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=ee220abd32"></script>
-<script src="/assets/app.js?v=2b28fac32f"></script>
+<script src="/assets/app.js?v=65a9aeae46"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -68,24 +68,24 @@
 <body>
 <div data-header></div>
 <main class="news" id="main">
-  <header class="row between wrap gap-16">
-    <div><p class="kicker" id="today"></p><h1 class="t-h1 words" style="margin-top:6px">What African makers are reading</h1></div>
-    <button class="btn btn--secondary btn--sm" type="button" id="suggest"><span data-icon="plus"></span>Suggest a story</button>
+  <header class="row between wrap gap-16" style="align-items:flex-end">
+    <div><p class="kicker" id="today"></p><h1 class="t-display words" style="margin-top:6px">News</h1><p class="news-lead">African tech, curated every morning. Discuss any story in Chats.</p></div>
+    <button class="btn btn--secondary btn--sm" type="button" id="suggest"><span data-icon="link"></span>Suggest a story</button>
   </header>
   <div class="chips" id="topics" data-single style="margin-top:24px;flex-wrap:nowrap;overflow-x:auto"></div>
   <div class="news-grid">
     <div style="min-width:0">
       <div id="lead"></div>
-      <h2 class="t-eyebrow c-3" style="margin-top:40px">Latest</h2>
+      <h2 class="t-eyebrow c-3" style="margin-top:28px">Latest</h2>
       <div id="latest"></div>
     </div>
     <aside class="stack gap-24" style="gap:24px">
       <section class="brief" data-scroll-reveal id="brief"></section>
-      <section class="card" style="padding:20px"><p class="t-eyebrow c-3">Discussed in Chats</p><div class="stack gap-12" id="discussed" style="margin-top:12px"></div></section>
-      <section class="card" style="padding:20px">
-        <p class="t-h4">The Monday brief</p>
-        <p class="t-body-sm c-2" style="margin-top:6px">The week’s launches and the news behind them. One email, every Monday at 07:00 WAT.</p>
-        <form class="stack gap-8" id="nl" style="margin-top:14px" novalidate><input class="input" type="email" id="nl-email" placeholder="you@company.com" aria-label="Email" autocomplete="email"><button class="btn btn--primary btn--block">Subscribe</button></form>
+      <section class="card" style="padding:20px;border-radius:14px"><p class="t-label">Discussed in Chats</p><div class="stack gap-12" id="discussed" style="margin-top:12px"></div></section>
+      <section class="card" style="padding:20px;border-radius:14px">
+        <p class="t-label">Hentity Weekly</p>
+        <p class="t-body-sm c-2" style="margin-top:10px">The week’s top launches and the five stories that mattered. Mondays, after the board resets.</p>
+        <form class="stack gap-10" id="nl" style="margin-top:10px;gap:10px" novalidate><label class="stack" style="gap:6px"><span class="t-label">Email</span><input class="input" type="email" id="nl-email" placeholder="you@company.com" autocomplete="email"></label><button class="btn btn--primary btn--block">Subscribe</button></form>
       </section>
     </aside>
   </div>
@@ -101,17 +101,17 @@ H.mount({ active: 'news', tab: 'news' });
   qs('#topics').innerHTML = TOPICS.map(t => `<button class="chip" type="button" data-chip data-topic="${t}" aria-pressed="${t === want}">${icon('check')}${t}</button>`).join('');
   M.words(qs('.words'));
   const img = (a, cls) => `<div class="${cls}" style="--c:${esc(a.color || '#ff5b14')}">${a.image_url ? `<img src="${esc(a.image_url)}" alt="" loading="lazy">` : ''}</div>`;
-  const meta = a => `<span class="row gap-6 t-caption c-3" style="font-weight:400"><span class="avatar avatar--20" style="background:${esc(a.color)};color:#fff;font-size:9px">${esc(a.source_initials || 'H')}</span>${esc(a.source)} · ${H.ago(a.published_at)} · ${a.read_minutes} min · ${icon('chats', 'ic-14')}${a.comment_count}</span>`;
+  const meta = a => `<span class="row gap-8 t-caption c-3"><span class="t-label" style="color:var(--color-text-primary)">${esc(a.source)}</span>·<span>${H.ago(a.published_at)}</span>·<span class="row" style="gap:4px">${icon('chats', 'ic-14')}${a.comment_count}</span></span>`;
   async function load(topic) {
     qs('#latest').innerHTML = '<div class="skel" style="height:96px;margin:20px 0"></div>'.repeat(3);
     const list = await API.articles({ topic }).catch(e => (H.fail(e), []));
     const lead = list[0], rest = list.slice(1);
-    qs('#lead').innerHTML = lead ? `<a class="stack gap-16 reveal" href="/news/${lead.slug}" style="gap:16px">${img(lead, 'art-img')}<p class="kicker">${esc(lead.topic)}</p><h2 class="t-h2" style="margin-top:-6px">${esc(lead.title)}</h2><p class="body c-2">${esc(lead.dek)}</p>${meta(lead)}</a>` : `<div class="empty"><p class="t-h4">Nothing in ${esc(topic)} yet</p><p class="t-body-sm c-2">Check back tomorrow morning.</p></div>`;
+    qs('#lead').innerHTML = lead ? `<a class="stack gap-16 reveal" href="/news/${lead.slug}" style="gap:16px">${img(lead, 'art-img')}<p class="kicker">${esc(lead.topic)}</p><h2 class="t-h2" style="margin-top:-6px">${esc(lead.title)}</h2><p class="t-body-lg c-2">${esc(lead.dek)}</p>${meta(lead)}</a>` : `<div class="empty"><p class="t-h4">Nothing in ${esc(topic)} yet</p><p class="t-body-sm c-2">Check back tomorrow morning.</p></div>`;
     qs('#latest').innerHTML = rest.map(a => `<a class="art-row" data-scroll-reveal href="/news/${a.slug}"><div class="grow stack gap-8" style="min-width:0"><p class="kicker">${esc(a.topic)}</p><h3 class="t-h4">${esc(a.title)}</h3><p class="t-body-sm c-2 hide-sm">${esc(a.dek)}</p>${meta(a)}</div>${img(a, 'art-thumb')}</a>`).join('') || (lead ? '<p class="t-body-sm c-3" style="padding:20px 0">That’s everything for now.</p>' : '');
     M.scroll(document); H.contentShown();
     // discussed
     const top = [...list].sort((a, b) => b.comment_count - a.comment_count).slice(0, 3);
-    qs('#discussed').innerHTML = top.map(a => `<a class="row gap-10" style="gap:10px;align-items:flex-start" href="${a.channel_slug ? '/chats/' + a.channel_slug : '/news/' + a.slug}"><span class="icon-badge" style="width:28px;height:28px;flex:none">${icon('hash', 'ic-14')}</span><span><span class="t-label" style="display:block">${esc(a.title)}</span><span class="t-caption c-3" style="font-weight:400">${a.comment_count} comments${a.channel_slug ? ' · #' + esc(a.channel_slug) : ''}</span></span></a>`).join('') || '<p class="t-caption c-3">Quiet so far today.</p>';
+    qs('#discussed').innerHTML = top.map(a => `<a class="row gap-10" style="gap:10px;align-items:flex-start" href="${a.channel_slug ? '/chats/' + a.channel_slug : '/news/' + a.slug}"><span class="icon-badge icon-badge--sm" style="width:28px;height:28px;flex:none">${icon('hash', 'ic-14')}</span><span><span class="t-label" style="display:block">${esc(a.title)}</span><span class="t-caption c-3" style="font-weight:400">${a.comment_count} comments${a.channel_slug ? ' · #' + esc(a.channel_slug) : ''}</span></span></a>`).join('') || '<p class="t-caption c-3">Quiet so far today.</p>';
   }
   H.bindChips(qs('#topics'), () => { const b = qs('#topics [aria-pressed="true"]'); const t = b ? b.dataset.topic : 'All'; history.replaceState(null, '', t === 'All' ? '/news' : '/news?topic=' + encodeURIComponent(t)); load(t); });
   load(want);

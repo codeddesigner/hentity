@@ -189,18 +189,20 @@
   const lbl = (k, l) => soon(k) ? `${l}<small class="soon-line">Coming soon</small>` : l;
   function sidebar(active) {
     const s = session(); const u = user();
-    const item = (key, label, href, ic, count, accentCount) => `<a class="sb-item" href="${href}"${key === active ? ' aria-current="page"' : ''}>${icon(ic, 'ic-20')}<span>${label}</span>${count ? `<span class="sb-count${accentCount || key === active ? ' is-accent' : ''}" data-count="${key}">${count}</span>` : `<span class="sb-count" data-count="${key}" hidden></span>`}</a>`;
+    const item = (key, label, href, ic, count, accentCount) => `<a class="sb-item" href="${href}"${key === active ? ' aria-current="page"' : ''}>${icon(ic, 'ic-20')}<span>${label}</span>${count ? `<span class="sb-count${accentCount ? ' is-accent' : ''}" data-count="${key}">${count}</span>` : `<span class="sb-count" data-count="${key}" hidden></span>`}</a>`;
     return `<aside class="sidebar" aria-label="Main">
       <a class="logo sb-logo" href="/" aria-label="Hentity home">${logo()}</a>
       <button class="sb-search" type="button" data-open-search><span>${icon('search')}</span><span class="grow">Search</span><kbd class="kbd">⌘K</kbd></button>
+      <p class="sb-label sb-label--first">Discover</p>
       <nav class="sb-nav" aria-label="Primary">
         ${item('products', 'Products', '/', 'package')}
         ${on('discuss') ? item('discuss', lbl('discuss', 'Discuss'), '/discuss', 'hash') : ''}
-        ${on('chats') ? item('chats', lbl('chats', 'Chats'), '/chats', 'chats', s ? counts.chats : 0, true) : ''}
+        ${on('chats') ? item('chats', lbl('chats', 'Chats'), '/chats', 'chats', s ? counts.chats : 0) : ''}
         ${on('news') ? item('news', lbl('news', 'News'), '/news', 'newspaper') : ''}
         ${on('insights') ? item('insights', lbl('insights', 'Insights'), '/insights', 'bar-chart') : ''}
-        ${on('find') ? item('find', lbl('find', 'Find'), '/find', 'users') : ''}
+        ${on('find') ? item('find', lbl('find', 'Find'), '/find', 'users').replace('<span class="sb-count" data-count="find" hidden></span>', '<span class="sb-count sb-new">New</span>') : ''}
         ${on('funding') ? item('funding', lbl('funding', 'Funding'), '/funding', 'star') : ''}
+        ${on('resources') ? item('resources', lbl('resources', 'Resources'), '/resources', 'file-text') : ''}
       </nav>
       ${s ? `<p class="sb-label">You</p><nav class="sb-nav" aria-label="You">
         ${on('validate') ? item('validate', lbl('validate', 'Validate an idea'), '/validate', 'sparkles') : ''}
@@ -352,6 +354,15 @@
     if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !e.target.closest('input,textarea,select,[contenteditable]'))) { e.preventDefault(); openSearch(); }
   });
 
+  // Figma "Workspace" (64:664): page content sits in a white rounded panel beside the sidebar on desktop
+  function wrapWorkspace() {
+    if (document.querySelector('.workspace')) return;
+    const ws = document.createElement('div'); ws.className = 'workspace';
+    const keep = el => el.matches('script,style,link,template,.sidebar,.mtop,.tabbar,[data-tabbar],.hx-pill,.toast,.toasts,dialog,[role=dialog],.modal,.sheet,.scrim,.cmdk');
+    const els = [...document.body.children].filter(el => !keep(el));
+    if (!els.length) return;
+    els[0].before(ws); els.forEach(el => ws.appendChild(el));
+  }
   let mountOpts = {};
   function renderShell() {
     const sb = document.querySelector('.sidebar'); const mt = document.querySelector('.mtop'); const tb = document.querySelector('.tabbar');
@@ -361,7 +372,7 @@
   function mount(opts) {
     mountOpts = opts = opts || mountOpts || {};
     const h = document.querySelector('[data-header]');
-    if (h) { h.outerHTML = sidebar(opts.active); document.body.classList.add('has-sidebar'); }
+    if (h) { h.outerHTML = sidebar(opts.active); document.body.classList.add('has-sidebar'); wrapWorkspace(); }
     // "Leave a review" pill (Figma 238:4196): bottom-right on every desktop page, opens Hentity's own reviews.
     // Not on phones (the tab bar owns that corner; "Review Hentity" is in the You menu) or on that page itself.
     if (!document.querySelector('.hx-pill') && !/^\/(products\/hentity|admin|signin|signup|welcome|offline)/.test(location.pathname) && !/\/analytics$/.test(location.pathname) && !/[?&]p=hentity/.test(location.search))
