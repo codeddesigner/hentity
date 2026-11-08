@@ -528,7 +528,10 @@
       const P = {
         // Some browsers expose the Push API but have no push service behind it (Edge on Android; Chrome on phones
         // without Google services): subscribing always fails with "push service error". Treat them as unsupported.
-        noService: () => /\bEdgA\//.test(navigator.userAgent) || (() => { try { return localStorage.getItem('h-push-noservice') === navigator.userAgent; } catch (e) { return false; } })(),
+        // Learned by trying, not guessed from the browser name: some Edge for Android builds work, many don't
+        noService: () => { try { return localStorage.getItem('h-push-noservice') === navigator.userAgent; } catch (e) { return false; } },
+        // Edge for Android can "succeed" with a dead placeholder address that never receives anything
+        deadEndpoint: sub => !sub || !/^https:\/\//.test(sub.endpoint || '') || /\.invalid(\/|:|$)/i.test(new URL(sub.endpoint).hostname + '/'),
         supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && !P.noService(),
         // What to tell someone whose browser can't do push
         noServiceMsg: () => { const ua = navigator.userAgent;
@@ -536,7 +539,7 @@
             : /Android/i.test(ua) ? 'Push notifications aren’t available in this browser on this phone. Open hentity.com in Firefox and turn them on there.'
             : 'This browser can’t receive push notifications. Try Chrome, Edge, Firefox or Safari.'; },
         permission: () => ('Notification' in window ? Notification.permission : 'unsupported'),
-        async current() { if (!P.supported()) return null; const reg = await navigator.serviceWorker.getRegistration(); return reg ? reg.pushManager.getSubscription() : null; },
+        async current() { if (!P.supported()) return null; const reg = await navigator.serviceWorker.getRegistration(); const sub = reg ? await reg.pushManager.getSubscription() : null; return sub && !P.deadEndpoint(sub) ? sub : null; },
         async enable() {
           requireAuth();
           const perm = await Notification.requestPermission();
@@ -549,6 +552,7 @@
             if (e && (e.name === 'AbortError' || /push service/i.test(e.message || ''))) { try { localStorage.setItem('h-push-noservice', navigator.userAgent); } catch (er) {} throw new Error(P.noServiceMsg()); }
             throw e;
           }
+          if (P.deadEndpoint(sub)) { await sub.unsubscribe().catch(() => {}); try { localStorage.setItem('h-push-noservice', navigator.userAgent); } catch (er) {} throw new Error(P.noServiceMsg()); }
           await save(sub); return true;
         },
         async disable() { const sub = await P.current(); if (sub) { await q(sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)).catch(() => {}); await sub.unsubscribe().catch(() => {}); } },
@@ -558,7 +562,7 @@
           let sub = await P.current().catch(() => null);
           // Allowed but this device has no subscription (cleared, expired or never finished): make one, no prompt needed
           if (!sub) { const k = await key(); if (!k) return; const reg = await navigator.serviceWorker.ready; sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(k) }).catch(() => null); }
-          if (sub) await save(sub).catch(() => {});
+          if (sub && !P.deadEndpoint(sub)) await save(sub).catch(() => {});
         },
         test: () => q(sb.rpc('push_test'))
       };
