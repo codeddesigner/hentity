@@ -52,7 +52,7 @@
   })();
   // Which feature each page belongs to. A page whose feature is off shows a notice instead (admins still see it).
   const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/find/, 'find', 'Find'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
-    [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar']];
+    [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar'], [/^\/resources/, 'resources', 'Resources']];
   // A feature is 'on' (missing key or true), 'off' (false) or 'soon' (shown as Coming soon, unusable)
   const stateOf = k => features[k] === false ? 'off' : features[k] === 'soon' ? 'soon' : 'on';
   function gate(r) {
