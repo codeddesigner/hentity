@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="Hentity">
+<meta property="og:locale" content="en_GB">
+<!-- Google shows a favicon only when it is a multiple of 48px square (48, 96, 144...) -->
+<link rel="icon" href="/favicon-96.png?v=4" type="image/png" sizes="96x96">
+<link rel="icon" href="/favicon-48.png?v=4" type="image/png" sizes="48x48">
+<link rel="icon" href="/favicon-144.png?v=4" type="image/png" sizes="144x144">
+<link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=4" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hentity">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="application-name" content="Hentity">
+<link rel="shortcut icon" href="/favicon.ico?v=4">
+<link rel="manifest" href="/site.webmanifest?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sislzikhjapilksictxd.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/styles.css?v=7ad363435c">
+<script>
+/* Boot guard: hide the plain server-rendered copy while the app starts, report scripts that fail to load or run,
+   and if the app never starts, reload once and then fall back to the readable server copy. */
+(function () {
+  var d = document.documentElement, n = 0; d.classList.add('js-boot');
+  function log(m, s) { if (/view transition|_vercel\/insights/i.test(String(m) + ' ' + String(s || ''))) return; if (n++ > 3) return; try { fetch('https://sislzikhjapilksictxd.supabase.co/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: 'sb_publishable_49iWYS0Wr9kVY_PfDQphww_jj9dRaBz', 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ path: location.pathname.slice(0, 300), msg: String(m).slice(0, 600), src: String(s || '').slice(0, 400), ua: navigator.userAgent.slice(0, 300) }) }).catch(function () {}); } catch (e) {} }
+  window.addEventListener('error', function (e) { var t = e.target; if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) log('failed to load', t.src || t.href); else if (e.message) log(e.message, (e.filename || '') + ':' + (e.lineno || '')); }, true);
+  // A page that fails while loading its data shows the readable server copy instead of a blank screen
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; if (/view transition/i.test(r.message || r)) return; log('unhandled: ' + (r.message || r), (r.stack || '').split('\n')[1] || ''); if (!(window.performance && performance.getEntriesByName('hentity:content').length)) d.classList.remove('js-boot'); });
+  // Only judge once every script has loaded: on a slow connection they may still be downloading
+  function check() { if (window.H && window.API) return; if (document.readyState !== 'complete') return; d.classList.remove('js-boot'); log('app did not start: H=' + !!window.H + ' API=' + !!window.API + ' supabase=' + !!window.supabase, '');
+    try { if (!sessionStorage.getItem('h-reload')) { sessionStorage.setItem('h-reload', '1'); location.reload(); } } catch (e) {} }
+  window.addEventListener('load', function () { setTimeout(check, 1500); });
+  // On a slow connection, show the readable server copy after 3s rather than a blank page
+  setTimeout(function () { if (d.classList.contains('js-boot') && document.querySelector('[data-ssr]')) log('content not shown after 3s', 'ready=' + !!(window.performance && performance.getEntriesByName('hentity:ready').length)); d.classList.remove('js-boot'); }, 3000);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/api.js?v=1ad3584345"></script>
+<script src="/assets/app.js?v=15d89bcea4"></script>
+<script src="/assets/motion.js?v=c0abe5e569"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Data room | Hentity</title>
+<meta name="robots" content="noindex">
+<script src="/assets/dataroom.js?v=8d4d8bd02f"></script>
+<style>
+/* Data room (Figma 302:3757 setup · 304:3901 room · 228:3074 lock & share · 229:3260 analytics) */
+.dr{max-width:1100px;margin:0 auto;padding:28px 40px 80px;box-sizing:content-box}
+.dr-crumbs{display:flex;align-items:center;gap:8px;font-size:13px;line-height:16px;color:var(--color-text-tertiary)}
+.dr-crumbs a:hover{color:var(--color-text-primary)}.dr-crumbs b{font-weight:500;color:var(--color-text-primary)}.dr-crumbs .ic{width:12px;height:12px}
+.dr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px}
+.dr-head h1{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dr-head p{font-size:14px;line-height:20px;color:var(--color-text-secondary);margin-top:6px}
+.dr-stage{position:relative;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:6px;background:#E3F0FF;color:#1E5FA8;font-size:12px;font-weight:500;letter-spacing:0}
+.dr-stage select{position:absolute;inset:0;opacity:0;cursor:pointer}.dr-stage .ic{width:12px;height:12px}
+.dr-tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500}
+.dr-tag--y{background:#FFF3D1;color:#8A5A00}.dr-tag--b{background:#E3F0FF;color:#1E5FA8}.dr-tag--g{background:#E3F9EE;color:#127A45}
+/* setup */
+.dr-sug{display:flex;align-items:center;gap:12px;margin-top:20px;padding:12px 14px;border-radius:12px;background:var(--color-bg-subtle);font-size:13px;line-height:18px}
+.dr-stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.dr-sc{position:relative;display:block;padding:18px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
+.dr-sc:hover{border-color:var(--color-border-strong)}
+.dr-sc.is-on{border:2px solid var(--color-text-primary);padding:17px}
+.dr-sc input{position:absolute;opacity:0}
+.dr-sc .rdo{position:absolute;top:18px;right:18px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-strong)}
+.dr-sc.is-on .rdo{border:5px solid var(--color-text-primary)}
+.dr-sc h3{font-size:17px;line-height:24px;font-weight:600;margin-top:12px}
+.dr-sc .who{font-size:13px;line-height:18px;color:var(--color-text-secondary);margin-top:8px}
+.dr-sc .rd{margin-top:6px;font-size:12px;color:var(--color-text-tertiary)}.dr-sc .rd b{font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--color-text-primary);margin-right:6px}
+.dr-sc hr{border:0;border-top:1px solid var(--color-border-default);margin:14px 0 12px}
+.dr-sc .n{font-size:13px;font-weight:500}
+.dr-sc ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:18px;color:var(--color-text-secondary)}
+.dr-sc li{display:flex;gap:8px}.dr-sc li .ic{width:14px;height:14px;flex:none;margin-top:2px;color:var(--color-text-tertiary)}
+.dr-sc .sugg{display:inline-flex;align-items:center;gap:4px;margin-top:12px;height:22px;padding:0 8px;border-radius:6px;background:#0a0a0a;color:#fff;font-size:12px;font-weight:500}
+.dr-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.dr-cmp{margin-top:20px;border:1px solid var(--color-border-default);border-radius:14px;overflow:hidden;background:var(--color-bg-canvas)}
+.dr-cmp__h{display:flex;justify-content:space-between;align-items:baseline;padding:18px 18px 14px}.dr-cmp__h h2{font-size:17px;line-height:24px;font-weight:600}
+.dr-cmp table{width:100%;border-collapse:collapse;font-size:13px}
+.dr-cmp th{font:400 12px/16px var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:8px 18px;background:var(--color-bg-subtle)}
+.dr-cmp th+th,.dr-cmp td+td{text-align:center;width:150px}
+.dr-cmp td{padding:9px 18px;border-top:1px solid var(--color-border-default)}
+.dr-req{display:inline-flex;height:20px;padding:0 6px;align-items:center;border-radius:6px;font-size:12px;font-weight:500;background:#E3F9EE;color:#127A45}.dr-opt{background:var(--color-bg-muted);color:var(--color-text-secondary)}
+/* room */
+.dr-ready{display:flex;align-items:center;gap:14px;margin-top:20px;padding:14px 18px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas)}
+.dr-ready b{font-size:22px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums}.dr-ready span{font-size:13px;color:var(--color-text-secondary)}
+.dr-bars{display:flex;gap:3px}.dr-bars i{width:8px;height:18px;border-radius:2px;background:var(--color-bg-muted)}.dr-bars i.on{background:var(--color-accent-default)}
+.dr-ready .r{margin-left:auto;font-size:12px;color:var(--color-text-tertiary)}
+.dr-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 244px;gap:16px;align-items:start;margin-top:16px}
+.dr-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:20px}
+.dr-nav a{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:8px;font-size:13px;color:var(--color-text-secondary)}
+.dr-nav a .ic{width:16px;height:16px}.dr-nav a span{margin-left:auto;font-family:var(--font-mono);font-size:12px;color:var(--color-text-tertiary)}
+.dr-nav a:hover{background:var(--color-bg-subtle)}.dr-nav a[aria-current]{background:var(--color-bg-canvas);box-shadow:0 0 0 1px var(--color-border-default);color:var(--color-text-primary);font-weight:500}
+.dr-sec{border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);overflow:hidden}.dr-sec+.dr-sec{margin-top:16px}
+.dr-sec__h{display:flex;justify-content:space-between;padding:12px 14px;font-size:13px;font-weight:500;border-bottom:1px solid var(--color-border-default)}.dr-sec__h span{font-family:var(--font-mono);font-weight:400;color:var(--color-text-tertiary)}
+.dr-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--color-border-default)}.dr-sec__h+.dr-row{border-top:0}
+.dr-row.is-file{cursor:pointer}.dr-row.is-file:hover{background:var(--color-bg-subtle)}
+.dr-ic{width:32px;height:32px;border-radius:8px;background:var(--color-bg-subtle);display:grid;place-items:center;color:var(--color-text-secondary);flex:none}.dr-ic .ic{width:16px;height:16px}
+.dr-ic--accent{background:#FFF3EC;color:var(--color-accent-default)}
+.dr-row .t{flex:1;min-width:0}.dr-row .t p:first-child{display:flex;align-items:center;gap:8px;font-size:13px;line-height:16px;font-weight:500;flex-wrap:wrap}
+.dr-row .t p+p{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-tertiary);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-row .m{font-size:12px;color:var(--color-text-tertiary);white-space:nowrap}
+.dr-st{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:6px;font-size:12px;font-weight:500}.dr-st .ic{width:12px;height:12px}
+.dr-st--ok{background:#E3F9EE;color:#127A45}.dr-st--miss{background:#FDECEC;color:#B42318}.dr-st--opt{background:var(--color-bg-muted);color:var(--color-text-secondary)}
+.dr-tpl{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--color-text-primary);white-space:nowrap}.dr-tpl .ic{width:14px;height:14px}
+.dr-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:20px}
+.dr-card{border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);padding:14px}
+.dr-card .t{font-size:13px;line-height:16px;font-weight:500}.dr-card .d{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-secondary);margin-top:8px}
+.dr-card--soft{background:var(--color-bg-subtle);border-color:transparent}
+.dr-share{display:flex;flex-direction:column;gap:10px;margin-top:10px}.dr-share a b{display:block;font-size:13px;line-height:16px;font-weight:500}.dr-share a small{display:block;font-size:12px;line-height:16px;color:var(--color-text-tertiary)}
+.dr-drop{display:block;cursor:pointer;line-height:20px;border:1.5px dashed var(--color-border-strong);border-radius:14px;padding:20px;text-align:center;color:var(--color-text-secondary);font-size:13px;margin-top:16px;transition:background .15s,border-color .15s}
+.dr-drop.is-over{background:#FFF3EC;border-color:var(--color-accent-default)}
+/* file page */
+.dr-fh{display:flex;align-items:flex-start;gap:14px;margin-top:16px}
+.dr-fh .big{width:44px;height:44px;border-radius:12px;background:#FFE8DC;color:#B4430E;display:grid;place-items:center;flex:none}.dr-fh .big .ic{width:20px;height:20px}
+.dr-fh h1{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.015em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dr-lock{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:999px;background:#0a0a0a;color:#fff;font-size:11px;font-weight:500;letter-spacing:0}.dr-lock .ic{width:11px;height:11px}
+.dr-fh .meta{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.dr-tabs{display:flex;gap:24px;border-bottom:1px solid var(--color-border-default);margin:20px 0}
+.dr-tabs button{padding:4px 0 10px;font-size:13px;font-weight:500;color:var(--color-text-tertiary);border-bottom:2px solid transparent;margin-bottom:-1px}
+.dr-tabs button[aria-selected="true"]{color:var(--color-text-primary);border-color:var(--color-text-primary)}
+.dr-pv{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-subtle)}
+.dr-pv canvas,.dr-pv img,.dr-pv video{max-width:100%;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff}
+.dr-two{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.dr-stagebox{border:1px solid var(--color-border-default);border-radius:14px;padding:14px;background:var(--color-bg-canvas)}
+.dr-stagebox .main{display:grid;place-items:center;background:var(--color-bg-subtle);border-radius:10px;min-height:280px;overflow:hidden}
+.dr-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:10px}
+.dr-thumbs button{border:1px solid var(--color-border-default);border-radius:6px;overflow:hidden;background:#fff;padding:0;line-height:0}.dr-thumbs button[aria-current]{border:2px solid var(--color-accent-default)}
+.dr-thumbs canvas{width:100%!important;height:auto!important}
+.dr-panel{border:1px solid var(--color-border-default);border-radius:14px;padding:16px;background:var(--color-bg-canvas)}
+.dr-locked{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:#0a0a0a;color:#fff;font-size:13px;line-height:18px}.dr-locked small{display:block;color:#a3a3a3;font-size:12px;line-height:16px}
+.dr-radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--color-border-default);border-radius:10px;cursor:pointer;margin-top:8px}
+.dr-radio input{position:absolute;opacity:0}.dr-radio .o{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--color-border-strong);flex:none;margin-top:1px}
+.dr-radio.is-on{border-color:var(--color-accent-default);background:#FFF3EC}.dr-radio.is-on .o{border:5px solid var(--color-accent-default);background:#fff}
+.dr-radio b{display:flex;align-items:center;gap:6px;font-size:13px;line-height:16px;font-weight:500}.dr-radio b .ic{width:14px;height:14px}.dr-radio small{display:block;font-size:12px;line-height:16px;color:var(--color-text-tertiary);margin-top:2px}
+.dr-tg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--color-border-default)}
+.dr-tg b{display:block;font-size:13px;line-height:16px;font-weight:500}.dr-tg small{display:block;font-size:12px;line-height:16px;color:var(--color-text-tertiary)}
+.dr-links{margin-top:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);overflow:hidden}
+.dr-links__h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px}.dr-links__h h2{font-size:15px;line-height:20px;font-weight:600}
+.dr-ln{display:grid;grid-template-columns:20px minmax(0,1fr) auto auto auto;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--color-border-default);font-size:13px}
+.dr-ln .ic{width:14px;height:14px;color:var(--color-text-tertiary)}.dr-ln b{display:block;font-weight:500}.dr-ln small{display:block;font-size:12px;color:var(--color-text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-ln .v{font-family:var(--font-mono);font-size:13px;font-weight:500;white-space:nowrap}.dr-ln.is-off{opacity:.55}
+.dr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dr-kpi{border:1px solid var(--color-border-default);border-radius:14px;padding:14px 16px;background:var(--color-bg-canvas)}
+.dr-kpi p{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--color-text-secondary)}.dr-kpi p .ic{width:14px;height:14px}
+.dr-kpi b{display:block;font-size:28px;line-height:34px;font-weight:500;letter-spacing:-.02em;margin:8px 0 4px}.dr-kpi small{font-size:12px;color:var(--color-text-tertiary)}
+.dr-chart{margin-top:16px;border:1px solid var(--color-border-default);border-radius:14px;padding:16px 18px;background:var(--color-bg-canvas)}
+.dr-chart h2,.dr-who h2{font-size:15px;line-height:20px;font-weight:600}.dr-chart .s{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.dr-chart svg{display:block;width:100%;height:auto;margin-top:12px}
+.dr-legend{display:flex;gap:14px;font-size:12px;color:var(--color-text-secondary)}.dr-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.dr-ins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.dr-ins>div{border:1px solid var(--color-border-default);border-radius:14px;padding:14px;background:var(--color-bg-canvas)}.dr-ins b{display:block;font-size:13px;font-weight:500;margin-top:10px}.dr-ins p{font-size:12px;line-height:16px;color:var(--color-text-secondary);margin-top:6px}
+.dr-who{margin-top:16px;border:1px solid var(--color-border-default);border-radius:14px;background:var(--color-bg-canvas);overflow:hidden}
+.dr-who__h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
+.dr-who table{width:100%;border-collapse:collapse;font-size:13px}.dr-who th{font:400 12px/16px var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:8px 16px;background:var(--color-bg-subtle)}
+.dr-who td{padding:10px 16px;border-top:1px solid var(--color-border-default)}.dr-who td.mono{font-family:var(--font-mono);font-weight:500}
+.dr-empty{padding:40px 16px;text-align:center;color:var(--color-text-secondary);font-size:13px}
+@media (max-width:1180px){.dr{padding:24px 32px 64px}.dr-grid{grid-template-columns:160px minmax(0,1fr)}.dr-side{grid-column:1/-1;position:static;flex-direction:row;flex-wrap:wrap}.dr-side>*{flex:1;min-width:220px}}
+@media (max-width:960px){.dr-stages,.dr-two,.dr-ins{grid-template-columns:minmax(0,1fr)}.dr-kpis{grid-template-columns:1fr 1fr}}
+@media (max-width:768px){.dr{padding:16px 16px 32px}.dr-row .m{display:none}.dr-head h1{font-size:24px;line-height:30px}.dr-grid{grid-template-columns:minmax(0,1fr)}.dr-nav{display:none}.dr-cmp th+th,.dr-cmp td+td{width:auto;padding-left:6px;padding-right:6px}.dr-cmp{overflow-x:auto}.dr-ready .r{display:none}.dr-ln{grid-template-columns:minmax(0,1fr) auto}.dr-ln>.ic,.dr-ln .v{display:none}.dr-who{overflow-x:auto}}
+</style>
+<meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:title" content="Data room | Hentity">
+<meta property="og:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta property="og:url" content="https://hentity.com/data-room">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://hentity.com/og.png?v=5f906702f6">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data room | Hentity">
+<meta name="twitter:description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
+<meta name="twitter:image" content="https://hentity.com/og.png?v=5f906702f6">
+</head>
+<body>
+<div data-header></div>
+<main class="dr" id="main"><div class="skel" style="height:420px;border-radius:16px"></div></main>
+<div data-tabbar></div>
+<script>
+H.mount({ active: 'dataroom', tab: 'you' });
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  const seg = location.pathname.split('/').filter(Boolean);   // ['data-room', 'setup'] | ['data-room', 'files', id]
+  await API.ready;
+  if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+  let D;
+  async function load() { D = await API.drRoom(); D.files = D.files || []; D.links = D.links || []; }
+  try { await load(); } catch (e) { H.fail(e); root.innerHTML = `<div class="dr-empty">Couldn’t open your data room. ${esc(e.message || '')}</div>`; H.contentShown(); return; }
+  if (!D.room || seg[1] === 'setup') setup(); else if (seg[1] === 'files' && seg[2]) filePage(seg[2]); else room();
+  H.contentShown();
+
+  // ================================================================ setup: pick a stage (Figma 302:3757)
+  function setup() {
+    document.title = 'Set up your data room | Hentity';
+    const P = (D.room && D.room.product) || D.products[0] || null;
+    const guess = D.room ? D.room.stage : (P && /seed|series a/i.test(P.stage || '') ? (/series/i.test(P.stage) ? 'growth' : 'seed') : P ? 'seed' : 'ff');
+    let pick = guess;
+    const card = s => { const S = DR.STAGES[s]; return `<label class="dr-sc${s === pick ? ' is-on' : ''}" data-s="${s}"><input type="radio" name="st" value="${s}"${s === pick ? ' checked' : ''}><span class="rdo"></span>
+      <span class="dr-tag ${S.tagCls}">${S.tag}</span><h3>${S.name}</h3><p class="who">${S.who}</p><p class="rd"><b>${S.round}</b>typical round</p><hr>
+      <p class="n">${DR.stageCount(s)} items in your data room</p><ul>${S.bullets.map((b, i) => `<li>${icon(s === 'growth' && i === 0 ? 'plus' : 'check')}${esc(b)}</li>`).join('')}</ul>
+      ${s === guess && P ? `<span class="sugg">${icon('sparkles', 'ic-12')}Suggested for ${esc(P.name)}</span>` : ''}</label>`; };
+    const cell = v => v === 'R' ? '<span class="dr-req">Required</span>' : v === 'O' ? '<span class="dr-req dr-opt">Optional</span>' : '<span class="c-3">—</span>';
+    root.innerHTML = `<nav class="dr-crumbs"><a href="/data-room">Data room</a><span>/</span><b>Set up</b></nav>
+      <div class="dr-head"><div><h1>What round are you raising?</h1><p>Your data room changes with your stage. Pick one and we’ll set up the folders and checklist investors at that stage expect. You can switch any time.</p></div></div>
+      ${P ? `<div class="dr-sug">${H.plogo(P, 32)}<span>${esc(P.name)} is listed${P.stage ? ' as ' + esc(P.stage) : ''} on Hentity, so we suggest ${esc(DR.STAGES[guess].name)}.</span></div>` : ''}
+      <div class="dr-stages" id="stages">${['ff', 'seed', 'growth'].map(card).join('')}</div>
+      <div class="dr-acts">${D.room ? `<a class="btn btn--secondary" href="/data-room">Cancel</a>` : ''}<button class="btn btn--primary" id="go">${icon('arrow-right', 'ic-16')}<span id="go-l"></span></button></div>
+      <section class="dr-cmp"><div class="dr-cmp__h"><h2>What goes in each room</h2><span class="t-caption c-3" style="font-weight:400">Files you add stay when you switch</span></div>
+        <table><thead><tr><th>Document</th><th>Friends & family</th><th>Pre-seed & seed</th><th>Growth</th></tr></thead><tbody>${DR.ITEMS.map(i => `<tr><td>${esc(i[1])}</td><td>${cell(i[4])}</td><td>${cell(i[5])}</td><td>${cell(i[6])}</td></tr>`).join('')}</tbody></table></section>`;
+    const label = () => { qs('#go-l').textContent = D.room ? `Switch to ${DR.STAGES[pick].short}` : `Set up my ${{ ff: 'friends & family', seed: 'seed', growth: 'growth' }[pick]} data room`; };
+    label();
+    qs('#stages').addEventListener('change', e => { pick = e.target.value; qsa('.dr-sc').forEach(c => c.classList.toggle('is-on', c.dataset.s === pick)); label(); });
+    qs('#go').onclick = async () => { const b = qs('#go'); b.disabled = true; try { await API.drSetup(pick, P && P.id, P ? P.name : (API.profile && API.profile.name) || ''); location.href = '/data-room'; } catch (e) { H.fail(e); b.disabled = false; } };
+  }
+
+  // ================================================================ the room (Figma 304:3901)
+  function room() {
+    const R = D.room, S = DR.STAGES[R.stage], items = DR.itemsFor(R.stage);
+    const byItem = {}; D.files.forEach(f => { if (f.item) byItem[f.item] = f; });
+    const extra = D.files.filter(f => !f.item || !items.some(i => i.key === f.item));
+    const req = items.filter(i => i.need === 'R'), ready = req.filter(i => byItem[i.key]).length;
+    const company = R.name || (R.product && R.product.name) || '';
+    document.title = `${S.title} | Hentity`;
+    const folders = DR.FOLDERS.map(([k, n]) => { const it = items.filter(i => i.folder === k), ex = extra.filter(f => (f.folder || 'other') === k); return { k, n, it, ex }; }).filter(x => x.it.length || x.ex.length);
+    const row = i => { const f = byItem[i.key];
+      return f ? `<div class="dr-row is-file" data-open="${f.id}"><span class="dr-ic${i.key === 'deck' ? ' dr-ic--accent' : ''}">${icon('file-text')}</span><div class="t"><p>${esc(i.name)}${f.version > 1 ? ` · v${f.version}` : ''}<span class="dr-st dr-st--ok">${icon('check')}Added</span></p><p>${esc(f.name)}${f.pages ? ` · ${f.pages} page${f.pages === 1 ? '' : 's'}` : ''}${f.views ? ` · ${f.views} viewer${f.views === 1 ? '' : 's'}` : ''}</p></div><span class="m">Updated ${DR.day(f.updated_at)}</span></div>`
+        : `<div class="dr-row"><span class="dr-ic">${icon('upload')}</span><div class="t"><p>${esc(i.name)}${i.need === 'R' ? `<span class="dr-st dr-st--miss">${icon('alert-circle')}Missing</span>` : '<span class="dr-st dr-st--opt">Optional</span>'}</p><p>${esc(i.hint)}</p></div>
+          ${['onepager', 'model', 'burn', 'usefunds', 'founders', 'agreement', 'safes', 'cap'].includes(i.key) ? `<a class="dr-tpl hide-sm" href="/resources/${['founders', 'agreement', 'safes'].includes(i.key) ? 'legal' : i.key === 'onepager' ? 'pitch-deck' : 'raise-money'}">${icon('file-text')}Use template</a>` : ''}
+          <button class="btn btn--secondary btn--sm" data-up="${i.key}" data-folder="${i.folder}">${icon('upload', 'ic-14')}Upload</button></div>`; };
+    const xrow = f => `<div class="dr-row is-file" data-open="${f.id}"><span class="dr-ic">${icon(DR.kind(f) === 'image' ? 'image' : DR.kind(f) === 'video' ? 'video' : 'file-text')}</span><div class="t"><p>${esc(f.name)}</p><p>${DR.kindLabel(f)} · ${DR.kb(f.size)}${f.views ? ` · ${f.views} viewer${f.views === 1 ? '' : 's'}` : ''}</p></div><span class="m">${DR.day(f.updated_at)}</span></div>`;
+    const next = R.stage === 'growth' ? null : R.stage === 'seed' ? 'growth' : 'seed';
+    const live = D.links.filter(l => !l.revoked_at && (!l.expires_at || new Date(l.expires_at) > new Date()));
+    root.innerHTML = `<nav class="dr-crumbs"><span>Data room</span>${company ? `<span>/</span><b>${esc(company)}</b>` : ''}</nav>
+      <div class="dr-head"><div><h1>${S.title}<span class="dr-stage">${esc(S.short)}${icon('chevron-down')}<select id="stg" aria-label="Stage">${['ff', 'seed', 'growth'].map(s => `<option value="${s}"${s === R.stage ? ' selected' : ''}>${DR.STAGES[s].short}</option>`).join('')}</select></span></h1><p>${S.lead}</p></div>
+        <div class="row gap-8"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload', 'ic-14')}Upload<input type="file" class="sr-only" id="up-any" multiple></label><button class="btn btn--primary btn--sm" id="share-room">${icon('link', 'ic-14')}Share with an investor</button></div></div>
+      <div class="dr-ready"><b>${ready}/${req.length}</b><span>required ready</span><span class="dr-bars">${req.map((_, i) => `<i${i < ready ? ' class="on"' : ''}></i>`).join('')}</span><span class="r">${D.files.length} file${D.files.length === 1 ? '' : 's'} · ${live.length} active link${live.length === 1 ? '' : 's'}</span></div>
+      <div class="dr-grid"><nav class="dr-nav"><a href="#all" aria-current="true">${icon('folder')}All files<span>${D.files.length}</span></a>${folders.map(x => `<a href="#f-${x.k}">${icon('folder')}${esc(x.n)}<span>${x.it.filter(i => byItem[i.key]).length + x.ex.length}/${x.it.length + x.ex.length}</span></a>`).join('')}</nav>
+        <div>${folders.map(x => `<section class="dr-sec" id="f-${x.k}"><div class="dr-sec__h">${esc(x.n)}<span>${x.it.filter(i => byItem[i.key]).length + x.ex.length}/${x.it.length + x.ex.length}</span></div>${x.it.map(row).join('')}${x.ex.map(xrow).join('')}</section>`).join('')}
+          <label class="dr-drop" id="drop">${icon('upload', 'ic-18')}<br>Drop any other file here, or <span class="c-accent" style="font-weight:500;cursor:pointer">choose a file</span><br><span class="t-caption c-3" style="font-weight:400">PDF, images, video, spreadsheets · up to 50 MB · only you can see it until you share a link</span><input type="file" class="sr-only" id="up-drop" multiple></label></div>
+        <aside class="dr-side">
+          <section class="dr-card"><p class="t">Shared with</p>${D.links.length ? `<div class="dr-share">${D.links.slice(0, 5).map(l => `<a href="#links"><b>${esc(l.label)}</b><small>${l.revoked_at ? 'Revoked' : l.last_view ? 'Viewed ' + H.ago(l.last_view) : 'Not opened yet'}</small></a>`).join('')}</div>` : '<p class="d">No links yet. Share the whole room, or open a file to share just that one.</p>'}
+            <button class="btn btn--secondary btn--sm btn--block" style="margin-top:12px" id="share-room2">${icon('link', 'ic-14')}Create a share link</button></section>
+          ${next ? `<section class="dr-card"><span class="dr-tag ${DR.STAGES[next].tagCls}">${DR.STAGES[next].name} room</span><p class="d" style="margin-top:10px">When you raise ${next === 'growth' ? 'a Series A' : 'from angels and seed funds'}, your room grows to ${DR.stageCount(next)} items: ${esc(DR.STAGES[next].bullets.slice(next === 'growth' ? 1 : 0, 3).map((b, i) => i ? b.charAt(0).toLowerCase() + b.slice(1) : b.charAt(0).toLowerCase() + b.slice(1)).join(', ').replace('kPIs', 'KPIs'))}.</p><a class="link link--accent t-caption" href="/data-room/setup" style="display:inline-block;margin-top:10px">Preview ${DR.STAGES[next].short.toLowerCase()} room →</a></section>` : ''}
+          <section class="dr-card dr-card--soft"><p class="t">Templates are in Resources</p><p class="d">Financial model, one-pager, SAFE and founder agreement templates, with how to use them.</p><a class="link link--accent t-caption" href="/resources/raise-money" style="display:inline-block;margin-top:8px">Open Resources →</a></section>
+        </aside></div>
+      <section class="dr-links" id="links"><div class="dr-links__h"><h2>Share links</h2><button class="btn btn--secondary btn--sm" id="share-room3">${icon('plus', 'ic-14')}New link</button></div>${linksHtml(D.links)}</section>`;
+    qs('#stg').onchange = async e => { try { await API.drSetup(e.target.value, R.product_id, R.name); location.reload(); } catch (er) { H.fail(er); } };
+    qsa('#share-room,#share-room2,#share-room3').forEach(b => b.onclick = () => linkSheet(null, null));
+    root.onclick = e => {
+      const o = e.target.closest('[data-open]'); if (o && !e.target.closest('button,a,label')) { location.href = '/data-room/files/' + o.dataset.open; return; }
+      const u = e.target.closest('[data-up]'); if (u) pickAndUpload(u.dataset.up, u.dataset.folder);
+      linkActions(e);
+    };
+    qs('#up-any').onchange = e => uploadMany([...e.target.files], '', 'other');
+    qs('#up-drop').onchange = e => uploadMany([...e.target.files], '', 'other');
+    const drop = qs('#drop');
+    ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('is-over'); }));
+    ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('is-over'); }));
+    drop.addEventListener('drop', e => uploadMany([...e.dataTransfer.files], '', 'other'));
+  }
+
+  function pickAndUpload(item, folder) {
+    const i = document.createElement('input'); i.type = 'file'; if (item === 'deck') i.accept = '.pdf,application/pdf';
+    i.onchange = () => i.files[0] && uploadMany([i.files[0]], item, folder); i.click();
+  }
+  async function uploadMany(files, item, folder) {
+    if (!files.length) return;
+    for (const f of files) {
+      if (f.size > 50 * 1024 * 1024) { toast(`${f.name} is over 50 MB`, 'error'); continue; }
+      if (item === 'deck' && !/pdf/i.test(f.type) && !/\.pdf$/i.test(f.name)) { toast('Upload the deck as a PDF so investors can read it in the browser', 'error'); continue; }
+      toast(`Uploading ${f.name}…`);
+      try { const pages = /pdf/i.test(f.type) || /\.pdf$/i.test(f.name) ? await DR.pdfPages(f) : null; await API.drUpload(D.room.id, f, item, folder, pages); }
+      catch (e) { H.fail(e); return; }
+    }
+    toast(files.length > 1 ? 'Files added' : 'File added'); await load(); seg[1] === 'files' ? filePage(seg[2]) : room();
+  }
+
+  // ---- links list + actions (shared by the room and the file page)
+  function linksHtml(links, fid) {
+    const L = fid ? links.filter(l => !l.file_ids || l.file_ids.includes(fid)) : links;
+    if (!L.length) return `<p class="dr-empty" style="border-top:1px solid var(--color-border-default)">No links yet. One link per investor or event, so you know who’s looking.</p>`;
+    return L.map(l => { const off = l.revoked_at || (l.expires_at && new Date(l.expires_at) < new Date());
+      const scope = !l.file_ids ? 'Whole room' : l.file_ids.length === 1 ? (D.files.find(f => f.id === l.file_ids[0]) || {}).name || '1 file' : l.file_ids.length + ' files';
+      return `<div class="dr-ln${off ? ' is-off' : ''}">${icon('link')}<div style="min-width:0"><b>${esc(l.label)}</b><small>${esc(scope)} · ${{ anyone: 'Anyone with the link', email: 'Verified email', list: 'Only people you added' }[l.mode]} · ${esc(DR.linkUrl(l).replace(/^https?:\/\//, ''))}</small></div>
+        <span class="v">${l.viewers || 0} viewer${l.viewers === 1 ? '' : 's'}</span><span class="dr-st ${off ? 'dr-st--opt' : 'dr-st--ok'}">${l.revoked_at ? 'Revoked' : off ? 'Expired' : 'Active'}</span>
+        <span class="row gap-4">${off ? (l.revoked_at ? `<button class="btn btn--ghost btn--sm" data-unrevoke="${l.id}">Turn back on</button>` : '') : `<button class="nav__icon" data-copy="${esc(DR.linkUrl(l))}" aria-label="Copy link" title="Copy link">${icon('copy', 'ic-16')}</button><button class="nav__icon" data-edit-link="${l.id}" aria-label="Edit link" title="Edit">${icon('edit', 'ic-16')}</button><button class="nav__icon" data-revoke="${l.id}" aria-label="Revoke link" title="Revoke">${icon('x', 'ic-16')}</button>`}</span></div>`; }).join('');
+  }
+  async function linkActions(e) {
+    const c = e.target.closest('[data-copy]'), r = e.target.closest('[data-revoke]'), u = e.target.closest('[data-unrevoke]'), ed = e.target.closest('[data-edit-link]');
+    try {
+      if (c) { await navigator.clipboard.writeText(c.dataset.copy).catch(() => {}); toast('Link copied'); }
+      if (r) { if (!(await H.confirm('Revoke this link?', { body: 'Anyone who has it loses access straight away, including people viewing right now.', ok: 'Revoke' }))) return; await API.drRevoke(r.dataset.revoke, true); toast('Link revoked'); await load(); refresh(); }
+      if (u) { await API.drRevoke(u.dataset.unrevoke, false); toast('Link is back on'); await load(); refresh(); }
+      if (ed) linkSheet(D.links.find(l => l.id === ed.dataset.editLink), null);
+    } catch (er) { H.fail(er); }
+  }
+  const refresh = () => seg[1] === 'files' ? filePage(seg[2]) : room();
+
+  // ---- create / edit a link (whole room, or chosen files)
+  function linkSheet(link, fid) {
+    const l = Object.assign({ label: '', file_ids: fid ? [fid] : null, mode: 'email', allow: [], download: false, watermark: true, track: true, expires_at: null }, link || {});
+    const el = document.createElement('div'); el.className = 'scrim';
+    const exp = l.expires_at ? 'keep' : '';
+    el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Share link" style="max-width:520px;max-height:90vh;overflow:auto">
+      <h2 class="t-h3">${link ? 'Edit link' : fid ? 'Share this file' : 'Share your data room'}</h2>
+      <label class="field"><span class="field__label">Who it’s for</span><input class="input" name="label" value="${esc(l.label)}" placeholder="e.g. Baobab Ventures, or Demo Day Nairobi" maxlength="80" required></label>
+      <div class="field"><span class="field__label">What they see</span><div class="chips" data-single id="scope"><button type="button" class="chip" data-v="all" aria-pressed="${!l.file_ids}">${icon('check')}Whole room</button><button type="button" class="chip" data-v="some" aria-pressed="${!!l.file_ids}">${icon('check')}Chosen files</button></div>
+        <div id="files" class="stack gap-6" style="margin-top:8px;max-height:180px;overflow:auto${l.file_ids ? '' : ';display:none'}">${D.files.map(f => `<label class="row gap-8 t-body-sm"><input type="checkbox" value="${f.id}"${(l.file_ids || []).includes(f.id) ? ' checked' : ''}>${esc(f.item ? DR.itemName(f.item) + ' · ' + f.name : f.name)}</label>`).join('') || '<p class="t-caption c-3">No files yet.</p>'}</div></div>
+      <div class="field"><span class="field__label">Who can open it</span>
+        ${[['anyone', 'globe', 'Anyone with the link', 'No sign-in. You see views but not who.'], ['email', 'mail', 'Verified email', 'They confirm their email with a code first, so you see exactly who opened it.'], ['list', 'users', 'Only people I add', 'Only these emails or @domains, after a code.']].map(([v, ic, t, d]) => `<label class="dr-radio${l.mode === v ? ' is-on' : ''}"><input type="radio" name="mode" value="${v}"${l.mode === v ? ' checked' : ''}><span class="o"></span><span><b>${icon(ic)}${t}</b><small>${d}</small></span></label>`).join('')}
+        <textarea class="input" name="allow" rows="2" placeholder="ama@baobab.vc, @savannahangels.africa" style="margin-top:8px${l.mode === 'list' ? '' : ';display:none'}">${esc((l.allow || []).join(', '))}</textarea></div>
+      <div>${[['download', 'Allow download', 'Off: view in the browser only'], ['watermark', 'Watermark every page', 'Shows the viewer’s email and the date'], ['track', 'Track time per page', 'Viewers are told before they open it']].map(([k, t, d]) => `<label class="dr-tg"><span><b>${t}</b><small>${d}</small></span><span class="toggle"><input type="checkbox" name="${k}"${l[k] ? ' checked' : ''}><span class="toggle__track"></span></span></label>`).join('')}</div>
+      <label class="field"><span class="field__label">Link expires</span><select class="input" name="exp">${exp ? `<option value="keep" selected>${DR.day(l.expires_at)} (current)</option>` : ''}<option value=""${exp ? '' : ' selected'}>Never</option><option value="7">In 7 days</option><option value="30">In 30 days</option><option value="90">In 90 days</option></select></label>
+      <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">${link ? 'Save' : 'Create link'}</button></div></form>`;
+    document.body.appendChild(el);
+    const f = el.querySelector('form');
+    el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-x]')) el.remove(); const s = e.target.closest('#scope .chip'); if (s) { qsa('#scope .chip', el).forEach(b => b.setAttribute('aria-pressed', b === s)); el.querySelector('#files').style.display = s.dataset.v === 'some' ? '' : 'none'; } });
+    f.addEventListener('change', e => { if (e.target.name === 'mode') { qsa('.dr-radio', el).forEach(r => r.classList.toggle('is-on', r.querySelector('input').checked)); f.allow.style.display = e.target.value === 'list' ? '' : 'none'; } });
+    f.onsubmit = async e => {
+      e.preventDefault(); const b = f.querySelector('[type=submit]');
+      const some = el.querySelector('#scope [aria-pressed="true"]').dataset.v === 'some', ids = qsa('#files input:checked', el).map(i => i.value);
+      if (some && !ids.length) return toast('Pick at least one file', 'error');
+      const ev = f.exp.value, expires = ev === 'keep' ? l.expires_at : ev ? new Date(Date.now() + +ev * 864e5).toISOString() : null;
+      b.disabled = true;
+      try {
+        const out = await API.drSaveLink(link && link.id, { label: f.label.value, file_ids: some ? ids : null, mode: f.mode.value, allow: f.allow.value.split(/[\s,;]+/).filter(Boolean), download: f.download.checked, watermark: f.watermark.checked, track: f.track.checked, expires_at: expires });
+        el.remove(); await navigator.clipboard.writeText(DR.linkUrl(out)).catch(() => {});
+        toast(link ? 'Link saved' : 'Link created and copied'); await load(); refresh();
+      } catch (er) { H.fail(er); b.disabled = false; }
+    };
+  }
+
+  // ================================================================ one file: preview · lock and share · analytics (Figma 228:3074, 229:3260)
+  async function filePage(id) {
+    const f = D.files.find(x => x.id === id);
+    if (!f) { root.innerHTML = `<nav class="dr-crumbs"><a href="/data-room">Data room</a></nav><div class="dr-empty">That file isn’t in your data room any more. <a class="link link--accent" href="/data-room">Back to your data room</a></div>`; return; }
+    const title = f.item ? DR.itemName(f.item) : f.name, pdf = DR.kind(f) === 'pdf';
+    const tab = (location.hash.slice(1) || 'preview');
+    document.title = `${title} | Data room | Hentity`;
+    root.innerHTML = `<nav class="dr-crumbs"><a href="/data-room">Data room</a>${icon('arrow-right')}<a href="/data-room#f-${esc(f.folder)}">${esc(DR.folderName(f.folder))}</a>${icon('arrow-right')}<b>${esc(title)}</b></nav>
+      <div class="dr-head" style="align-items:flex-start"><div class="dr-fh" style="margin-top:0"><span class="big">${icon('file-text')}</span><div><h1>${esc(title)}${D.links.some(l => !l.revoked_at && (!l.file_ids || l.file_ids.includes(f.id))) ? `<span class="dr-lock">${icon('lock')}Locked</span>` : ''}</h1>
+        <p class="meta">${f.version > 1 ? `v${f.version} · ` : ''}${f.pages ? `${f.pages} ${f.item === 'deck' ? 'slides' : 'pages'} · ` : ''}${DR.kindLabel(f)} · ${DR.kb(f.size)} · updated ${DR.day(f.updated_at)}${f.item ? ` · ${esc(f.name)}` : ''}</p></div></div>
+        <div class="row gap-8"><button class="btn btn--ghost btn--sm" id="del">${icon('trash', 'ic-14')}Delete</button><button class="btn btn--secondary btn--sm" id="rep">${icon('upload', 'ic-14')}Replace file</button><button class="btn btn--accent btn--sm" id="newlink">${icon('link', 'ic-14')}New link</button></div></div>
+      <div class="dr-tabs" role="tablist">${[['preview', 'Preview'], ['share', 'Lock and share'], ['analytics', 'Analytics']].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${k === tab}">${l}</button>`).join('')}</div>
+      <div id="tabbody"></div>`;
+    qs('#newlink').onclick = () => linkSheet(null, f.id);
+    qs('#rep').onclick = () => { const i = document.createElement('input'); i.type = 'file'; if (pdf) i.accept = '.pdf,application/pdf'; i.onchange = async () => { const x = i.files[0]; if (!x) return; if (f.item) return uploadMany([x], f.item, f.folder);
+      // extra files: upload the new one, then remove the old
+      try { const pages = /pdf/i.test(x.type) ? await DR.pdfPages(x) : null; const n = await API.drUpload(D.room.id, x, '', f.folder, pages); await API.drDelete(f.id); toast('File replaced'); location.href = '/data-room/files/' + n.id; } catch (e) { H.fail(e); } }; i.click(); };
+    qs('#del').onclick = async () => { if (!(await H.confirm('Delete this file?', { body: 'It’s removed from your data room and from every link that shares it. Its view history goes too.', ok: 'Delete' }))) return; try { await API.drDelete(f.id); toast('Deleted'); location.href = '/data-room'; } catch (e) { H.fail(e); } };
+    qsa('.dr-tabs button').forEach(b => b.onclick = () => { history.replaceState(null, '', '#' + b.dataset.tab); qsa('.dr-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); show(b.dataset.tab); });
+    root.onclick = linkActions;
+    show(tab);
+
+    async function show(t) {
+      const box = qs('#tabbody');
+      if (t === 'share') {
+        box.innerHTML = `<div class="dr-two"><div class="dr-stagebox"><div class="main" id="big"><p class="t-caption c-3">Loading…</p></div><div class="dr-thumbs" id="thumbs"></div></div>
+          <div class="dr-panel"><div class="dr-locked">${icon('lock', 'ic-16')}<span><b style="font-weight:500">${esc(title)} is private</b><small>It only opens through links you create. Nobody can find it on Hentity.</small></span></div>
+            <p class="t-body-sm" style="margin-top:14px">Each link has its own settings: who can open it, download, watermark, time tracking and expiry. Make one per investor or event so you know who’s looking.</p>
+            <button class="btn btn--primary btn--block" style="margin-top:14px" id="nl2">${icon('link', 'ic-14')}Create a link for this file</button>
+            ${D.links.some(l => !l.revoked_at && (!l.file_ids || l.file_ids.includes(f.id))) ? `<button class="btn btn--secondary btn--block" style="margin-top:8px" id="revall">Revoke all links to this file</button>` : ''}</div></div>
+          <section class="dr-links"><div class="dr-links__h"><div><h2>Share links</h2><p class="t-caption c-3" style="font-weight:400">Links that include this file, including whole-room links</p></div></div>${linksHtml(D.links, f.id)}</section>`;
+        qs('#nl2').onclick = () => linkSheet(null, f.id);
+        qs('#revall') && (qs('#revall').onclick = async () => { const L = D.links.filter(l => !l.revoked_at && l.file_ids && l.file_ids.includes(f.id)); const whole = D.links.filter(l => !l.revoked_at && !l.file_ids).length;
+          if (!(await H.confirm('Revoke all links to this file?', { body: `${L.length} link${L.length === 1 ? '' : 's'} stop working straight away.${whole ? ` ${whole} whole-room link${whole === 1 ? '' : 's'} still include it: revoke ${whole === 1 ? 'it' : 'them'} from the room page.` : ''}`, ok: 'Revoke' }))) return;
+          try { for (const l of L) await API.drRevoke(l.id, true); toast('Links revoked'); await load(); show('share'); } catch (e) { H.fail(e); } });
+        stage(qs('#big'), qs('#thumbs'));
+        return;
+      }
+      if (t === 'analytics') return analytics(box, f);
+      box.innerHTML = `<div class="dr-pv" id="pv"><p class="t-caption c-3">Loading…</p></div>`;
+      preview(qs('#pv'));
+    }
+    async function source() { return API.drFileBlob(f.path); }
+    async function preview(el) {
+      try {
+        const k = DR.kind(f);
+        if (k === 'pdf') { const doc = await DR.pdfDoc(await source()); el.innerHTML = ''; const w = Math.min(820, el.clientWidth - 40); for (let n = 1; n <= doc.numPages; n++) { const c = document.createElement('canvas'); el.append(c); await DR.renderPage(doc, n, c, w); } }
+        else if (k === 'image') { const u = URL.createObjectURL(await source()); el.innerHTML = `<img src="${u}" alt="${esc(f.name)}">`; }
+        else if (k === 'video') { const u = await API.drFileUrl(f.path); el.innerHTML = `<video src="${esc(u)}" controls playsinline style="max-height:70vh"></video>`; }
+        else { el.innerHTML = `<p class="t-body-sm c-2">${esc(f.name)} can’t be previewed in the browser. Investors with download on can open it.</p><button class="btn btn--secondary btn--sm" id="dl">${icon('download', 'ic-14')}Download</button>`; qs('#dl').onclick = async () => { location.href = await API.drFileUrl(f.path); }; }
+      } catch (e) { el.innerHTML = `<p class="t-body-sm c-2">${esc(e.message || 'Couldn’t show this file')}</p>`; }
+    }
+    async function stage(big, thumbs) {
+      if (DR.kind(f) !== 'pdf') { big.style.minHeight = '0'; return preview(big); }
+      try {
+        const doc = await DR.pdfDoc(await source()), w = Math.min(760, big.clientWidth);
+        const showPage = async n => { big.innerHTML = ''; const c = document.createElement('canvas'); big.append(c); await DR.renderPage(doc, n, c, w); qsa('button', thumbs).forEach(b => b.toggleAttribute('aria-current', +b.dataset.p === n)); };
+        await showPage(1);
+        for (let n = 1; n <= Math.min(doc.numPages, 40); n++) { const b = document.createElement('button'); b.dataset.p = n; b.setAttribute('aria-label', 'Page ' + n); const c = document.createElement('canvas'); b.append(c); thumbs.append(b); b.onclick = () => showPage(n); await DR.renderPage(doc, n, c, 120); }
+        thumbs.querySelector('button').setAttribute('aria-current', '');
+      } catch (e) { big.innerHTML = `<p class="t-body-sm c-2">${esc(e.message || '')}</p>`; }
+    }
+  }
+
+  // ---- analytics (Figma 229:3260)
+  async function analytics(box, f) {
+    const L = D.links.filter(l => !l.file_ids || l.file_ids.includes(f.id));
+    let lid = '', days = 30;
+    box.innerHTML = `<div class="row between gap-12 wrap" style="margin-bottom:16px"><div class="chips" data-single id="lf"><button class="chip" data-l="" aria-pressed="true">${icon('check')}All links</button>${L.map(l => `<button class="chip" data-l="${l.id}" aria-pressed="false">${icon('check')}${esc(l.label)}</button>`).join('')}</div>
+      <label class="fu-sel"><select id="days" aria-label="Period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="3650">All time</option></select>${icon('chevron-down', 'ic-14')}</label></div><div id="ab"><div class="skel" style="height:300px;border-radius:14px"></div></div>`;
+    qs('#lf').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; qsa('#lf .chip').forEach(x => x.setAttribute('aria-pressed', x === b)); lid = b.dataset.l; draw(); };
+    qs('#days').onchange = e => { days = +e.target.value; draw(); };
+    draw();
+    async function draw() {
+      const ab = qs('#ab'); let A;
+      try { A = await API.drAnalytics(f.id, lid, days); } catch (e) { ab.innerHTML = `<div class="dr-empty">${esc(e.message || 'Couldn’t load analytics')}</div>`; return; }
+      if (!A || !A.sessions) { ab.innerHTML = `<div class="dr-who"><div class="dr-empty">No views yet${lid ? ' on this link' : ''}. Share a link and you’ll see who opens ${esc(f.item === 'deck' ? 'your deck' : 'this file')}, for how long, and where they stop.</div></div>`; return; }
+      const P = f.pages || Math.max(1, ...A.pages.map(p => p.page)), pg = Array.from({ length: P }, (_, i) => A.pages.find(p => p.page === i + 1) || { page: i + 1, avg: 0, reach: 0 });
+      const sess = A.sessions || 1, endPct = Math.round((pg[P - 1].reach || 0) / sess * 100);
+      const top = [...pg].sort((a, b) => b.avg - a.avg).slice(0, 2).map(p => p.page);
+      let drop = null; for (let i = 1; i < pg.length; i++) { const d = (pg[i - 1].reach - pg[i].reach) / sess; if (!drop || d > drop.d) drop = { d, page: pg[i - 1].page }; }
+      ab.innerHTML = `<div class="dr-kpis">
+          <div class="dr-kpi"><p>${icon('eye')}Views</p><b>${A.views}</b><small>${A.views_week ? `▲ ${A.views_week} this week` : 'None this week'}</small></div>
+          <div class="dr-kpi"><p>${icon('users')}People</p><b>${A.people}</b><small>${A.verified} verified email${A.verified === 1 ? '' : 's'}</small></div>
+          <div class="dr-kpi"><p>${icon('clock')}Avg. time</p><b>${DR.secs(A.avg_secs)}</b><small>Median ${DR.secs(A.median_secs)}</small></div>
+          <div class="dr-kpi"><p>${icon('file-text')}Read to the end</p><b>${endPct}%</b><small>${drop && drop.d > 0 ? `Most stop after page ${drop.page}` : 'Nobody stops early'}</small></div></div>
+        ${P > 1 ? `<section class="dr-chart"><div class="row between gap-12 wrap"><div><h2>Where they spend time</h2><p class="s">Average seconds on each page, across ${A.sessions} visit${A.sessions === 1 ? '' : 's'}</p></div><div class="dr-legend"><span><i style="background:#FF8F57"></i>Most time</span><span><i style="background:#DCDCDC"></i>Other pages</span><span><i style="background:#7B61FF;height:2px;vertical-align:3px"></i>% still reading</span></div></div>${chart(pg, top, sess)}</section>` : ''}
+        ${P > 1 ? `<div class="dr-ins"><div><span class="dr-ic dr-ic--accent">${icon('bar-chart')}</span><b>Page ${top[0]} holds attention</b><p>It gets ${DR.secs(pg[top[0] - 1].avg)} on average, the most of any page.</p></div>
+          <div><span class="dr-ic" style="background:#FDECEC;color:#B42318">${icon('alert-circle')}</span><b>${drop && drop.d > 0 ? `You lose ${Math.round(drop.d * 100)}% after page ${drop.page}` : 'Readers keep going'}</b><p>${drop && drop.d > 0 ? `Only ${Math.round((pg[drop.page].reach || 0) / sess * 100)}% of visits get past page ${drop.page}. Try tightening it or moving it later.` : 'No page loses a big share of readers.'}</p></div>
+          <div><span class="dr-ic" style="background:#E3F0FF;color:#1E5FA8">${icon('clock')}</span><b>${A.viewers.filter(v => v.opens > 1).length} came back</b><p>Visits that opened ${esc(f.item === 'deck' ? 'the deck' : 'it')} more than once.</p></div></div>` : ''}
+        <section class="dr-who"><div class="dr-who__h"><h2>Who viewed it</h2><button class="link link--accent t-body-sm" id="csv">Export CSV</button></div>
+          <table><thead><tr><th>Viewer</th><th>Link</th><th>Last viewed</th><th>Time</th><th>Pages</th><th>Visits</th><th>Device</th></tr></thead><tbody>
+          ${A.viewers.map(v => `<tr><td><span class="row gap-10">${v.email ? `<span class="fav" style="${H.tint(v.email)}">${esc(v.email.slice(0, 2).toUpperCase())}</span><span class="row gap-4" style="white-space:nowrap">${esc(v.email)}${v.verified ? icon('check', 'ic-12') : ''}</span>` : `<span class="fav">${icon('user', 'ic-12')}</span><span class="c-3">Anonymous</span>`}</span></td><td>${esc(v.label)}</td><td>${esc(H.ago(v.last_at))}</td><td class="mono">${DR.secs(v.secs)}</td><td class="mono">${v.pages}/${P}</td><td class="mono">${v.opens}</td><td class="c-2">${esc(v.device || '')}</td></tr>`).join('')}</tbody></table>
+          <p class="row gap-6 t-caption c-3" style="font-weight:400;padding:12px 16px;border-top:1px solid var(--color-border-default)">${icon('lock', 'ic-12')}Viewers are told about tracking before opening. “Anyone with the link” views show as Anonymous unless they give an email.</p></section>`;
+      qs('#csv').onclick = () => { const rows = [['Email', 'Verified', 'Link', 'Last viewed', 'Seconds', 'Pages', 'Visits', 'Device'], ...A.viewers.map(v => [v.email || 'Anonymous', v.verified ? 'yes' : 'no', v.label, v.last_at, v.secs, v.pages, v.opens, v.device])];
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(x => `"${String(x == null ? '' : x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv' })); a.download = `${(f.item ? DR.itemName(f.item) : f.name).replace(/[^\w]+/g, '-')}-viewers.csv`; a.click(); };
+    }
+  }
+  // Bars = average seconds per page (top two orange); line = share of visits still reading
+  function chart(pg, top, sess) {
+    const W = 1000, H0 = 250, L = 40, R = 40, T = 24, B = 32, n = pg.length, bw = Math.min(44, (W - L - R) / n * .62), gap = (W - L - R) / n;
+    const max = Math.max(10, ...pg.map(p => p.avg)), y = v => T + (H0 - T - B) * (1 - v / max), yr = v => T + (H0 - T - B) * (1 - v);
+    const ticks = [0, .5, 1].map(t => Math.round(max * t));
+    return `<svg viewBox="0 0 ${W} ${H0}" role="img" aria-label="Average seconds per page">
+      ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="#EBEBEB"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="#A3A3A3">${t}s</text>`).join('')}
+      ${pg.map((p, i) => { const x = L + gap * i + (gap - bw) / 2, h = Math.max(p.avg ? 2 : 0, (H0 - T - B) * p.avg / max); return `<rect x="${x}" y="${y(p.avg)}" width="${bw}" height="${h}" rx="4" fill="${top.includes(p.page) && p.avg ? '#FF8F57' : '#DCDCDC'}"><title>Page ${p.page}: ${DR.secs(p.avg)} average</title></rect>
+        ${p.avg ? `<text x="${x + bw / 2}" y="${y(p.avg) - 6}" text-anchor="middle" font-size="11" fill="#0A0A0A">${Math.round(p.avg)}s</text>` : ''}<text x="${x + bw / 2}" y="${H0 - B + 18}" text-anchor="middle" font-size="12" fill="#0A0A0A" font-weight="500">${p.page}</text>`; }).join('')}
+      <polyline fill="none" stroke="#7B61FF" stroke-width="2" points="${pg.map((p, i) => `${L + gap * i + gap / 2},${yr(p.reach / sess)}`).join(' ')}"/>
+      ${pg.map((p, i) => `<circle cx="${L + gap * i + gap / 2}" cy="${yr(p.reach / sess)}" r="3" fill="#fff" stroke="#7B61FF" stroke-width="1.5"><title>${Math.round(p.reach / sess * 100)}% still reading</title></circle>`).join('')}
+      <text x="${W - R + 6}" y="${yr(1) + 4}" font-size="11" fill="#7B61FF">100%</text><text x="${W - R + 6}" y="${yr(0) + 4}" font-size="11" fill="#7B61FF">0</text></svg>`;
+  }
+})();
+</script>
+</body>
+</html>

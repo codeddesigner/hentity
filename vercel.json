@@ -114,6 +114,14 @@
       "destination": "/resources"
     },
     {
+      "source": "/data-room/:path*",
+      "destination": "/data-room"
+    },
+    {
+      "source": "/r/:token",
+      "destination": "/r"
+    },
+    {
       "source": "/",
       "destination": "/api/ssr?type=home"
     },
@@ -159,11 +167,6 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/data-room",
-      "destination": "/funding",
-      "permanent": false
-    },
     {
       "source": "/:path*",
       "has": [

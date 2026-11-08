@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#head-->
+<title>Shared files | Hentity</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<script src="/assets/dataroom.js"></script>
+<style>
+/* Data room viewer (Figma 228:3543): a link a founder shared. No sidebar; works signed out. */
+body{background:var(--color-bg-subtle)}
+.rv{max-width:460px;margin:0 auto;padding:28px 16px 48px}
+.rv-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.rv-top .logo svg{height:22px;width:auto}
+.rv-cover{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--c,#0a0a0a);display:grid;place-items:center}
+.rv-cover::after{content:"";position:absolute;width:52%;aspect-ratio:1;border-radius:50%;right:-10%;bottom:-24%;background:rgba(255,255,255,.18)}
+.rv-cover .nm{position:absolute;left:20px;top:20px;color:#fff;font-size:22px;font-weight:600;letter-spacing:-.02em;opacity:.55}
+.rv-cover .lk{position:relative;z-index:1;width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.rv h1{font-size:17px;line-height:24px;font-weight:600;margin-top:16px}
+.rv .sub{font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-tertiary);margin-top:4px}
+.rv form{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.rv-code{font-family:var(--font-mono);font-size:22px!important;letter-spacing:.4em;text-align:center}
+.rv-notes{margin-top:16px;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:12px;background:var(--color-bg-canvas);display:flex;flex-direction:column;gap:8px}
+.rv-notes p{display:flex;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--color-text-secondary)}.rv-notes .ic{width:14px;height:14px;flex:none;margin-top:1px}
+.rv-off{text-align:center;padding:64px 16px}
+/* open */
+.rw{max-width:960px;margin:0 auto;padding:20px 16px 64px}
+.rw-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.rw-head h1{font-size:17px;line-height:24px;font-weight:600}.rw-head p{font-size:12px;color:var(--color-text-tertiary)}
+.rw-files{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.rw-files button{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--color-border-default);background:var(--color-bg-canvas);font-size:13px;font-weight:500;color:var(--color-text-secondary)}
+.rw-files button[aria-current]{background:#0a0a0a;border-color:#0a0a0a;color:#fff}
+.rw-doc{display:flex;flex-direction:column;align-items:center;gap:12px}
+.rw-doc canvas,.rw-doc img,.rw-doc video{max-width:100%;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.rw-doc .wm{position:relative;display:inline-block}.rw-doc .wm::after{content:attr(data-mark);position:absolute;inset:0;display:grid;place-items:center;color:rgba(0,0,0,.14);font-size:16px;transform:rotate(-24deg);pointer-events:none;text-align:center}
+.rw-bar{position:sticky;bottom:12px;margin:16px auto 0;display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;padding:6px 8px 6px 14px;border-radius:999px;background:#0a0a0a;color:#fff;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.rw-bar .btn{height:28px}
+.rw-nothing{padding:48px 16px;text-align:center;color:var(--color-text-secondary);font-size:13px}
+.rw-doc.nosel{user-select:none;-webkit-user-select:none}
+</style>
+</head>
+<body>
+<main id="main"><div class="rv"><div class="skel" style="height:360px;border-radius:16px"></div></div></main>
+<script>
+H.mount({});
+(async function () {
+  const { qs, qsa, esc, icon, toast } = H;
+  const root = qs('#main');
+  const tok = (location.pathname.split('/').filter(Boolean)[1] || '').trim();
+  const KEY = 'hentity.dr.' + tok;
+  const store = { get() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }, set(v) { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch (e) {} } };
+  await API.ready.catch(() => {});
+  const top = `<div class="rv-top"><a class="logo" href="/" aria-label="Hentity">${H.logo()}</a><span class="t-caption c-3" style="font-weight:400">Shared privately</span></div>`;
+  let L;
+  try { L = await API.drOpen(tok); } catch (e) { L = { ok: false, reason: 'missing' }; }
+  if (!L || !L.ok) { root.innerHTML = `<div class="rv">${top}<div class="rv-off"><h1 class="t-h3">${L && L.reason === 'revoked' ? 'This link was turned off' : L && L.reason === 'expired' ? 'This link has expired' : 'This link doesn’t work'}</h1><p class="t-body-sm c-2" style="margin-top:8px">Ask the founder who sent it for a new one.</p></div></div>`; H.contentShown(); return; }
+  document.title = `${L.company} shared ${L.single ? 'a file' : 'files'} with you | Hentity`;
+  // Coming back within a day: skip the code
+  const saved = store.get();
+  if (saved) { try { const S = await API.drResume(saved); if (S) return open(S); } catch (e) {} store.set(null); }
+  gate();
+
+  function gate(sentTo) {
+    const what = L.single ? (L.single.name ? esc(L.single.name.replace(/\.[a-z0-9]+$/i, '')) : 'a file') : `${L.files} file${L.files === 1 ? '' : 's'}`;
+    const notes = [L.track ? [icon('eye'), `${esc(L.company)} will see that you opened it${L.mode === 'anyone' ? '' : ', with your email,'} and how long you spend on each page`] : null,
+      [icon('download'), L.download ? 'You can download the files' : 'Download is off'], L.watermark ? [icon('type'), 'Pages are watermarked with your email'] : null].filter(Boolean);
+    root.innerHTML = `<div class="rv">${top}<div class="rv-cover" style="--c:${esc(L.color || '#0a0a0a')}"><span class="nm">${esc(L.company)}</span><span class="lk">${icon('lock', 'ic-18')}</span></div>
+      <h1>${esc(L.company)} shared ${L.single ? '“' + what + '”' : what} with you</h1><p class="sub">${L.single && L.single.pages ? `${L.single.pages} pages · ` : ''}${L.label ? 'link for ' + esc(L.label) : 'private link'}</p>
+      ${sentTo ? `<form id="f2"><p class="t-body-sm c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${esc(sentTo)}</b>. It works for 15 minutes.</p>
+          <input class="input rv-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required autofocus>
+          <button class="btn btn--accent btn--block" type="submit">Open</button><button class="link t-caption" type="button" id="back" style="align-self:center">Use a different email</button></form>`
+        : L.mode === 'anyone' ? `<form id="f0"><label class="field"><span class="field__label">Your email <span class="c-3" style="font-weight:400">(optional)</span></span><input class="input" name="em" type="email" autocomplete="email" placeholder="you@fund.com"></label><button class="btn btn--accent btn--block" type="submit">Open</button></form>`
+        : `<form id="f1"><label class="field"><span class="field__label">Your work email</span><input class="input" name="em" type="email" autocomplete="email" placeholder="you@fund.com" required></label><button class="btn btn--accent btn--block" type="submit">Send me a code</button></form>`}
+      <div class="rv-notes">${notes.map(([ic, t]) => `<p>${ic}<span>${t}</span></p>`).join('')}</div>
+      <p class="t-caption c-3" style="font-weight:400;text-align:center;margin-top:16px">Shared through <a class="link" href="/">Hentity</a>, where African startups launch and raise.</p></div>`;
+    H.contentShown();
+    const f0 = qs('#f0'), f1 = qs('#f1'), f2 = qs('#f2');
+    f0 && (f0.onsubmit = async e => { e.preventDefault(); const b = f0.querySelector('button'); b.disabled = true; try { open(await API.drStart(tok, f0.em.value.trim(), null, DR.device())); } catch (er) { H.fail(er); b.disabled = false; } });
+    f1 && (f1.onsubmit = async e => { e.preventDefault(); const b = f1.querySelector('button'), em = f1.em.value.trim(); b.disabled = true; try { await API.drCode(tok, em); gate(em); } catch (er) { H.fail(er); b.disabled = false; } });
+    f2 && (f2.onsubmit = async e => { e.preventDefault(); const b = f2.querySelector('[type=submit]'); b.disabled = true; try { open(await API.drStart(tok, sentTo, f2.code.value.trim(), DR.device())); } catch (er) { H.fail(er); b.disabled = false; } });
+    qs('#back') && (qs('#back').onclick = () => gate());
+  }
+
+  // ---- the files
+  let S, cur, timer, page = 1, acc = 0, last = Date.now(), observer;
+  function open(s) {
+    S = s; store.set(S.session);
+    const files = S.files || [];
+    const mark = S.watermark ? `${S.email || 'Shared privately'} · ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : '';
+    root.innerHTML = `<div class="rw"><div class="rv-top" style="margin-bottom:12px"><a class="logo" href="/" aria-label="Hentity">${H.logo()}</a><span class="t-caption c-3" style="font-weight:400">${S.email ? 'Viewing as ' + esc(S.email) : 'Shared privately'}</span></div>
+      <div class="rw-head"><div><h1>${esc(L.company)}${L.label ? ` · ${esc(L.label)}` : ''}</h1><p>${files.length} file${files.length === 1 ? '' : 's'}${S.track ? ' · time on each page is shared with ' + esc(L.company) : ''}</p></div></div>
+      ${files.length > 1 ? `<div class="rw-files" id="tabs">${files.map((f, i) => `<button data-i="${i}"${i === 0 ? ' aria-current="true"' : ''}>${icon(DR.kind(f) === 'pdf' ? 'file-text' : DR.kind(f) === 'image' ? 'image' : DR.kind(f) === 'video' ? 'video' : 'file-text', 'ic-14')}${esc(f.item ? DR.itemName(f.item) : f.name)}</button>`).join('')}</div>` : ''}
+      <div id="doc" class="rw-doc${S.download ? '' : ' nosel'}"></div></div>`;
+    H.contentShown();
+    if (!files.length) { qs('#doc').innerHTML = '<p class="rw-nothing">Nothing here yet. The founder may still be adding files.</p>'; return; }
+    qs('#tabs') && (qs('#tabs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; qsa('#tabs button').forEach(x => x.toggleAttribute('aria-current', x === b)); show(files[+b.dataset.i], mark); });
+    if (!S.download) document.addEventListener('contextmenu', e => { if (e.target.closest('#doc')) e.preventDefault(); });
+    show(files[0], mark);
+    // Refresh access before the 30-minute grant runs out
+    setInterval(() => API.drResume(S.session).catch(() => {}), 20 * 60 * 1000);
+  }
+  function flush(final) {
+    if (!cur || !S.track) return;
+    const now = Date.now(); if (!document.hidden) acc += (now - last) / 1000; last = now;
+    if (acc >= 1 || final) { const s = Math.round(acc * 10) / 10; acc = 0; if (s > 0) API.drTrack(S.session, cur.id, page, s, false); }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(true); last = Date.now(); });
+  window.addEventListener('pagehide', () => flush(true));
+
+  async function show(f, mark) {
+    flush(true); clearInterval(timer); observer && observer.disconnect();
+    cur = f; page = 1; acc = 0; last = Date.now();
+    const box = qs('#doc'); box.innerHTML = '<p class="t-caption c-3" style="padding:40px 0">Opening…</p>';
+    if (S.track) API.drTrack(S.session, f.id, 1, 0, true);
+    try {
+      const k = DR.kind(f), blob = () => API.drFileBlob(f.path);
+      if (k === 'pdf') {
+        const doc = await DR.pdfDoc(await blob()); box.innerHTML = '';
+        const w = Math.min(900, box.clientWidth || 360);
+        const pages = [];
+        for (let n = 1; n <= doc.numPages; n++) { const c = document.createElement('canvas'); c.dataset.p = n; c.style.width = w + 'px'; c.style.minHeight = Math.round(w * .56) + 'px'; box.append(c); pages.push(c); }
+        // The page most in view is the one being read
+        const vis = new Map();
+        observer = new IntersectionObserver(es => { es.forEach(e => vis.set(+e.target.dataset.p, e.intersectionRatio)); let best = page, r = 0; vis.forEach((v, p) => { if (v > r) { r = v; best = p; } }); if (best !== page) { flush(true); page = best; } }, { threshold: [0, .25, .5, .75, 1] });
+        pages.forEach(c => observer.observe(c));
+        for (const c of pages) await DR.renderPage(doc, +c.dataset.p, c, w, mark);
+      } else if (k === 'image') {
+        const u = URL.createObjectURL(await blob()); box.innerHTML = `<span class="wm" data-mark="${esc(mark)}"><img src="${u}" alt="${esc(f.name)}" draggable="false"></span>`;
+      } else if (k === 'video') {
+        const u = (await API.sb.storage.from('dataroom').createSignedUrl(f.path, 1800)).data.signedUrl; box.innerHTML = `<span class="wm" data-mark="${esc(mark)}"><video src="${esc(u)}" controls playsinline ${S.download ? '' : 'controlslist="nodownload"'} style="max-height:75vh"></video></span>`;
+      } else {
+        box.innerHTML = `<div class="rw-nothing"><p>${esc(f.name)} can’t be shown in the browser.</p>${S.download ? `<button class="btn btn--secondary btn--sm" id="dl" style="margin-top:12px">${icon('download', 'ic-14')}Download</button>` : '<p style="margin-top:6px">Download is off for this link. Ask the founder for a copy.</p>'}</div>`;
+      }
+      if (S.download) box.insertAdjacentHTML('beforeend', `<div class="rw-bar"><span>${esc(f.name)}</span><button class="btn btn--secondary btn--sm" id="dl2">${icon('download', 'ic-14')}Download</button></div>`);
+      const dl = async () => { try { const b = await API.drFileBlob(f.path); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = f.name; a.click(); } catch (e) { H.fail(e); } };
+      qs('#dl') && (qs('#dl').onclick = dl); qs('#dl2') && (qs('#dl2').onclick = dl);
+      timer = setInterval(() => flush(false), 5000);
+    } catch (e) { box.innerHTML = `<p class="rw-nothing">${esc(/permission|not found|400|403/i.test(e.message || '') ? 'Your access timed out. Reload the page to open it again.' : (e.message || 'Couldn’t open this file'))}</p>`; }
+  }
+})();
+</script>
+</body>
+</html>

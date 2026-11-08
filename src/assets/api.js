@@ -52,7 +52,7 @@
   })();
   // Which feature each page belongs to. A page whose feature is off shows a notice instead (admins still see it).
   const PAGE_FEATURE = [[/^\/insights/, 'insights', 'Insights'], [/^\/validate/, 'validate', 'Validate an idea'], [/^\/find/, 'find', 'Find'], [/^\/chats/, 'chats', 'Chats'], [/^\/news/, 'news', 'News'],
-    [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar'], [/^\/resources/, 'resources', 'Resources']];
+    [/^\/(studio|betas|beta-)/, 'studio', 'Beta tests'], [/^\/submit/, 'submissions', 'Submitting products'], [/^\/claim/, 'claims', 'Claiming profiles'], [/^\/radar/, 'radar', 'On the radar'], [/^\/resources/, 'resources', 'Resources'], [/^\/data-room/, 'dataroom', 'Data room']];
   // A feature is 'on' (missing key or true), 'off' (false) or 'soon' (shown as Coming soon, unusable)
   const stateOf = k => features[k] === false ? 'off' : features[k] === 'soon' ? 'soon' : 'on';
   function gate(r) {
@@ -382,6 +382,31 @@
     editState: slug => q(sb.rpc('product_edit_state', { pslug: slug })),
     requestEdit: (pid, changes, msg) => q(sb.rpc('product_edit_request', { pid, changes, msg: msg || '' })),
     withdrawEdit: eid => q(sb.rpc('product_edit_withdraw', { eid })),
+    // Data room (Figma 105:1630 · 302:3757 · 304:3901 · 228:3074 · 229:3260)
+    drRoom: () => q(sb.rpc('dr_my_room')),
+    drSetup: (stage, pid, name) => { requireAuth(); return q(sb.rpc('dr_setup', { stg: stage, pid: pid || null, nm: name || '' })); },
+    drUpload: async (roomId, file, item, folder, pages) => {
+      requireAuth(); const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8);
+      const path = `${uid()}/${roomId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      err((await sb.storage.from('dataroom').upload(path, file, { upsert: false, contentType: file.type || undefined })).error);
+      try {
+        const f = await q(sb.rpc('dr_add_file', { itm: item || '', fld: folder || 'other', nm: file.name, pth: path, sz: file.size, mt: file.type || '', pg: pages || null }));
+        if (f && f.old_path) sb.storage.from('dataroom').remove([f.old_path]).catch(() => {});
+        return f;
+      } catch (e) { sb.storage.from('dataroom').remove([path]).catch(() => {}); throw e; }
+    },
+    drDelete: async id => { const path = await q(sb.rpc('dr_delete_file', { fid: id })); if (path) await sb.storage.from('dataroom').remove([path]); },
+    drRename: (id, name) => q(sb.rpc('dr_rename_file', { fid: id, nm: name })),
+    drFileUrl: path => sb.storage.from('dataroom').createSignedUrl(path, 600).then(r => { err(r.error); return r.data.signedUrl; }),
+    drFileBlob: path => sb.storage.from('dataroom').download(path).then(r => { err(r.error); return r.data; }),
+    drSaveLink: (id, l) => q(sb.rpc('dr_save_link', { lid: id || null, lbl: l.label, fids: l.file_ids || null, md: l.mode, allw: l.allow || [], dl: !!l.download, wm: l.watermark !== false, trk: l.track !== false, exp: l.expires_at || null })),
+    drRevoke: (id, on) => q(sb.rpc('dr_revoke_link', { lid: id, on_: on !== false })),
+    drAnalytics: (fid, lid, days) => q(sb.rpc('dr_analytics', { fid: fid || null, lid: lid || null, days: days || 30 })),
+    drOpen: tok => q(sb.rpc('dr_open', { tok })),
+    drCode: (tok, em) => q(sb.rpc('dr_request_code', { tok, em })),
+    drStart: (tok, em, code, dev) => q(sb.rpc('dr_start', { tok, em: em || null, code: code || null, dev: dev || '' })),
+    drResume: sec => q(sb.rpc('dr_resume', { sec })),
+    drTrack: (sec, fid, pg, secs, opened) => sb.rpc('dr_track', { sec, fid, pg, secs, opened: !!opened }).then(() => {}, () => {}),
     findBoard: (f = {}) => q(sb.rpc('find_board', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cat: f.cat || null, cc: f.cc || null, lim: 60 })),
     findPeople: (f = {}) => q(sb.rpc('find_people', { kinds: f.kinds && f.kinds.length ? f.kinds : null, q: f.q || null, cc: f.cc || null, lim: 60 })),
     findCounts: () => q(sb.rpc('find_counts')),
