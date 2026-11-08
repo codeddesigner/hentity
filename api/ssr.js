@@ -256,20 +256,20 @@ async function build(type, slug) {
       rest(`funding_opps?active=eq.true&categories=cs.${encodeURIComponent('{"' + cat + '"}')}&or=(countries.eq.{},countries.cs.{${cc}})&select=id,name,org,kind,mode,amount_text,deadline&order=deadline.asc.nullslast&limit=12`).catch(() => [])]);
     const n = rows.length, counts = S.comboCounts(all);
     const tally = arr => { const m = {}; arr.forEach(x => x && (m[x] = (m[x] || 0) + 1)); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
-    const cities = tally(rows.map(p => p.city && p.city.trim())), pays = tally(rows.flatMap(p => p.pay_methods || [])), stages = tally(rows.map(p => p.stage));
+    const cities = tally(rows.map(p => p.city && p.city.trim())), pays = tally(rows.flatMap(p => p.pay_methods || []));
     const newest = rows.slice().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).slice(0, 5);
     const yr = new Date().getFullYear(), path = S.comboUrl(cat, cc);
     const lead = `${n} ${dem} ${noun.toLowerCase().replace(/^ai /, 'AI ').replace(/^saas /, 'SaaS ')} on Hentity${rows.length ? ', including ' + rows.slice(0, 3).map(p => p.name).join(', ') : ''}. Ranked by the community, with what each does, where it’s based and how it takes payments.`;
     const facts = [cities.length && `Most are based in ${cities.slice(0, 3).map(([c, k]) => `${c} (${k})`).join(', ')}.`,
       pays.length && `The most common ways to pay: ${pays.slice(0, 4).map(([c, k]) => `${c} (${k})`).join(', ')}.`,
-      stages.length && `By stage: ${stages.map(([c, k]) => `${k} ${c.toLowerCase()}`).join(', ')}.`].filter(Boolean);
+      ].filter(Boolean);   // stage left out: many seeded profiles default to "Idea" (Paystack isn't one)
     const fpath = o => `/funding/${S.slugify(o.name).slice(0, 70).replace(/-$/, '')}-${o.id}`;
     const today = new Date().toISOString().slice(0, 10);
     const other = (list, fn) => list.filter(([k, v]) => v >= S.COMBO_MIN).map(fn).filter(Boolean);
     const otherCountries = other(Object.entries(counts).filter(([k]) => k.startsWith(cat + '|') && !k.endsWith('|' + cc)).sort((a, b) => b[1] - a[1]), ([k, v]) => { const c2 = k.split('|')[1]; return `<a href="${S.comboUrl(cat, c2)}">${esc(noun)} in ${esc(COUNTRY[c2])}</a> (${v})`; });
     const otherCats = other(Object.entries(counts).filter(([k]) => k.endsWith('|' + cc) && !k.startsWith(cat + '|')).sort((a, b) => b[1] - a[1]), ([k, v]) => { const c2 = k.split('|')[0]; return `<a href="${S.comboUrl(c2, cc)}">${esc(S.CAT_NOUN[c2] || c2)} in ${esc(cname)}</a> (${v})`; });
     const h1 = `${noun} in ${cname}`;
-    const item = p => `<li><a href="/products/${esc(p.slug)}"><strong>${esc(p.name)}</strong></a> — ${esc(S.trimP(p.tagline))}${[p.city, p.stage, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).length ? ` <small>(${esc([p.city, p.stage, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).join(' · '))})</small>` : ''}</li>`;
+    const item = p => `<li><a href="/products/${esc(p.slug)}"><strong>${esc(p.name)}</strong></a> — ${esc(S.trimP(p.tagline))}${[p.city, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).length ? ` <small>(${esc([p.city, (p.pay_methods || []).slice(0, 3).join(', ')].filter(Boolean).join(' · '))})</small>` : ''}</li>`;
     return {
       title: `${h1} (${yr}): ${n} ${dem} ${cat === 'AI' ? 'AI' : cat === 'SaaS' ? 'SaaS' : noun.split(' ')[0].toLowerCase()} startup${n === 1 ? '' : 's'} | Hentity`,
       desc: clip(lead, 160), path, type: 'website', noindex: n < S.COMBO_MIN, h1,
