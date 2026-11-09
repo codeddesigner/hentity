@@ -58,16 +58,23 @@
 .stat{padding:20px}
 .stat b{display:block;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;margin:8px 0 6px}
 .ptable{width:100%;border-collapse:collapse}
-.ptable th{font-family:var(--font-mono);font-weight:400;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:14px 20px;border-bottom:1px solid var(--color-border-default)}
-.ptable td{padding:14px 20px;border-bottom:1px solid var(--color-border-default);vertical-align:middle;font-size:13px}
+.ptable th{font-family:var(--font-mono);font-weight:400;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-tertiary);text-align:left;padding:14px 16px;border-bottom:1px solid var(--color-border-default)}
+.ptable td{padding:14px 16px;border-bottom:1px solid var(--color-border-default);vertical-align:middle;font-size:13px}
 .ptable tr:last-child td{border-bottom:0}
+.ptable td.actions{width:1%;white-space:nowrap}
+.ptable td[data-l="launch"],.ptable td[data-l="status"] .status{white-space:nowrap}
 .ptable .pname{display:flex;align-items:center;gap:12px;min-width:0}
 .ptable .pname .grow p:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px}
+.ptable-wrap{container-type:inline-size}
+@container (max-width:840px){.ptable thead{display:none}.ptable tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px 16px;padding:14px 16px;border-bottom:1px solid var(--color-border-default)}.ptable tr:last-child{border-bottom:0}.ptable td{padding:0;border:0}.ptable td[data-l="votes"]{display:none}.ptable td[data-l="launch"]{grid-column:1;grid-row:2;padding-left:44px;font-size:12px}.ptable td[data-l="status"]{grid-column:2;grid-row:1}.ptable td.actions{grid-column:2/4;grid-row:2;width:auto}.ptable td:first-child{grid-column:1;grid-row:1}.ptable .pname .grow{min-width:0}.ptable .pname .grow p:last-child{max-width:none}}
+@container (max-width:460px){.ptable tr{grid-template-columns:minmax(0,1fr) auto}.ptable td[data-l="status"]{grid-column:2}.ptable td[data-l="launch"]{grid-column:1/-1;grid-row:2}.ptable td.actions{grid-column:1/-1;grid-row:3}.ptable td.actions .row{justify-content:flex-start!important}}
+.mp-trow{flex-wrap:wrap}
+@media (max-width:640px){.mp-trow>.mp-acts{width:100%;padding-left:52px}}
 .progress{height:6px;border-radius:999px;background:var(--color-bg-muted);overflow:hidden}
 .progress i{display:block;height:100%;background:var(--color-accent-default);transition:width .3s}
 .prep .check{display:flex;margin:0;font-size:13px}
 @media (max-width:1100px){.mp{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:768px){.mp{padding:16px 16px 32px}.ptable thead{display:none}.ptable tr{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:14px 16px;border-bottom:1px solid var(--color-border-default)}.ptable td{padding:0;border:0}.ptable td[data-l="launch"],.ptable td[data-l="votes"]{display:none}.ptable td.actions{grid-column:1/-1}.stat{padding:16px}.stat b{font-size:22px}}
+@media (max-width:768px){.mp{padding:16px 16px 32px}.stat{padding:16px}.stat b{font-size:22px}}
 </style>
 <meta name="description" content="Discover the best new products built by African makers. A fresh launch board every Monday.">
 <meta name="robots" content="noindex, follow">
@@ -94,7 +101,7 @@
       <div class="card stat lift"><span class="t-body-sm c-2">Comments</span><b id="s-comments" data-count-to="0">0</b><a class="t-caption c-accent" style="font-weight:400" href="/notifications">see replies</a></div>
       <div class="card stat lift"><span class="t-body-sm c-2">Product followers</span><b id="s-followers" data-count-to="0">0</b><span class="t-caption c-success" style="font-weight:400">across your products</span></div>
     </div>
-    <div class="card" style="overflow:hidden"><table class="ptable"><thead><tr><th>Product</th><th>Status</th><th>Launch</th><th>Upvotes</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="card ptable-wrap" style="overflow:hidden"><table class="ptable"><thead><tr><th>Product</th><th>Status</th><th>Launch</th><th>Upvotes</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
     <section class="card card--pad" id="my-teams" style="margin-top:16px" hidden></section>
     <section class="card card--pad" id="my-betas" style="margin-top:16px" hidden></section>
   </main>
@@ -125,9 +132,40 @@ H.mount({ active: 'my-products', tab: 'you' });
   if (cur && qs('#week-sub')) qs('#week-sub').textContent = `Week ${cur.id} · board resets Monday 06:00 WAT`;
   let rows = [];
   const S = { live: 'Live', scheduled: 'Scheduled', changes: 'Changes requested', review: 'In review', draft: 'Draft', rejected: 'Not approved' };
+  // One main action per row; the rest live in a "More" menu so the row never overflows the card
+  const more = (r, items) => `<button class="nav__icon mp-more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="More for ${esc(r.name)}" data-more='${esc(JSON.stringify(items))}'>${icon('more', 'ic-18')}</button>`;
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.mp-more'); if (!b) return;
+    e.stopPropagation();
+    const open = b.getAttribute('aria-expanded') === 'true';
+    document.querySelectorAll('[data-menu]').forEach(m => m.remove()); qsa('.mp-more').forEach(x => x.setAttribute('aria-expanded', 'false'));
+    if (open) return;
+    const m = document.createElement('div'); m.className = 'menu'; m.setAttribute('role', 'menu'); m.dataset.menu = ''; m.style.width = '200px';
+    m.innerHTML = JSON.parse(b.dataset.more).map(([ic, t, h]) => `<a class="menu__item" role="menuitem" href="${h}">${icon(ic, 'ic-16')}${t}</a>`).join('');
+    m.addEventListener('click', ev => {   // "Team" opens that product in the Team card on this page
+      const a = ev.target.closest('a[href^="#team="]'); if (!a) return;
+      ev.preventDefault(); m.remove(); b.setAttribute('aria-expanded', 'false');
+      const id = a.getAttribute('href').slice(6), sel = qs('#mk-pick');
+      sel.value = id; renderMakers(rows.find(r => r.id === id));
+      const card = qs('#makers-card'); card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.animate([{ boxShadow: '0 0 0 3px var(--color-accent-default)' }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1400 });
+    });
+    document.body.appendChild(m);
+    const rc = b.getBoundingClientRect(), mh = m.offsetHeight, below = rc.bottom + 6 + mh < innerHeight;
+    m.style.top = (scrollY + (below ? rc.bottom + 6 : rc.top - 6 - mh)) + 'px';
+    m.style.left = Math.max(8, scrollX + rc.right - 200) + 'px';
+    b.setAttribute('aria-expanded', 'true');
+    const items = [...m.querySelectorAll('.menu__item')]; items[0] && items[0].focus();
+    m.addEventListener('keydown', ev => {
+      const i = items.indexOf(document.activeElement);
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      else if (ev.key === 'Escape') { m.remove(); b.setAttribute('aria-expanded', 'false'); b.focus(); }
+    });
+  });
   const A = {
-    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/analytics">Analytics</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
-    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/analytics">Analytics</a><a class="btn btn--ghost btn--sm" href="/products/${r.slug}/edit">Edit</a><a class="btn btn--ghost btn--sm" href="/scheduled?p=${r.slug}#resched">Reschedule</a><a class="btn btn--ghost btn--sm" href="/studio/${r.slug}/badges">Badges</a>`,
+    live: r => `<a class="btn btn--secondary btn--sm" href="/launch-week?p=${r.slug}">View launch</a>${more(r, [['bar-chart', 'Analytics', `/products/${r.slug}/analytics`], ['edit', 'Edit page', `/products/${r.slug}/edit`], ['users', 'Team', `#team=${r.id}`], ['star', 'Badges', `/studio/${r.slug}/badges`]])}`,
+    scheduled: r => `<a class="btn btn--secondary btn--sm" href="/scheduled?p=${r.slug}">Prepare</a>${more(r, [['bar-chart', 'Analytics', `/products/${r.slug}/analytics`], ['edit', 'Edit page', `/products/${r.slug}/edit`], ['calendar', 'Reschedule', `/scheduled?p=${r.slug}#resched`], ['users', 'Team', `#team=${r.id}`], ['star', 'Badges', `/studio/${r.slug}/badges`]])}`,
     changes: r => `<a class="btn btn--accent btn--sm" href="/changes-requested?p=${r.slug}">Fix &amp; resubmit</a>`,
     review: r => `<a class="btn btn--secondary btn--sm" href="/under-review?p=${r.slug}">View status</a>`,
     draft: r => `<a class="btn btn--secondary btn--sm" href="/submit?id=${r.id}">Continue</a><button class="btn btn--ghost btn--sm" type="button" data-del="${r.id}">Delete</button>`,
@@ -141,7 +179,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     M.countUp(qs('.stats'));
     qs('#rows').innerHTML = rows.length ? rows.map(r => `<tr><td><div class="pname">${plogo(r, 32)}<div class="grow"><p class="t-label row gap-6" style="font-size:14px">${['live', 'scheduled'].includes(st(r)) ? `<a href="/products/${r.slug}">${esc(r.name)}</a>` : esc(r.name || 'Untitled product')}${r.verified ? verified('verified--sm') : ''}</p><p class="t-caption c-3" style="font-weight:400">${esc(r.tagline || 'Last edited ' + H.ago(r.created_at))}</p></div></div></td>
       <td data-l="status"><span class="status status--${st(r) === 'rejected' ? 'draft' : st(r)}">${S[st(r)] || st(r)}</span></td><td data-l="launch" class="c-2">${r.launch_date ? new Date(r.launch_date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : r.week_id ? `Week ${r.week_id}` : 'Not booked'}</td><td data-l="votes" class="t-count">${st(r) === 'live' || r.upvote_count ? D.fmt(r.upvote_count) : '–'}</td>
-      <td class="actions"><div class="row gap-4" style="justify-content:flex-end">${(A[st(r)] || A.draft)(r)}</div></td></tr>`).join('')
+      <td class="actions"><div class="row gap-4" style="justify-content:flex-end;flex-wrap:nowrap">${(A[st(r)] || A.draft)(r)}</div></td></tr>`).join('')
       : `<tr><td colspan="5" style="text-align:center;padding:48px 20px"><p class="t-h4">No products yet</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Start a launch draft. It saves as you go.</p><a class="btn btn--accent btn--sm" href="/submit?new=1">${icon('plus')}Submit a product</a></td></tr>`;
     M.stagger(qs('#rows'));
     const next = rows.find(r => st(r) === 'scheduled') || rows.find(r => st(r) === 'live');
@@ -200,7 +238,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   // Team requests to approve, and invites to accept
   async function teamPending() {
     const box = qs('#team-pending'); const T = await API.teamPending().catch(() => null); if (!T) return;
-    const rowH = (left, title, sub, acts) => `<div class="row gap-12" style="padding:12px 0;border-top:1px solid var(--color-border-default);align-items:center">${left}<div style="min-width:0;flex:1"><p class="t-label">${title}</p><p class="t-caption c-3" style="font-weight:400">${sub}</p></div><div class="row gap-8">${acts}</div></div>`;
+    const rowH = (left, title, sub, acts) => `<div class="row gap-12 mp-trow" style="padding:12px 0;border-top:1px solid var(--color-border-default);align-items:center">${left}<div style="min-width:180px;flex:1"><p class="t-label">${title}</p><p class="t-caption c-3" style="font-weight:400">${sub}</p></div><div class="row gap-8 mp-acts">${acts}</div></div>`;
     const items = [...T.requests.map(r => rowH(avatar(r.user, 40), `${esc(r.user.name || r.user.username)} wants to join ${esc(r.product.name)}`, `As ${esc(r.role || 'a maker')} · @${esc(r.user.username)}${r.user.headline ? ' · ' + esc(r.user.headline) : ''} · ${H.ago(r.created_at)}`,
         `<a class="btn btn--ghost btn--sm" href="/makers/${esc(r.user.username)}" target="_blank">Profile</a><button class="btn btn--primary btn--sm" data-tr="${r.product.id}:${r.user.id}:1">${icon('check', 'ic-14')}Approve</button><button class="btn btn--ghost btn--sm" data-tr="${r.product.id}:${r.user.id}:0">Decline</button>`)),
       ...T.invites.map(r => rowH(plogo(r.product, 40), `${esc(r.by ? r.by.name : 'A founder')} invited you to join ${esc(r.product.name)}`, `As ${esc(r.role || 'a maker')} · ${H.ago(r.created_at)}`,
