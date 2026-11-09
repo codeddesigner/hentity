@@ -8,6 +8,24 @@ const COUNTRY = require('./_seo').COUNTRY;
 
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : s; };
+async function rpc(name, body) {
+  const r = await fetch(`${SB}/rest/v1/rpc/${name}`, { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body || {}) });
+  if (!r.ok) throw new Error('supabase ' + r.status);
+  return r.json();
+}
+// Resources live in a browser script (window.RESOURCES); read it once per instance
+let RES_CACHE = null;
+function resources() {
+  if (RES_CACHE) return RES_CACHE;
+  const fs = require('fs'), path = require('path'), w = {};
+  new Function('window', fs.readFileSync(path.join(process.cwd(), 'public', 'assets', 'resources-data.js'), 'utf8'))(w);
+  return (RES_CACHE = w.RESOURCES || { cats: [] });
+}
+async function resourcesAsync() {
+  try { return resources(); } catch (e) {
+    const r = await fetch(SITE + '/assets/resources-data.js'); const w = {}; new Function('window', await r.text())(w); return (RES_CACHE = w.RESOURCES || { cats: [] });
+  }
+}
 async function rest(path) {
   const r = await fetch(`${SB}/rest/v1/${path}`, { headers: { apikey: KEY, Accept: 'application/json' } });
   if (!r.ok) throw new Error('supabase ' + r.status);
@@ -29,6 +47,48 @@ function unclaimedBlock(p) {
 }
 
 async function build(type, slug) {
+  // Founder spotlights: published interviews are indexed; a founder's private answer page (/spotlight/<id>) never is
+  if (type === 'spotlight') {
+    if (/^[0-9a-f-]{36}$/.test(slug)) return { noindex: true, title: 'Your spotlight questions | Hentity', desc: 'Answer the Hentity team’s founder spotlight questions.', path: '/spotlight/' + slug, ld: [] };
+    const s = await rpc('sp_get', { x: slug });
+    if (!s || s.status !== 'published') return null;
+    const f = s.founder || {}, p = s.product, ans = s.published_answers || {};
+    const qa = (s.questions || []).filter(q => (ans[q.id] || '').trim());
+    return {
+      title: `${s.title} | Founder spotlight | Hentity`, desc: clip(s.dek || qa.map(q => ans[q.id]).join(' '), 160), path: `/spotlight/${s.slug}`, type: 'article', published: s.published_at, image: p && p.logo_url,
+      ld: [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(s.title, 110), description: s.dek, datePublished: s.published_at, dateModified: s.updated_at || s.published_at, articleSection: 'Founder spotlight',
+          mainEntityOfPage: `${SITE}/spotlight/${s.slug}`, image: [p && p.logo_url ? p.logo_url : `${SITE}/og.png`],
+          author: { '@type': 'Organization', name: 'Hentity', url: SITE }, publisher: { '@type': 'Organization', name: 'Hentity', logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png` } },
+          about: [{ '@type': 'Person', name: f.name, url: `${SITE}/makers/${f.username}`, ...(f.headline ? { jobTitle: f.headline } : {}) }, ...(p ? [{ '@type': 'Organization', name: p.name, url: `${SITE}/products/${p.slug}` }] : [])] },
+        crumbs([['News', '/news'], [s.title, `/spotlight/${s.slug}`]])],
+      main: `<nav aria-label="Breadcrumb"><a href="/">Hentity</a> / <a href="/news">News</a></nav><p>Founder spotlight</p><h1>${esc(s.title)}</h1>${s.dek ? `<p>${esc(s.dek)}</p>` : ''}
+        <p>By the Hentity team, with <a href="/makers/${esc(f.username)}">${esc(f.name)}</a>${p ? `, founder of <a href="/products/${esc(p.slug)}">${esc(p.name)}</a>` : ''}.</p>
+        ${qa.map(q => `<h2>${esc(q.q)}</h2><p>${esc(ans[q.id])}</p>`).join('')}`
+    };
+  }
+  // Resources: one page per topic, with every tool and how to use it
+  if (type === 'resource') {
+    const R = await resourcesAsync(), c = (R.cats || []).find(x => x.slug === slug);
+    if (!c) return null;
+    const items = (c.steps || []).flatMap(st => st.items || []);
+    return {
+      title: `${c.title} | Founder resources | Hentity`, desc: clip(`${c.sub}. ${items.length} tools other founders use, with how to use each one${c.tip ? '. ' + c.tip.t : ''}.`, 160), path: `/resources/${c.slug}`,
+      ld: [{ '@context': 'https://schema.org', '@type': 'ItemList', name: c.title, description: c.sub, numberOfItems: items.length,
+          itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.n, url: /^https?:/.test(it.url) ? it.url : SITE + it.url, description: it.d })) },
+        crumbs([['Resources', '/resources'], [c.title, `/resources/${c.slug}`]])],
+      main: `<nav aria-label="Breadcrumb"><a href="/">Hentity</a> / <a href="/resources">Resources</a></nav><h1>${esc(c.title)}</h1><p>${esc(c.sub)}</p>${c.tip ? `<p><strong>${esc(c.tip.t)}.</strong> ${esc(c.tip.d)}</p>` : ''}
+        ${(c.steps || []).map(st => `<h2>${esc(st.t)}</h2><p>${esc(st.d || '')}</p><ul>${(st.items || []).map(it => `<li><a href="${esc(it.url)}"${/^https?:/.test(it.url) ? ' rel="noopener"' : ''}>${esc(it.n)}</a> (${esc(it.price || '')}): ${esc(it.d)}${(it.how || []).length ? ` How to use it: ${esc(it.how.join(' '))}` : ''}</li>`).join('')}</ul>`).join('')}
+        <p><a href="/resources">All resources</a></p>`
+    };
+  }
+  if (type === 'resources') {
+    const R = await resourcesAsync();
+    return {
+      title: 'Resources for African founders | Hentity', desc: 'Tools and guides other African founders use, and how to use them: pitch decks, registering your business, payments, hiring, legal basics and more.', path: '/resources',
+      ld: [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Resources for African founders', url: `${SITE}/resources`, hasPart: (R.cats || []).map(c => ({ '@type': 'WebPage', name: c.title, url: `${SITE}/resources/${c.slug}`, description: c.sub })) }, crumbs([['Resources', '/resources']])],
+      main: `<h1>Resources for African founders</h1><p>Tools and guides other African founders use, and how to use them. Checked by the Hentity team${R.checked ? ' on ' + esc(R.checked) : ''}.</p><ul>${(R.cats || []).map(c => `<li><a href="/resources/${esc(c.slug)}">${esc(c.title)}</a>: ${esc(c.sub)}</li>`).join('')}</ul>`
+    };
+  }
   if (type === 'product') {
     const [p] = await rest(`product_feed?slug=eq.${encodeURIComponent(slug)}&status=in.(scheduled,live,unclaimed)&select=${PCOLS},claim,company_id,owner:profiles!products_owner_id_fkey(${TEAM_COLS})`);
     if (!p) return null;
@@ -334,7 +394,7 @@ module.exports = async (req, res) => {
   res.end = body => { try { res.setHeader('Server-Timing', `ssr;dur=${Date.now() - t0}${cold ? ', cold;dur=0' : ''}`); } catch (e) {} return end(body); };
   const { type } = req.query;
   const slug = req.query.post ? `${req.query.slug}~${req.query.post}` : req.query.slug;
-  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', catcountry: '/directory-index', country: '/directory-index', directory: '/directory-index', funding: '/funding-index', fopp: '/funding-opp', insights: '/insights-index', radar: '/radar-index' }[type];
+  const tpl = { product: '/product', maker: '/maker', article: '/article', home: '/home', news: '/news-index', beta: '/beta-apply', discuss: '/discuss-index', dcomm: '/discuss-index', dthread: '/discuss-index', category: '/directory-index', catcountry: '/directory-index', country: '/directory-index', directory: '/directory-index', funding: '/funding-index', fopp: '/funding-opp', insights: '/insights-index', radar: '/radar-index', spotlight: '/spotlight', resource: '/resources-index', resources: '/resources-index' }[type];
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   let page;
@@ -344,7 +404,7 @@ module.exports = async (req, res) => {
     try { const r = await fetch(`${proto}://${host}${tpl || '/404'}`, { headers: { 'x-ssr': '1' } }); page = await r.text(); }
     catch (e2) { res.statusCode = 502; return res.end('Template unavailable'); }
   }
-  const key = ['discuss', 'funding', 'insights', 'radar'].includes(type) ? type : slug ? String(slug).toLowerCase() : '';
+  const key = ['discuss', 'funding', 'insights', 'radar', 'resources'].includes(type) ? type : slug ? String(slug).toLowerCase() : '';
   // Short edge cache: repeat visits are served instantly, and nothing is more than ~a minute old
   // Browsers always re-check (so a new release shows on the next load); Vercel's edge keeps a 30s copy.
   const CACHE = 'public, max-age=0, must-revalidate';
@@ -373,7 +433,7 @@ module.exports = async (req, res) => {
     // Unknown or unpublished: a real 404 (so search engines drop it), while the page still renders its own "not found" state.
     if (key) res.statusCode = 404;
     res.setHeader('Cache-Control', CACHE);
-    return res.end(page.replace(/<meta name="robots"[^>]*>/g, '').replace('</head>', '<meta name="robots" content="noindex">\n</head>'));
+    return res.end(page.replace(/<meta name="robots"[^>]*>/g, '').replace(/<link rel="canonical"[^>]*>/g, '').replace('</head>', '<meta name="robots" content="noindex">\n</head>'));
   }
   const url = SITE + meta.path, img = meta.image || SITE + '/og.png?v=' + require('./_cols.json').OG_V;
   const tags = [

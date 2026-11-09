@@ -9,13 +9,17 @@ const get = p => fetch(`${SB}/rest/v1/${p}`, { headers: { apikey: KEY } }).then(
 const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 module.exports = async (req, res) => {
-  const [products, articles, makers, threads, funding] = await Promise.all([
+  const [products, articles, makers, threads, funding, spots] = await Promise.all([
     get('product_feed?status=in.(scheduled,live,unclaimed)&select=slug,name,updated_at,effective_status,categories,country,owner_id,logo_url,media&order=updated_at.desc&limit=5000'),
     get('articles?status=eq.published&select=slug,published_at&order=published_at.desc&limit=5000'),
     get('profiles?banned=eq.false&settings->>indexable=neq.false&select=id,username,created_at,bio,headline&limit=5000'),
     get('rpc/d_sitemap'),
-    get('funding_opps?active=eq.true&select=id,name,updated_at&order=updated_at.desc&limit=5000')
+    get('funding_opps?active=eq.true&select=id,name,updated_at&order=updated_at.desc&limit=5000'),
+    get('articles?status=eq.published&source_url=like.*hentity.com/spotlight/*&select=source_url,published_at&limit=2000')
   ]);
+  // Resource topics (from the same data file the page uses) and published founder spotlights
+  let resCats = [];
+  try { const w = {}; new Function('window', require('fs').readFileSync(require('path').join(process.cwd(), 'public', 'assets', 'resources-data.js'), 'utf8'))(w); resCats = (w.RESOURCES && w.RESOURCES.cats) || []; } catch (e) {}
   const fslug = n => S.slugify(n).slice(0, 70).replace(/-$/, '');
   const owners = new Set(products.map(p => p.owner_id));
   const cats = new Set(), countries = new Set();
@@ -36,6 +40,8 @@ module.exports = async (req, res) => {
     // Funding: every active grant and investor (public basics; matching is for members)
     ...funding.map(o => ({ loc: `${SITE}/funding/${fslug(o.name) ? fslug(o.name) + '-' : ''}${o.id}`, mod: o.updated_at, pr: '0.6', cf: 'weekly' })),
     ...articles.map(a => ({ loc: `${SITE}/news/${a.slug}`, mod: a.published_at, pr: '0.6', cf: 'monthly' })),
+    ...resCats.map(c => ({ loc: `${SITE}/resources/${c.slug}`, pr: '0.6', cf: 'monthly' })),
+    ...(spots || []).map(a => ({ loc: a.source_url.replace(/^https?:\/\/[^/]+/, SITE), mod: a.published_at, pr: '0.7', cf: 'monthly' })),
     ...makers.filter(m => owners.has(m.id) || m.bio || m.headline).map(m => ({ loc: `${SITE}/makers/${m.username}`, mod: m.created_at, pr: '0.4', cf: 'weekly' }))
   ];
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

@@ -6,6 +6,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/resources",
+      "destination": "/api/ssr?type=resources"
+    },
+    {
       "source": "/funding",
       "destination": "/api/ssr?type=funding"
     },
@@ -111,7 +115,7 @@
     },
     {
       "source": "/resources/:slug",
-      "destination": "/resources"
+      "destination": "/api/ssr?type=resource&slug=:slug"
     },
     {
       "source": "/data-room/:path*",
@@ -123,7 +127,7 @@
     },
     {
       "source": "/spotlight/:x",
-      "destination": "/spotlight"
+      "destination": "/api/ssr?type=spotlight&slug=:x"
     },
     {
       "source": "/",
@@ -324,11 +328,12 @@
   ],
   "functions": {
     "api/ssr.js": {
-      "includeFiles": "public/{product,maker,article,404,home,news-index,beta-apply,directory-index,discuss-index,funding-index,funding-opp,insights-index,radar-index}.html",
+      "includeFiles": "public/**/{product,maker,article,404,home,news-index,beta-apply,directory-index,discuss-index,funding-index,funding-opp,insights-index,radar-index,spotlight,resources-index,resources-data}.{html,js}",
       "maxDuration": 10
     },
     "api/sitemap.js": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "includeFiles": "public/assets/resources-data.js"
     },
     "api/badge.js": {
       "maxDuration": 10
