@@ -55,6 +55,7 @@
     if (/rate limit|too many/i.test(m)) return ['Too many attempts', 'Wait a few minutes, then request a new code.'];
     if (/WORK_EMAIL_REQUIRED|Database error saving new user|Error updating user/i.test(m)) return ['Use your work email or Gmail', 'Use a company email address or Gmail. Other personal inboxes like Yahoo or Outlook.com aren’t accepted'];
     if (/already registered|already been registered/i.test(m)) return ['This email already has an account', 'Sign in instead — we’ll email you a code.'];
+    if (/Error sending .*email|sending (magic link|confirmation|recovery)/i.test(m)) return ['We couldn’t send your code', 'Our email service is busy right now. Try again in a few minutes, or write to hello@hentity.com and we’ll get you in.'];
     return ['Something went wrong', m];
   }
   // Code step: replaces a form with a 6-digit code entry. opts: { email, title, resend(), verified(), back() }
