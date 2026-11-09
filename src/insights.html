@@ -250,7 +250,7 @@ H.mount({ active: 'insights', tab: 'products' });
 (async function () {
   const { qs, qsa, esc, icon, toast, flag } = H;
   const CN = H.COUNTRY;
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
   const slug = s => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const prm = H.params();
   let tab = prm.get('tab') || 'overview', cc = (prm.get('country') || '').toUpperCase(), days = +(prm.get('days') || 30), D = null, ALL = null;

@@ -465,7 +465,7 @@
   }
   // Industry colours (Figma: Category tag / Insights). Colour follows the industry, never its rank.
   // Figma category/* tokens (Insights): light fills with dark text, colour-blind checked
-  const CAT_COLOR = { Fintech: '#5CB2FF', Commerce: '#FF8F57', Agriculture: '#92E04A', Health: '#FF6F6F', Logistics: '#A393FF', Education: '#FFD43B', AI: '#FF85C0', 'Energy & Climate': '#2FE0A5', Proptech: '#C084FC' };
+  const CAT_COLOR = { Fintech: '#5CB2FF', Commerce: '#FF8F57', Agriculture: '#92E04A', Health: '#FF6F6F', Logistics: '#A393FF', Education: '#FFD43B', AI: '#FF85C0', 'Energy & Climate': '#2FE0A5', Proptech: '#C084FC', 'Creative Economy': '#F472B6', 'Music & Streaming': '#38BDF8' };
   const CAT_OTHER = '#DCDCDC';
   const catColor = c => CAT_COLOR[c] || CAT_OTHER;
   const catInk = () => '#0a0a0a';

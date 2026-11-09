@@ -47,14 +47,14 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=0fab3ad58d"></script>
-<script src="/assets/app.js?v=6f2abe5fcc"></script>
+<script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <title>The state of African startups | Insights | Hentity</title>
 <meta name="description" content="Live numbers on startups across Africa: launches, industries, cities, countries and stages, counted from every product on Hentity and updated hourly.">
 <script src="/assets/share-image.js?v=a0c590b16a" defer></script>
-<script src="/assets/insights-more.js?v=3e67943dcd" defer></script>
+<script src="/assets/insights-more.js?v=8334f5b11f" defer></script>
 <style>
 .ins{max-width:1100px;margin:0 auto;padding:24px 40px 64px;box-sizing:content-box}
 .ins-eyebrow{font-family:var(--font-mono);font-size:12px;line-height:16px;letter-spacing:.04em;color:var(--color-accent-default)}
@@ -310,7 +310,7 @@ H.mount({ active: 'insights', tab: 'products' });
 (async function () {
   const { qs, qsa, esc, icon, toast, flag } = H;
   const CN = H.COUNTRY;
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
   const slug = s => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const prm = H.params();
   let tab = prm.get('tab') || 'overview', cc = (prm.get('country') || '').toUpperCase(), days = +(prm.get('days') || 30), D = null, ALL = null;

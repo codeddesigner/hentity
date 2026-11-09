@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=0fab3ad58d"></script>
-<script src="/assets/app.js?v=6f2abe5fcc"></script>
+<script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -100,7 +100,7 @@
   await API.ready;
   if (!API.uid) { location.replace('/signin?next=/welcome'); return; }
   H.mount();
-  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Proptech', 'Hardware'];
+  const cats = ['Fintech', 'Apps', 'AI', 'Developer Tools', 'Health', 'Agriculture', 'Commerce', 'Energy & Climate', 'Education', 'Logistics', 'Proptech', 'Hardware', 'Creative Economy', 'Music & Streaming'];
   const sel = new Set((API.profile.interests || []).length ? API.profile.interests : []);
   qs('#interests').innerHTML = cats.map(c => `<button class="chip chip--lg" type="button" data-chip aria-pressed="${sel.has(c)}">${icon('check')}${c}</button>`).join('');
   M.stagger(qs('#interests'));

@@ -1,7 +1,7 @@
 // Shared SEO helpers: category and country landing pages, and the server-rendered HTML that search engines
 // (and AI crawlers that don't run JavaScript) read before the page hydrates.
 const SITE = 'https://hentity.com';
-const CATEGORIES = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+const CATEGORIES = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
 const COUNTRY = { NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', ZA: 'South Africa', RW: 'Rwanda', EG: 'Egypt', MA: 'Morocco', SN: 'Senegal', ET: 'Ethiopia', UG: 'Uganda', TZ: 'Tanzania', CI: 'Côte d’Ivoire', CM: 'Cameroon', TN: 'Tunisia', DZ: 'Algeria', AO: 'Angola', BJ: 'Benin', BW: 'Botswana', BF: 'Burkina Faso', BI: 'Burundi', CV: 'Cabo Verde', CF: 'Central African Republic', TD: 'Chad', KM: 'Comoros', CG: 'Congo', CD: 'DR Congo', DJ: 'Djibouti', GQ: 'Equatorial Guinea', ER: 'Eritrea', SZ: 'Eswatini', GA: 'Gabon', GM: 'The Gambia', GN: 'Guinea', GW: 'Guinea-Bissau', LS: 'Lesotho', LR: 'Liberia', LY: 'Libya', MG: 'Madagascar', MW: 'Malawi', ML: 'Mali', MR: 'Mauritania', MU: 'Mauritius', MZ: 'Mozambique', NA: 'Namibia', NE: 'Niger', ST: 'São Tomé and Príncipe', SC: 'Seychelles', SL: 'Sierra Leone', SO: 'Somalia', SS: 'South Sudan', SD: 'Sudan', TG: 'Togo', ZM: 'Zambia', ZW: 'Zimbabwe' };
 const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const CAT_BY_SLUG = Object.fromEntries(CATEGORIES.map(c => [slugify(c), c]));
@@ -10,7 +10,7 @@ const catUrl = c => `/categories/${slugify(c)}`;
 const countryUrl = cc => COUNTRY[cc] ? `/countries/${slugify(COUNTRY[cc])}` : null;
 
 // schema.org applicationCategory values Google understands
-const APP_CAT = { Fintech: 'FinanceApplication', Commerce: 'ShoppingApplication', Health: 'HealthApplication', Education: 'EducationalApplication', 'Dev Tools': 'DeveloperApplication', Productivity: 'BusinessApplication', SaaS: 'BusinessApplication', Logistics: 'BusinessApplication', Agriculture: 'BusinessApplication', Infrastructure: 'BusinessApplication', AI: 'BusinessApplication', Apps: 'UtilitiesApplication', 'Energy & Climate': 'BusinessApplication', Proptech: 'LifestyleApplication' };
+const APP_CAT = { Fintech: 'FinanceApplication', Commerce: 'ShoppingApplication', Health: 'HealthApplication', Education: 'EducationalApplication', 'Dev Tools': 'DeveloperApplication', Productivity: 'BusinessApplication', SaaS: 'BusinessApplication', Logistics: 'BusinessApplication', Agriculture: 'BusinessApplication', Infrastructure: 'BusinessApplication', AI: 'BusinessApplication', Apps: 'UtilitiesApplication', 'Energy & Climate': 'BusinessApplication', Proptech: 'LifestyleApplication', 'Creative Economy': 'MultimediaApplication', 'Music & Streaming': 'MultimediaApplication' };
 const appCategory = cats => APP_CAT[(cats || [])[0]] || 'BusinessApplication';
 
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -24,7 +24,7 @@ const nav = () => `<nav aria-label="Browse"><p><strong>Browse by category:</stro
 const block = inner => `<div class="ssr" data-ssr>${inner}</div>`;
 
 // Sector + country landing pages (/categories/fintech/nigeria): how people actually search
-const CAT_NOUN = { Fintech: 'Fintech companies', SaaS: 'SaaS companies', Apps: 'Consumer apps', AI: 'AI startups', Commerce: 'E-commerce companies', Productivity: 'Productivity tools', 'Dev Tools': 'Developer tools', Health: 'Healthtech companies', Education: 'Edtech companies', Agriculture: 'Agritech companies', Logistics: 'Logistics startups', Infrastructure: 'Infrastructure startups', 'Energy & Climate': 'Climate tech companies', Proptech: 'Proptech companies' };
+const CAT_NOUN = { Fintech: 'Fintech companies', SaaS: 'SaaS companies', Apps: 'Consumer apps', AI: 'AI startups', Commerce: 'E-commerce companies', Productivity: 'Productivity tools', 'Dev Tools': 'Developer tools', Health: 'Healthtech companies', Education: 'Edtech companies', Agriculture: 'Agritech companies', Logistics: 'Logistics startups', Infrastructure: 'Infrastructure startups', 'Energy & Climate': 'Climate tech companies', Proptech: 'Proptech companies', 'Creative Economy': 'Creative economy startups', 'Music & Streaming': 'Music and streaming startups' };
 const DEMONYM = { NG: 'Nigerian', KE: 'Kenyan', GH: 'Ghanaian', ZA: 'South African', RW: 'Rwandan', EG: 'Egyptian', MA: 'Moroccan', SN: 'Senegalese', ET: 'Ethiopian', UG: 'Ugandan', TZ: 'Tanzanian', CI: 'Ivorian', CM: 'Cameroonian', TN: 'Tunisian' };
 const comboUrl = (c, cc) => COUNTRY[cc] ? `/categories/${slugify(c)}/${slugify(COUNTRY[cc])}` : null;
 const COMBO_MIN = 3;   // fewer companies than this: the page exists but stays out of search (thin)

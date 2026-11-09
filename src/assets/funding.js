@@ -52,7 +52,7 @@
   }
 
   // Admins edit a listing right where founders see it. Saves straight to funding_opps (admin-only RLS).
-  const CATS_ALL = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+  const CATS_ALL = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
   const STAGES_ALL = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
   const KINDS = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
   function editSheet(o, onSaved) {
@@ -155,6 +155,8 @@
     AI: ['artificial intelligence', 'machine learning', 'llm', 'llms', 'computer vision', 'nlp', 'generative ai', 'ai-powered', 'ai agents', 'deep learning'],
     SaaS: ['saas', 'software', 'subscription', 'b2b software', 'dashboard', 'erp', 'crm', 'workflow'],
     Proptech: ['real estate', 'property', 'properties', 'housing', 'rent', 'rental', 'landlords', 'landlord', 'mortgage', 'proptech', 'tenants', 'construction'],
+    'Creative Economy': ['creative economy', 'creators', 'creator economy', 'artists', 'film', 'fashion', 'design', 'content creators', 'nollywood'],
+    'Music & Streaming': ['music', 'musicians', 'streaming', 'audio', 'podcast', 'video streaming', 'entertainment'],
     'Dev Tools': ['developers', 'developer', 'sdk', 'apis', 'devtools', 'open source'],
     Infrastructure: ['infrastructure', 'cloud', 'connectivity', 'data center', 'broadband', 'identity', 'kyc']
   };

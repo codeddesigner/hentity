@@ -118,7 +118,7 @@ H.mount({ active: 'funding', tab: 'you' });
   // Best match: open now, you meet every rule, and it's one of the 12 strongest fits (scored on the server)
   const isBest = o => !!o.best;
   const isClosed = o => o.status === 'closed';
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
   const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+'];
   const counts = await (async () => { try { const r = await API.sb.from('funding_opps').select('mode').eq('active', true); return { grant: (r.data || []).filter(x => x.mode === 'grant').length, equity: (r.data || []).filter(x => x.mode === 'equity').length }; } catch (e) { return { grant: 0, equity: 0 }; } })();
   const toggle = c => `<div class="fu-toggle" role="group" aria-label="Grants or equity"><button type="button" data-mode="grant" aria-pressed="${mode === 'grant'}">${icon('star', 'ic-16 ic-star')}Grants <span class="n">${c.grant}</span></button><button type="button" data-mode="equity" aria-pressed="${mode === 'equity'}">${icon('bar-chart', 'ic-16')}Equity <span class="n">${c.equity}</span></button></div>`;

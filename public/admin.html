@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=0fab3ad58d"></script>
-<script src="/assets/app.js?v=6f2abe5fcc"></script>
+<script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -466,7 +466,7 @@ H.mount();
   const RCC = Object.fromEntries(Object.entries(H.COUNTRY).sort((a, b) => a[1].localeCompare(b[1])));
   const FACT_KEYS = ['label', 'value', 'source', 'url', 'date'], NEWS_KEYS = ['title', 'source', 'url', 'date'];
   // Radar editor: a pop-up to edit a startup and publish it, with the Verified tick and claim invite
-  const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Media', 'Mobility', 'HR & Work', 'Security'];
+  const RCATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Media', 'Mobility', 'HR & Work', 'Security', 'Creative Economy', 'Music & Streaming'];
   function radarForm(r, done) {
     const isNew = !r; r = Object.assign({ country: 'NG', categories: [], facts: [], news: [], status: 'review', verified: false, registration: '' }, r || {});
     qsa('.scrim').forEach(x => x.remove());
@@ -752,7 +752,7 @@ H.mount();
   // ---- broadcast: push and/or in-app, to an audience, with reach before sending and delivery after
   V.broadcast = async () => {
     nav('broadcast');
-    const CATS = ['Fintech', 'Health', 'Education', 'Agriculture', 'Logistics', 'Commerce', 'Energy & Climate', 'AI', 'SaaS', 'Proptech', 'Dev Tools', 'Infrastructure', 'Apps', 'Productivity'];
+    const CATS = ['Fintech', 'Health', 'Education', 'Agriculture', 'Logistics', 'Commerce', 'Energy & Climate', 'AI', 'SaaS', 'Proptech', 'Dev Tools', 'Infrastructure', 'Apps', 'Productivity', 'Creative Economy', 'Music & Streaming'];
     const WHO = [['all', 'Everyone'], ['founders', 'Founders (have a product)'], ['investors', 'Investors'], ['testers', 'Beta testers'], ['city', 'People in a city'], ['category', 'Makers in a category']];
     const MODE = [['push', 'Push only', 'Phones and browsers with push on. Nothing added to their notifications.'], ['both', 'Push and in-app', 'A push, plus a notice under System in their notifications.'], ['inapp', 'In-app only', 'Only in their notifications on Hentity. No push.']];
     const { data: cities } = await API.sb.from('profiles').select('city').neq('city', '').limit(2000);
@@ -1052,7 +1052,7 @@ H.mount();
     const [rows, cntRaw] = await Promise.all([A.fundingOpps(), A.fundingCounts().catch(() => ({}))]);
     const cnt = cntRaw || {};
     const KIND = [['grant', 'Grant'], ['prize', 'Prize'], ['competition', 'Competition'], ['accelerator', 'Accelerator'], ['vc', 'VC fund'], ['micro_vc', 'Micro-VC'], ['angel', 'Angel network']];
-    const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+    const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
     const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Growth'];
     const today = new Date().toISOString().slice(0, 10), stale = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
     const state = o => !o.active ? 'hidden' : o.deadline && o.deadline < today ? 'expired' : o.deadline ? 'open' : o.round_note ? 'closed' : 'rolling';

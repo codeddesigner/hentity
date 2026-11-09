@@ -47,7 +47,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/assets/api.js?v=0fab3ad58d"></script>
-<script src="/assets/app.js?v=6f2abe5fcc"></script>
+<script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -166,7 +166,7 @@
 <div data-header></div>
 <main id="main" class="fu"><div class="skel" style="height:560px;border-radius:16px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/funding.js?v=4d3e9d3cf4"></script>
+<script src="/assets/funding.js?v=84a19e65e5"></script>
 <script>
 H.mount({ active: 'funding', tab: 'you' });
 (async function () {
@@ -178,7 +178,7 @@ H.mount({ active: 'funding', tab: 'you' });
   // Best match: open now, you meet every rule, and it's one of the 12 strongest fits (scored on the server)
   const isBest = o => !!o.best;
   const isClosed = o => o.status === 'closed';
-  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech'];
+  const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
   const STAGES = ['Idea', 'Pre-seed', 'Seed', 'Series A', 'Series B+'];
   const counts = await (async () => { try { const r = await API.sb.from('funding_opps').select('mode').eq('active', true); return { grant: (r.data || []).filter(x => x.mode === 'grant').length, equity: (r.data || []).filter(x => x.mode === 'equity').length }; } catch (e) { return { grant: 0, equity: 0 }; } })();
   const toggle = c => `<div class="fu-toggle" role="group" aria-label="Grants or equity"><button type="button" data-mode="grant" aria-pressed="${mode === 'grant'}">${icon('star', 'ic-16 ic-star')}Grants <span class="n">${c.grant}</span></button><button type="button" data-mode="equity" aria-pressed="${mode === 'equity'}">${icon('bar-chart', 'ic-16')}Equity <span class="n">${c.equity}</span></button></div>`;
