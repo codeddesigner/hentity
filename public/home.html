@@ -162,7 +162,7 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
 (async function () {
   const { qs, qsa, icon, flag, verified, store, toast, esc, avatar, plogo } = H;
   const C = [['all', 'All of Africa'], ['NG', 'Nigeria'], ['KE', 'Kenya'], ['GH', 'Ghana'], ['ZA', 'South Africa'], ['RW', 'Rwanda'], ['MA', 'Morocco']];
-  let country = store.get('country', 'all'), board = 'this', expanded = false, cur = null, rows = [];
+  let country = store.get('country', 'all'), board = 'this', expanded = false, cur = null, rows = [], fellBack = false;
   qs('#countries').innerHTML = C.map(([k, l]) => `<button class="chip" type="button" data-chip data-cc="${k}" aria-pressed="${k === country}">${icon('check')}${l}</button>`).join('') +
     `<label class="pays"><span class="sr-only">Pays with</span>${icon('chevron-down', 'ic-14')}<select id="pays"><option value="">Pays with: Any</option><option>Paystack</option><option>M-Pesa</option><option>MTN MoMo</option><option>USSD</option><option>Card</option><option>Flutterwave</option></select></label>`;
   M.stagger(qs('#countries'));
@@ -188,7 +188,11 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       else {
         rows = (await API.board({ week: board === 'last' ? cur.id - 1 : cur.id, country, pay })).filter(p => !API.isBackdated(p));
         // Just listed (already launched, approved in the last 30 minutes) sits on top of this week's board, then moves to the Directory
-        if (board === 'this') { const jl = (await API.justListed()).filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)) && !rows.some(r => r.id === p.id)); jl.forEach(p => p._just = true); rows = jl.concat(rows); }
+        fellBack = false;
+        if (board === 'this') { const jl = (await API.justListed()).filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)) && !rows.some(r => r.id === p.id)); jl.forEach(p => p._just = true); rows = jl.concat(rows);
+          // Nothing launched yet this week (e.g. Monday morning): show how last week finished instead of an empty board
+          if (!rows.length) { const prev = (await API.board({ week: cur.id - 1, country, pay })).filter(p => !API.isBackdated(p)); if (prev.length) { rows = prev; fellBack = true; } }
+        }
       }
       if (board === 'upcoming' || board === 'fame') rows = rows.filter(p => (country === 'all' || p.country === country) && (!pay || (p.pay_methods || []).includes(pay)));
       if (board === 'this') { const pi = rows.findIndex(p => p.promoted); if (pi > -1 && pi !== 3) { const [pr] = rows.splice(pi, 1); rows.splice(Math.min(3, rows.length), 0, pr); } }
@@ -217,10 +221,11 @@ M.stagger(H.qs('#hero'), '.hero-meta, p.lead-copy');
       if (board === 'recent') return D.row(p, 0, { noRank: true, badge: D.isUnclaimed(p) ? '' : `<span class="badge">${esc(H.ago(p.created_at))}</span>` });
       if (p._just) return D.row(p, 0, { noRank: true, badge: '<span class="badge badge--upcoming">Just listed</span>' });
       return D.row(p, p.promoted ? 0 : ++rank) + (i === 1 && board === 'this' ? teaser() : '');
-    }).join('') : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
+    }).join('') + '' : `<div class="empty"><p class="t-h4" style="color:var(--color-text-primary)">No launches here ${board === 'this' ? 'this week' : 'yet'}</p><p class="t-body-sm" style="margin:6px 0 16px">Try All of Africa, or be the first to launch from here.</p><a class="btn btn--accent btn--sm" href="/launch">${icon('rocket')}Launch your product</a></div>`;
     if (animate) M.stagger(qs('#feed'));
     const more = qs('#more'); more.hidden = rows.length <= 7; more.textContent = expanded ? 'Show fewer' : `Show all ${rows.length} launches`;
-    qs('#feed-title').textContent = { this: 'This week’s launches', last: 'Last week’s results', recent: 'Recently added', upcoming: 'Launching soon', fame: 'Wall of fame' }[board];
+    qs('#feed-title').textContent = board === 'this' && fellBack ? 'Last week’s launches' : { this: 'This week’s launches', last: 'Last week’s results', recent: 'Recently added', upcoming: 'Launching soon', fame: 'Wall of fame' }[board];
+    if (board === 'this' && fellBack && shown.length) qs('#feed').insertAdjacentHTML('afterbegin', `<p class="t-body-sm c-2" style="padding:10px 14px;margin-bottom:8px;border-radius:10px;background:var(--color-bg-subtle)">Nothing has launched yet this week, so here’s how last week finished. <a class="link link--accent" href="/launch">Launch yours this week →</a></p>`);
     bindNotify();
   }
   // Re-rank live when votes change

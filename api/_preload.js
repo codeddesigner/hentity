@@ -42,6 +42,8 @@ async function home() {
     settle(out, 'today', get(`product_feed?select=id&launch_date=eq.${new Date(Date.now() + 3600e3).toISOString().slice(0, 10)}&status=in.(scheduled,live)`).then(r => (r || []).length)),
     settle(out, 'recent', get(`comments?${sel(RECENT)}&deleted=eq.false&order=created_at.desc&limit=5`))
   ]);
+  // Early in a week nothing has launched yet: the home page shows last week's board instead, so send that too
+  if (!(out[`board:${week.id}:all::60`] || []).length) await settle(out, `board:${week.id - 1}:all::60`, boardRows(week.id - 1));
   return out;
 }
 

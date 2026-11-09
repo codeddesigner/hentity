@@ -415,8 +415,9 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', CACHE);
     let extra = '';
     if (type === 'home' && data) {
-      const board = Object.keys(data).filter(k => k.startsWith('board:')).map(k => data[k])[0] || [];
-      extra = `<h2>This week’s launches</h2>${S.list(board)}${S.list(data.upcoming, 'Launching soon')}${S.nav()}`;
+      const wk = data.week && data.week.id, now = data[`board:${wk}:all::60`] || [], prev = data[`board:${wk - 1}:all::60`] || [];
+      const board = now.length ? now : prev;
+      extra = `<h2>${now.length || !prev.length ? 'This week’s launches' : 'Last week’s launches'}</h2>${S.list(board)}${S.list(data.upcoming, 'Launching soon')}${S.nav()}`;
     } else if (type === 'news' && data) {
       const arts = Object.values(data).find(v => Array.isArray(v) && v[0] && v[0].dek !== undefined) || [];
       extra = arts.length ? `<h2>Latest African tech news</h2><ul>${arts.map(a => `<li><a href="/news/${esc(a.slug)}">${esc(a.title)}</a> — ${esc(a.dek || '')}</li>`).join('')}</ul>` : '';
