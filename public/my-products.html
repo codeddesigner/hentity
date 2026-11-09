@@ -105,10 +105,10 @@
       <div class="stack gap-12" id="prep"></div>
     </section>
     <section class="card card--pad" id="makers-card" hidden>
-      <h2 class="t-label" style="margin-bottom:14px">Co-makers</h2>
+      <div class="row between gap-8" style="margin-bottom:14px"><h2 class="t-label">Team</h2><label class="fu-sel" id="mk-pick-wrap" hidden style="font-size:13px"><select id="mk-pick" aria-label="Product" style="max-width:170px;border:0;background:none;font:inherit;color:var(--color-text-secondary);cursor:pointer"></select></label></div>
       <div class="stack gap-12" id="makers"></div>
       <form id="invite" class="stack gap-8" hidden style="margin-top:14px" novalidate><input class="input" placeholder="Search by name or @username" aria-label="Find a co-maker" id="inv-email" autocomplete="off"><div id="inv-res" class="stack"></div><div class="row gap-8"><button class="btn btn--ghost btn--sm" type="button" id="inv-cancel">Cancel</button></div></form>
-      <button class="btn btn--secondary btn--sm btn--block" type="button" id="inv-btn" style="margin-top:14px"><span data-icon="plus"></span>Invite a co-maker</button>
+      <button class="btn btn--secondary btn--sm btn--block" type="button" id="inv-btn" style="margin-top:14px"><span data-icon="plus"></span>Add a co-founder or teammate</button>
     </section>
   </aside>
 </div>
@@ -145,7 +145,14 @@ H.mount({ active: 'my-products', tab: 'you' });
       : `<tr><td colspan="5" style="text-align:center;padding:48px 20px"><p class="t-h4">No products yet</p><p class="t-body-sm c-2" style="margin:6px 0 16px">Start a launch draft. It saves as you go.</p><a class="btn btn--accent btn--sm" href="/submit?new=1">${icon('plus')}Submit a product</a></td></tr>`;
     M.stagger(qs('#rows'));
     const next = rows.find(r => st(r) === 'scheduled') || rows.find(r => st(r) === 'live');
-    renderPrep(next); renderMakers(next);
+    renderPrep(next);
+    // Team: any of your products, live or not (?team=<id> picks one)
+    const teamable = rows.filter(r => !['archived', 'rejected'].includes(st(r)));
+    const want = new URLSearchParams(location.search).get('team');
+    const pickP = teamable.find(r => r.id === want) || (makerProduct && teamable.find(r => r.id === makerProduct.id)) || next || teamable[0];
+    qs('#mk-pick-wrap').hidden = teamable.length < 2;
+    qs('#mk-pick').innerHTML = teamable.map(r => `<option value="${r.id}"${pickP && r.id === pickP.id ? ' selected' : ''}>${esc(r.name)}</option>`).join('');
+    renderMakers(pickP);
   }
   async function computeRank() {
     const live = rows.find(r => st(r) === 'live'); if (!live) { qs('#s-rank').textContent = '—'; qs('#s-rank-sub').textContent = 'no live launch'; return; }
@@ -170,11 +177,25 @@ H.mount({ active: 'my-products', tab: 'you' });
   }
   qs('#makers').addEventListener('click', async e => { const b = e.target.closest('[data-rm]'); if (!b || !(await H.confirm('Remove this co-maker?', { ok: 'Remove', danger: true }))) return; try { await API.removeMaker(makerProduct.id, b.dataset.rm); renderMakers(makerProduct); toast('Co-maker removed'); } catch (err) { H.fail(err); } });
   qs('#rows').addEventListener('click', async e => { const d = e.target.closest('[data-del]'); if (!d) return; if (!(await H.confirm('Delete this draft?', { body: 'This can’t be undone.', ok: 'Delete', danger: true }))) return; try { await API.deleteProduct(d.dataset.del); rows = rows.filter(r => r.id !== d.dataset.del); render(); toast('Draft deleted'); } catch (err) { H.fail(err); } });
+  qs('#mk-pick').addEventListener('change', e => renderMakers(rows.find(r => r.id === e.target.value)));
   qs('#inv-btn').addEventListener('click', () => { qs('#invite').hidden = false; qs('#inv-btn').hidden = true; qs('#inv-email').focus(); });
   qs('#inv-cancel').addEventListener('click', () => { qs('#invite').hidden = true; qs('#inv-btn').hidden = false; });
   qs('#inv-email').addEventListener('input', async e => { const t = e.target.value.trim().replace(/^@/, '').replace(/[%,()]/g, ''); const box = qs('#inv-res'); if (t.length < 2) { box.innerHTML = ''; return; } const r = await API.searchProfiles(t); box.innerHTML = r.filter(x => x.id !== API.uid).map(x => `<button type="button" class="cmdk__opt" style="width:100%" data-uid="${x.id}" data-name="${esc(x.name)}">${avatar(x, 28)}<span class="grow" style="text-align:left">${esc(x.name)} <span class="c-3">@${esc(x.username)}</span></span></button>`).join('') || '<p class="t-caption c-3" style="padding:6px">No makers found. They need a Hentity account first.</p>'; });
-  qs('#inv-res').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b || !makerProduct) return; try { await API.addMaker(makerProduct.id, b.dataset.uid, 'Maker'); qs('#invite').reset(); qs('#inv-res').innerHTML = ''; qs('#invite').hidden = true; qs('#inv-btn').hidden = false; renderMakers(makerProduct); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
+  qs('#inv-res').addEventListener('click', async e => { const b = e.target.closest('[data-uid]'); if (!b || !makerProduct) return; try { const role = await pickInviteRole(); if (!role) return; await API.addMaker(makerProduct.id, b.dataset.uid, role); qs('#invite').reset(); qs('#inv-res').innerHTML = ''; qs('#invite').hidden = true; qs('#inv-btn').hidden = false; renderMakers(makerProduct); toast('Invited ' + b.dataset.name); } catch (err) { H.fail(err); } });
   qs('#invite').addEventListener('submit', e => e.preventDefault());
+  function pickInviteRole() {
+    return new Promise(res => {
+      const el = document.createElement('div'); el.className = 'scrim';
+      el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Their role" style="max-width:400px"><h2 class="t-h3">Their role on ${esc(makerProduct.name)}</h2><p class="t-body-sm c-2">They get a notification and show on the product page once they accept.</p>
+        <div class="chips" data-single>${['Co-founder', 'Team member', 'Advisor'].map((r, i) => `<button class="chip" type="button" data-r="${r}" aria-pressed="${i === 0}">${icon('check')}${r}</button>`).join('')}</div>
+        <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Send invite</button></div></form>`;
+      document.body.append(el);
+      const done = v => { el.remove(); document.removeEventListener('keydown', k); res(v); }, k = e => { if (e.key === 'Escape') done(null); };
+      document.addEventListener('keydown', k);
+      el.addEventListener('click', e => { const c = e.target.closest('[data-r]'); if (c) el.querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', x === c)); if (e.target === el || e.target.closest('[data-x]')) done(null); });
+      el.querySelector('form').onsubmit = e => { e.preventDefault(); done(el.querySelector('[data-r][aria-pressed="true"]').dataset.r); };
+    });
+  }
   try { rows = await API.myProducts(); render(); computeRank(); } catch (e) { H.fail(e); }
   // Team requests to approve, and invites to accept
   async function teamPending() {

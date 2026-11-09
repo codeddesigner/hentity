@@ -162,7 +162,8 @@ H.mount({ active: 'products', tab: 'products' });
   (function teamJoin() {
     const box = qs('#team-join'); if (!box || !p.owner_id) return;
     const isOwner = API.uid && p.owner_id === API.uid, onTeam = myRow && myRow.accepted !== false;
-    if (isOwner || onTeam) return;
+    if (isOwner) { box.innerHTML = `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-border-default)"><a class="btn btn--secondary btn--sm btn--block" href="/my-products?team=${p.id}#makers-card">${icon('plus', 'ic-14')}Add a co-founder or teammate</a></div>`; return; }
+    if (onTeam) return;
     const wrap = h => `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-border-default)">${h}</div>`;
     const draw = () => {
       if (!API.uid) { box.innerHTML = wrap(`<p class="t-caption c-2" style="font-weight:400">Work on ${esc(p.name)}? <a class="link link--accent" href="/signin?next=${encodeURIComponent(location.pathname + '?join=1')}">Sign in to join the team</a></p>`); return; }
