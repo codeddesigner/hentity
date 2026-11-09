@@ -352,6 +352,10 @@
       save: (id, on) => { requireAuth(); return on ? q(sb.from('d_saves').insert({ user_id: uid(), post_id: id })) : q(sb.from('d_saves').delete().eq('user_id', uid()).eq('post_id', id)); },
       products: t => q(sb.from('products').select('slug,name,logo_url,color,owner_id').in('status', ['live', 'scheduled', 'unclaimed']).ilike('name', '%' + t + '%').order('upvote_count', { ascending: false }).limit(6))
     },
+    // Members suggest grants and investors, or fixes; admins approve (076_funding_contributions.sql)
+    fundingSuggest: (kind, oid, data, note) => { requireAuth(); return q(sb.rpc('fsub_submit', { k: kind, oid: oid || null, d: data || {}, nt: note || '' })); },
+    fundingSuggestions: () => uid() ? q(sb.rpc('fsub_mine')) : Promise.resolve([]),
+    fundingCredit: oid => q(sb.rpc('funding_credit', { oid })),
     fundingUntrack: oid => q(sb.from('funding_track').delete().eq('user_id', uid()).eq('opp_id', oid)),
     myFundingProducts: () => uid() ? q(sb.from('product_feed').select('id,slug,name,logo_url,color,status,categories,stage,country,city,verified').eq('owner_id', uid()).in('status', ['live', 'scheduled', 'review', 'changes']).order('created_at', { ascending: false })) : Promise.resolve([]),
     dataroom: pid => q(sb.from('dataroom_items').select('*').eq('product_id', pid)),
@@ -643,6 +647,8 @@
     fundingOpps: () => q(sb.from('funding_opps').select('*').order('mode').order('name')),
     saveFundingOpp: (id, row) => id ? q(sb.from('funding_opps').update(Object.assign({}, row, { updated_at: new Date().toISOString() })).eq('id', id).select().single()) : q(sb.from('funding_opps').insert(row).select().single()),
     fundingCounts: () => q(sb.rpc('admin_funding_counts')),
+    fsubList: st => q(sb.rpc('fsub_list', { st: st || 'pending' })),
+    fsubDecide: (sid, st, opp, nt) => q(sb.rpc('fsub_decide', { sid, st, opp: opp || null, nt: nt || '' })),
     deleteFundingOpp: id => q(sb.from('funding_opps').delete().eq('id', id)),
     nudgeAudience: kinds => q(sb.rpc('admin_nudge_audience', { kinds })),
     sendNudges: (kinds, note, test, ids) => q(sb.rpc('admin_send_nudges', { kinds, note: note || null, test_only: !!test, only_ids: ids || null })),

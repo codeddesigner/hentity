@@ -46,7 +46,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=c5f5078712"></script>
+<script src="/assets/api.js?v=f028376f16"></script>
 <script src="/assets/app.js?v=6f2abe5fcc"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -166,7 +166,7 @@
 <div data-header></div>
 <main id="main" class="fu"><div class="skel" style="height:560px;border-radius:16px"></div></main>
 <div data-tabbar></div>
-<script src="/assets/funding.js?v=fc91b2c019"></script>
+<script src="/assets/funding.js?v=4d3e9d3cf4"></script>
 <script>
 H.mount({ active: 'funding', tab: 'you' });
 (async function () {
@@ -200,6 +200,7 @@ H.mount({ active: 'funding', tab: 'you' });
           ${signed ? `<div class="grid-2" style="gap:8px"><a class="btn btn--accent" href="/submit">${icon('plus')}List your product</a><a class="btn btn--secondary" href="/directory?profile=unclaimed">Claim your startup</a></div><p class="t-caption c-3" style="font-weight:400;margin-top:12px">Your startup may already be on Hentity. Claiming takes a minute.</p>`
             : `<div class="grid-2" style="gap:8px"><a class="btn btn--accent" href="/signup?next=/funding">Create account</a><a class="btn btn--secondary" href="/signin?next=/funding">Sign in</a></div>`}
         </div></div>`;
+    root.insertAdjacentHTML('beforeend', `<p class="t-body-sm c-2" style="text-align:center;margin-top:20px">Know a grant or investor we’re missing? <button class="link link--accent" type="button" data-suggest>Suggest it</button></p>`);
     // Every listing, browsable: name, funder and amount are public; matching and apply links are for members
     const all = await (async () => { try { const r = await API.sb.from('funding_opps').select('id,name,org,kind,mode,amount_text,deadline,round_note,categories').eq('active', true).order('name'); return (r && r.data) || []; } catch (e) { return []; } })();
     const sec = document.createElement('section'); sec.className = 'fu-all'; sec.style.marginTop = '32px'; root.append(sec);
@@ -258,6 +259,7 @@ H.mount({ active: 'funding', tab: 'you' });
       <div class="fu-grid"><div>${L.length ? (mode === 'grant' ? `<div class="fu-cards">${L.map(card).join('')}</div>` : table(L)) + (all.length > L.length ? `<div style="text-align:center;margin-top:16px"><button class="btn btn--secondary" type="button" id="more">Show more <span class="c-3">${all.length - L.length} left</span></button></div>` : '') : `<div class="card fu-empty">${icon('search', 'ic-20')}<p style="margin-top:8px">${F.view === 'best' && !nBest ? `Nothing open right now is a close fit for ${esc(B.product.name)}.` : 'Nothing matches these filters yet.'}</p><p class="t-body-sm c-3" style="margin-top:4px">${F.view === 'best' ? `${dk ? '' : '<button class="link link--accent" type="button" data-deck>Add your deck</button> or '}<button class="link link--accent" type="button" data-view="all">see everything open</button>` : B.opps.length ? 'Try clearing a filter.' : 'Hentity adds new rounds as they open. Check back soon.'}</p></div>`}</div>
         <aside class="fu-side">
           <div class="card"><p class="t-label">Saved and applied</p>${tr.length ? tr.map(a => { const s = FU.TRACK[a.status] || [a.status, '']; const d = FU.daysLeft(a.deadline); return `<a class="fu-app" href="/funding/${a.opp_id}?p=${pid}"><span style="min-width:0"><span class="truncate" style="display:block">${esc(a.name)}</span><span class="t-caption ${a.status === 'saved' && d != null && d >= 0 && d < 10 ? 'fu-red' : 'c-3'}" style="font-weight:400">${esc(FU.deadlineText(a))}</span></span><span class="badge ${a.status === 'applied' && a.closed ? 'badge--success' : 'badge--' + s[1]}">${s[0]}</span></a>`; }).join('') : `<p class="t-body-sm c-3" style="margin-top:8px">Nothing yet. Save ${mode === 'grant' ? 'a grant' : 'an investor'} or mark one as applied to track it here, with reminders before deadlines.</p>`}</div>
+          <div class="card"><p class="t-label">Know one we’re missing?</p><p class="t-caption c-2" style="font-weight:400;margin:6px 0 12px">Share a grant or investor. An admin checks it, then it goes live with your name on it.</p><button class="btn btn--secondary btn--sm btn--block" type="button" data-suggest>${icon('plus', 'ic-14')}Suggest an opportunity</button></div>
         </aside></div>`;
     H.contentShown && H.contentShown();
   }
@@ -284,6 +286,7 @@ H.mount({ active: 'funding', tab: 'you' });
           <div class="fu-act" style="text-align:right">${applied ? `<button class="btn btn--sm btn--ghost" type="button" data-inv="${o.id}">${icon('check', 'ic-14')}Applied</button>` : `<a class="btn btn--sm ${isBest(o) ? 'btn--primary' : 'btn--secondary'}" href="${esc(FU.applyUrl(o))}" target="_blank" rel="noopener" data-go="${o.id}">${icon('arrow-up-right', 'ic-14')}Apply on site</a>`}</div></div>`; }).join('')}</div>`;
   }
   root.addEventListener('click', async e => {
+    if (e.target.closest('[data-suggest]')) { FU.suggestSheet(null, typeof mode === 'string' ? mode : 'grant'); return; }
     const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const o = B.opps.find(x => x.id === ed.dataset.edit); if (o) FU.editSheet(o, load); return; }
     if (e.target.closest('[data-deck]')) { FU.deckSheet(B.product, pid, () => { F.view = ''; load(); }); return; }
     if (e.target.closest('[data-closed]')) { F.closed = !F.closed; F.limit = 0; render(); return; }

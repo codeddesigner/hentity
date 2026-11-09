@@ -32,6 +32,10 @@ H.mount({ active: 'funding', tab: 'you' });
 (async function () {
   const { qs, esc, icon, toast } = H;
   const root = qs('#main');
+  // Members can suggest a fix to any listing; an admin approves it first
+  let CUR = null;
+  document.addEventListener('click', e => { if (e.target.closest('[data-fix]') && CUR) FU.suggestSheet(CUR); });
+  const credit = o => { CUR = o; FU.creditLine(o, root.querySelector('[data-credit]')); };
   await API.ready;
   const oid = FU.idFrom(location.pathname.split('/').filter(Boolean)[1]);
   const products = API.uid ? await API.myFundingProducts().catch(() => []) : [];
@@ -69,7 +73,7 @@ H.mount({ active: 'funding', tab: 'you' });
         <div class="fu-chips" style="margin-top:14px">${chips}</div>
         ${o.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(o.description)}</p>` : ''}
         ${!open && o.round_note ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(o.round_note)}</b></p>` : ''}
-        ${o.checked_at ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity on ${FU.fmtDate(o.checked_at, true)}</p>` : ''}</section>
+        <p class="t-caption c-3" style="font-weight:400;margin-top:12px"><span data-credit></span>${o.checked_at ? `Details checked by Hentity on ${FU.fmtDate(o.checked_at, true)} · ` : ''}<button class="link" type="button" data-fix>Suggest a fix</button></p></section>
       <section class="card fo-sec"><h2 class="fo-h">Who ${grant ? 'can apply' : 'they back'}</h2><div style="margin-top:10px">${rules.map(([k, v]) => `<div class="fo-judge"><span>${k}</span><b style="text-align:right">${esc(v)}</b></div>`).join('')}</div></section>
       ${(o.judging || []).length ? `<section class="card fo-sec"><h2 class="fo-h">How it’s judged</h2><div style="margin-top:10px">${o.judging.map(j => `<div class="fo-judge"><span>${esc(j.label)}</span><b>${esc(String(j.pct))}%</b></div>`).join('')}</div></section>` : ''}
       ${(o.portfolio || []).length ? `<section class="card fo-sec"><h2 class="fo-h">Portfolio</h2><p class="t-body-sm c-2" style="margin-top:8px">${esc(o.portfolio.join(', '))}</p></section>` : ''}
@@ -83,6 +87,7 @@ H.mount({ active: 'funding', tab: 'you' });
         : `<a class="btn btn--accent btn--block" href="/signup?next=${next}">Create a free account</a><a class="btn btn--secondary btn--block" style="margin-top:8px" href="/signin?next=${next}">Sign in</a>`}
       <hr><a class="link t-body-sm" href="/funding">Browse all ${grant ? 'grants' : 'investors'} for African startups</a>
     </aside>`;
+    credit(o);
     H.contentShown && H.contentShown();
   }
   const isGrant = () => O.mode === 'grant';
@@ -99,7 +104,7 @@ H.mount({ active: 'funding', tab: 'you' });
         <div class="fu-chips" style="margin-top:14px">${chips}</div>
         ${O.description ? `<p class="t-body-sm c-2" style="margin-top:14px">${esc(O.description)}</p>` : ''}
         ${!open ? `<p class="t-body-sm" style="margin-top:12px"><b style="font-weight:500">${esc(O.round_note)}</b></p>` : ''}
-        ${O.source_url ? `<p class="t-caption c-3" style="font-weight:400;margin-top:12px">Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a></p>` : ''}${API.isAdmin ? `<button class="btn btn--secondary btn--sm" type="button" id="fo-edit" style="margin-top:12px">${icon('edit', 'ic-14')}Edit listing</button>` : ''}</section>
+        <p class="t-caption c-3" style="font-weight:400;margin-top:12px"><span data-credit></span>${O.source_url ? `Details checked by Hentity${O.checked_at ? ' on ' + FU.fmtDate(O.checked_at) : ''} · <a class="link" href="${esc(O.source_url)}" target="_blank" rel="noopener">source</a> · ` : ''}<button class="link" type="button" data-fix>Suggest a fix</button></p>${API.isAdmin ? `<button class="btn btn--secondary btn--sm" type="button" id="fo-edit" style="margin-top:12px">${icon('edit', 'ic-14')}Edit listing</button>` : ''}</section>
       <section class="card fo-sec"><div class="row between gap-12 wrap"><h2 class="fo-h">Who can apply</h2>${(() => { const f = FU.fit(O); return `<span class="badge ${f[1] ? 'badge--' + f[1] : ''}">${O.tier === 'good' ? icon('check', 'ic-12') : ''}${O.tier === 'good' ? 'Strong fit' : f[0]}</span>`; })()}</div>
         <p class="t-body-sm c-2" style="margin-top:6px">${esc(FU.why(O))}</p>
         <div style="margin-top:10px">${O.checks.length ? O.checks.map(c => `<div class="fo-crit">${c.ok ? `<span class="fu-ok">${icon('check', 'ic-12')}</span>` : c.unknown ? `<span class="fu-q" title="We don’t know yet">?</span>` : `<span class="fu-no">${icon('x', 'ic-12')}</span>`}<span>${esc(c.label)}${c.hard === false ? ' <span class="c-3">(preferred)</span>' : ''}</span><span class="ev">${esc(c.evidence || '')}</span></div>`).join('') : '<p class="t-body-sm c-3">Open to any sector, stage and country in Africa.</p>'}</div>
@@ -125,6 +130,7 @@ H.mount({ active: 'funding', tab: 'you' });
       s.querySelector('select').onchange = e => { pid = e.target.value; FU.setPid(pid); load(); };
       root.querySelector('.fo-sec').append(s);
     }
+    credit(O);
     H.contentShown && H.contentShown();
   }
   const track = async (patch, msg) => { try { await API.fundingTrack(oid, pid, patch); msg && toast(msg); await load(); } catch (e) { H.fail(e); } };

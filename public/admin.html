@@ -46,7 +46,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=c5f5078712"></script>
+<script src="/assets/api.js?v=f028376f16"></script>
 <script src="/assets/app.js?v=6f2abe5fcc"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -1079,10 +1079,44 @@ H.mount();
         <td class="mono">${c.saved || 0} · ${c.applied || 0}</td>
         <td><span class="badge ${s[1]}">${s[0]}</span></td>
         <td style="text-align:right;white-space:nowrap"><button class="btn btn--ghost btn--sm" type="button" data-chk="${o.id}" title="Mark details checked today">${icon('check')}Checked</button> <button class="btn btn--ghost btn--sm" type="button" data-vis="${o.id}">${o.active ? 'Hide' : 'Show'}</button> <button class="btn btn--secondary btn--sm" type="button" data-o="${o.id}">Edit</button></td></tr>`; };
+    const subs = await A.fsubList('pending').catch(() => []);
+    const tabs = cur => `<div class="tabs" role="tablist" style="margin:-8px 0 20px"><a class="tab" role="tab" href="#funding" aria-selected="${cur === 'list'}">Listings</a><a class="tab" role="tab" href="#funding/suggestions" aria-selected="${cur === 'subs'}">Suggestions${subs.length ? ` <span class="badge badge--accent" style="margin-left:4px">${subs.length}</span>` : ''}</a></div>`;
+    const FLD = { name: 'Name', org: 'Organisation', mode: 'Board', kind: 'Type', apply_url: 'Apply link', website: 'Website', amount_text: 'Amount', deadline: 'Deadline', round_note: 'Round note', countries: 'Countries', categories: 'Categories', stages: 'Stages', description: 'Description', source_url: 'Source', women_only: 'Women-founded only' };
+    const val = (v, k) => k === 'mode' ? ({ grant: 'Grants', equity: 'Equity (investors)' }[v] || v) : Array.isArray(v) ? v.join(', ') : typeof v === 'boolean' ? (v ? 'Yes' : 'No') : String(v);
+    const link = v => /^https?:\/\//.test(v) ? `<a class="link" href="${esc(v)}" target="_blank" rel="noopener">${esc(v.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : esc(v);
+    // Turn a member's suggestion into drawer values
+    const toVals = d => { const x = Object.assign({}, d); if (typeof x.countries === 'string') x.countries = x.countries.split(/[\s,]+/).filter(Boolean).map(c => c.toUpperCase().slice(0, 2)); if (!x.kind) x.kind = x.mode === 'equity' ? 'vc' : 'grant'; x.checked_at = today; if (!x.source_url && x.apply_url) x.source_url = x.apply_url; return x; };
+    const renderSubs = async () => {
+      const all = await A.fsubList('all').catch(() => []);
+      const pend = all.filter(x => x.status === 'pending'), done = all.filter(x => x.status !== 'pending').slice(0, 30);
+      const card = x => { const d = x.data || {}, o = x.opp;
+        return `<article class="card" style="padding:18px;margin-bottom:12px" data-sub="${x.id}">
+          <div class="row between gap-12 wrap"><div class="row gap-10">${avatar(x.by, 32)}<div><p class="t-label">${x.kind === 'new' ? `New ${d.mode === 'equity' ? 'investor' : 'grant'}: ${esc(d.name || '')}` : `Fix for ${esc(o ? o.name : 'a listing')}`}</p>
+            <p class="t-caption c-3" style="font-weight:400">@${esc(x.by.username)}${x.by.is_verified ? ' · verified' : ''} · ${x.by.approved ? x.by.approved + ' approved before' : 'first suggestion'} · ${when(x.created_at)}</p></div></div>
+            ${x.status === 'pending' ? `<div class="row gap-8 wrap">${x.kind === 'new' ? `<button class="btn btn--primary btn--sm" data-add="${x.id}">${icon('check')}Review and add</button><button class="btn btn--secondary btn--sm" data-dup="${x.id}">Already listed</button>` : `<button class="btn btn--primary btn--sm" data-fix="${x.id}">${icon('edit')}Open and apply</button>`}<button class="btn btn--ghost btn--sm" data-rej="${x.id}">Reject</button></div>`
+              : `<span class="badge ${x.status === 'approved' ? 'badge--success' : ''}">${esc(x.status)}</span>`}</div>
+          ${x.note ? `<p class="t-body-sm" style="margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--color-bg-subtle);white-space:pre-wrap">${esc(x.note)}</p>` : ''}
+          ${Object.keys(d).length ? `<div style="margin-top:12px">${Object.keys(FLD).filter(k => d[k] != null).map(k => `<div class="row gap-12 t-body-sm" style="padding:6px 0;border-top:1px solid var(--color-border-default)"><span class="c-3" style="width:140px;flex:none">${FLD[k]}</span><span style="min-width:0;word-break:break-word">${o && o[k] != null && val(o[k]) !== val(d[k]) ? `<s class="c-3">${esc(val(o[k]) || '—')}</s> → ` : ''}<b style="font-weight:500">${link(val(d[k], k))}</b></span></div>`).join('')}</div>` : ''}
+          ${x.admin_note ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Note to member: ${esc(x.admin_note)}</p>` : ''}</article>`; };
+      qs('#main').innerHTML = head('Funding', 'Grants and investors members shared. Nothing goes live until you approve it. Check the details on the funder’s own site first.') + tabs('subs')
+        + (pend.length ? pend.map(card).join('') : `<div class="empty card" style="padding:40px;text-align:center"><p class="t-body-sm c-2">No suggestions waiting.</p></div>`)
+        + (done.length ? `<h2 class="t-h4" style="margin:28px 0 12px">Decided</h2>` + done.map(card).join('') : '');
+      qs('#main').onclick = async e => {
+        const b = e.target.closest('[data-add],[data-dup],[data-fix],[data-rej]'); if (!b) return;
+        const id = b.dataset, x = all.find(s => s.id === (id.add || id.dup || id.fix || id.rej)); if (!x) return;
+        const decide = async (st, opp, note, msg) => { await A.fsubDecide(x.id, st, opp, note); toast(msg); qsa('.drawer,.drawer-bg').forEach(n => n.remove()); renderSubs(); };
+        try {
+          if (id.add) edit(null, Object.assign(toVals(x.data), { active: true }), saved => decide('approved', saved && saved.id, '', `Added. @${x.by.username} has been told and credited.`));
+          if (id.fix) { const o = rows.find(r => r.id === x.opp_id); if (!o) return toast('That listing is gone', 'error'); const pre = toVals(x.data); delete pre.source_url; edit(o, pre, () => decide('approved', o.id, '', `Saved. @${x.by.username} has been thanked.`)); }
+          if (id.dup) { if (!(await H.confirm(`Mark ${x.data.name} as already listed?`, { body: `@${x.by.username} is told someone shared it first.`, ok: 'Already listed' }))) return; await decide('duplicate', null, '', 'Marked as a duplicate'); }
+          if (id.rej) { const why = await H.ask('Why not? (sent to the member)', { placeholder: 'e.g. It isn’t open to African startups', optional: true, ok: 'Reject' }); if (why == null) return; await decide('rejected', null, why, 'Rejected'); }
+        } catch (er) { H.fail(er); }
+      };
+    };
     const render = () => {
       const L = list(), shown = L.slice(0, F.n);
       qs('#main').innerHTML = head('Funding', `${rows.length} listings · ${count(o => o.mode === 'grant')} grants · ${count(o => o.mode === 'equity')} investors. Founders apply on each funder’s own site, so keep links, dates and amounts checked against the official page.`, `<button class="btn btn--primary btn--sm" id="add">${icon('plus')}New opportunity</button>`)
-        + `<div class="row wrap gap-8" style="margin-bottom:12px">
+        + tabs('list') + `<div class="row wrap gap-8" style="margin-bottom:12px">
             <input class="input" id="fq" type="search" placeholder="Search name, organisation, link…" value="${esc(F.q)}" style="max-width:280px">
             <select class="input" data-f="mode" style="width:auto">${opt('mode', [['', 'Grants and equity'], ['grant', 'Grants'], ['equity', 'Equity']])}</select>
             <select class="input" data-f="kind" style="width:auto">${opt('kind', [['', 'Any type'], ...KIND])}</select>
@@ -1111,7 +1145,8 @@ H.mount();
       ['judging', 'How it’s judged · [{"label":"Impact","pct":40}]', 'json', { empty: [] }],
       ['', 'Status', 'heading'], ['checked_at', 'Details checked on', 'date'], ['active', 'Show to founders', 'bool']];
     const TEXT = ['org', 'website', 'apply_url', 'amount_text', 'amount_note', 'region_label', 'slots_text', 'round_note', 'description', 'source_url', 'deadline_note', 'color'];
-    const edit = o => drawer(o ? o.name : 'New opportunity', FIELDS, o || { mode: 'grant', kind: 'grant', active: true, judging: [], categories: [], stages: [], checked_at: today, color: '#111111' }, async (v, d) => {
+    // pre: values suggested by a member (prefilled); after: runs once saved (approves the suggestion)
+    const edit = (o, pre, after) => drawer(o ? o.name : 'New opportunity', FIELDS, Object.assign({}, o || { mode: 'grant', kind: 'grant', active: true, judging: [], categories: [], stages: [], checked_at: today, color: '#111111' }, pre || {}), async (v, d) => {
       if (!v.name || v.name.trim().length < 2) throw new Error('Add a name');
       if (!v.apply_url && !v.website) throw new Error('Add the link where founders apply');
       for (const k of ['apply_url', 'website', 'source_url']) if (v[k] && !/^https?:\/\//i.test(v[k])) throw new Error(`${k === 'apply_url' ? 'Apply link' : k === 'website' ? 'Website' : 'Source'} must start with https://`);
@@ -1120,8 +1155,10 @@ H.mount();
       TEXT.forEach(k => { if (v[k] == null) v[k] = ''; });
       if (!v.color) v.color = '#111111';
       v.countries = (v.countries || []).map(x => x.toUpperCase().slice(0, 2)); v.judging = v.judging || [];
-      const saved = await A.saveFundingOpp(o && o.id, v); toast(o ? 'Saved' : 'Added');
+      const saved = await A.saveFundingOpp(o && o.id, v);
       if (o) { Object.assign(o, saved || v); } else if (saved) rows.unshift(saved);
+      if (after) { await after(saved || o); return; }
+      toast(o ? 'Saved' : 'Added');
       render();
     }, { top: o ? `<p class="t-caption c-3" style="font-weight:400;margin-bottom:6px">Last edited ${o.updated_at ? esc(new Date(o.updated_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })) : '—'} · ${(cnt[o.id] || {}).saved || 0} saved · ${(cnt[o.id] || {}).applied || 0} applied · <a class="link" href="/funding/${o.id}" target="_blank">View as founder</a></p>` : '',
       danger: o ? { label: 'Delete', confirm: `Delete ${o.name}? Founders who saved it lose it from their tracker. Hiding keeps their history.`, run: async () => { await A.deleteFundingOpp(o.id); rows.splice(rows.indexOf(o), 1); toast('Deleted'); render(); } } : null });
@@ -1147,6 +1184,7 @@ H.mount();
       if (e.target.id === 'selall') { list().slice(0, F.n).forEach(o => e.target.checked ? sel.add(o.id) : sel.delete(o.id)); render(); return; }
       const s = e.target.dataset.sel; if (s) { e.target.checked ? sel.add(s) : sel.delete(s); const bar = qs('#bulk'); bar.style.display = sel.size ? '' : 'none'; bar.querySelector('b').textContent = sel.size + ' selected'; }
     };
+    if (arg === 'suggestions') { await renderSubs(); return; }
     render();
     if (arg) { const o = rows.find(x => x.id === arg); if (o) edit(o); else if (arg === 'new') edit(null); }
   };
