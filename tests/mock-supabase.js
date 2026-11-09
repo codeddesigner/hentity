@@ -181,6 +181,12 @@
     o.tier = o.status === 'closed' ? 'closed' : !o.eligible ? 'ineligible' : o.score >= 60 ? 'best' : 'possible'; o.best = o.tier === 'best';
     return o;
   }
+  const SPQ = [['In a sentence or two, what does Ledgerline do?', 'Say it the way you’d explain it to a friend.'], ['What made you start it?', 'The moment you knew this problem was worth solving.'], ['Who are your customers, and how do they find you?', ''], ['What’s working right now?', 'A number you’re proud of.'], ['Anything else you’d like people to know?', '', true]].map(([q, hint, optional], i) => ({ id: 'q' + (i + 1), q, hint, optional: !!optional }));
+  const SPA = { q1: 'Ledgerline reads the mobile money statements traders already get and turns them into clean books, so they know what they actually made this week.', q2: 'I did books by hand for market businesses for three years. Every Friday the numbers didn’t match the cash, and nobody could say why.', q3: 'Traders in Balogun and Computer Village. Almost all of them come from other traders: one shop tells the next.', q4: '1,240 traders use it every week, and 61% are still active after three months.', q5: '' };
+  const SPX = (status, done) => ({ id: 'sp-1', status, consent: true, title: done ? 'How Ledgerline gives Lagos traders books they can trust' : '', dek: done ? 'Ada Okafor spent three years doing books by hand. Now 1,240 traders use what she built.' : '', highlights: ['1,240 weekly traders', '61% still active after 3 months'],
+    intro: 'Hi Ada, I’m Chidera from Hentity. We’d love to feature Ledgerline in a founder spotlight, so more people across the community get to know what you’re building. Answer in your own words; short is fine.',
+    questions: SPQ, answers: done ? SPA : {}, edits: done ? SPA : {}, slug: done ? 'ada-okafor-ledgerline' : null, created_at: '2026-11-07T10:00:00Z', opened_at: '2026-11-07T12:00:00Z', answered_at: done ? '2026-11-08T09:00:00Z' : null, published_at: status === 'published' ? '2026-11-08T15:00:00Z' : null, due_at: '2026-11-14T17:00:00Z',
+    founder: { id: 'u1', username: 'ada', name: 'Ada Okafor', headline: 'Founder of Ledgerline', city: 'Lagos', is_verified: true, email: 'ada@ledgerline.app' }, product: { id: 'p1', name: 'Ledgerline', slug: 'ledgerline', tagline: 'Bookkeeping that reads your mobile money statements', color: '#0a0a0a' } });
   const RPC = {
     funding_board: a => { const B = JSON.parse(JSON.stringify(FUND[a.md])); B.opps.forEach(fitMock); B.product.deck = JSON.parse(localStorage.getItem('mock.deck') || 'null'); return B; },
     funding_opp: a => fitMock(JSON.parse(JSON.stringify(FUND.opp[a.oid]))),
@@ -318,6 +324,11 @@
       earned: { first_launch: { level: 1, stat: 3, ref: 'Ledgerline', earned_at: '2025-03-12' }, top_day: { level: 1, stat: 1, ref: 'Ledgerline', earned_at: '2025-03-12' }, shipper: { level: 2, stat: 14, earned_at: '2025-06-01' }, beta_host: { level: 1, stat: 23, ref: 'Ledgerline Tax', earned_at: '2026-10-14' }, early_builder: { level: 1, earned_at: '2024-03-01' } } }),
     badge_marks: a => Object.fromEntries((a.uids || []).map((id, i) => [id, { top: ['top_day', 'helpful', 'beta_host'][i % 3], level: 1, stat: 23, ref: 'Ledgerline', at: '2025-03-12', others: ['beta_host', 'shipper', 'helpful'], total: 9, username: 'ada' }])),
     badge_set: () => null, badge_seen: () => null,
+    sp_admin_list: () => [SPX('answered', true), Object.assign(SPX('sent'), { id: 'sp-2', founder: { id: 'u2', username: 'truix', name: 'Tunde Bakare' }, product: { name: 'Guraindo' }, answered_at: null, opened_at: null })],
+    sp_founders: () => [{ id: 'u1', username: 'ada', name: 'Ada Okafor', city: 'Lagos', products: [{ id: 'p1', name: 'Ledgerline' }] }, { id: 'u2', username: 'truix', name: 'Tunde Bakare', products: [{ id: 'p2', name: 'Guraindo' }], open: true }, { id: 'u3', username: 'vibesayo', name: 'Sayo Bello', products: [{ id: 'p3', name: 'Biyaport' }], published: true }],
+    sp_get: () => { const m = localStorage.getItem('mock.sp') || 'form'; const x = SPX(m === 'form' ? 'sent' : 'published', m !== 'form'); return Object.assign(x, m === 'form' ? { mine: true, answers: { q1: 'Ledgerline reads your mobile money statements and turns them into clean books.' } } : m === 'admin' ? { admin: true } : { published_answers: x.edits }); },
+    sp_mine: () => [{ id: 'sp-1', status: 'sent', questions: 9 }],
+    sp_send: () => 'sp-1', sp_save: () => null, sp_publish: () => 'ada-okafor-ledgerline', sp_answer: () => null,
     dr_save_link: a => ({ id: 'l-new', token: '9f2c4e7a1b3d5f60a8c2e4b1', label: a.lbl, mode: a.md }),
     dr_request_code: () => ({ sent: true }),
     dr_open: () => ({ ok: true, company: 'Mazao Hub', color: '#0f3d2e', label: 'Baobab Ventures', mode: 'email', download: false, watermark: true, track: true, files: 1, single: { name: 'Mazao Hub pitch deck.pdf', pages: 14 } }),

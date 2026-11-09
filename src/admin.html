@@ -24,7 +24,7 @@ H.mount();
 
   // ---------------------------------------------------------------- shell
   const SECTIONS = [
-    ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell']]],
+    ['Overview', [['dashboard', 'Dashboard', 'bar-chart'], ['review', 'Review queue', 'eye', 'review'], ['edits', 'Edit requests', 'edit', 'edits'], ['broadcast', 'Broadcast', 'bell'], ['spotlights', 'Spotlights', 'sparkles']]],
     ['Product', [['products', 'Products', 'package'], ['weeks', 'Launch weeks', 'calendar'], ['betas', 'Beta tests', 'flask'], ['companies', 'Companies', 'globe'], ['funding', 'Funding', 'star'], ['users', 'Users', 'users'], ['admins', 'Admins', 'shield']]],
     ['Radar', [['radar', 'Radar', 'compass', 'radar'], ['claims', 'Claims', 'shield', 'claims'], ['removals', 'Removal requests', 'trash', 'removals']]],
     ['Community', [['findroles', 'Find roles', 'users', 'findroles'], ['reports', 'Reports', 'flag', 'reports_open'], ['roadmap', 'Hentity roadmap', 'star'], ['comments', 'Comments', 'comment'], ['messages', 'Messages', 'chats'], ['channels', 'Channels', 'hash']]],
@@ -32,7 +32,7 @@ H.mount();
     ['System', [['emails', 'Emails', 'mail'], ['features', 'Features', 'eye'], ['settings', 'Site settings', 'settings'], ['audit', 'Audit log', 'log']]]
   ];
   // Mini-admins (role 'moderator') have every admin power except member data (users, messages, newsletter, email logs) and managing admins (enforced in the database too)
-  const FULL_ONLY = ['users', 'messages', 'newsletter', 'emails', 'admins'];   // member data and admin management stay with the super admin
+  const FULL_ONLY = ['users', 'messages', 'newsletter', 'emails', 'admins', 'spotlights'];   // member data and admin management stay with the super admin
   if (!isFullAdmin) SECTIONS.forEach(s => { s[1] = s[1].filter(x => !FULL_ONLY.includes(x[0])); });
   const ROLE = { admin: 'Super admin', moderator: 'Mini-admin', user: 'Member' };
   let stats = {};
@@ -759,6 +759,127 @@ H.mount();
     };
     sync(); reach(); hist();
   };
+
+
+  // ---- founder spotlights (super admin only): send questions, track, edit the answers, publish as a story
+  const SP_DEFAULT = [
+    ['In a sentence or two, what does {product} do?', 'Say it the way you’d explain it to a friend.'],
+    ['What made you start it?', 'The moment you knew this problem was worth solving.'],
+    ['Who are your customers, and how do they find you?', ''],
+    ['What’s working right now?', 'A number you’re proud of: users, revenue, growth or retention.'],
+    ['What has been the hardest part so far?', ''],
+    ['Who’s on the team?', 'Founders and key people, and what each of you does.'],
+    ['What’s next in the coming 6 to 12 months?', ''],
+    ['How can the Hentity community help?', 'Intros, hires, beta testers, feedback or funding.'],
+    ['Anything else you’d like people to know?', '', true]];
+  const SP_ST = { sent: ['Waiting', 'warning'], answered: ['Answered', 'accent'], published: ['Published', 'success'], declined: ['Declined', ''], withdrawn: ['Withdrawn', ''] };
+  const spPill = st => `<span class="badge${SP_ST[st] && SP_ST[st][1] ? ' badge--' + SP_ST[st][1] : ''}">${(SP_ST[st] || [st])[0]}</span>`;
+  V.spotlights = async arg => {
+    nav('spotlights');
+    const css = `<style>.sp-q{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid var(--color-border-default);border-radius:12px;background:var(--color-bg-canvas)}
+.sp-q .n{font:500 12px/36px var(--font-mono);color:var(--color-text-tertiary);text-align:center}.sp-q .stack{gap:6px}.sp-q .row{gap:4px}
+.sp-pick{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;width:100%;text-align:left;background:none;border:1px solid transparent}.sp-pick:hover{background:var(--color-bg-subtle)}.sp-pick[aria-pressed=true]{border-color:var(--color-text-primary);background:var(--color-bg-subtle)}
+.sp-pick small{display:block;font-size:12px;color:var(--color-text-tertiary)}.sp-list{max-height:280px;overflow:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.sp-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}@media (max-width:1000px){.sp-grid{grid-template-columns:1fr}}
+.sp-a{border-top:1px solid var(--color-border-default);padding:16px 0}.sp-a:first-child{border-top:0;padding-top:0}.sp-a h3{font-size:14px;font-weight:600}.sp-orig{font-size:13px;line-height:19px;color:var(--color-text-secondary);background:var(--color-bg-subtle);border-radius:10px;padding:10px 12px;margin:8px 0;white-space:pre-wrap}
+.sp-tl{display:flex;flex-direction:column;gap:10px;font-size:13px}.sp-tl div{display:flex;justify-content:space-between;gap:12px}.sp-tl span{color:var(--color-text-tertiary)}</style>`;
+    if (arg === 'new') return spNew(css);
+    if (arg) return spOne(arg, css);
+    const rows = await API.sp.list();
+    const open = rows.filter(r => r.status === 'sent' || r.status === 'answered').length;
+    qs('#main').innerHTML = css + head('Founder spotlights', 'Send a founder a short interview. They answer privately; you edit and publish it as a story on Hentity and in News. Only you can see this.', `<a class="btn btn--primary btn--sm" href="#spotlights/new">${icon('plus')}New spotlight</a>`)
+      + (rows.length ? `<p class="t-body-sm c-2" style="margin:-8px 0 16px">${rows.length} sent · ${open} open · ${rows.filter(r => r.status === 'published').length} published</p>` : '')
+      + tbl(['Founder', 'Product', 'Status', 'Sent', 'Opened', 'Answered', ''], rows.map(r => `<tr data-href="#spotlights/${r.id}" style="cursor:pointer"><td><span class="row gap-8">${avatar(r.founder, 24)}<span><b>${esc(r.founder.name || r.founder.username)}</b><br><span class="t-caption c-3" style="font-weight:400">@${esc(r.founder.username)}</span></span></span></td>
+        <td>${r.product ? esc(r.product.name) : '<span class="c-3">—</span>'}</td><td>${spPill(r.status)}${r.status === 'answered' && !r.consent ? ' <span class="t-caption c-3" style="font-weight:400">no consent yet</span>' : ''}</td><td>${when(r.created_at)}</td><td>${when(r.opened_at)}</td><td>${when(r.answered_at)}</td><td><a class="link link--accent t-body-sm" href="#spotlights/${r.id}">${r.status === 'answered' ? 'Review' : 'Open'} →</a></td></tr>`),
+        'No spotlights yet. Pick a founder you’d like to feature and send them the questions.');
+    qsa('[data-href]').forEach(tr => tr.onclick = e => { if (!e.target.closest('a')) location.hash = tr.dataset.href; });
+  };
+  async function spNew(css) {
+    let founders = await API.sp.founders(''), pick = null, pid = null;
+    let qsList = SP_DEFAULT.map(([q, hint, optional]) => ({ q, hint, optional: !!optional }));
+    const due = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+    qs('#main').innerHTML = css + head('New spotlight', 'The founder gets a notification and an email with a link to answer. Nothing is published until you publish it, and only if they agree.', `<a class="btn btn--ghost btn--sm" href="#spotlights">Cancel</a>`)
+      + `<div class="sp-grid"><form class="stack" id="spf" style="gap:20px">
+        <section class="card" style="padding:20px"><p class="t-h4">1. Founder</p><p class="t-body-sm c-2" style="margin:2px 0 12px">People with a live or scheduled product.</p>
+          ${search('spq', 'Search founders or products')}<div class="sp-list" id="spl"></div>
+          <div class="field" id="sp-prod" hidden style="margin-top:12px"><label class="field__label" for="spp">About which product</label><select class="input" id="spp"></select></div></section>
+        <section class="card" style="padding:20px"><p class="t-h4">2. Your note</p><p class="t-body-sm c-2" style="margin:2px 0 12px">Opens the email and the answer page. Keep it personal.</p>
+          <textarea class="input" id="spi" rows="4" maxlength="2000"></textarea>
+          <div class="field" style="margin-top:12px"><label class="field__label" for="spd">Ask for answers by (optional)</label><input class="input" type="date" id="spd" value="${due}" style="max-width:200px"></div></section>
+        <section class="card" style="padding:20px"><div class="row between gap-12"><div><p class="t-h4">3. Questions</p><p class="t-body-sm c-2" style="margin-top:2px">Edit, reorder, add or remove. {product} becomes their product’s name.</p></div><button class="btn btn--secondary btn--sm" type="button" id="spadd">${icon('plus')}Add question</button></div>
+          <div class="stack" id="spqs" style="gap:8px;margin-top:14px"></div></section>
+        <div class="row gap-8"><button class="btn btn--primary" id="spsend" type="submit">${icon('send')}Send to founder</button><span class="t-caption c-3" style="font-weight:400" id="spwho">Pick a founder first</span></div>
+      </form>
+      <aside class="card" style="padding:20px;position:sticky;top:24px"><p class="t-label">How it works</p><ol class="stack t-body-sm c-2" style="gap:10px;margin:12px 0 0;padding-left:18px">
+        <li>They get a notification and an email with your note.</li><li>They answer on a private page. Drafts save as they type.</li><li>They choose whether you may publish it.</li><li>You get a notification, edit the answers and add a headline.</li><li>Publish: it goes live at hentity.com/spotlight/… and in News.</li></ol></aside></div>`;
+    const prodName = () => { const f = founders.find(x => x.id === pick), p = f && (f.products || []).find(x => x.id === pid); return p ? p.name : 'your product'; };
+    const firstName = () => { const f = founders.find(x => x.id === pick); return f ? (f.name || f.username).split(' ')[0] : 'there'; };
+    const intro = () => `Hi ${firstName()}, I’m ${API.profile.name.split(' ')[0]} from Hentity. We’d love to feature ${prodName()} in a founder spotlight, so more people across the community get to know what you’re building. Here are a few questions. Answer in your own words; short is fine.`;
+    let introTouched = false;
+    const drawList = () => { qs('#spl').innerHTML = founders.length ? founders.map(f => `<button class="sp-pick" type="button" data-f="${f.id}" aria-pressed="${f.id === pick}"${f.open ? ' disabled style="opacity:.5"' : ''}>${avatar(f, 32)}<span style="min-width:0"><b class="t-label">${esc(f.name || f.username)}</b><small>@${esc(f.username)} · ${esc((f.products || []).map(p => p.name).join(', '))}${f.open ? ' · already has open questions' : f.published ? ' · featured before' : ''}</small></span></button>`).join('') : '<p class="t-body-sm c-3" style="padding:8px">No founders match.</p>'; };
+    const drawQs = () => { qs('#spqs').innerHTML = qsList.map((q, i) => `<div class="sp-q" data-i="${i}"><span class="n">${i + 1}</span><div class="stack"><input class="input" data-k="q" value="${esc(q.q)}" maxlength="300" placeholder="Question"><input class="input" data-k="hint" value="${esc(q.hint)}" maxlength="300" placeholder="Hint shown under it (optional)" style="font-size:13px;height:32px"><label class="row gap-6 t-caption c-2" style="font-weight:400"><input type="checkbox" data-k="optional"${q.optional ? ' checked' : ''}>Optional</label></div>
+      <div class="row"><button class="nav__icon" type="button" data-up="${i}" aria-label="Move up"${i ? '' : ' disabled'}><span style="display:inline-flex;transform:rotate(90deg)">${icon('arrow-left', 'ic-14')}</span></button><button class="nav__icon" type="button" data-del="${i}" aria-label="Remove">${icon('trash', 'ic-14')}</button></div></div>`).join(''); };
+    const sync = () => { if (!introTouched) qs('#spi').value = intro(); const f = founders.find(x => x.id === pick); qs('#spwho').textContent = f ? `${qsList.length} questions to ${f.name || f.username}` : 'Pick a founder first'; };
+    drawList(); drawQs(); sync();
+    qs('#spq').oninput = debounce(async e => { founders = await API.sp.founders(e.target.value.trim()).catch(() => []); drawList(); });
+    qs('#spl').onclick = e => { const b = e.target.closest('[data-f]'); if (!b || b.disabled) return; pick = b.dataset.f; const f = founders.find(x => x.id === pick); pid = f.products && f.products[0] ? f.products[0].id : null;
+      qs('#sp-prod').hidden = !(f.products || []).length; qs('#spp').innerHTML = (f.products || []).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join(''); drawList(); sync(); };
+    qs('#spp').onchange = e => { pid = e.target.value; sync(); };
+    qs('#spi').oninput = () => { introTouched = true; };
+    qs('#spqs').addEventListener('input', e => { const i = +e.target.closest('[data-i]').dataset.i, k = e.target.dataset.k; if (k) qsList[i][k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; });
+    qs('#spqs').addEventListener('change', e => { if (e.target.type === 'checkbox') { const i = +e.target.closest('[data-i]').dataset.i; qsList[i].optional = e.target.checked; } });
+    qs('#spqs').addEventListener('click', e => { const u = e.target.closest('[data-up]'), d = e.target.closest('[data-del]');
+      if (u) { const i = +u.dataset.up; [qsList[i - 1], qsList[i]] = [qsList[i], qsList[i - 1]]; drawQs(); }
+      if (d) { if (qsList.length === 1) return toast('Keep at least one question', 'error'); qsList.splice(+d.dataset.del, 1); drawQs(); sync(); } });
+    qs('#spadd').onclick = () => { if (qsList.length >= 20) return toast('20 questions at most', 'error'); qsList.push({ q: '', hint: '', optional: false }); drawQs(); sync(); qs(`[data-i="${qsList.length - 1}"] input`).focus(); };
+    qs('#spf').onsubmit = async e => {
+      e.preventDefault();
+      if (!pick) return toast('Pick a founder', 'error');
+      const list = qsList.map((q, i) => ({ id: 'q' + (i + 1), q: q.q.trim().replace(/\{product\}/g, prodName()), hint: q.hint.trim(), optional: q.optional })).filter(q => q.q);
+      if (!list.length) return toast('Add at least one question', 'error');
+      const f = founders.find(x => x.id === pick);
+      if (!(await H.confirm(`Send ${list.length} questions to ${f.name || f.username}?`, { body: 'They get a notification and an email now.', ok: 'Send' }))) return;
+      const b = qs('#spsend'); b.disabled = true;
+      try { const dv = qs('#spd').value; const id = await API.sp.send(pick, pid, qs('#spi').value.trim(), list, dv ? new Date(dv + 'T18:00:00+01:00').toISOString() : null); toast('Sent'); location.hash = 'spotlights/' + id; }
+      catch (er) { H.fail(er); b.disabled = false; }
+    };
+  }
+  async function spOne(id, css) {
+    const r = await API.sp.get(id);
+    if (!r) { qs('#main').innerHTML = head('Spotlight not found', '') + `<a class="link link--accent" href="#spotlights">Back to spotlights</a>`; return; }
+    const ans = r.answers || {}, ed = r.edits || {}, done = r.status === 'answered' || r.status === 'published';
+    const f = r.founder, p = r.product;
+    qs('#main').innerHTML = css + `<nav class="t-body-sm c-3" style="margin-bottom:12px"><a class="link" href="#spotlights">Spotlights</a> / ${esc(f.name || f.username)}</nav>`
+      + head(`${esc(f.name || f.username)}${p ? ' · ' + esc(p.name) : ''}`, `${spPill(r.status)} ${r.status === 'answered' ? (r.consent ? 'They agreed to publishing.' : 'They haven’t agreed to publishing, so you can read it but not publish it.') : r.status === 'sent' ? 'Waiting for their answers.' : ''}`,
+        `${r.status === 'sent' ? `<button class="btn btn--secondary btn--sm" id="sprem">${icon('bell')}Send a reminder</button>` : ''}${['sent', 'answered'].includes(r.status) ? `<button class="btn btn--ghost btn--sm" id="spwd">Withdraw</button>` : ''}${r.slug ? `<a class="btn btn--secondary btn--sm" href="/spotlight/${esc(r.slug)}" target="_blank">${icon('arrow-up-right')}View story</a>` : ''}`)
+      + `<div class="sp-grid"><div class="stack" style="gap:16px">
+        ${done ? `<form class="card stack" id="spe" style="padding:20px;gap:14px"><p class="t-h4">The story</p>
+          <div class="field"><label class="field__label" for="spt">Headline</label><input class="input" id="spt" maxlength="140" value="${esc(r.title || '')}" placeholder="${esc(p ? `How ${p.name} ` : '')}…"></div>
+          <div class="field"><label class="field__label" for="spk">Standfirst</label><textarea class="input" id="spk" rows="2" maxlength="400" placeholder="One or two sentences on who they are and why they’re worth reading.">${esc(r.dek || '')}</textarea></div>
+          <div class="field"><span class="field__label">Highlights for News (up to 3)</span>${[0, 1, 2].map(i => `<input class="input" data-hl maxlength="200" value="${esc((r.highlights || [])[i] || '')}" style="margin-top:6px" placeholder="A key point from the interview">`).join('')}</div></form>` : ''}
+        <section class="card" style="padding:20px"><p class="t-h4" style="margin-bottom:14px">${done ? 'Answers' : 'Questions sent'}</p>
+          ${r.questions.map(q => `<div class="sp-a"><h3>${esc(q.q)}${q.optional ? ' <span class="t-caption c-3" style="font-weight:400">optional</span>' : ''}</h3>
+            ${done ? (ans[q.id] ? `<p class="sp-orig">${esc(ans[q.id])}</p><label class="field__label" style="font-size:12px">Published version</label><textarea class="input" data-ed="${q.id}" rows="${Math.min(10, Math.max(3, Math.ceil((ed[q.id] || ans[q.id]).length / 90)))}">${esc(ed[q.id] || ans[q.id])}</textarea>` : '<p class="t-body-sm c-3" style="margin-top:6px">Skipped. It won’t appear in the story.</p>')
+              : q.hint ? `<p class="t-caption c-3" style="font-weight:400;margin-top:4px">${esc(q.hint)}</p>` : ''}</div>`).join('')}</section>
+        ${done ? `<div class="row gap-8 wrap"><button class="btn btn--secondary" id="spsave">Save draft</button>${r.status === 'published' ? `<button class="btn btn--primary" id="sppub">${icon('check')}Update the story</button><button class="btn btn--ghost" id="spun">Unpublish</button>` : `<button class="btn btn--primary" id="sppub"${r.consent ? '' : ' disabled title="They haven’t agreed to publishing"'}>${icon('send')}Publish</button>`}</div>` : ''}
+      </div>
+      <aside class="stack" style="gap:16px;position:sticky;top:24px">
+        <section class="card" style="padding:20px"><div class="row gap-12">${avatar(f, 44)}<div style="min-width:0"><p class="t-label">${esc(f.name || f.username)}</p><p class="t-caption c-3" style="font-weight:400">@${esc(f.username)}${f.city ? ' · ' + esc(f.city) : ''}</p></div></div>
+          ${f.email ? `<p class="t-body-sm" style="margin-top:12px"><a class="link" href="mailto:${esc(f.email)}">${esc(f.email)}</a></p>` : ''}<a class="link link--accent t-body-sm" href="/makers/${esc(f.username)}" target="_blank" style="display:inline-block;margin-top:8px">Profile →</a></section>
+        <section class="card sp-tl" style="padding:20px"><p class="t-label">Timeline</p>${[['Sent', r.created_at], ['Opened', r.opened_at], ['Reminded', r.reminded_at], ['Answered', r.answered_at], ['Published', r.published_at]].map(([l, t]) => `<div><span>${l}</span>${t ? when(t) : '<span>—</span>'}</div>`).join('')}${r.due_at ? `<div><span>Asked by</span>${new Date(r.due_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>` : ''}</section>
+        ${r.intro ? `<section class="card" style="padding:20px"><p class="t-label">Your note</p><p class="t-body-sm c-2" style="margin-top:8px;white-space:pre-wrap">${esc(r.intro)}</p></section>` : ''}
+      </aside></div>`;
+    const collect = () => ({ title: qs('#spt').value.trim(), dek: qs('#spk').value.trim(), highlights: qsa('[data-hl]').map(i => i.value.trim()).filter(Boolean), edits: Object.fromEntries(qsa('[data-ed]').map(t => [t.dataset.ed, t.value.trim()])) });
+    const save = async quiet => { await API.sp.save(r.id, collect()); if (!quiet) toast('Draft saved'); };
+    qs('#spsave') && (qs('#spsave').onclick = async () => { try { await save(); } catch (e) { H.fail(e); } });
+    qs('#sppub') && (qs('#sppub').onclick = async () => {
+      const c = collect(); if (c.title.length < 8) return toast('Add a headline first', 'error'); if (!c.dek) return toast('Add a standfirst', 'error');
+      if (r.status !== 'published' && !(await H.confirm('Publish this spotlight?', { body: `It goes live at hentity.com/spotlight/… and in News, and ${f.name.split(' ')[0]} gets a notification.`, ok: 'Publish' }))) return;
+      try { await save(true); const slug = await API.sp.publish(r.id, true); toast(r.status === 'published' ? 'Story updated' : 'Published'); spOne(r.id, css); window.open('/spotlight/' + slug, '_blank'); } catch (e) { H.fail(e); } });
+    qs('#spun') && (qs('#spun').onclick = async () => { if (!(await H.confirm('Unpublish this spotlight?', { body: 'The story and its News entry come down. You can publish it again later.', ok: 'Unpublish', danger: true }))) return; try { await API.sp.publish(r.id, false); toast('Unpublished'); spOne(r.id, css); } catch (e) { H.fail(e); } });
+    qs('#sprem') && (qs('#sprem').onclick = async () => { try { await API.sp.remind(r.id); toast('Reminder sent'); spOne(r.id, css); } catch (e) { H.fail(e); } });
+    qs('#spwd') && (qs('#spwd').onclick = async () => { if (!(await H.confirm('Withdraw these questions?', { body: 'Their answer page closes. They won’t be told.', ok: 'Withdraw', danger: true }))) return; try { await API.sp.withdraw(r.id); toast('Withdrawn'); location.hash = 'spotlights'; } catch (e) { H.fail(e); } });
+  }
 
   // ---- settings
   V.settings = async () => {

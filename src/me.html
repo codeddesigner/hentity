@@ -24,6 +24,7 @@
     <div class="me-stats"><div><b id="f1" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">followers</span></div><div><b id="f2" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">following</span></div><div><b id="f3" data-count-to="0">0</b><span class="t-caption c-3" style="font-weight:400">products</span></div></div>
     <a class="btn btn--secondary btn--sm btn--block" id="pub" href="/"><span data-icon="arrow-up-right"></span>View public profile</a>
   </section>
+  <a class="card card--pad row gap-12" id="sp-card" hidden style="margin-top:16px;align-items:center;border-color:#ffd2bd;background:#fff7f2"><span class="icon-tile" style="background:#ffe8dc;color:#b4430e" data-icon="sparkles"></span><span style="flex:1;min-width:0"><b class="t-label" style="display:block">The Hentity team wants to feature you</b><span class="t-caption c-2" style="font-weight:400" id="sp-sub">Answer a few questions for your founder spotlight</span></span><span data-icon="arrow-right"></span></a>
   <nav class="card me-menu" style="margin-top:16px;padding:6px 0;overflow:hidden">
     <a href="#push" id="push-row" hidden><span data-icon="bell"></span>Push notifications<span class="meta" id="push-meta"></span></a>
     <a href="#install" id="pwa-row" data-pwa-install hidden><span data-icon="download"></span>Install the app<span class="meta">Home screen</span></a>
@@ -51,6 +52,8 @@ H.mount({ tab: 'you' });
   const u = H.user();
   H.qs('#me-av').outerHTML = H.avatar(u, 72); H.qs('#me-name').textContent = u.name; H.qs('#me-handle').textContent = u.username; H.qs('#me-city').innerHTML = H.flag(u.country || 'NG') + ' ' + H.esc(u.city || '');
   H.qs('#pub').href = '/makers/' + u.username;
+  // Spotlight questions from the Hentity team, if any are waiting
+  API.sp.mine().then(list => { const w = (list || []).find(x => x.status === 'sent'), p = (list || []).find(x => x.status === 'published'); const c = H.qs('#sp-card'); if (w) { c.href = '/spotlight/' + w.id; c.hidden = false; H.qs('#sp-sub').textContent = `${w.questions} short questions for your founder spotlight`; } else if (p) { c.href = '/spotlight/' + p.slug; c.hidden = false; c.querySelector('b').textContent = 'Your founder spotlight is live'; H.qs('#sp-sub').textContent = 'Share it with your customers and investors'; } }).catch(() => {});
   // Push on this device: shows its state; tap to turn on or off
   const ph = H.qs('#push-row'), pm = H.qs('#push-meta');
   const pushRow = async () => { const st = await H.push.state(); ph.hidden = ['na', 'unsupported'].includes(st); pm.textContent = { on: 'On', off: 'Off', blocked: 'Blocked in settings', install: 'Install the app first', browser: 'Not in this browser' }[st] || ''; ph.dataset.st = st; };

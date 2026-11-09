@@ -122,6 +122,10 @@
       "destination": "/r"
     },
     {
+      "source": "/spotlight/:x",
+      "destination": "/spotlight"
+    },
+    {
       "source": "/",
       "destination": "/api/ssr?type=home"
     },

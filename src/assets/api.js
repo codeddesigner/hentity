@@ -406,6 +406,20 @@
     drCode: (tok, em) => q(sb.rpc('dr_request_code', { tok, em })),
     drStart: (tok, em, code, dev) => q(sb.rpc('dr_start', { tok, em: em || null, code: code || null, dev: dev || '' })),
     drResume: sec => q(sb.rpc('dr_resume', { sec })),
+    // Founder spotlights (075_spotlights.sql): super admin sends questions, founder answers, admin publishes
+    sp: {
+      list: () => q(sb.rpc('sp_admin_list')),
+      founders: qry => q(sb.rpc('sp_founders', { qry: qry || '' })),
+      send: (founder, pid, intro, qs, due) => q(sb.rpc('sp_send', { founder, pid: pid || null, intro: intro || '', qs, due: due || null })),
+      remind: id => q(sb.rpc('sp_remind', { sid: id })),
+      withdraw: id => q(sb.rpc('sp_withdraw', { sid: id })),
+      save: (id, o) => q(sb.rpc('sp_save', { sid: id, ttl: o.title, dk: o.dek, hl: o.highlights, ed: o.edits })),
+      publish: (id, on) => q(sb.rpc('sp_publish', { sid: id, on_: on !== false })),
+      get: x => q(sb.rpc('sp_get', { x })),
+      mine: () => uid() ? q(sb.rpc('sp_mine')) : Promise.resolve([]),
+      answer: (id, ans, submit, ok) => q(sb.rpc('sp_answer', { sid: id, ans, submit: !!submit, ok: !!ok })),
+      decline: id => q(sb.rpc('sp_decline', { sid: id }))
+    },
     // Founder badges (073_founder_badges.sql)
     badgeMe: () => { requireAuth(); return q(sb.rpc('badge_me')); },
     badgeSet: o => q(sb.rpc('badge_set', { featured: o.featured || null, hidden: o.hidden == null ? null : !!o.hidden })),
