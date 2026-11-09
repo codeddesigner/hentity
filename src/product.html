@@ -176,26 +176,53 @@ H.mount({ active: 'products', tab: 'products' });
       const b = e.target.closest('[data-tj]'); if (!b) return;
       try {
         if (b.dataset.tj === 'ask') {
-          const role = await pickRole(); if (!role) return;
-          await API.teamRequest(p.id, role); toast(`Sent. ${owner ? owner.name.split(' ')[0] : 'The owner'} will approve it.`);
-          myRow = { user: { id: API.uid }, role, accepted: false, requested: true }; draw();
+          const r = await joinDialog(); if (!r) return;
+          if (r === 'joined') { toast(`You’re on the ${p.name} team`); location.reload(); return; }
+          await API.teamRequest(p.id, r.role); toast(`Sent. ${owner ? owner.name.split(' ')[0] : 'The owner'} will approve it.`);
+          myRow = { user: { id: API.uid }, role: r.role, accepted: false, requested: true }; draw();
         }
         if (b.dataset.tj === 'yes') { await API.teamRespond(p.id, API.uid, true); toast(`You’re on the ${p.name} team`); location.reload(); }
         if (b.dataset.tj === 'no') { if (!(await H.confirm('Decline this invite?', { ok: 'Decline' }))) return; await API.teamRespond(p.id, API.uid, false); toast('Invite declined'); location.reload(); }
       } catch (er) { H.fail(er); }
     });
-    function pickRole() {
+    // Join: confirm a work email at the startup's domain for instant access, or ask the founder to approve
+    async function joinDialog() {
+      const dom = await API.teamDomain(p.id).catch(() => null);
       return new Promise(res => {
         const el = document.createElement('div'); el.className = 'scrim';
-        el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Ask to join" style="max-width:420px"><h2 class="t-h3">Join the ${esc(p.name)} team</h2>
-          <p class="t-body-sm c-2">${esc(owner ? owner.name : 'The owner')} gets a request and approves it. Once approved you show up on this page and can help run it.</p>
-          <div class="field"><span class="field__label">Your role</span><div class="chips" data-single style="margin-top:6px">${['Co-founder', 'Team member', 'Advisor'].map((r, i) => `<button class="chip" type="button" data-r="${r}" aria-pressed="${i === 0}">${icon('check')}${r}</button>`).join('')}</div></div>
-          <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Send request</button></div></form>`;
+        let role = 'Co-founder', email = '';
+        const roles = () => `<div class="field"><span class="field__label">Your role</span><div class="chips" data-single style="margin-top:6px">${['Co-founder', 'Team member', 'Advisor'].map(r => `<button class="chip" type="button" data-r="${r}" aria-pressed="${r === role}">${icon('check')}${r}</button>`).join('')}</div></div>`;
+        const step1 = () => `<h2 class="t-h3">Join the ${esc(p.name)} team</h2>${roles()}
+          ${dom ? `<div class="field"><label class="field__label" for="tj-em">Your work email <span class="c-3" style="font-weight:400">for instant access</span></label><div class="row gap-8" style="margin-top:6px"><input class="input" id="tj-em" type="email" autocomplete="email" placeholder="you@${esc(dom)}" value="${esc(email)}" style="flex:1"><button class="btn btn--primary" type="submit" id="tj-send">Send code</button></div>
+            <p class="t-caption c-3" style="font-weight:400;margin-top:6px">We send a 6-digit code to an address at ${esc(dom)}. Confirm it and you’re added straight away.</p></div>
+            <div class="row gap-8" style="align-items:center;margin-top:-2px"><span class="sep" style="flex:1"></span><span class="t-caption c-3" style="font-weight:400">or</span><span class="sep" style="flex:1"></span></div>
+            <button class="btn btn--secondary btn--block" type="button" id="tj-ask">No ${esc(dom)} email? Ask ${esc(owner ? owner.name.split(' ')[0] : 'the founder')} to approve</button>`
+          : `<p class="t-body-sm c-2">${esc(owner ? owner.name : 'The founder')} gets a request and approves it. Once approved you show up on this page and can help run it.</p><div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="button" id="tj-ask">Send request</button></div>`}`;
+        const step2 = () => `<h2 class="t-h3">Check your email</h2><p class="t-body-sm c-2">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${esc(email)}</b>. It works for 15 minutes.</p>
+          <input class="input" id="tj-code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="000000" style="font:500 22px/1 var(--font-mono);letter-spacing:.4em;text-align:center;height:52px">
+          <button class="btn btn--primary btn--block" type="submit" id="tj-ok">Join the team</button>
+          <p class="row gap-12 t-caption" style="justify-content:center"><button class="link" type="button" id="tj-resend">Send a new code</button><span class="c-3">·</span><button class="link" type="button" id="tj-back">Use a different email</button></p>`;
+        el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Join the team" style="max-width:440px;position:relative"><button class="nav__icon" type="button" data-x aria-label="Close" style="position:absolute;right:12px;top:12px">${icon('x')}</button><div class="stack gap-14" id="tj-body">${step1()}</div></form>`;
         document.body.append(el);
+        const f = el.querySelector('form'), body = el.querySelector('#tj-body');
+        let stage = 1;
+        const show = n => { stage = n; body.innerHTML = n === 1 ? step1() : step2(); const t = body.querySelector(n === 1 ? '#tj-em' : '#tj-code'); t && t.focus();
+          if (n === 2) body.querySelector('#tj-code').addEventListener('input', e => { const v = e.target.value.replace(/\D/g, '').slice(0, 6); e.target.value = v; if (v.length === 6) f.requestSubmit(); }); };
         const done = v => { el.remove(); document.removeEventListener('keydown', k); res(v); }, k = e => { if (e.key === 'Escape') done(null); };
         document.addEventListener('keydown', k);
-        el.addEventListener('click', e => { const c = e.target.closest('[data-r]'); if (c) el.querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', x === c)); if (e.target === el || e.target.closest('[data-x]')) done(null); });
-        el.querySelector('form').onsubmit = e => { e.preventDefault(); done(el.querySelector('[data-r][aria-pressed="true"]').dataset.r); };
+        const send = async () => { const b = body.querySelector('#tj-send'); email = body.querySelector('#tj-em').value.trim(); if (!email) return toast('Enter your work email', 'error'); b && (b.disabled = true);
+          try { await API.teamEmailCode(p.id, email, role); show(2); } catch (er) { H.fail(er); b && (b.disabled = false); } };
+        el.addEventListener('click', async e => {
+          const c = e.target.closest('[data-r]'); if (c) { role = c.dataset.r; el.querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', x === c)); }
+          if (e.target === el || e.target.closest('[data-x]')) done(null);
+          if (e.target.closest('#tj-ask')) done({ role });
+          if (e.target.closest('#tj-back')) show(1);
+          if (e.target.closest('#tj-resend')) { try { await API.teamEmailCode(p.id, email, role); toast('New code sent'); } catch (er) { H.fail(er); } }
+        });
+        f.onsubmit = async e => { e.preventDefault();
+          if (stage === 1) { if (dom) send(); return; }
+          const b = body.querySelector('#tj-ok'); b.disabled = true;
+          try { await API.teamEmailVerify(p.id, body.querySelector('#tj-code').value); done('joined'); } catch (er) { H.fail(er); b.disabled = false; } };
       });
     }
     if (new URLSearchParams(location.search).get('join')) setTimeout(() => box.scrollIntoView({ block: 'center', behavior: 'smooth' }), 400);

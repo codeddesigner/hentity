@@ -271,6 +271,9 @@
     // Teams: ask to join a product someone else listed; owners approve, invitees accept (077_product_team.sql)
     teamRequest: (pid, role) => { requireAuth(); return q(sb.rpc('team_request', { pid, rl: role || 'Co-founder' })); },
     teamRespond: (pid, userId, ok) => q(sb.rpc('team_respond', { pid, uid: userId, ok: !!ok })),
+    teamDomain: pid => q(sb.rpc('team_domain', { pid })),
+    teamEmailCode: (pid, email, role) => { requireAuth(); return q(sb.rpc('team_email_code', { pid, em: email, rl: role || 'Co-founder' })); },
+    teamEmailVerify: (pid, code) => q(sb.rpc('team_email_verify', { pid, cd: code })),
     teamPending: () => uid() ? q(sb.rpc('team_pending')) : Promise.resolve({ invites: [], requests: [], sent: [] }),
     teamProducts: () => uid() ? q(sb.from('product_makers').select('role,product:products(id,name,slug,logo_url,color,tagline,status)').eq('user_id', uid()).eq('accepted', true)) : Promise.resolve([]),
     addMaker: (pid, userId, role) => q(sb.from('product_makers').insert({ product_id: pid, user_id: userId, role: role || 'Maker', accepted: false })),
