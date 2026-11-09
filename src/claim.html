@@ -104,13 +104,14 @@ H.mount({});
       <h1>Show us you work at ${esc(P.name)}</h1>
       <p class="cl-lead">Claiming changes nothing publicly until you review the details and publish. You can invite co-founders after.</p>
       ${rejected ? `<div class="alert alert--error" style="margin-top:18px"><span>${icon('alert-circle')}</span><div><p class="alert__title">Your last claim wasn’t approved</p><p class="alert__body">${esc(rejected)}</p></div></div>` : ''}
-      ${info.taken ? `<div class="alert alert--warning" style="margin-top:18px"><span>${icon('info')}</span><div><p class="alert__title">Someone from ${esc(P.name)} already claimed this page</p><p class="alert__body">If that’s wrong, contest it with the same proof below. We freeze the page while we check.</p></div></div>` : ''}
+      ${info.taken ? `<div class="alert alert--warning" style="margin-top:18px"><span>${icon('info')}</span><div><p class="alert__title">Someone from ${esc(P.name)} already claimed this page</p><p class="alert__body">Work there with them? <button class="link link--accent" type="button" id="ask-join">Ask to join the team instead</button>: they approve it and you’re added. If the claim is wrong, contest it with the same proof below.</p></div></div>` : ''}
       <p class="cl-lbl">Your role</p>
       <div class="chips" data-single id="role">${[['founder', 'Founder or co-founder'], ['employee', 'Employee'], ['agency', 'Agency or advisor']].map(([k, l]) => `<button class="chip" type="button" data-chip data-r="${k}" aria-pressed="${st.role === k}">${icon('check')}${l}</button>`).join('')}</div>
       <p class="cl-lbl">How to verify</p>
       <div id="opts"></div>
       <button class="btn btn--accent btn--block btn--lg" type="button" id="go" style="margin-top:20px"></button>
       <p class="cl-note">${icon('info', 'ic-14')}<span>If someone has already claimed ${esc(P.name)}, you can contest it with the same proof. We freeze the page while we check, and both sides hear from us.</span></p>`);
+    qs('#ask-join') && (qs('#ask-join').onclick = async () => { try { await API.teamRequest(P.id, st.role === 'employee' ? 'Team member' : st.role === 'agency' ? 'Advisor' : 'Co-founder'); toast('Request sent. They’ll get a notification to approve it.'); location.href = '/products/' + P.slug; } catch (e) { H.fail(e); } });
     const opts = () => {
       const o = (k, ic, title, pill, sub, body) => `<div class="cl-opt" role="radio" aria-checked="${st.method === k}" data-m="${k}"><div class="hd"><span class="rd"></span><span class="c-2">${icon(ic, 'ic-18')}</span><div><p class="t-label">${title}${pill || ''}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${sub}</p></div></div>${st.method === k && body ? `<div class="body">${body}</div>` : ''}</div>`;
       qs('#opts').innerHTML = (dom ? o('email', 'mail', `Work email at ${esc(dom)}`, '<span class="cl-pill cl-pill--ok">Fastest</span>', 'We send a 6-digit code. Verified instantly.', `<label class="field"><span class="field__label">Work email</span><input class="input" id="email" type="email" autocomplete="email" placeholder="you@${esc(dom)}" value="${esc(st.email)}"></label>`)

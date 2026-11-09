@@ -196,7 +196,7 @@
     product: slug => pre('product:' + slug, () => q(sb.from('product_feed').select(PRODUCT_COLS + ',intro,review_note,review_items,verify,support_pledge,reviewed_at,claim,claimed_at').eq('slug', slug).maybeSingle())),
     productsByIds: ids => ids.length ? pre('products:' + ids.join(','), () => q(sb.from('product_feed').select(PRODUCT_COLS).in('id', ids))) : Promise.resolve([]),
     company: id => id ? pre('company:' + id, () => q(sb.from('companies').select('*').eq('id', id).maybeSingle())) : Promise.resolve(null),
-    makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline,bio)').eq('product_id', pid))),
+    makers: pid => pre('makers:' + pid, () => q(sb.from('product_makers').select('role,accepted,requested,user:profiles!product_makers_user_id_fkey(id,username,name,avatar_url,avatar_color,city,country,headline,bio)').eq('product_id', pid))),
     async directory({ countries, pay, stages, sectors, langs, term, sort, scope, profile }) {
       // profile: which pages to include: ['claimed','unclaimed'] (default both)
       const prof = profile && profile.length ? profile : ['claimed', 'unclaimed'];
@@ -268,6 +268,11 @@
     async createDraft(fields) { requireAuth(); return q(sb.from('products').insert(Object.assign({ owner_id: uid() }, fields)).select().single()); },
     saveProduct: (id, patch) => q(sb.from('products').update(patch).eq('id', id).select().single()),
     deleteProduct: id => q(sb.from('products').delete().eq('id', id)),
+    // Teams: ask to join a product someone else listed; owners approve, invitees accept (077_product_team.sql)
+    teamRequest: (pid, role) => { requireAuth(); return q(sb.rpc('team_request', { pid, rl: role || 'Co-founder' })); },
+    teamRespond: (pid, userId, ok) => q(sb.rpc('team_respond', { pid, uid: userId, ok: !!ok })),
+    teamPending: () => uid() ? q(sb.rpc('team_pending')) : Promise.resolve({ invites: [], requests: [], sent: [] }),
+    teamProducts: () => uid() ? q(sb.from('product_makers').select('role,product:products(id,name,slug,logo_url,color,tagline,status)').eq('user_id', uid()).eq('accepted', true)) : Promise.resolve([]),
     addMaker: (pid, userId, role) => q(sb.from('product_makers').insert({ product_id: pid, user_id: userId, role: role || 'Maker', accepted: false })),
     removeMaker: (pid, userId) => q(sb.from('product_makers').delete().eq('product_id', pid).eq('user_id', userId)),
     myCompanies: () => q(sb.from('companies').select('*').eq('owner_id', uid())),

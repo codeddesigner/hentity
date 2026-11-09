@@ -83,7 +83,9 @@ H.mount({ active: 'products', tab: 'products' });
   // state (votes, follows) is a second parallel batch instead of a chain of round trips.
   const [makers, company, cur, alts, isSaved, ownerRows, rankRows] = await Promise.all([API.makers(p.id).catch(() => []), API.company(p.company_id).catch(() => null), API.currentWeek().catch(() => null), API.alternatives(p).catch(() => []), API.isBookmarked('product', p.id).catch(() => false), p.owner_id ? API.profilesByIds([p.owner_id]).catch(() => []) : [], D.isLive(p) && p.week_id ? API.board({ week: p.week_id }).catch(() => []) : []]);
   const owner = ownerRows[0] || null;
-  const team = [owner && { user: owner, role: 'Founder' }, ...makers.filter(m => !owner || m.user.id !== owner.id)].filter(Boolean);
+  // Only people who accepted show on the team; my own pending invite or request shows as a prompt instead
+  let myRow = API.uid ? makers.find(m => m.user && m.user.id === API.uid) : null;
+  const team = [owner && { user: owner, role: 'Founder' }, ...makers.filter(m => m.accepted !== false && (!owner || m.user.id !== owner.id))].filter(Boolean);
   const makerIds = new Set(team.map(m => m.user.id));
   const [following, followingProduct] = await Promise.all([API.following('user', [...makerIds]).catch(() => new Set()), API.following('product', [p.id]).catch(() => new Set()), D.loadVotes([p]).catch(() => {})]);
   let rank = 0;
@@ -142,7 +144,7 @@ H.mount({ active: 'products', tab: 'products' });
       ${company ? `<section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Company</h2>
         <div class="row gap-12" style="margin-bottom:14px">${plogo({ name: company.name, color: p.color }, 32)}<div><p class="t-label row gap-6">${esc(company.name)}${company.verified ? H.verified('verified--sm') : ''}</p>${company.verified ? `<p class="t-caption c-3" style="font-weight:400">Verified startup${company.registration ? ' · ' + esc(company.registration) : ''}</p>` : ''}</div></div>
         <div class="kv"><span>Stage</span><span>${esc(company.stage || p.stage)}</span></div><div class="kv"><span>HQ</span><span>${esc(company.city)}, ${H.COUNTRY[company.country] || company.country}</span></div><div class="kv"><span>Team</span><span>${company.team_size} people</span></div>${company.founded ? `<div class="kv"><span>Founded</span><span>${company.founded}</span></div>` : ''}<div class="kv"><span>Raised</span><span>${esc(company.raised || 'Undisclosed')}</span></div></section>` : ''}
-      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-16">${team.map(m => `<div class="row gap-12" style="align-items:flex-start">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}" style="min-width:0"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p>${m.user.headline ? `<p class="t-caption c-2" style="font-weight:400;margin-top:4px">${esc(m.user.headline)}</p>` : ''}${m.user.bio ? `<p class="t-caption c-2 mk-bio" style="font-weight:400;margin-top:4px">${esc(m.user.bio)}</p>` : ''}</a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div></section>
+      <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:14px">Makers</h2><div class="stack gap-16">${team.map(m => `<div class="row gap-12" style="align-items:flex-start">${avatar(m.user, 32)}<a class="grow" href="/makers/${m.user.username}" style="min-width:0"><p class="t-label">${esc(m.user.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc(m.role || 'Maker')}${m.user.city ? ' · ' + esc(m.user.city) : ''}</p>${m.user.headline ? `<p class="t-caption c-2" style="font-weight:400;margin-top:4px">${esc(m.user.headline)}</p>` : ''}${m.user.bio ? `<p class="t-caption c-2 mk-bio" style="font-weight:400;margin-top:4px">${esc(m.user.bio)}</p>` : ''}</a>${m.user.id === API.uid ? '' : `<button class="btn btn--sm ${following.has(m.user.id) ? 'btn--ghost' : 'btn--secondary'}" data-follow="${m.user.id}">${following.has(m.user.id) ? 'Following' : 'Follow'}</button>`}</div>`).join('') || '<p class="t-body-sm c-2">No makers listed yet.</p>'}</div><div id="team-join"></div></section>
       ${H.on('discuss') && /^[a-z0-9][a-z0-9-]{1,47}$/.test(p.slug) ? `<a class="card card--pad pp-disc" href="/d/${esc(p.slug)}" data-scroll-reveal><span class="pp-disc-i">${icon('hash', 'ic-18')}</span><span style="min-width:0;flex:1"><span class="t-label" style="display:block">h/${esc(p.slug)}</span><span class="t-caption c-3" style="font-weight:400;display:block">Ask the makers, request features and report bugs in public.</span></span>${icon('arrow-right', 'ic-16')}</a>` : ''}
       ${alts.length ? `<section class="card card--pad pp-alts" data-scroll-reveal><h2 class="t-label">Alternatives</h2><p class="t-caption c-3" style="font-weight:400;margin:2px 0 14px">Closest first, by shared tags and what they do</p><div class="stack gap-14">${alts.map((a, i) => { const m = a.score != null, why = [(a.tags || []).join(', '), (a.words || []).length ? 'both mention ' + a.words.slice(0, 3).join(', ') : ''].filter(Boolean).join(' · ');
           return `<a class="pp-alt" href="/products/${a.slug}">${plogo(a, 36)}<div style="min-width:0;flex:1"><p class="t-label row gap-6" style="flex-wrap:wrap">${esc(a.name)}${flag(a.country)}${m && i === 0 && a.score >= 50 ? '<span class="pp-alt-top">Closest</span>' : ''}</p><p class="t-caption c-2 pp-alt-tl" style="font-weight:400">${esc(a.tagline)}</p>${m ? `<div class="pp-alt-m"><span class="pp-alt-bar" aria-hidden="true"><i style="width:${a.score}%"></i></span><span class="pp-alt-n">${a.score}% match</span></div>${why ? `<p class="t-caption c-3 pp-alt-why" style="font-weight:400">${esc(why)}</p>` : ''}` : ''}</div></a>`; }).join('')}</div></section>` : ''}
@@ -156,6 +158,47 @@ H.mount({ active: 'products', tab: 'products' });
     if (sessionStorage.getItem('rb:' + p.id)) document.addEventListener('hentity:vote', e => { if (e.detail && e.detail.id === p.id && e.detail.on && !sessionStorage.getItem('rbv:' + p.id)) { sessionStorage.setItem('rbv:' + p.id, '1'); API.badgeHit(p.slug, 'upvote'); } });
   } catch (e) {}
   if (p.testers_wanted || (API.uid && p.owner_id === API.uid)) API.openBetaOf(p.id).then(betaBits).catch(() => {});
+  // Joining the team: ask (the owner approves), or accept an invite. For co-founders whose partner listed the product first.
+  (function teamJoin() {
+    const box = qs('#team-join'); if (!box || !p.owner_id) return;
+    const isOwner = API.uid && p.owner_id === API.uid, onTeam = myRow && myRow.accepted !== false;
+    if (isOwner || onTeam) return;
+    const wrap = h => `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-border-default)">${h}</div>`;
+    const draw = () => {
+      if (!API.uid) { box.innerHTML = wrap(`<p class="t-caption c-2" style="font-weight:400">Work on ${esc(p.name)}? <a class="link link--accent" href="/signin?next=${encodeURIComponent(location.pathname + '?join=1')}">Sign in to join the team</a></p>`); return; }
+      if (myRow && myRow.accepted === false && !myRow.requested) { box.innerHTML = wrap(`<p class="t-label">${esc(owner ? owner.name.split(' ')[0] : 'The founder')} invited you to the team</p><p class="t-caption c-2" style="font-weight:400;margin:4px 0 10px">Accept to show up here as ${esc(myRow.role || 'a maker')} and help run this page.</p><div class="row gap-8"><button class="btn btn--primary btn--sm" type="button" data-tj="yes">${icon('check', 'ic-14')}Accept</button><button class="btn btn--ghost btn--sm" type="button" data-tj="no">Decline</button></div>`); return; }
+      if (myRow && myRow.accepted === false) { box.innerHTML = wrap(`<p class="row gap-6 t-caption c-2" style="font-weight:400">${icon('clock', 'ic-14')}You asked to join as ${esc(myRow.role || 'a maker')}. ${esc(owner ? owner.name.split(' ')[0] : 'The owner')} has been told.</p>`); return; }
+      box.innerHTML = wrap(`<p class="t-caption c-2" style="font-weight:400;margin-bottom:8px">Work on ${esc(p.name)}?</p><button class="btn btn--secondary btn--sm btn--block" type="button" data-tj="ask">${icon('users', 'ic-14')}Ask to join the team</button>`);
+    };
+    draw();
+    box.addEventListener('click', async e => {
+      const b = e.target.closest('[data-tj]'); if (!b) return;
+      try {
+        if (b.dataset.tj === 'ask') {
+          const role = await pickRole(); if (!role) return;
+          await API.teamRequest(p.id, role); toast(`Sent. ${owner ? owner.name.split(' ')[0] : 'The owner'} will approve it.`);
+          myRow = { user: { id: API.uid }, role, accepted: false, requested: true }; draw();
+        }
+        if (b.dataset.tj === 'yes') { await API.teamRespond(p.id, API.uid, true); toast(`You’re on the ${p.name} team`); location.reload(); }
+        if (b.dataset.tj === 'no') { if (!(await H.confirm('Decline this invite?', { ok: 'Decline' }))) return; await API.teamRespond(p.id, API.uid, false); toast('Invite declined'); location.reload(); }
+      } catch (er) { H.fail(er); }
+    });
+    function pickRole() {
+      return new Promise(res => {
+        const el = document.createElement('div'); el.className = 'scrim';
+        el.innerHTML = `<form class="modal stack gap-14" role="dialog" aria-modal="true" aria-label="Ask to join" style="max-width:420px"><h2 class="t-h3">Join the ${esc(p.name)} team</h2>
+          <p class="t-body-sm c-2">${esc(owner ? owner.name : 'The owner')} gets a request and approves it. Once approved you show up on this page and can help run it.</p>
+          <div class="field"><span class="field__label">Your role</span><div class="chips" data-single style="margin-top:6px">${['Co-founder', 'Team member', 'Advisor'].map((r, i) => `<button class="chip" type="button" data-r="${r}" aria-pressed="${i === 0}">${icon('check')}${r}</button>`).join('')}</div></div>
+          <div class="row gap-8" style="justify-content:flex-end"><button class="btn btn--ghost" type="button" data-x>Cancel</button><button class="btn btn--primary" type="submit">Send request</button></div></form>`;
+        document.body.append(el);
+        const done = v => { el.remove(); document.removeEventListener('keydown', k); res(v); }, k = e => { if (e.key === 'Escape') done(null); };
+        document.addEventListener('keydown', k);
+        el.addEventListener('click', e => { const c = e.target.closest('[data-r]'); if (c) el.querySelectorAll('[data-r]').forEach(x => x.setAttribute('aria-pressed', x === c)); if (e.target === el || e.target.closest('[data-x]')) done(null); });
+        el.querySelector('form').onsubmit = e => { e.preventDefault(); done(el.querySelector('[data-r][aria-pressed="true"]').dataset.r); };
+      });
+    }
+    if (new URLSearchParams(location.search).get('join')) setTimeout(() => box.scrollIntoView({ block: 'center', behavior: 'smooth' }), 400);
+  })();
   // ---------------------------------------------------------------- Unclaimed profile (Figma: Claims · Product · Unclaimed)
   // Built by Hentity from public business sources. Every fact shows its source; no people are named until the team
   // claims the page. Visitors can follow and ask the team to join; votes, comments and launches open after claiming.
