@@ -46,7 +46,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=0fab3ad58d"></script>
+<script src="/assets/api.js?v=aadc589148"></script>
 <script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -170,11 +170,41 @@ H.mount();
     weeksCache = w.filter(x => new Date(x.ends_at) > now).map(x => { const taken = c.filter(r => r.week_id === x.id && r.status !== 'review').length; return Object.assign(x, { taken }); });
     return weeksCache.map(x => [x.id, `Week ${x.id} · ${new Date(x.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${x.taken}/${x.capacity} booked`]);
   }
+  // ---- The approvals switch: everything waits for an admin, or everything publishes straight away
+  async function apprBox(where) {
+    const el = qs(where); if (!el) return;
+    const on = await A.approvalsOn().catch(() => true);
+    el.innerHTML = `<section class="card appr${on ? '' : ' appr--off'}" style="padding:20px 24px;margin-bottom:16px"><div class="row between wrap gap-16">
+      <div style="min-width:240px;flex:1"><p class="t-h4">${on ? 'Approvals are on' : 'Approvals are off'}</p><p class="t-body-sm c-2" style="margin-top:4px;max-width:560px">${on
+        ? 'New launches, edits to live pages, Find roles and suggested funding listings wait here for you before anyone sees them.'
+        : 'Everything publishes straight away: launches go onto the board on the day the founder picked, page edits apply as soon as they’re saved, roles go on the Find board and suggested funding listings go live. Claims, beta payments and funding fixes still come to you.'}</p></div>
+      <div class="seg" role="radiogroup" aria-label="Approvals"${isFullAdmin ? '' : ' title="Only a full admin can change this"'}>${[['on', 'Approval required'], ['off', 'Publish instantly']].map(([v, l]) => `<button type="button" role="radio" data-v="${v}" aria-checked="${(v === 'on') === on}"${isFullAdmin ? '' : ' disabled'}>${l}</button>`).join('')}</div></div></section>
+      <style>.seg{display:inline-flex;padding:3px;border-radius:10px;background:var(--color-bg-subtle);gap:2px;flex:none}.seg button{height:32px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--color-text-secondary);background:none;border:0;cursor:pointer}.seg button:disabled{cursor:not-allowed}.seg button[aria-checked="true"]{background:var(--color-bg-canvas);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,.08)}.appr--off{border-color:var(--color-accent-default)}.appr--off .seg button[aria-checked="true"]{color:var(--color-accent-default)}</style>`;
+    el.querySelector('.seg').onclick = async e => {
+      const b = e.target.closest('button[data-v]'); if (!b || b.disabled || b.getAttribute('aria-checked') === 'true') return;
+      const turnOn = b.dataset.v === 'on'; let all = false;
+      if (turnOn) {
+        if (!(await H.confirm('Turn approvals back on?', { body: 'From now on, new launches, page edits, Find roles and suggested funding listings wait for an admin again. Anything already published stays up.', ok: 'Turn on' }))) return;
+      } else {
+        if (!(await H.confirm('Publish everything instantly?', { body: 'New launches, page edits, Find roles and suggested funding listings will go live without anyone checking them first. You can switch back any time.', ok: 'Turn approvals off', danger: true }))) return;
+        const w = await A.approvalsWaiting().catch(() => null) || {};
+        const parts = [[w.products, 'launch', 'launches'], [w.edits, 'page edit', 'page edits'], [w.roles, 'Find role', 'Find roles'], [w.funding, 'funding listing', 'funding listings']].filter(x => x[0] > 0).map(([n, a, b]) => `${n} ${n === 1 ? a : b}`);
+        if (parts.length) all = await H.confirm('Approve what’s already waiting?', { body: `${parts.join(', ')} ${[w.products, w.edits, w.roles, w.funding].reduce((t, x) => t + (x || 0), 0) === 1 ? 'is' : 'are'} waiting now. Approve them too, or leave them here for you to check.`, ok: 'Approve them', cancel: 'Leave them' });
+      }
+      try {
+        const out = await A.approvalsSet(turnOn, all);
+        const n = (out.products || 0) + (out.edits || 0) + (out.roles || 0) + (out.funding || 0);
+        toast(turnOn ? 'Approvals are on' : n ? `Approvals off · ${n} approved` : 'Approvals off: everything publishes instantly');
+        V[location.hash.replace('#', '').split('/')[0] || 'dashboard'] ? route() : apprBox(where);
+      } catch (err) { H.fail(err); }
+    };
+  }
   V.review = async (id) => {
     const list = await A.products({ status: 'review' }); nav('review');
-    qs('#main').innerHTML = head('Review queue', `${list.length} waiting · oldest first. Approve to schedule, request changes, or reject.`)
+    qs('#main').innerHTML = head('Review queue', `${list.length} waiting · oldest first. Approve to schedule, request changes, or reject.`) + '<div id="appr"></div>'
       + tbl(['Product', 'Maker', 'Requested day', 'Submitted', ''], list.sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at)).map(p => `<tr><td><span class="row gap-10" style="gap:10px">${H.plogo(p, 32)}<span><b>${esc(p.name)}</b><br><span class="c-2">${esc(p.tagline)}</span></span></span></td><td>${p.owner ? esc(p.owner.name) + '<br><span class="c-3">' + '@' + esc(p.owner.username) + '</span>' : '—'}</td><td>${p.launch_date ? new Date(p.launch_date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : p.week_id ? 'Week ' + p.week_id : '—'}</td><td>${when(p.submitted_at)}</td><td style="text-align:right"><button class="btn btn--primary btn--sm" data-open="${p.id}">Review</button></td></tr>`), 'Inbox zero. Nothing waiting for review.');
     qs('#main').onclick = e => { const b = e.target.closest('[data-open]'); if (b) openReview(list.find(p => p.id === b.dataset.open)); };
+    apprBox('#appr');
     if (id) { const p = list.find(x => x.id === id) || (await A.products({ term: '' })).find(x => x.id === id); if (p) openReview(p); }
   };
   // The Verified stamp needs a company registration number (maker-entered, or on the linked company)
@@ -947,11 +977,12 @@ H.mount();
     const ann = get('announcement'), board = get('board'), brief = get('morning_brief'), st = get('stats');
     const card = (id, title, sub, body) => `<form class="card" id="${id}" style="padding:24px;margin-bottom:16px"><p class="t-h4">${title}</p><p class="t-body-sm c-2" style="margin:4px 0 16px">${sub}</p>${body}<button class="btn btn--primary btn--sm" style="margin-top:8px">Save</button></form>`;
     const fld = (n, l, v, t) => `<div class="field" style="margin-bottom:12px"><label class="field__label">${l}</label>${t === 'ta' ? `<textarea class="input" name="${n}" rows="3">${esc(v == null ? '' : v)}</textarea>` : `<input class="input" name="${n}" type="${t || 'text'}" value="${esc(v == null ? '' : v)}">`}</div>`;
-    qs('#main').innerHTML = head('Site settings', 'Changes go live immediately for every visitor.')
+    qs('#main').innerHTML = head('Site settings', 'Changes go live immediately for every visitor.') + '<div id="appr"></div>'
       + card('s-ann', 'Announcement bar', 'A one-line banner across the top of every page.', `<label class="check" style="margin-bottom:12px"><input type="checkbox" name="enabled"${ann.enabled ? ' checked' : ''}><span class="check__box">${icon('check')}</span>Show the banner</label>${fld('text', 'Text', ann.text)}${fld('link', 'Link', ann.link)}`)
       + card('s-board', 'Launch board', 'Default capacity for new weeks and how far ahead makers can book.', `${fld('capacity', 'Default weekly capacity', board.capacity, 'number')}${fld('booking_weeks_ahead', 'Weeks bookable ahead', board.booking_weeks_ahead, 'number')}${fld('reset', 'Reset time label', board.reset)}`)
       + card('s-brief', 'Morning brief', 'The audio brief on /news. One headline per line; it’s read aloud in the browser. Leave empty to hide it.', `${fld('items', 'Headlines', (brief.items || []).join('\n'), 'ta')}${fld('length', 'Length label', brief.length)}${fld('languages', 'Languages label', brief.languages)}`)
 ;
+    apprBox('#appr');
     const save = (id, key, map) => qs('#' + id).addEventListener('submit', async e => { e.preventDefault(); const f = e.target; try { await A.saveSetting(key, map(f)); toast('Saved'); } catch (err) { H.fail(err); } });
     save('s-ann', 'announcement', f => ({ enabled: f.enabled.checked, text: f.text.value.trim(), link: f.link.value.trim() }));
     save('s-board', 'board', f => ({ capacity: +f.capacity.value || 30, booking_weeks_ahead: +f.booking_weeks_ahead.value || 4, reset: f.reset.value }));

@@ -105,8 +105,9 @@ H.mount({ active: 'find', tab: 'chats' });
     qs('#hidden-box').innerHTML = v.visibility === 'invite' ? `<p class="t-label">Invite only</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Not on the board. Invite people from People open to work.</p>` : hid.length ? `<p class="t-label">Hidden until you both say yes</p><div class="stack gap-6" style="margin-top:10px">${hid.map(h => `<p class="row gap-8 t-caption c-2" style="font-weight:400">${icon('eye', 'ic-14')}${h}</p>`).join('')}</div>` : `<p class="t-label">Public</p><p class="t-caption c-3" style="font-weight:400;margin-top:4px">Everyone on Hentity sees your startup and name.</p>`;
   }
   // Roles from startups without a verified product are checked by Hentity before they go live
+  const noReview = !(await API.approvals());
   function postHint() {
-    const p = pub.find(x => x.id === qs('#prod').value), ok = !!r.approved_at || !!(p && p.verified);
+    const p = pub.find(x => x.id === qs('#prod').value), ok = noReview || !!r.approved_at || !!(p && p.verified);
     const box = qs('#post-hint'), btn = qs('#post');
     if (r.status === 'rejected') box.innerHTML = `<p class="alert alert--warning" style="padding:10px 12px;font-size:13px">${icon('alert-circle', 'ic-14')}<span><b style="font-weight:500">Not approved.</b> ${esc(r.review_note || 'Edit it and send it again.')}</span></p>`;
     else if (r.status === 'review') box.innerHTML = `<p class="fnote-box">${icon('clock', 'ic-14')}<span>Waiting for review. Hentity checks roles from startups without a verified product, usually within a day.</span></p>`;

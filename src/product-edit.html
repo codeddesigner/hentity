@@ -46,6 +46,7 @@ H.mount({ active: 'my-products', tab: 'you' });
   if (!st) { root.innerHTML = `<div class="pe" style="display:block;text-align:center;padding-top:96px"><h1 class="t-h2">You can’t edit this product</h1><p class="c-2" style="margin:8px 0 20px">Only its makers can request changes.</p><a class="btn btn--secondary" href="/my-products">My products</a></div>`; H.contentShown(); return; }
   // Drafts and pages that never launched are edited directly
   const listing = st.status === 'live' && st.claimed_at && !st.week_id && !st.launch_date;
+  const noReview = !(await API.approvals());
   if (!['live', 'scheduled'].includes(st.status) || listing) { location.replace(st.status === 'review' ? '/under-review?p=' + st.slug : '/submit?id=' + st.id); return; }
 
   const CATS = ['Fintech', 'SaaS', 'Apps', 'AI', 'Commerce', 'Productivity', 'Dev Tools', 'Health', 'Education', 'Agriculture', 'Logistics', 'Infrastructure', 'Energy & Climate', 'Proptech', 'Creative Economy', 'Music & Streaming'];
@@ -68,7 +69,7 @@ H.mount({ active: 'my-products', tab: 'you' });
     const hist = st.history || [];
     root.innerHTML = `<div class="pe reveal"><div class="stack gap-16">
       <div><a class="row gap-6 t-body-sm c-2" href="/products/${esc(st.slug)}" style="margin-bottom:14px">${icon('arrow-left', 'ic-14')}Back to ${esc(cur.name)}</a>
-        <h1>Edit ${esc(cur.name)}</h1><p class="t-body-md c-2" style="margin-top:6px">Your page is ${st.status === 'live' ? 'live' : 'scheduled'}, so changes go to the Hentity team for a quick check first. Your current page stays up until they’re approved.</p></div>
+        <h1>Edit ${esc(cur.name)}</h1><p class="t-body-md c-2" style="margin-top:6px">Your page is ${st.status === 'live' ? 'live' : 'scheduled'}, ${noReview ? 'so changes show on it as soon as you save.' : 'so changes go to the Hentity team for a quick check first. Your current page stays up until they’re approved.'}</p></div>
       ${pending ? `<div class="alert alert--info">${icon('clock')}<div class="grow"><p class="alert__title">Changes waiting for approval</p><p class="alert__body">Sent ${H.ago(pending.created_at)}: ${esc(Object.keys(pending.changes).map(k => LABEL[k] || k).join(', '))}. Edit below and send again to replace it.</p></div><button class="btn btn--secondary btn--sm" type="button" id="wd">Withdraw</button></div>` : ''}
       <section class="card sec"><h2>Basics</h2><div class="stack gap-20">
         <div class="row gap-16" data-f="logo_url"><span id="logo">${H.plogo({ name: v.name, color: v.color, logo_url: v.logo_url }, 64)}</span><div class="stack gap-8"><p class="t-label">Logo <span class="t-caption c-3" style="font-weight:400">· square, 240px or larger</span></p><div class="row gap-8"><label class="btn btn--secondary btn--sm" style="cursor:pointer">${icon('upload')}Replace<input type="file" accept="image/*" class="sr-only" id="logo-in"></label>${v.logo_url !== cur.logo_url ? `<button class="btn btn--ghost btn--sm" type="button" id="logo-undo">Undo</button>` : ''}</div></div></div>
@@ -94,9 +95,9 @@ H.mount({ active: 'my-products', tab: 'you' });
       ${hist.length ? `<section class="card sec"><h2>Past requests</h2>${hist.map(h => `<div class="pe-hist"><span class="badge ${h.status === 'approved' ? 'badge--success' : h.status === 'partial' ? 'badge--accent' : h.status === 'rejected' ? 'badge--danger' : ''}">${{ approved: 'Approved', partial: 'Partly approved', rejected: 'Not approved', withdrawn: 'Withdrawn' }[h.status]}</span><div class="grow"><p class="t-body-sm">${esc(Object.keys(h.changes).map(k => LABEL[k] || k).join(', '))}</p><p class="t-caption c-3" style="font-weight:400">${when(h.created_at)}${h.status === 'partial' ? ' · applied: ' + esc(h.applied.map(k => LABEL[k] || k).join(', ')) : ''}</p>${h.admin_note ? `<p class="t-body-sm c-2" style="margin-top:4px">“${esc(h.admin_note)}”</p>` : ''}</div></div>`).join('')}</section>` : ''}
     </div>
     <aside class="pe-side stack gap-16"><section class="card card--pad stack gap-12"><div class="row between"><p class="t-label">Your changes</p><span class="mono t-body-sm c-2" id="n"></span></div><div id="chg"></div>
-      <label class="field"><span class="field__label">Note for the reviewer <span class="c-3" style="font-weight:400">· optional</span></span><textarea class="input" id="msg" rows="3" maxlength="600" placeholder="e.g. We rebranded and moved to a new domain">${esc(pending ? pending.note : '')}</textarea></label>
-      <button class="btn btn--accent btn--block" type="button" id="send">${icon('check')}${pending ? 'Update request' : 'Send for approval'}</button>
-      <p class="t-caption c-3" style="font-weight:400">Most requests are checked within a day. We’ll notify you either way.</p></section></aside></div>`;
+      ${noReview ? '' : `<label class="field"><span class="field__label">Note for the reviewer <span class="c-3" style="font-weight:400">· optional</span></span><textarea class="input" id="msg" rows="3" maxlength="600" placeholder="e.g. We rebranded and moved to a new domain">${esc(pending ? pending.note : '')}</textarea></label>`}
+      <button class="btn btn--accent btn--block" type="button" id="send">${icon('check')}${noReview ? 'Save changes' : pending ? 'Update request' : 'Send for approval'}</button>
+      <p class="t-caption c-3" style="font-weight:400">${noReview ? 'Changes go live on your page as soon as you save.' : 'Most requests are checked within a day. We’ll notify you either way.'}</p></section></aside></div>`;
     bind(); gal(); sync(); team();
   }
   // Founding team: self-reported, saved directly (it never appears on the page, so it needs no review)
@@ -158,7 +159,7 @@ H.mount({ active: 'my-products', tab: 'you' });
       if (d.includes('categories') && !(v.categories || []).length) { toast('Pick at least one category', 'error'); return; }
       const changes = {}; d.forEach(k => changes[k] = k === 'media' ? v.media.filter(m => m.url || m.color).map(m => m.url ? { url: m.url } : { color: m.color }) : v[k]);
       const b = qs('#send'); b.disabled = true;
-      try { await API.requestEdit(st.id, changes, qs('#msg').value); st = await API.editState(slug); reset(); page(); toast('Sent for approval. We’ll let you know.'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      try { await API.requestEdit(st.id, changes, qs('#msg') ? qs('#msg').value : ''); st = await API.editState(slug); reset(); page(); toast(noReview ? 'Saved. Your page is updated.' : 'Sent for approval. We’ll let you know.'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
       catch (err) { H.fail(err); b.disabled = false; }
     };
   }

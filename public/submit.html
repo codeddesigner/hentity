@@ -46,7 +46,7 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=0fab3ad58d"></script>
+<script src="/assets/api.js?v=aadc589148"></script>
 <script src="/assets/app.js?v=75de8ccf8f"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -408,16 +408,19 @@ H.mount({ active: '', tab: 'launch' });
   if (location.hash) setTimeout(() => { const t = qs(location.hash); t && t.scrollIntoView({ behavior: 'smooth' }); }, 200);
   M.stagger(qs('#form'), '.sec');
 
-  // ---- Submit for review
+  // ---- Submit for review (or launch straight away when approvals are off)
+  const noReview = !(await API.approvals());
+  if (noReview) qs('#submit').innerHTML = icon('rocket') + 'Launch';
   qs('#submit').addEventListener('click', async () => {
     const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Submitting';
     try {
       clearTimeout(saveT); await ensureDraft();
       await API.saveProduct(p.id, Object.assign(payload(), { support_pledge: true }));
       await API.saveProduct(p.id, { status: 'review' });
-      location.href = '/under-review?p=' + p.slug;
+      const now = (await API.myProducts()).find(x => x.id === p.id) || {};   // with approvals off it's already scheduled or live
+      location.href = now.status === 'live' ? '/products/' + p.slug + '?launched=1' : now.status === 'scheduled' ? '/scheduled?p=' + p.slug : '/under-review?p=' + p.slug;
     } catch (e) {
-      btn.innerHTML = icon('rocket') + 'Submit for review'; btn.disabled = false;
+      btn.innerHTML = icon('rocket') + (noReview ? 'Launch' : 'Submit for review'); btn.disabled = false;
       if (/DAY_FULL/.test(e.message)) {
         const was = s.launch_date, nx = await cal.nextOpen(was);
         if (nx) { s.launch_date = nx; await cal.set(nx); update(); await API.saveProduct(p.id, { launch_date: nx }).catch(() => {}); } else { dayFull = true; update(); }

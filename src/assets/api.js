@@ -153,6 +153,7 @@
     // ---------------- profiles
     async updateProfile(patch) { err((await sb.from('profiles').update(patch).eq('id', uid())).error); const r = await loadProfile(); try { localStorage.setItem(PROFILE_KEY, JSON.stringify(r)); } catch (e) {} return r; },
     async usernameAvailable(u) { const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle(); return !data || data.id === uid(); },
+    approvals: (() => { let p; return () => p || (p = sb.rpc('approvals_required').then(({ data, error }) => error ? true : data !== false)); })(),
     workEmailOk: async e => { const { data, error } = await sb.rpc('work_email_ok', { e }); err(error); return !!data; },
     profileByUsername: u => pre('maker:' + u, () => q(sb.from('profiles').select(PROFILE_PUBLIC).eq('username', u).maybeSingle())),
     profilesByIds: ids => ids.length ? pre('profiles:' + ids.join(','), () => q(sb.from('profiles').select('id,username,name,avatar_url,avatar_color,city,country,headline,bio,is_verified').in('id', ids))) : Promise.resolve([]),
@@ -693,6 +694,9 @@
     newsletter: () => q(sb.from('newsletter').select('*').order('created_at', { ascending: false })),
     removeSubscriber: email => q(sb.from('newsletter').delete().eq('email', email)),
     settings: () => q(sb.from('site_settings').select('*').order('key')),
+    approvalsOn: async () => { const { data, error } = await sb.rpc('approvals_required'); err(error); return data !== false; },
+    approvalsSet: (req, all) => q(sb.rpc('approvals_set', { req, approve_waiting: !!all })),
+    approvalsWaiting: () => q(sb.rpc('approvals_waiting')),
     saveSetting: (key, value) => q(sb.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() })),
     audit: () => q(sb.from('audit_log').select('*,actor:profiles!audit_log_actor_id_fkey(name,username)').order('created_at', { ascending: false }).limit(200)),
     companies: () => q(sb.from('companies').select('*').order('created_at', { ascending: false })),

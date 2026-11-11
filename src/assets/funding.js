@@ -264,7 +264,7 @@
   const ST_LABEL = { pending: ['Waiting for review', ''], approved: ['Added', 'badge--success'], rejected: ['Not added', ''], duplicate: ['Already listed', ''] };
   async function suggestSheet(o, mode) {
     if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname + location.search); return; }
-    const fix = !!o, today = new Date().toISOString().slice(0, 10);
+    const fix = !!o, today = new Date().toISOString().slice(0, 10), noRev = !fix && !(await API.approvals());
     const mine = fix ? [] : await API.fundingSuggestions().catch(() => []);
     const t = (k, l, ph, type, req) => `<label class="field" style="margin-bottom:12px"><span class="field__label">${l}${req ? '' : ' <span class="c-3" style="font-weight:400">(optional)</span>'}</span><input class="input" name="${k}" type="${type || 'text'}"${ph ? ` placeholder="${esc(ph)}"` : ''}${req ? ' required' : ''}></label>`;
     const ISSUES = [['deadline', 'Deadline changed'], ['amount', 'Amount changed'], ['link', 'Link is broken'], ['closed', 'Not running any more'], ['other', 'Something else']];
@@ -274,7 +274,7 @@
         <div id="fx-deadline" hidden>${t('deadline', 'New deadline', '', 'date')}</div><div id="fx-amount" hidden>${t('amount_text', 'New amount', 'e.g. Up to $50,000')}</div><div id="fx-link" hidden>${t('apply_url', 'Working link', 'https://')}</div>
         <label class="field" style="margin-bottom:12px"><span class="field__label">Details</span><textarea class="input" name="note" rows="3" placeholder="What changed, and where you saw it" required></textarea></label>
         ${t('source_url', 'Where you saw it', 'https://')}`
-      : `<p class="t-body-sm c-2" style="margin:4px 0 14px">Know a grant, prize or investor backing African startups that we don’t list? Share it. An admin checks it before it goes live, and the listing shows you shared it.</p>
+      : `<p class="t-body-sm c-2" style="margin:4px 0 14px">Know a grant, prize or investor backing African startups that we don’t list? Share it. ${noRev ? 'It goes live straight away' : 'An admin checks it before it goes live'}, and the listing shows you shared it.</p>
         <div class="field" style="margin-bottom:12px"><span class="field__label">What is it?</span><div class="row wrap gap-6" style="margin-top:6px">${[['grant', 'Grant, prize or competition'], ['equity', 'Investor or accelerator']].map(([v, l]) => `<label class="chip fs-pick" style="cursor:pointer"><input type="radio" class="sr-only" name="mode" value="${v}"${(mode || 'grant') === v ? ' checked' : ''}>${icon('check')}${l}</label>`).join('')}</div></div>
         ${t('name', 'Name', 'e.g. Tony Elumelu Foundation Entrepreneurship Programme', '', true)}${t('org', 'Who runs it', 'e.g. Tony Elumelu Foundation')}
         ${t('apply_url', 'Link to apply or learn more', 'https://', 'url', true)}
@@ -283,7 +283,7 @@
         <label class="field" style="margin-bottom:12px"><span class="field__label">Anything founders should know <span class="c-3" style="font-weight:400">(optional)</span></span><textarea class="input" name="note" rows="3" placeholder="Who it’s for, stage, what you get"></textarea></label>`;
     const S = sheet(`<div class="row between gap-12"><p class="t-h4">${fix ? 'Suggest a fix' : 'Suggest an opportunity'}</p><button class="nav__icon" type="button" data-x aria-label="Close">${icon('x')}</button></div>
       <style>.fs-pick .ic{display:none}.fs-pick:has(input:checked){background:var(--color-text-primary);color:var(--color-bg-canvas);border-color:transparent}.fs-pick:has(input:checked) .ic{display:inline-block}.fs-pick:has(input:focus-visible){outline:2px solid var(--color-accent-default);outline-offset:2px}</style><form id="fsug" style="max-height:70vh;overflow:auto;margin:8px -4px 0;padding:0 4px">${body}
-        <div class="row gap-8" style="margin-top:4px"><button class="btn btn--primary" type="submit">${icon('send')}${fix ? 'Send fix' : 'Send for review'}</button><button class="btn btn--ghost" type="button" data-x>Cancel</button></div>
+        <div class="row gap-8" style="margin-top:4px"><button class="btn btn--primary" type="submit">${icon('send')}${fix ? 'Send fix' : noRev ? 'Add it' : 'Send for review'}</button><button class="btn btn--ghost" type="button" data-x>Cancel</button></div>
         ${mine.length ? `<p class="t-label" style="margin:22px 0 8px;padding-top:16px;border-top:1px solid var(--color-border-default)">Your suggestions</p>${mine.slice(0, 8).map(m => `<div class="row between gap-12 t-body-sm" style="padding:6px 0"><span class="truncate">${m.status === 'approved' && m.result_opp ? `<a class="link" href="/funding/${m.result_opp}">${esc(m.name || 'Fix')}</a>` : esc(m.name || 'Fix')}${m.kind === 'fix' ? ' <span class="c-3">(fix)</span>' : ''}</span><span class="badge ${ST_LABEL[m.status][1]}">${ST_LABEL[m.status][0]}</span></div>`).join('')}` : ''}</form>`, { label: fix ? 'Suggest a fix' : 'Suggest an opportunity', w: 540 });
     const f = S.el.querySelector('#fsug');
     f.addEventListener('change', e => { const c = e.target.closest('#iss input'); if (c) { const on = c.checked; ['deadline', 'amount', 'link'].includes(c.value) && (f.querySelector('#fx-' + c.value).hidden = !on); } });
@@ -307,7 +307,7 @@
       try {
         await API.fundingSuggest(fix ? 'fix' : 'new', fix ? o.id : null, data, note);
         S.el.innerHTML = `<div style="text-align:center;padding:16px 8px"><span class="icon-badge" style="margin:0 auto 12px;background:#e3f9ee;color:#127a45">${icon('check')}</span><p class="t-h4">Thanks for sharing</p>
-          <p class="t-body-sm c-2" style="margin:8px auto 18px;max-width:380px">${fix ? 'An admin will check it and update the listing.' : 'An admin will check the details on the funder’s site. You’ll get a notification when it’s live.'}</p><button class="btn btn--secondary" type="button" data-x>Done</button></div>`;
+          <p class="t-body-sm c-2" style="margin:8px auto 18px;max-width:380px">${fix ? 'An admin will check it and update the listing.' : noRev ? 'It’s live on Hentity Funding now, and it shows you shared it.' : 'An admin will check the details on the funder’s site. You’ll get a notification when it’s live.'}</p><button class="btn btn--secondary" type="button" data-x>Done</button></div>`;
       } catch (er) { H.fail(er); b.disabled = false; }
     };
   }

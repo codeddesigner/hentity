@@ -188,6 +188,7 @@
     questions: SPQ, answers: done ? SPA : {}, edits: done ? SPA : {}, slug: done ? 'ada-okafor-ledgerline' : null, created_at: '2026-11-07T10:00:00Z', opened_at: '2026-11-07T12:00:00Z', answered_at: done ? '2026-11-08T09:00:00Z' : null, published_at: status === 'published' ? '2026-11-08T15:00:00Z' : null, due_at: '2026-11-14T17:00:00Z',
     founder: { id: 'u1', username: 'ada', name: 'Ada Okafor', headline: 'Founder of Ledgerline', city: 'Lagos', is_verified: true, email: 'ada@ledgerline.app' }, product: { id: 'p1', name: 'Ledgerline', slug: 'ledgerline', tagline: 'Bookkeeping that reads your mobile money statements', color: '#0a0a0a' } });
   const RPC = {
+    approvals_required: () => !(window.localStorage && localStorage.getItem('mock.apprOff')), approvals_waiting: () => ({ products: 2, edits: 1, roles: 0, funding: 1 }), approvals_set: a => { a.req ? localStorage.removeItem('mock.apprOff') : localStorage.setItem('mock.apprOff', '1'); return { required: a.req, products: a.approve_waiting ? 2 : 0, edits: a.approve_waiting ? 1 : 0, roles: 0, funding: a.approve_waiting ? 1 : 0 }; },
     funding_board: a => { const B = JSON.parse(JSON.stringify(FUND[a.md])); B.opps.forEach(fitMock); B.product.deck = JSON.parse(localStorage.getItem('mock.deck') || 'null'); return B; },
     funding_opp: a => fitMock(JSON.parse(JSON.stringify(FUND.opp[a.oid]))),
 

@@ -1,6 +1,6 @@
 /* Hentity service worker: makes the site installable and keeps recently opened pages working offline.
    build.py stamps VERSION with a hash of the build, so every deploy installs a fresh worker and drops old caches. */
-const VERSION = '6a85f1b03a99';
+const VERSION = 'a4bb06e0f3bf';
 const SHELL = 'shell-' + VERSION, PAGES = 'pages-' + VERSION, ASSETS = 'assets-' + VERSION, CDN = 'cdn-v1';
 const OFFLINE = '/offline.html';
 const PRECACHE = [OFFLINE, '/favicon.svg?v=3', '/icons/icon-192.png'];
