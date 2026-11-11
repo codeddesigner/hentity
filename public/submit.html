@@ -410,7 +410,10 @@ H.mount({ active: '', tab: 'launch' });
 
   // ---- Submit for review (or launch straight away when approvals are off)
   const noReview = !(await API.approvals());
-  if (noReview) qs('#submit').innerHTML = icon('rocket') + 'Launch';
+  if (noReview) {
+    qs('#submit').innerHTML = icon('rocket') + 'Launch';
+    const tip = qs('.alert.alert--info .alert__title'); if (tip && /Reviews take/.test(tip.textContent)) { tip.textContent = 'No waiting'; tip.nextElementSibling.textContent = 'Your launch goes onto the board on the day you pick, or straight into the Directory if that day has passed.'; }
+  }
   qs('#submit').addEventListener('click', async () => {
     const btn = qs('#submit'); btn.disabled = true; btn.innerHTML = icon('clock', 'spin') + 'Submitting';
     try {
