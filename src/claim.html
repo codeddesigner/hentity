@@ -84,7 +84,7 @@ H.mount({});
   const brand = () => `<div class="cl-brand">${plogo(P, 32)}<div><p class="t-label">${esc(P.name)}</p><p class="t-caption c-3" style="font-weight:400">${esc([dom, P.city].filter(Boolean).join(' · '))}</p></div></div>`;
   const steps = n => `<div class="tp-steps" style="margin-top:20px">${['Verify', 'Review details', 'Go live'].map((t, i) => `<span class="${i + 1 < n ? 'done' : i + 1 === n ? 'on' : ''}"><b>${i + 1 < n ? icon('check', 'ic-12') : i + 1}</b>${t}</span>`).join('<i></i>')}</div>`;
   const C = () => info.claim || {};
-  const st = { role: C().role || 'founder', method: C().method || (dom ? 'email' : 'docs'), email: C().email || '', files: {} };
+  const st = { role: C().role || 'founder', method: 'email', email: C().email || '', files: {} };
 
   route();
   function route() {
@@ -92,9 +92,7 @@ H.mount({});
     if (P.status !== 'unclaimed') return done();
     if (!API.uid) return verify();
     if (c.status === 'verified') return review();
-    if (c.status === 'review') return waiting();
     if (c.status === 'started' && c.method === 'email' && c.code_sent_at && Date.now() - new Date(c.code_sent_at) < 30 * 60e3) return code();
-    if (c.status === 'started' && c.method === 'dns' && c.dns_token) return dns();
     return verify(c.status === 'rejected' ? c.note : null);
   }
 
@@ -104,43 +102,27 @@ H.mount({});
       <h1>Show us you work at ${esc(P.name)}</h1>
       <p class="cl-lead">Claiming changes nothing publicly until you review the details and publish. You can invite co-founders after.</p>
       ${rejected ? `<div class="alert alert--error" style="margin-top:18px"><span>${icon('alert-circle')}</span><div><p class="alert__title">Your last claim wasn’t approved</p><p class="alert__body">${esc(rejected)}</p></div></div>` : ''}
-      ${info.taken ? `<div class="alert alert--warning" style="margin-top:18px"><span>${icon('info')}</span><div><p class="alert__title">Someone from ${esc(P.name)} already claimed this page</p><p class="alert__body">Work there with them? <button class="link link--accent" type="button" id="ask-join">Ask to join the team instead</button>: they approve it and you’re added. If the claim is wrong, contest it with the same proof below.</p></div></div>` : ''}
+      ${info.taken ? `<div class="alert alert--warning" style="margin-top:18px"><span>${icon('info')}</span><div><p class="alert__title">Someone from ${esc(P.name)} already claimed this page</p><p class="alert__body">Work there with them? <button class="link link--accent" type="button" id="ask-join">Ask to join the team instead</button>: they approve it and you’re added.</p></div></div>` : ''}
       <p class="cl-lbl">Your role</p>
       <div class="chips" data-single id="role">${[['founder', 'Founder or co-founder'], ['employee', 'Employee'], ['agency', 'Agency or advisor']].map(([k, l]) => `<button class="chip" type="button" data-chip data-r="${k}" aria-pressed="${st.role === k}">${icon('check')}${l}</button>`).join('')}</div>
-      <p class="cl-lbl">How to verify</p>
-      <div id="opts"></div>
-      <button class="btn btn--accent btn--block btn--lg" type="button" id="go" style="margin-top:20px"></button>
-      <p class="cl-note">${icon('info', 'ic-14')}<span>If someone has already claimed ${esc(P.name)}, you can contest it with the same proof. We freeze the page while we check, and both sides hear from us.</span></p>`);
+      ${dom ? `<p class="cl-lbl">Your work email at ${esc(dom)}</p>
+      <label class="field"><input class="input input--lg" id="email" type="email" autocomplete="email" placeholder="you@${esc(dom)}" value="${esc(st.email)}"></label>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:8px">We send a 6-digit code to it. Once you enter it, the page is yours: no waiting for a review.</p>
+      <button class="btn btn--accent btn--block btn--lg" type="button" id="go" style="margin-top:20px">${API.uid ? icon('mail', 'ic-16') + 'Send code' : 'Sign in to continue'}</button>`
+      : `<div class="alert alert--warning" style="margin-top:22px"><span>${icon('info')}</span><div><p class="alert__title">${esc(P.name)} can’t be claimed yet</p><p class="alert__body">Pages are claimed with a work email at the startup’s own website domain${P.site ? `, and ${esc(P.site)} is a shared address rather than one ${esc(P.name)} owns` : ', and we don’t have a website for it'}. Once it’s on its own domain (like ${esc((P.name || 'yourstartup').toLowerCase().replace(/[^a-z0-9]/g, '') || 'yourstartup')}.com) and you have an email there, you can claim it.</p></div></div>
+      <a class="btn btn--secondary btn--block btn--lg" style="margin-top:20px" href="/products/${esc(P.slug)}">Back to the page</a>`}
+      <p class="cl-note">${icon('info', 'ic-14')}<span>The email has to end in your startup’s own domain. Personal addresses like Gmail don’t work.</span></p>`);
     qs('#ask-join') && (qs('#ask-join').onclick = async () => { try { await API.teamRequest(P.id, st.role === 'employee' ? 'Team member' : st.role === 'agency' ? 'Advisor' : 'Co-founder'); toast('Request sent. They’ll get a notification to approve it.'); location.href = '/products/' + P.slug; } catch (e) { H.fail(e); } });
-    const opts = () => {
-      const o = (k, ic, title, pill, sub, body) => `<div class="cl-opt" role="radio" aria-checked="${st.method === k}" data-m="${k}"><div class="hd"><span class="rd"></span><span class="c-2">${icon(ic, 'ic-18')}</span><div><p class="t-label">${title}${pill || ''}</p><p class="t-caption c-2" style="font-weight:400;margin-top:2px">${sub}</p></div></div>${st.method === k && body ? `<div class="body">${body}</div>` : ''}</div>`;
-      qs('#opts').innerHTML = (dom ? o('email', 'mail', `Work email at ${esc(dom)}`, '<span class="cl-pill cl-pill--ok">Fastest</span>', 'We send a 6-digit code. Verified instantly.', `<label class="field"><span class="field__label">Work email</span><input class="input" id="email" type="email" autocomplete="email" placeholder="you@${esc(dom)}" value="${esc(st.email)}"></label>`)
-        + o('dns', 'globe', `Add a DNS record to ${esc(dom)}`, '', 'For teams without email on the domain. Add one TXT record; we check it every few minutes.', '') : '')
-        + o('docs', 'file-text', 'Company documents', '<span class="cl-pill cl-pill--warn">Manual review</span>', `Upload your ${esc(cert)} and an ID that matches a director. Reviewed by Hentity in 1–2 working days.`,
-          `<div class="cl-files">${[['cert', 'Company certificate', cert], ['id', 'Director’s ID', 'Passport, national ID or driver’s licence']].map(([k, t, d]) => `<label class="cl-file${st.files[k] ? ' is-set' : ''}"><input type="file" data-file="${k}" accept=".pdf,image/*"><span class="c-2">${icon(st.files[k] ? 'check' : 'upload', 'ic-18')}</span><span style="min-width:0"><b class="t-label" style="display:block">${t}</b><span class="t-caption c-3 truncate" style="font-weight:400;display:block">${esc(st.files[k] ? st.files[k].name : d)}</span></span></label>`).join('')}</div>
-          <label class="field" style="margin-top:12px"><span class="field__label">Anything we should know? (optional)</span><input class="input" id="docnote" maxlength="300" placeholder="e.g. I’m listed as a director under my maiden name"></label>`);
-      qs('#go').innerHTML = !API.uid ? 'Sign in to continue' : st.method === 'email' ? icon('mail', 'ic-16') + 'Send code' : st.method === 'dns' ? icon('globe', 'ic-16') + 'Get my DNS record' : icon('file-text', 'ic-16') + 'Send for review';
-      const em = qs('#email'); if (em) em.addEventListener('input', () => st.email = em.value.trim());
-      qsa('[data-file]').forEach(i => i.addEventListener('change', () => { const f = i.files[0]; if (!f) return; if (f.size > 10e6) { toast('Files must be under 10 MB', 'error'); return; } st.files[i.dataset.file] = f; opts(); }));
-    };
-    opts();
+    const em = qs('#email'); if (em) { em.addEventListener('input', () => st.email = em.value.trim()); em.addEventListener('keydown', e => { if (e.key === 'Enter') qs('#go').click(); }); }
     H.bindChips(qs('#role'), () => { const s = qs('#role [aria-pressed="true"]'); st.role = s ? s.dataset.r : 'founder'; });
-    qs('#opts').addEventListener('click', e => { const o = e.target.closest('.cl-opt'); if (!o || e.target.closest('input,label.cl-file,.field')) return; if (st.method !== o.dataset.m) { st.method = o.dataset.m; opts(); const em = qs('#email'); em && em.focus(); } });
-    qs('#go').onclick = async () => {
+    qs('#go') && (qs('#go').onclick = async () => {
       if (!API.uid) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
       const b = qs('#go'); const label = b.innerHTML; b.disabled = true; b.innerHTML = icon('clock', 'spin') + 'One moment';
       try {
-        if (st.method === 'email') { if (!/@/.test(st.email)) throw new Error('Enter your work email'); info.claim = await API.claimStart(P.slug, st.role, 'email', st.email); code(); }
-        else if (st.method === 'dns') { info.claim = await API.claimStart(P.slug, st.role, 'dns'); dns(); }
-        else {
-          if (!st.files.cert || !st.files.id) throw new Error('Add your company certificate and an ID');
-          info.claim = await API.claimStart(P.slug, st.role, 'docs');
-          const files = [await API.claimUpload(info.claim.id, st.files.cert, 'certificate'), await API.claimUpload(info.claim.id, st.files.id, 'id')];
-          await API.claimSubmitDocs(info.claim.id, files, (qs('#docnote') || {}).value);
-          info.claim.status = 'review'; waiting();
-        }
+        if (!/@/.test(st.email)) throw new Error('Enter your work email');
+        info.claim = await API.claimStart(P.slug, st.role, 'email', st.email); code();
       } catch (e) { H.fail(e); b.disabled = false; b.innerHTML = label; }
-    };
+    });
   }
 
   // ------------------------------------------------------------ 1b. Code
@@ -150,7 +132,7 @@ H.mount({});
       <p class="cl-lead">We sent a 6-digit code to <b style="color:var(--color-text-primary)">${esc(C().email)}</b></p>
       <div class="cl-otp" id="otp">${Array.from({ length: 6 }, (_, i) => `<input inputmode="numeric" aria-label="Digit ${i + 1}" ${i === 0 ? 'autocomplete="one-time-code"' : ''}>`).join('')}</div>
       <p class="t-caption c-3" style="font-weight:400" id="otp-msg">Didn’t get it? <button class="link" type="button" id="resend" style="font-weight:500"></button></p>
-      <div class="cl-alt" style="margin-top:22px">${icon('globe', 'ic-16')}<span>No email on ${esc(dom)}? <button class="link link--accent" type="button" id="other" style="text-align:left">Verify with a DNS record or company documents instead.</button></span></div>
+      <p class="t-caption c-3" style="font-weight:400;margin-top:10px">Wrong address? <button class="link" type="button" id="other" style="font-weight:500">Use a different email at ${esc(dom)}</button></p>
       <div class="cl-sticky"><button class="btn btn--accent btn--block btn--lg" type="button" id="verify" style="margin-top:24px" disabled>Verify</button></div>`);
     const ins = qsa('#otp input'), val = () => ins.map(i => i.value).join('');
     ins[0].focus();
@@ -161,7 +143,7 @@ H.mount({});
     let n = 45; const rs = qs('#resend'); const tick = () => { rs.textContent = n > 0 ? `Resend in 0:${String(n).padStart(2, '0')}` : 'Resend code'; rs.disabled = n > 0; n--; };
     tick(); const t = setInterval(() => { tick(); if (n < -1) clearInterval(t); }, 1000);
     rs.onclick = async () => { try { info.claim = await API.claimStart(P.slug, C().role, 'email', C().email); toast('New code sent'); n = 45; } catch (e) { H.fail(e); } };
-    qs('#other').onclick = () => { clearInterval(t); st.method = dom ? 'dns' : 'docs'; verify(); };
+    qs('#other').onclick = () => { clearInterval(t); verify(); };
     let busy = false;
     async function submit() {
       if (busy || val().length < 6) return; busy = true; const b = qs('#verify'); b.disabled = true; b.innerHTML = icon('clock', 'spin') + 'Checking';

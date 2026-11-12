@@ -328,7 +328,7 @@ H.mount({ active: 'products', tab: 'products' });
         <section class="uc-dark" data-scroll-reveal><p class="t-eyebrow">Work at ${esc(p.name)}?</p><h2 class="t-h3" style="margin:6px 0 14px;color:#fff">Claim this profile</h2>
           <ul class="stack gap-10" style="list-style:none;margin:0 0 18px;padding:0">${['Fix anything we got wrong', 'Pick a launch date and go on the leaderboard', 'Reply to reviews and run beta programs', 'Start your Data room with what we found'].map(t => `<li><span class="ic">${icon('check', 'ic-14')}</span>${t}</li>`).join('')}</ul>
           <a class="btn btn--accent btn--block btn--lg" href="/claim/${esc(p.slug)}">${icon('shield', 'ic-16')}Claim ${esc(p.name)}</a>
-          <p class="t-caption" style="font-weight:400;color:#a3a3a3;margin-top:12px;text-align:center">${dom ? `Fastest with a @${esc(dom)} email. About 2 minutes.` : 'Verify with company documents. Reviewed in 1–2 working days.'}</p></section>
+          <p class="t-caption" style="font-weight:400;color:#a3a3a3;margin-top:12px;text-align:center">${dom ? `Needs an email at @${esc(dom)}. Takes about 2 minutes.` : 'Needs a work email at the startup’s own domain.'}</p></section>
         <section class="card card--pad" data-scroll-reveal><h2 class="t-label" style="margin-bottom:10px">Signals</h2>
           ${C.spotted_at ? `<div class="kv"><span>Spotted</span><span>${new Date(C.spotted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>` : ''}
           <div class="kv"><span>Sources</span><span>${C.sources || new Set(facts.map(f => f.source).filter(Boolean)).size} public source${(C.sources || 0) === 1 ? '' : 's'}</span></div>
