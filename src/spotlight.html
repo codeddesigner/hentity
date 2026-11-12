@@ -61,6 +61,7 @@ H.mount({ active: '', tab: '' });
 
   if (S.status === 'withdrawn') { root.innerHTML = `<div class="sp-done"><h1 class="t-h2">These questions are closed</h1><p class="t-body-sm c-2" style="margin-top:8px">The Hentity team closed this spotlight. Thanks for your time.</p></div>`; H.contentShown(); return; }
   if (S.mine && ['sent', 'answered', 'declined'].includes(S.status) && !S.admin) return form();
+  if (S.status === 'published') H.adminDelete({ what: 'spotlight', name: S.title, after: '/news', body: 'The interview and its News entry are removed for good.', run: () => API.sp.remove(S.id) });
   if (S.status === 'published' || S.admin) return story();
   form();
 

@@ -46,8 +46,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="/assets/api.js?v=b5e4071361"></script>
-<script src="/assets/app.js?v=75de8ccf8f"></script>
+<script src="/assets/api.js?v=5d956ed967"></script>
+<script src="/assets/app.js?v=be5e0a06a6"></script>
 <script src="/assets/motion.js?v=c0abe5e569"></script>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -102,6 +102,7 @@ H.mount({ active: 'find', tab: 'chats' });
   const [r] = await Promise.all([id ? API.findRole(id).catch(() => null) : null, F.loadSaved().catch(() => {})]);
   if (!r) { root.innerHTML = `<div class="fd" style="text-align:center;padding-top:96px"><h1 class="t-h2">This role isn’t available</h1><p class="c-2" style="margin:8px 0 20px">It may be closed, invite-only, or the link is wrong.</p><a class="btn btn--secondary" href="/find">Back to Find</a></div>`; H.contentShown(); return; }
   F.norm(r);
+  r.mine || H.adminDelete({ what: 'role', name: r.title, after: '/find', body: 'The role comes off the Find board for good, along with anyone’s interest in it.', run: () => API.admin.deleteFindRole(r.id) });
   document.title = `${r.title} | Find | Hentity`;
   const s = r.startup || {}, k = F.KIND[r.kind] || F.KIND.cofounder, pName = r.stealth ? 'The founder' : (r.poster.name || '').split(' ')[0];
   const me = r.me, job = r.kind !== 'cofounder';

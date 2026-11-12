@@ -600,5 +600,18 @@
   // Unread notifications show as a badge on the installed app's icon where the system supports it
   function appBadge(n) { try { if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) || !navigator.setAppBadge) return; (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {} }
 
-  window.H = { push, communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, tint, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
+  // Admins only: a small "Delete" control pinned to the page, for removing whatever this page shows
+  function adminDelete({ what, name, run, after, body }) {
+    if (!(window.API && API.isAdmin) || document.querySelector('.hx-admdel')) return;
+    const el = document.createElement('div'); el.className = 'hx-admdel';
+    el.innerHTML = `<span>${icon('shield', 'ic-14')}Admin</span><button type="button">${icon('trash', 'ic-14')}Delete this ${esc(what)}</button>`;
+    if (!document.getElementById('hx-admdel-css')) { const st = document.createElement('style'); st.id = 'hx-admdel-css'; st.textContent = '.hx-admdel{position:fixed;right:16px;bottom:64px;z-index:60;display:flex;align-items:center;gap:4px;padding:4px 4px 4px 10px;border-radius:999px;background:var(--color-bg-canvas);border:1px solid var(--color-border-default);box-shadow:0 4px 16px rgba(0,0,0,.08);font-size:12px}.hx-admdel>span{display:inline-flex;align-items:center;gap:4px;color:var(--color-text-tertiary);font-weight:500}.hx-admdel button{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:999px;border:0;background:#FEE4E2;color:#B42318;font:500 12px/1 inherit;cursor:pointer}.hx-admdel button:hover{background:#FECDCA}@media (max-width:768px){.hx-admdel{bottom:132px;right:12px}}'; document.head.appendChild(st); }
+    el.querySelector('button').onclick = async () => {
+      if (!(await confirmDlg(`Delete ${name || 'this ' + what}?`, { body: body || `It’s removed from Hentity for good. This can’t be undone.`, ok: 'Delete', danger: true }))) return;
+      try { await run(); toast(`${what[0].toUpperCase() + what.slice(1)} deleted`); el.remove(); setTimeout(() => { location.href = after || '/'; }, 600); } catch (e) { fail(e); }
+    };
+    document.body.appendChild(el);
+  }
+
+  window.H = { adminDelete, push, communitySwitch, confirm: confirmDlg, ask, pwa, inactiveTag, on, soon, CAT_COLOR, CAT_OTHER, catColor, catInk, catShort, productTabs, contentShown, icon, logo, flag, verified, avatar, tint, plogo, initials, esc, ago, hhmm, store, user, session, toast, fail, mount, renderShell, setCount, openSearch, qs, qsa, bindChips, params, COUNTRY, applyTheme };
 })();

@@ -50,6 +50,7 @@ H.mount({ active: 'products', tab: 'products' });
   const b = id && await API.beta(id).catch(() => null);
   if (!b) { qs('#bd').innerHTML = `<div class="empty" style="padding:96px 0;text-align:center"><h1 class="t-h2">We couldn’t find that beta</h1><p class="c-2" style="margin:8px 0 20px">It may have closed or been removed.</p><a class="btn btn--secondary btn--sm" href="/">Browse products</a></div>`; return; }
   const p = b.product || {}, owner = b.owner || {};
+  H.adminDelete({ what: 'beta', name: b.title, after: '/betas', body: 'The call and everyone’s applications to it are removed for good.', run: () => API.deleteBeta(b.id) });
   document.title = `${b.title} | ${p.name} beta | Hentity`;
   const md = document.querySelector('meta[name=description]'); md && md.setAttribute('content', (b.why || b.title).slice(0, 155));
   const mine = API.uid && b.owner_id === API.uid;

@@ -125,7 +125,7 @@
         <div class="hx-by">${who}<div style="min-width:0"><p class="t-label truncate">${esc(u.name || 'Member')}${r.mine ? ' <span class="c-3" style="font-weight:400">(you)</span>' : ''}</p>${sub ? `<p class="t-caption c-3 truncate" style="font-weight:400">${esc(sub)}</p>` : ''}</div></div>
         <div class="hx-foot">${fchip(r.feature) || '<span></span>'}<span class="row gap-10">
           ${S.is_maker && !r.reply && replying !== r.id ? `<button class="link t-caption" type="button" data-hx-reply="${r.id}">Reply</button>` : ''}
-          ${r.mine ? `<button class="link t-caption" type="button" data-hx-edit>Edit</button><button class="link t-caption" type="button" data-hx-del="${r.id}">Delete</button>` : `<button class="link t-caption c-3" type="button" data-hx-report="${r.id}">Report</button>`}
+          ${r.mine ? `<button class="link t-caption" type="button" data-hx-edit>Edit</button><button class="link t-caption" type="button" data-hx-del="${r.id}">Delete</button>` : `<button class="link t-caption c-3" type="button" data-hx-report="${r.id}">Report</button>${API.isAdmin ? `<button class="link t-caption" type="button" data-hx-del="${r.id}" style="color:#B42318">Delete</button>` : ''}`}
           <button class="hx-metoo" type="button" data-hx-metoo="${r.id}" aria-pressed="${!!r.voted}"${r.mine ? ' disabled title="Your own review"' : ''}>${UP}Me too · ${r.helpful || 0}</button></span></div>
       </article>`;
     }

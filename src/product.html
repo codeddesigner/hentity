@@ -66,6 +66,7 @@ H.mount({ active: 'products', tab: 'products' });
   try { p = await API.product(slug); } catch (e) { H.fail(e); }
   if (!p) { document.title = 'Product not found | Hentity'; qs('#pp').innerHTML = `<div style="padding:96px 0;text-align:center" class="reveal"><h1 class="t-h2">We couldn’t find that product</h1><p class="c-2" style="margin:8px 0 20px">It may have been renamed, unpublished, or it’s still in review.</p><a class="btn btn--primary" href="/">Back to this week’s launches</a></div>`; return; }
   document.title = `${p.name} | ${p.tagline} | Hentity`;
+  H.adminDelete({ what: 'product', name: p.name, after: '/admin#products', body: 'Its page, upvotes, comments, reviews, betas and Discuss space are removed for good. To take it down but keep it, archive it in Admin → Products instead.', run: () => API.admin.deleteProduct(p.id) });
   // Directory profiles nobody has claimed use the unclaimed layout, whatever their status says
   // Founders' analytics: one view per visit, with where it came from; clicks on the page's buttons
   API.track('view', p.id, { s: D.viewSource() });

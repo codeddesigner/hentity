@@ -52,7 +52,7 @@
         <p class="row gap-8 wrap" style="margin-top:10px">${stars(r.rating)}<span class="t-caption c-3" style="font-weight:400">${when(r.created_at)}${r.edited_at ? ' · edited' : ''}</span></p>
         <p class="rv__body${long ? ' is-clamped' : ''}">${esc(r.body)}</p>${long ? '<button class="link t-caption" type="button" data-rv-more>Read more</button>' : ''}
         <div class="rv__acts">${r.mine ? `<span class="t-caption c-3" style="font-weight:400">${r.helpful ? `${r.helpful} found this helpful` : ''}</span><button class="link t-caption" type="button" data-rv-write>Edit</button><button class="link t-caption" type="button" data-rv-del="${r.id}">Delete</button>`
-          : `<button class="rv-help" type="button" data-rv-help="${r.id}" aria-pressed="${!!r.voted}">${icon('check', 'ic-14')}Helpful${r.helpful ? ` · ${r.helpful}` : ''}</button>${S.is_maker && !r.reply && replying !== r.id ? `<button class="link t-caption" type="button" data-rv-reply="${r.id}">Reply</button>` : ''}<button class="link t-caption c-3" type="button" data-rv-report="${r.id}">Report</button>`}</div>
+          : `<button class="rv-help" type="button" data-rv-help="${r.id}" aria-pressed="${!!r.voted}">${icon('check', 'ic-14')}Helpful${r.helpful ? ` · ${r.helpful}` : ''}</button>${S.is_maker && !r.reply && replying !== r.id ? `<button class="link t-caption" type="button" data-rv-reply="${r.id}">Reply</button>` : ''}<button class="link t-caption c-3" type="button" data-rv-report="${r.id}">Report</button>${API.isAdmin ? `<button class="link t-caption" type="button" data-rv-del="${r.id}" style="color:#B42318">Delete</button>` : ''}`}</div>
         ${reply}${replyForm}</article>`;
     }
 
