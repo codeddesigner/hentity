@@ -1060,12 +1060,13 @@ H.mount();
     const renderSubs = async () => {
       const all = await A.fsubList('all').catch(() => []);
       const pend = all.filter(x => x.status === 'pending'), done = all.filter(x => x.status !== 'pending').slice(0, 30);
+      const delBtn = x => `<button class="btn btn--ghost btn--sm" type="button" data-sdel="${x.id}" title="Delete this suggestion" aria-label="Delete this suggestion" style="color:#B42318">${icon('trash')}</button>`;
       const card = x => { const d = x.data || {}, o = x.opp;
         return `<article class="card" style="padding:18px;margin-bottom:12px" data-sub="${x.id}">
           <div class="row between gap-12 wrap"><div class="row gap-10">${avatar(x.by, 32)}<div><p class="t-label">${x.kind === 'new' ? `New ${d.mode === 'equity' ? 'investor' : 'grant'}: ${esc(d.name || '')}` : `Fix for ${esc(o ? o.name : 'a listing')}`}</p>
             <p class="t-caption c-3" style="font-weight:400">@${esc(x.by.username)}${x.by.is_verified ? ' · verified' : ''} · ${x.by.approved ? x.by.approved + ' approved before' : 'first suggestion'} · ${when(x.created_at)}</p></div></div>
-            ${x.status === 'pending' ? `<div class="row gap-8 wrap">${x.kind === 'new' ? `<button class="btn btn--primary btn--sm" data-add="${x.id}">${icon('check')}Review and add</button><button class="btn btn--secondary btn--sm" data-dup="${x.id}">Already listed</button>` : `<button class="btn btn--primary btn--sm" data-fix="${x.id}">${icon('edit')}Open and apply</button>`}<button class="btn btn--ghost btn--sm" data-rej="${x.id}">Reject</button></div>`
-              : `<span class="badge ${x.status === 'approved' ? 'badge--success' : ''}">${esc(x.status)}</span>`}</div>
+            ${x.status === 'pending' ? `<div class="row gap-8 wrap">${x.kind === 'new' ? `<button class="btn btn--primary btn--sm" data-add="${x.id}">${icon('check')}Review and add</button><button class="btn btn--secondary btn--sm" data-dup="${x.id}">Already listed</button>` : `<button class="btn btn--primary btn--sm" data-fix="${x.id}">${icon('edit')}Open and apply</button>`}<button class="btn btn--ghost btn--sm" data-rej="${x.id}">Reject</button>${delBtn(x)}</div>`
+              : `<div class="row gap-8"><span class="badge ${x.status === 'approved' ? 'badge--success' : ''}">${esc(x.status)}</span>${delBtn(x)}</div>`}</div>
           ${x.note ? `<p class="t-body-sm" style="margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--color-bg-subtle);white-space:pre-wrap">${esc(x.note)}</p>` : ''}
           ${Object.keys(d).length ? `<div style="margin-top:12px">${Object.keys(FLD).filter(k => d[k] != null).map(k => `<div class="row gap-12 t-body-sm" style="padding:6px 0;border-top:1px solid var(--color-border-default)"><span class="c-3" style="width:140px;flex:none">${FLD[k]}</span><span style="min-width:0;word-break:break-word">${o && o[k] != null && val(o[k]) !== val(d[k]) ? `<s class="c-3">${esc(val(o[k]) || '—')}</s> → ` : ''}<b style="font-weight:500">${link(val(d[k], k))}</b></span></div>`).join('')}</div>` : ''}
           ${x.admin_note ? `<p class="t-caption c-3" style="font-weight:400;margin-top:8px">Note to member: ${esc(x.admin_note)}</p>` : ''}</article>`; };
@@ -1073,6 +1074,14 @@ H.mount();
         + (pend.length ? pend.map(card).join('') : `<div class="empty card" style="padding:40px;text-align:center"><p class="t-body-sm c-2">No suggestions waiting.</p></div>`)
         + (done.length ? `<h2 class="t-h4" style="margin:28px 0 12px">Decided</h2>` + done.map(card).join('') : '');
       qs('#main').onclick = async e => {
+        const sd = e.target.closest('[data-sdel]');
+        if (sd) {
+          const x = all.find(s => s.id === sd.dataset.sdel); if (!x) return;
+          const nm = x.kind === 'new' ? (x.data || {}).name || 'this suggestion' : 'this fix' + (x.opp ? ' for ' + x.opp.name : '');
+          if (!(await H.confirm(`Delete ${nm}?`, { body: `It’s removed for good. @${x.by.username} isn’t told${x.status === 'approved' ? ', and the listing it created stays up' : ''}.`, ok: 'Delete', danger: true }))) return;
+          try { await A.fsubDelete(x.id); toast('Suggestion deleted'); renderSubs(); } catch (er) { H.fail(er); }
+          return;
+        }
         const b = e.target.closest('[data-add],[data-dup],[data-fix],[data-rej]'); if (!b) return;
         const id = b.dataset, x = all.find(s => s.id === (id.add || id.dup || id.fix || id.rej)); if (!x) return;
         const decide = async (st, opp, note, msg) => { await A.fsubDecide(x.id, st, opp, note); toast(msg); qsa('.drawer,.drawer-bg').forEach(n => n.remove()); renderSubs(); };

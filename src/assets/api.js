@@ -657,6 +657,7 @@
     saveFundingOpp: (id, row) => id ? q(sb.from('funding_opps').update(Object.assign({}, row, { updated_at: new Date().toISOString() })).eq('id', id).select().single()) : q(sb.from('funding_opps').insert(row).select().single()),
     fundingCounts: () => q(sb.rpc('admin_funding_counts')),
     fsubList: st => q(sb.rpc('fsub_list', { st: st || 'pending' })),
+    fsubDelete: sid => q(sb.rpc('fsub_delete', { sid })),
     fsubDecide: (sid, st, opp, nt) => q(sb.rpc('fsub_decide', { sid, st, opp: opp || null, nt: nt || '' })),
     deleteFundingOpp: id => q(sb.from('funding_opps').delete().eq('id', id)),
     nudgeAudience: kinds => q(sb.rpc('admin_nudge_audience', { kinds })),
