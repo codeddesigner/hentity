@@ -1109,7 +1109,7 @@ H.mount();
         <td style="white-space:nowrap" class="${!o.checked_at || o.checked_at < stale ? '' : 'c-3'}" style="${!o.checked_at || o.checked_at < stale ? 'color:#B42318' : ''}">${o.checked_at ? esc(o.checked_at) : 'Never'}</td>
         <td class="mono">${c.saved || 0} · ${c.applied || 0}</td>
         <td><span class="badge ${s[1]}">${s[0]}</span></td>
-        <td style="text-align:right;white-space:nowrap"><button class="btn btn--ghost btn--sm" type="button" data-chk="${o.id}" title="Mark details checked today">${icon('check')}Checked</button> <button class="btn btn--ghost btn--sm" type="button" data-vis="${o.id}">${o.active ? 'Hide' : 'Show'}</button> <button class="btn btn--secondary btn--sm" type="button" data-o="${o.id}">Edit</button></td></tr>`; };
+        <td style="text-align:right;white-space:nowrap"><button class="btn btn--ghost btn--sm" type="button" data-chk="${o.id}" title="Mark details checked today">${icon('check')}Checked</button> <button class="btn btn--ghost btn--sm" type="button" data-vis="${o.id}">${o.active ? 'Hide' : 'Show'}</button> <button class="btn btn--secondary btn--sm" type="button" data-o="${o.id}">Edit</button> <button class="btn btn--ghost btn--sm" type="button" data-del="${o.id}" title="Delete ${esc(o.name)}" aria-label="Delete ${esc(o.name)}" style="color:#B42318">${icon('trash')}</button></td></tr>`; };
     const subs = await A.fsubList('pending').catch(() => []);
     const tabs = cur => `<div class="tabs" role="tablist" style="margin:-8px 0 20px"><a class="tab" role="tab" href="#funding" aria-selected="${cur === 'list'}">Listings</a><a class="tab" role="tab" href="#funding/suggestions" aria-selected="${cur === 'subs'}">Suggestions${subs.length ? ` <span class="badge badge--accent" style="margin-left:4px">${subs.length}</span>` : ''}</a></div>`;
     const FLD = { name: 'Name', org: 'Organisation', mode: 'Board', kind: 'Type', apply_url: 'Apply link', website: 'Website', amount_text: 'Amount', deadline: 'Deadline', round_note: 'Round note', countries: 'Countries', categories: 'Categories', stages: 'Stages', description: 'Description', source_url: 'Source', women_only: 'Women-founded only' };
@@ -1159,6 +1159,7 @@ H.mount();
             <button class="btn btn--secondary btn--sm" type="button" data-bulk="hide">Hide</button>
             <button class="btn btn--secondary btn--sm" type="button" data-bulk="show">Show</button>
             <button class="btn btn--secondary btn--sm" type="button" data-bulk="close">Close round…</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-bulk="delete" style="color:#B42318">${icon('trash')}Delete</button>
             <button class="btn btn--ghost btn--sm" type="button" data-bulk="clear">Clear</button></div>`
         + tbl(['<input type="checkbox" id="selall" aria-label="Select all shown">', 'Opportunity', 'Type', 'Amount', 'Deadline', 'Checked', 'Saved · applied', 'State', ''], shown.map(row), 'Nothing matches')
         + (L.length > shown.length ? `<div style="text-align:center;margin-top:14px"><button class="btn btn--secondary btn--sm" type="button" id="more">Show more <span class="c-3">${L.length - shown.length} left</span></button></div>` : '');
@@ -1200,9 +1201,21 @@ H.mount();
       const b = t.closest('[data-o]'); if (b) { edit(rows.find(x => x.id === b.dataset.o)); return; }
       const c = t.closest('[data-chk]'); if (c) { patch([c.dataset.chk], { checked_at: today }, 'Marked checked today'); return; }
       const v = t.closest('[data-vis]'); if (v) { const o = rows.find(x => x.id === v.dataset.vis); patch([o.id], { active: !o.active }, o.active ? 'Hidden from founders' : 'Showing to founders'); return; }
+      const del = async ids => {
+        const one = ids.length === 1 && rows.find(x => x.id === ids[0]);
+        if (!(await H.confirm(one ? `Delete ${one.name}?` : `Delete ${ids.length} listings?`, { body: 'This removes ' + (one ? 'it' : 'them') + ' from Hentity for good, including from founders’ saved trackers. To take a listing down but keep it, use Hide instead.', ok: 'Delete', danger: true }))) return false;
+        try {
+          for (const id of ids) await A.deleteFundingOpp(id);
+          ids.forEach(id => { const i = rows.findIndex(x => x.id === id); if (i > -1) rows.splice(i, 1); sel.delete(id); });
+          toast(ids.length === 1 ? 'Deleted' : `${ids.length} deleted`); render();
+        } catch (err) { H.fail(err); }
+        return true;
+      };
+      const dl = t.closest('[data-del]'); if (dl) { await del([dl.dataset.del]); return; }
       const bk = t.closest('[data-bulk]'); if (bk) {
         const ids = [...sel], k = bk.dataset.bulk;
         if (k === 'clear') { sel.clear(); render(); return; }
+        if (k === 'delete') { await del(ids); return; }
         if (k === 'checked') await patch(ids, { checked_at: today }, `${ids.length} marked checked`);
         if (k === 'hide') await patch(ids, { active: false }, `${ids.length} hidden`);
         if (k === 'show') await patch(ids, { active: true }, `${ids.length} showing`);
